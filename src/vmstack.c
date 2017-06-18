@@ -16,10 +16,13 @@ void vmstack_destroy(struct VMStack *stack)
 
 struct Value *vmstack_push_internal(struct VMStack *stack)
 {
+    // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
 
         stack->capacity <<= 1;
 
+        // TODO: Make a more reasonable stack space limit than "we ran
+        // out of 32-bit integer".
         // TODO: Make this a normal error. (Return NULL?)
         assert(stack->capacity);
         if(!stack->capacity) {
@@ -51,6 +54,8 @@ bool vmstack_pushInt(struct VMStack *stack, int32_t value)
 
 struct Value *vmstack_pop(struct VMStack *stack)
 {
+    // TODO: Shrink the stack if we can?
+
     // TODO: Make this a normal error. (Return NULL?)
     assert(stack->size);
     if(stack->size == 0) {
