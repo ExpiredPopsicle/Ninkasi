@@ -319,21 +319,31 @@ void dumpExpressionAstNode(struct ExpressionAstNode *node)
         dumpExpressionAstNode(node->children[0]);
         printf(")");
 
+    } else if(node->opOrValue->type == TOKENTYPE_BRACKET_OPEN) {
+
+        printf("(");
+        dumpExpressionAstNode(node->children[0]);
+        printf(")[");
+        dumpExpressionAstNode(node->children[1]);
+        printf("]");
+
     } else {
 
+        printf("(");
         if(node->children[0]) {
+            printf("(");
             dumpExpressionAstNode(node->children[0]);
-        } else {
-            // printf(" NULL1");
+            printf(")");
         }
 
         printf("%s", node->opOrValue->str);
 
         if(node->children[1]) {
+            printf("(");
             dumpExpressionAstNode(node->children[1]);
-        } else {
-            // printf(" NULL2");
+            printf(")");
         }
+        printf(")");
 
     }
 }
@@ -501,7 +511,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
         if(firstPostfixOp) {
             assert(firstPostfixOp->children[0] == NULL);
             firstPostfixOp->children[0] = valueNode;
-            valueNode = firstPostfixOp;
+            valueNode = lastPostfixOp;
         }
         if(lastPrefixOp) {
             assert(lastPrefixOp->children[0] == NULL);
@@ -534,9 +544,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
             if(getPrecedence((*currentToken)->type) > getPrecedence(opStack->opOrValue->type)) {
 
                 reduce(&opStack, &valueStack);
-                dbgWriteLine(
-                    "Reduced! %s > %s",
-                    (*currentToken)->str, opStack->opOrValue->str);
+                dbgWriteLine("Reduced!");
 
             } else {
                 dbgWriteLine(
@@ -584,7 +592,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
     }
 
     dbgWriteLine("Expression parse success.");
-    return NULL;
+    return valueStack;
 }
 
 
@@ -630,8 +638,8 @@ int main(int argc, char *argv[])
     tokenList.first = NULL;
     tokenList.last = NULL;
     {
-        // bool r = tokenize("(((123 + 456)[1 + 2][3])) * 789++ - -100 / ------300", &tokenList);
-        bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
+        bool r = tokenize("(((123 + 456)[1 + 2][3])) * 789 - -100 / ------300", &tokenList);
+        // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
         // bool r = tokenize("123 + 456", &tokenList);
         assert(r);
     }
