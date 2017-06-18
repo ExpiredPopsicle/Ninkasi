@@ -14,7 +14,9 @@ enum TokenType
     TOKENTYPE_PAREN_OPEN,
     TOKENTYPE_PAREN_CLOSE,
     TOKENTYPE_BRACKET_OPEN,
-    TOKENTYPE_BRACKET_CLOSE
+    TOKENTYPE_BRACKET_CLOSE,
+
+    TOKENTYPE_INVALID
 };
 
 struct Token
@@ -237,6 +239,43 @@ void dbgPop(void)
     dbgIndentLevel--;
 }
 
+// TODO: Add line number.
+// TODO: Add descriptive token type name.
+// TODO: Add to error state instead of printing.
+#define EXPECT_AND_SKIP(x)                                      \
+    do {                                                        \
+        if(!currentToken || currentToken->type != x) {          \
+            dbgWriteLine("Error: Expected token type %d", x); \
+            return NULL;                                        \
+        }                                                       \
+        currentToken = currentToken->next;                      \
+    } while(0)
+
+
+bool getPrecedence(enum TokenType t)
+{
+    // Reference:
+    // http://en.cppreference.com/w/cpp/language/operator_precedence
+
+    switch(t) {
+        case TOKENTYPE_MULTIPLY:
+        case TOKENTYPE_DIVIDE:
+            return 5;
+        case TOKENTYPE_PLUS:
+        case TOKENTYPE_MINUS:
+            return 6;
+        default:
+            // TODO: Remove this. If this case is hit, then you forgot
+            // to implement some operator.
+            assert(0);
+    }
+
+    return 17;
+}
+
+
+
+
 struct Token *parseExpression(struct Token *currentToken)
 {
     while(!isExpressionEndingToken(currentToken)) {
@@ -250,9 +289,8 @@ struct Token *parseExpression(struct Token *currentToken)
         // Parse a value or sub-expression.
         if(currentToken->type == TOKENTYPE_PAREN_OPEN) {
 
-            dbgWriteLine("Parse sub-expression.");
-
             // Parse sub-expression.
+            dbgWriteLine("Parse sub-expression.");
             dbgPush();
             currentToken = parseExpression(currentToken->next);
             dbgPop();
@@ -260,13 +298,13 @@ struct Token *parseExpression(struct Token *currentToken)
             // Make sure we ended on a closing parenthesis.
             if(!currentToken || !isSubexpressionEndingToken(currentToken)) {
                 // TODO: Raise error flag.
-                printf("Error: Bad expression end.");
+                dbgWriteLine("Error: Bad expression end.");
                 return NULL;
             }
 
             dbgWriteLine("Back from sub-expression. Current token: %s", currentToken->str);
 
-            // Skip ending ')'.
+            // Skip expression-ending token.
             currentToken = currentToken->next;
 
         } else {
@@ -292,19 +330,11 @@ struct Token *parseExpression(struct Token *currentToken)
 
                 dbgWriteLine("Handling index-into operator.");
                 dbgPush();
-
                 currentToken = parseExpression(currentToken->next);
-
                 dbgPop();
 
-                if(!currentToken || currentToken->type != TOKENTYPE_BRACKET_CLOSE) {
-                    // TODO: Raise error flag.
-                    dbgWriteLine("Error: Bad end to index operator.");
-                    return NULL;
-                }
+                EXPECT_AND_SKIP(TOKENTYPE_BRACKET_CLOSE);
 
-                // Skip ']'.
-                currentToken = currentToken->next;
                 dbgWriteLine("Index-into operator complete.");
 
             } else {
@@ -321,6 +351,8 @@ struct Token *parseExpression(struct Token *currentToken)
 
         // TODO: Shift or reduce depending on last operator.
 
+        if(
+
         // (Maybe) parse an operator.
 
         // Check to see if we're just done or not.
@@ -331,6 +363,7 @@ struct Token *parseExpression(struct Token *currentToken)
 
         }
 
+        // Not done yet. Parse the operator.
         dbgWriteLine("Parse operator: %s", currentToken->str);
         currentToken = currentToken->next;
     }
