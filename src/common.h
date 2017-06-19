@@ -21,5 +21,7 @@ typedef unsigned char bool;
 #include "expressn.h"
 #include "optimize.h"
 #include "tokenize.h"
+#include "parse.h"
+#include "vmdbg.h"
 
 #endif

@@ -2,6 +2,7 @@
 #define EXPRESSN_H
 
 enum TokenType;
+struct Token;
 
 struct ExpressionAstNode
 {
@@ -14,7 +15,16 @@ struct ExpressionAstNode
     bool ownedToken;
 };
 
+bool isPrefixOperator(struct Token *token);
+bool isPostfixOperator(struct Token *token);
+bool isExpressionEndingToken(struct Token *token);
+bool isSubexpressionEndingToken(struct Token *token);
+bool getPrecedence(enum TokenType t);
+
 struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type);
 void deleteExpressionNode(struct ExpressionAstNode *node);
+void dumpExpressionAstNode(struct ExpressionAstNode *node);
+
+struct ExpressionAstNode *parseExpression(struct Token **currentToken);
 
 #endif
