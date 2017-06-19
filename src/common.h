@@ -15,9 +15,11 @@ typedef unsigned char bool;
 #define false ((bool)0)
 #define true ((bool)1)
 
-
 #include "vmstack.h"
 #include "value.h"
 #include "opcodes.h"
+#include "expressn.h"
+#include "optimize.h"
+#include "tokenize.h"
 
 #endif

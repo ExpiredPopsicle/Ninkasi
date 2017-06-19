@@ -1,0 +1,28 @@
+#ifndef TOKENIZE_H
+#define TOKENIZE_H
+
+enum TokenType
+{
+    TOKENTYPE_INTEGER,
+    TOKENTYPE_FLOAT,
+    TOKENTYPE_PLUS,
+    TOKENTYPE_MINUS,
+    TOKENTYPE_MULTIPLY,
+    TOKENTYPE_DIVIDE,
+    TOKENTYPE_INCREMENT,
+    TOKENTYPE_PAREN_OPEN,
+    TOKENTYPE_PAREN_CLOSE,
+    TOKENTYPE_BRACKET_OPEN,
+    TOKENTYPE_BRACKET_CLOSE,
+
+    TOKENTYPE_INVALID
+};
+
+struct Token
+{
+    enum TokenType type;
+    char *str;
+    struct Token *next;
+};
+
+#endif

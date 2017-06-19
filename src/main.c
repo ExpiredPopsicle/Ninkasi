@@ -2,30 +2,6 @@
 
 // ----------------------------------------------------------------------
 
-enum TokenType
-{
-    TOKENTYPE_INTEGER,
-    TOKENTYPE_FLOAT,
-    TOKENTYPE_PLUS,
-    TOKENTYPE_MINUS,
-    TOKENTYPE_MULTIPLY,
-    TOKENTYPE_DIVIDE,
-    TOKENTYPE_INCREMENT,
-    TOKENTYPE_PAREN_OPEN,
-    TOKENTYPE_PAREN_CLOSE,
-    TOKENTYPE_BRACKET_OPEN,
-    TOKENTYPE_BRACKET_CLOSE,
-
-    TOKENTYPE_INVALID
-};
-
-struct Token
-{
-    enum TokenType type;
-    char *str;
-    struct Token *next;
-};
-
 bool isWhitespace(char c)
 {
     if(c == ' ' || c == '\n' || c == '\t' || c == '\r') {
@@ -204,18 +180,6 @@ bool isPostfixOperator(struct Token *token)
         token->type == TOKENTYPE_BRACKET_OPEN);
 }
 
-// enum TokenType getExpectedEndTokenType(struct Token *tok)
-// {
-//     switch(tok->type) {
-//         case TOKENTYPE_BRACKET_OPEN:
-//             return TOKENTYPE_BRACKET_CLOSE;
-//         case TOKENTYPE_PAREN_OPEN:
-//             return TOKENTYPE_PAREN_CLOSE;
-//         default:
-//             return ~0;
-//     }
-// }
-
 int32_t dbgIndentLevel = 0;
 int dbgWriteLine(const char *fmt, ...)
 {
@@ -281,18 +245,6 @@ bool getPrecedence(enum TokenType t)
 
     return 17;
 }
-
-
-struct ExpressionAstNode
-{
-    struct Token *opOrValue;
-    struct ExpressionAstNode *children[2];
-    struct ExpressionAstNode *stackNext;
-
-    // True if the token was generated for this ExpressionAstNode, and
-    // should be deleted with it.
-    bool ownedToken;
-};
 
 #define MAKE_OP(x)                                                      \
     struct ExpressionAstNode *astNode = malloc(sizeof(struct ExpressionAstNode)); \
@@ -608,40 +560,6 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
 
 // ----------------------------------------------------------------------
 // Optimization
-
-bool canOptimizeOperationWithConstants(struct ExpressionAstNode *node)
-{
-    if(node->opOrValue->type == TOKENTYPE_PLUS ||
-        node->opOrValue->type == TOKENTYPE_MINUS ||
-        node->opOrValue->type == TOKENTYPE_MULTIPLY ||
-        node->opOrValue->type == TOKENTYPE_DIVIDE)
-    {
-        return true;
-    }
-    return false;
-}
-
-bool isImmediateValue(struct ExpressionAstNode *node)
-{
-    if(node->opOrValue->type == TOKENTYPE_INTEGER ||
-        node->opOrValue->type == TOKENTYPE_FLOAT)
-    {
-        return true;
-    }
-    return false;
-}
-
-struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type)
-{
-    struct ExpressionAstNode *newNode = malloc(sizeof(struct ExpressionAstNode));
-    struct Token *newToken = malloc(sizeof(struct Token));
-    memset(newNode, 0, sizeof(*newNode));
-    memset(newToken, 0, sizeof(*newToken));
-    newNode->ownedToken = true;
-    newNode->opOrValue = newToken;
-    newToken->type = type;
-    return newNode;
-}
 
 // int32_t getIntegerForNode(struct ExpressionAstNode *node)
 // {
