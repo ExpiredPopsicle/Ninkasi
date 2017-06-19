@@ -6,6 +6,7 @@
 #include <malloc.h>
 #include <string.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 // TODO: Get all this crap from common.h in the engine.
 typedef unsigned int uint32_t;
