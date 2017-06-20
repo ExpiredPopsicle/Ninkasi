@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
         tokenList.first = NULL;
         tokenList.last = NULL;
         {
-            bool r = tokenize("(((123\n +\n 456)[1 +\n 2\n]\n[\n3 4 5\n])) * 789 - -100 / ------300", &tokenList);
+            bool r = tokenize("(((123\n +\n 456)[1 +\n 2\n]\n[\n3\n])) * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);

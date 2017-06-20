@@ -328,10 +328,35 @@ struct ExpressionAstNode *parseExpression(
 
             dbgWriteLine("Parse postfix operator: %s", (*currentToken)->str);
 
-            // Handle index-into operator.
             if((*currentToken)->type == TOKENTYPE_BRACKET_OPEN) {
 
+                // Handle index-into operator.
+
                 dbgWriteLine("Handling index-into operator.");
+                dbgPush();
+                NEXT_TOKEN();
+                postfixNode->children[1] = parseExpression(vm, currentToken);
+                dbgPop();
+
+                // Error-check.
+                if(!postfixNode->children[1]) {
+                    PARSE_ERROR("Index subexpression parse failure.");
+                    CLEANUP_INLOOP();
+                    return NULL;
+                }
+
+                EXPECT_AND_SKIP(TOKENTYPE_BRACKET_CLOSE);
+
+                dbgWriteLine("Index-into operator complete.");
+
+            } else if((*currentToken)->type == TOKENTYPE_PAREN_OPEN) {
+
+                // Handle function call "operator".
+                dbgWriteLine("Handling function call operator.");
+
+                // TODO: Keep handling expressions as long as we end
+                // up on a comma.
+
                 dbgPush();
                 NEXT_TOKEN();
                 postfixNode->children[1] = parseExpression(vm, currentToken);
