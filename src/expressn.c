@@ -19,6 +19,10 @@
 
 void deleteExpressionNode(struct ExpressionAstNode *node)
 {
+    if(!node) {
+        return;
+    }
+
     if(node->ownedToken) {
         deleteToken(node->opOrValue);
         node->opOrValue = NULL;
@@ -180,7 +184,31 @@ void reduce(
     (*valueStack) = opNode;
 }
 
-struct ExpressionAstNode *parseExpression(struct Token **currentToken)
+#define CLEANUP_OUTER()                                             \
+    do {                                                            \
+        while(opStack) {                                            \
+            struct ExpressionAstNode *next = opStack->stackNext;    \
+            deleteExpressionNode(opStack);                          \
+            opStack = next;                                         \
+        }                                                           \
+        while(valueStack) {                                         \
+            struct ExpressionAstNode *next = valueStack->stackNext; \
+            deleteExpressionNode(valueStack);                       \
+            valueStack = next;                                      \
+        }                                                           \
+    } while(0)
+
+#define CLEANUP_INLOOP()                        \
+    do {                                        \
+        CLEANUP_OUTER();                        \
+        deleteExpressionNode(firstPrefixOp);    \
+        deleteExpressionNode(firstPostfixOp);   \
+        deleteExpressionNode(valueNode);        \
+    } while(0)
+
+struct ExpressionAstNode *parseExpression(
+    struct VM *vm,
+    struct Token **currentToken)
 {
     struct ExpressionAstNode *opStack = NULL;
     struct ExpressionAstNode *valueStack = NULL;
@@ -223,12 +251,13 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
             dbgWriteLine("Parse sub-expression.");
             dbgPush();
             NEXT_TOKEN();
-            valueNode = parseExpression(currentToken);
+            valueNode = parseExpression(vm, currentToken);
             dbgPop();
 
             // Error check.
             if(!valueNode) {
                 dbgWriteLine("Error: Subexpression parse failure.");
+                CLEANUP_INLOOP();
                 return NULL;
             }
 
@@ -236,6 +265,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
             if(!(*currentToken) || !isSubexpressionEndingToken(*currentToken)) {
                 // TODO: Raise error flag.
                 dbgWriteLine("Error: Bad expression end.");
+                CLEANUP_INLOOP();
                 return NULL;
             }
 
@@ -260,6 +290,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
                 // Prefix operator with no value. Why?
                 // TODO: Raise error flag.
                 dbgWriteLine("Error: Prefix with no value.");
+                CLEANUP_INLOOP();
                 return NULL;
             }
         }
@@ -290,12 +321,13 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
                 dbgWriteLine("Handling index-into operator.");
                 dbgPush();
                 NEXT_TOKEN();
-                postfixNode->children[1] = parseExpression(currentToken);
+                postfixNode->children[1] = parseExpression(vm, currentToken);
                 dbgPop();
 
                 // Error-check.
                 if(!postfixNode->children[1]) {
                     dbgWriteLine("Error: Subexpression parse failure.");
+                    CLEANUP_INLOOP();
                     return NULL;
                 }
 
@@ -309,6 +341,7 @@ struct ExpressionAstNode *parseExpression(struct Token **currentToken)
                 dbgWriteLine(
                     "Error: Unknown postfix operator (not implemented?): %s",
                     (*currentToken)->str);
+                CLEANUP_INLOOP();
                 return NULL;
 
             }

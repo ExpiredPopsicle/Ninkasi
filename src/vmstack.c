@@ -1,6 +1,6 @@
 #include "common.h"
 
-void vmstack_init(struct VMStack *stack)
+void vmStackInit(struct VMStack *stack)
 {
     stack->values = calloc(1, sizeof(struct Value));
     stack->size = 0;
@@ -8,13 +8,13 @@ void vmstack_init(struct VMStack *stack)
     stack->indexMask = 0;
 }
 
-void vmstack_destroy(struct VMStack *stack)
+void vmStackDestroy(struct VMStack *stack)
 {
     free(stack->values);
     memset(stack, 0, sizeof(struct VMStack));
 }
 
-struct Value *vmstack_push_internal(struct VMStack *stack)
+struct Value *vmStackPush_internal(struct VMStack *stack)
 {
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
@@ -43,9 +43,9 @@ struct Value *vmstack_push_internal(struct VMStack *stack)
     }
 }
 
-bool vmstack_pushInt(struct VMStack *stack, int32_t value)
+bool vmStackPushInt(struct VMStack *stack, int32_t value)
 {
-    struct Value *data = vmstack_push_internal(stack);
+    struct Value *data = vmStackPush_internal(stack);
     if(data) {
         data->type = VALUETYPE_INT;
         data->intData = value;
@@ -54,7 +54,7 @@ bool vmstack_pushInt(struct VMStack *stack, int32_t value)
     return false;
 }
 
-struct Value *vmstack_pop(struct VMStack *stack)
+struct Value *vmStackPop(struct VMStack *stack)
 {
     // TODO: Shrink the stack if we can?
 
@@ -68,17 +68,17 @@ struct Value *vmstack_pop(struct VMStack *stack)
     return &stack->values[stack->size];
 }
 
-void vmstack_dump(struct VMStack *stack)
+void vmStackDump(struct VMStack *stack)
 {
     uint32_t i;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        value_dump(vmstack_peek(stack, i));
+        value_dump(vmStackPeek(stack, i));
         printf("\n");
     }
 }
 
-struct Value *vmstack_peek(struct VMStack *stack, uint32_t index)
+struct Value *vmStackPeek(struct VMStack *stack, uint32_t index)
 {
     return &stack->values[index & stack->indexMask];
 }

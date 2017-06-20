@@ -11,14 +11,14 @@ struct VMStack
     uint32_t indexMask;
 };
 
-void vmstack_init(struct VMStack *stack);
-void vmstack_destroy(struct VMStack *stack);
+void vmStackInit(struct VMStack *stack);
+void vmStackDestroy(struct VMStack *stack);
 //struct Value *vmstack_push_internal(struct VMStack *stack);
-bool vmstack_pushInt(struct VMStack *stack, int32_t value);
-struct Value *vmstack_pop(struct VMStack *stack);
+bool vmStackPushInt(struct VMStack *stack, int32_t value);
+struct Value *vmStackPop(struct VMStack *stack);
 
-struct Value *vmstack_peek(struct VMStack *stack, uint32_t index);
+struct Value *vmStackPeek(struct VMStack *stack, uint32_t index);
 
-void vmstack_dump(struct VMStack *stack);
+void vmStackDump(struct VMStack *stack);
 
 #endif

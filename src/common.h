@@ -8,13 +8,7 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-// TODO: Get all this crap from common.h in the engine.
-typedef unsigned int uint32_t;
-typedef int int32_t;
-typedef unsigned char bool;
-#define false ((bool)0)
-#define true ((bool)1)
-
+#include "basetype.h"
 #include "enums.h"
 #include "vmstack.h"
 #include "value.h"
@@ -24,5 +18,8 @@ typedef unsigned char bool;
 #include "tokenize.h"
 #include "parse.h"
 #include "vmdbg.h"
+#include "error.h"
+#include "dynstr.h"
+#include "vm.h"
 
 #endif

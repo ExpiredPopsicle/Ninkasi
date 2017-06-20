@@ -2,6 +2,7 @@
 #define EXPRESSN_H
 
 struct Token;
+struct VM;
 
 struct ExpressionAstNode
 {
@@ -24,6 +25,6 @@ struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type);
 void deleteExpressionNode(struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
-struct ExpressionAstNode *parseExpression(struct Token **currentToken);
+struct ExpressionAstNode *parseExpression(struct VM *vm, struct Token **currentToken);
 
 #endif

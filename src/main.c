@@ -2,31 +2,33 @@
 
 int main(int argc, char *argv[])
 {
-    struct VMStack stack;
-    vmstack_init(&stack);
+    struct VM vm;
 
-    // struct Value *t1 = vmstack_push(&stack);
-    // struct Value *t2 = vmstack_push(&stack);
+    struct VMStack stack;
+    vmStackInit(&stack);
+
+    // struct Value *t1 = vmStackpush(&stack);
+    // struct Value *t2 = vmStackpush(&stack);
 
     // t1->type = VALUETYPE_INT;
     // t2->type = VALUETYPE_INT;
     // t1->intData = 123;
     // t2->intData = 456;
 
-    vmstack_pushInt(&stack, 123);
-    vmstack_pushInt(&stack, 456);
+    vmStackPushInt(&stack, 123);
+    vmStackPushInt(&stack, 456);
 
     opcode_add(&stack);
 
-    vmstack_pushInt(&stack, 123);
-    vmstack_pushInt(&stack, 456);
+    vmStackPushInt(&stack, 123);
+    vmStackPushInt(&stack, 456);
 
-    vmstack_pushInt(&stack, 123);
-    vmstack_pushInt(&stack, 456);
+    vmStackPushInt(&stack, 123);
+    vmStackPushInt(&stack, 456);
 
-    vmstack_dump(&stack);
+    vmStackDump(&stack);
 
-    vmstack_destroy(&stack);
+    vmStackDestroy(&stack);
 
     {
         struct Instruction instructions[3];
@@ -42,28 +44,35 @@ int main(int argc, char *argv[])
         instructions[2].opcode = OP_ADD;
     }
 
+
+    vmInit(&vm);
+
+
     printf("Tokenize test...\n");
     {
         struct TokenList tokenList;
         tokenList.first = NULL;
         tokenList.last = NULL;
         {
-            bool r = tokenize("(((123 + 456)[1 + 2][3])) * 789 - -100 / ------300", &tokenList);
+            bool r = tokenize("(((123 + 456)[1 + 2][3]) * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             assert(r);
         }
         {
             struct Token *tokenPtr = tokenList.first;
-            struct ExpressionAstNode *node = parseExpression(&tokenPtr);
-            // optimizeConstants(&node);
-            dumpExpressionAstNode(node);
-            printf("\n");
-
-            deleteExpressionNode(node);
+            struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
+            if(node) {
+                optimizeConstants(&node);
+                dumpExpressionAstNode(node);
+                printf("\n");
+                deleteExpressionNode(node);
+            }
         }
         destroyTokenList(&tokenList);
     }
+
+    vmDestroy(&vm);
 
     return 0;
 }
