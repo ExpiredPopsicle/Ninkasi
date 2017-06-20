@@ -1,7 +1,6 @@
 #ifndef EXPRESSN_H
 #define EXPRESSN_H
 
-enum TokenType;
 struct Token;
 
 struct ExpressionAstNode

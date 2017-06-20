@@ -1,22 +1,7 @@
 #ifndef TOKENIZE_H
 #define TOKENIZE_H
 
-enum TokenType
-{
-    TOKENTYPE_INTEGER,
-    TOKENTYPE_FLOAT,
-    TOKENTYPE_PLUS,
-    TOKENTYPE_MINUS,
-    TOKENTYPE_MULTIPLY,
-    TOKENTYPE_DIVIDE,
-    TOKENTYPE_INCREMENT,
-    TOKENTYPE_PAREN_OPEN,
-    TOKENTYPE_PAREN_CLOSE,
-    TOKENTYPE_BRACKET_OPEN,
-    TOKENTYPE_BRACKET_CLOSE,
-
-    TOKENTYPE_INVALID
-};
+#include "enums.h"
 
 struct Token
 {
@@ -38,6 +23,5 @@ void addToken(
     const char *str,
     struct TokenList *tokenList);
 bool tokenize(const char *str, struct TokenList *tokenList);
-
 
 #endif

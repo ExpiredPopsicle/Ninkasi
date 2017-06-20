@@ -1,10 +1,7 @@
 #ifndef VALUE_H
 #define VALUE_H
 
-enum ValueType
-{
-    VALUETYPE_INT,
-};
+#include "enums.h"
 
 struct Value
 {

@@ -36,9 +36,11 @@ struct Value *vmstack_push_internal(struct VMStack *stack)
             stack->capacity * sizeof(struct Value));
     }
 
-    struct Value *ret = &stack->values[stack->size];
-    stack->size++;
-    return ret;
+    {
+        struct Value *ret = &stack->values[stack->size];
+        stack->size++;
+        return ret;
+    }
 }
 
 bool vmstack_pushInt(struct VMStack *stack, int32_t value)

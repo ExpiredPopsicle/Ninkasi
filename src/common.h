@@ -15,6 +15,7 @@ typedef unsigned char bool;
 #define false ((bool)0)
 #define true ((bool)1)
 
+#include "enums.h"
 #include "vmstack.h"
 #include "value.h"
 #include "opcodes.h"

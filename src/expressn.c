@@ -1,5 +1,22 @@
 #include "common.h"
 
+
+// void *wrapMalloc(uint32_t size)
+// {
+//     void *v = malloc(size);
+//     printf("Malloc: %p\n", v);
+//     return v;
+// }
+// void wrapFree(void *v)
+// {
+//     printf("Free:   %p\n", v);
+//     free(v);
+// }
+// #define malloc(x) wrapMalloc(x)
+// #define free(x) wrapFree(x)
+
+
+
 void deleteExpressionNode(struct ExpressionAstNode *node)
 {
     if(node->ownedToken) {
@@ -13,6 +30,8 @@ void deleteExpressionNode(struct ExpressionAstNode *node)
     if(node->children[1]) {
         deleteExpressionNode(node->children[1]);
     }
+
+    free(node);
 }
 
 void dumpExpressionAstNode(struct ExpressionAstNode *node)
@@ -135,14 +154,6 @@ bool getPrecedence(enum TokenType t)
         MAKE_OP(x);                             \
         opStack = astNode;                      \
     } while(0)
-
-#define PUSH_VAL(x)                             \
-    do {                                        \
-        MAKE_OP(x);                             \
-        valueStack = astNode;                   \
-    } while(0)
-
-
 
 void reduce(
     struct ExpressionAstNode **opStack,

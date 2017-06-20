@@ -114,10 +114,12 @@ void optimizeConstants(struct ExpressionAstNode **node)
                     int32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
                     int32_t c1Val = (*node)->children[1] ? atoi((*node)->children[1]->opOrValue->str) : 0;
                     int32_t val = 0;
-                    char tmp[256];
+                    char tmp[32];
 
                     // Do the actual operation.
                     APPLY_MATH();
+
+                    // TODO: Use sprintf_s.
 
                     // Set the string for the result.
                     sprintf(tmp, "%d", val);
@@ -135,10 +137,12 @@ void optimizeConstants(struct ExpressionAstNode **node)
                     float c0Val = (*node)->children[0] ? atof((*node)->children[0]->opOrValue->str) : 0;
                     float c1Val = (*node)->children[1] ? atof((*node)->children[1]->opOrValue->str) : 0;
                     float val = 0;
-                    char tmp[256];
+                    char tmp[32];
 
                     // Do the actual operation.
                     APPLY_MATH();
+
+                    // TODO: Use sprintf_s.
 
                     // Set the string for the result.
                     sprintf(tmp, "%f", val);

@@ -1,12 +1,23 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
+#include "value.h"
+
 struct VMStack;
 
-enum Opcodes
+struct Instruction
 {
-    OP_ADD,
+    enum Opcode opcode;
+
+    union
+    {
+        struct
+        {
+            struct Value value;
+        } pushLiteralData;
+    };
 };
+
 
 bool opcode_add(struct VMStack *stack);
 
