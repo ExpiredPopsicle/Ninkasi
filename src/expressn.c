@@ -106,7 +106,7 @@ bool isPostfixOperator(struct Token *token)
         token->type == TOKENTYPE_BRACKET_OPEN);
 }
 
-bool getPrecedence(enum TokenType t)
+int32_t getPrecedence(enum TokenType t)
 {
     // Reference:
     // http://en.cppreference.com/w/cpp/language/operator_precedence
@@ -119,30 +119,62 @@ bool getPrecedence(enum TokenType t)
         case TOKENTYPE_MINUS:
             return 6;
         default:
-            // TODO: Remove this. If this case is hit, then you forgot
-            // to implement some operator.
-            assert(0);
+            // Error?
+            return -1;
     }
-
-    return 17;
 }
 
 
-// TODO: Add line number.
-// TODO: Add descriptive token type name.
-// TODO: Add to error state instead of printing.
-#define EXPECT_AND_SKIP(x)                                      \
-    do {                                                        \
-        if(!(*currentToken) || (*currentToken)->type != x) {    \
-            dbgWriteLine("Error: Expected token type %d", x);   \
-            return NULL;                                        \
-        }                                                       \
-        (*currentToken) = (*currentToken)->next;                \
+#define PARSE_ERROR(x)                          \
+    errorStateAddError(                         \
+        &vm->errorState,                        \
+        currentLineNumber,                      \
+        (x))
+
+#define CLEANUP_OUTER()                                             \
+    do {                                                            \
+        while(opStack) {                                            \
+            struct ExpressionAstNode *next = opStack->stackNext;    \
+            deleteExpressionNode(opStack);                          \
+            opStack = next;                                         \
+        }                                                           \
+        while(valueStack) {                                         \
+            struct ExpressionAstNode *next = valueStack->stackNext; \
+            deleteExpressionNode(valueStack);                       \
+            valueStack = next;                                      \
+        }                                                           \
     } while(0)
 
-#define NEXT_TOKEN()                                \
-    do {                                            \
-        (*currentToken) = (*currentToken)->next;    \
+#define CLEANUP_INLOOP()                        \
+    do {                                        \
+        CLEANUP_OUTER();                        \
+        deleteExpressionNode(firstPrefixOp);    \
+        deleteExpressionNode(lastPostfixOp);    \
+        deleteExpressionNode(valueNode);        \
+    } while(0)
+
+#define NEXT_TOKEN()                                            \
+    do {                                                        \
+        (*currentToken) = (*currentToken)->next;                \
+        if(*currentToken) {                                     \
+            currentLineNumber = (*currentToken)->lineNumber;    \
+        }                                                       \
+    } while(0)
+
+#define EXPECT_AND_SKIP(x)                                          \
+    do {                                                            \
+        if(!(*currentToken) || (*currentToken)->type != x) {        \
+            struct DynString *errStr =                              \
+                dynStrCreate("Unexpected token: ");                 \
+            dynStrAppend(                                           \
+                errStr,                                             \
+                *currentToken ? (*currentToken)->str : "<none>");   \
+            PARSE_ERROR(errStr->data);                              \
+            dynStrDelete(errStr);                                   \
+            CLEANUP_INLOOP();                                       \
+            return NULL;                                            \
+        }                                                           \
+        NEXT_TOKEN();                                               \
     } while(0)
 
 #define MAKE_OP(x)                                                      \
@@ -184,34 +216,14 @@ void reduce(
     (*valueStack) = opNode;
 }
 
-#define CLEANUP_OUTER()                                             \
-    do {                                                            \
-        while(opStack) {                                            \
-            struct ExpressionAstNode *next = opStack->stackNext;    \
-            deleteExpressionNode(opStack);                          \
-            opStack = next;                                         \
-        }                                                           \
-        while(valueStack) {                                         \
-            struct ExpressionAstNode *next = valueStack->stackNext; \
-            deleteExpressionNode(valueStack);                       \
-            valueStack = next;                                      \
-        }                                                           \
-    } while(0)
-
-#define CLEANUP_INLOOP()                        \
-    do {                                        \
-        CLEANUP_OUTER();                        \
-        deleteExpressionNode(firstPrefixOp);    \
-        deleteExpressionNode(firstPostfixOp);   \
-        deleteExpressionNode(valueNode);        \
-    } while(0)
-
 struct ExpressionAstNode *parseExpression(
     struct VM *vm,
     struct Token **currentToken)
 {
     struct ExpressionAstNode *opStack = NULL;
     struct ExpressionAstNode *valueStack = NULL;
+    int32_t currentLineNumber =
+        (*currentToken) ? (*currentToken)->lineNumber : -1;
 
     while(!isExpressionEndingToken(*currentToken)) {
 
@@ -256,15 +268,14 @@ struct ExpressionAstNode *parseExpression(
 
             // Error check.
             if(!valueNode) {
-                dbgWriteLine("Error: Subexpression parse failure.");
+                PARSE_ERROR("Subexpression parse failure.");
                 CLEANUP_INLOOP();
                 return NULL;
             }
 
             // Make sure we ended on a closing parenthesis.
             if(!(*currentToken) || !isSubexpressionEndingToken(*currentToken)) {
-                // TODO: Raise error flag.
-                dbgWriteLine("Error: Bad expression end.");
+                PARSE_ERROR("Bad expression end.");
                 CLEANUP_INLOOP();
                 return NULL;
             }
@@ -287,9 +298,10 @@ struct ExpressionAstNode *parseExpression(
                 NEXT_TOKEN();
 
             } else {
+
                 // Prefix operator with no value. Why?
                 // TODO: Raise error flag.
-                dbgWriteLine("Error: Prefix with no value.");
+                PARSE_ERROR("Prefix with no value.");
                 CLEANUP_INLOOP();
                 return NULL;
             }
@@ -298,7 +310,8 @@ struct ExpressionAstNode *parseExpression(
         // Deal with postfix operators.
         while(isPostfixOperator(*currentToken)) {
 
-            struct ExpressionAstNode *postfixNode = malloc(sizeof(struct ExpressionAstNode));
+            struct ExpressionAstNode *postfixNode =
+                malloc(sizeof(struct ExpressionAstNode));
             memset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
@@ -326,7 +339,7 @@ struct ExpressionAstNode *parseExpression(
 
                 // Error-check.
                 if(!postfixNode->children[1]) {
-                    dbgWriteLine("Error: Subexpression parse failure.");
+                    PARSE_ERROR("Subexpression parse failure.");
                     CLEANUP_INLOOP();
                     return NULL;
                 }
@@ -337,10 +350,11 @@ struct ExpressionAstNode *parseExpression(
 
             } else {
 
-                // TODO: Raise error flag.
-                dbgWriteLine(
-                    "Error: Unknown postfix operator (not implemented?): %s",
-                    (*currentToken)->str);
+                struct DynString *str =
+                    dynStrCreate("Unknown postfix operator: ");
+                dynStrAppend(str, (*currentToken)->str);
+                PARSE_ERROR(str->data);
+                dynStrDelete(str);
                 CLEANUP_INLOOP();
                 return NULL;
 
@@ -362,6 +376,7 @@ struct ExpressionAstNode *parseExpression(
         // Push this value.
         valueNode->stackNext = valueStack;
         valueStack = valueNode;
+        valueNode = NULL;
 
         // Check to see if we're just done or not.
         if(isExpressionEndingToken(*currentToken)) {
@@ -372,6 +387,17 @@ struct ExpressionAstNode *parseExpression(
 
         // Not done yet. Parse the next operator.
         dbgWriteLine("Parse operator: %s", (*currentToken)->str);
+
+        // Make sure this is even something valid.
+        if(getPrecedence((*currentToken)->type) == -1) {
+            struct DynString *str =
+                dynStrCreate("Unknown operator: ");
+            dynStrAppend(str, (*currentToken)->str);
+            PARSE_ERROR(str->data);
+            dynStrDelete(str);
+            CLEANUP_INLOOP();
+            return NULL;
+        }
 
         // Attempt to reduce.
         if(opStack) {

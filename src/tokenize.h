@@ -8,6 +8,7 @@ struct Token
     enum TokenType type;
     char *str;
     struct Token *next;
+    int32_t lineNumber;
 };
 
 struct TokenList
@@ -21,6 +22,7 @@ void destroyTokenList(struct TokenList *tokenList);
 void addToken(
     enum TokenType type,
     const char *str,
+    int32_t lineNumber,
     struct TokenList *tokenList);
 bool tokenize(const char *str, struct TokenList *tokenList);
 

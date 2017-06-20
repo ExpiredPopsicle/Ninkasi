@@ -19,7 +19,7 @@ bool isPrefixOperator(struct Token *token);
 bool isPostfixOperator(struct Token *token);
 bool isExpressionEndingToken(struct Token *token);
 bool isSubexpressionEndingToken(struct Token *token);
-bool getPrecedence(enum TokenType t);
+int32_t getPrecedence(enum TokenType t);
 
 struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type);
 void deleteExpressionNode(struct ExpressionAstNode *node);

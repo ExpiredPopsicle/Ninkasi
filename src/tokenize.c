@@ -34,12 +34,14 @@ void destroyTokenList(struct TokenList *tokenList)
 void addToken(
     enum TokenType type,
     const char *str,
+    int32_t lineNumber,
     struct TokenList *tokenList)
 {
     struct Token *newToken = malloc(sizeof(struct Token));
     newToken->next = NULL;
     newToken->str = strdup(str);
     newToken->type = type;
+    newToken->lineNumber = lineNumber;
 
     // Add us to the end of the list.
     if(tokenList->last) {
@@ -59,51 +61,55 @@ bool tokenize(const char *str, struct TokenList *tokenList)
 {
     uint32_t len = strlen(str);
     uint32_t i = 0;
+    int32_t lineNumber = 1;
 
     while(i < len) {
 
         // Skip whitespace.
         while(i < len && isWhitespace(str[i])) {
+            if(str[i] == '\n') {
+                lineNumber++;
+            }
             i++;
         }
 
         if(str[i] == '(') {
 
-            addToken(TOKENTYPE_PAREN_OPEN, "(", tokenList);
+            addToken(TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
 
         } else if(str[i] == ')') {
 
-            addToken(TOKENTYPE_PAREN_CLOSE, ")", tokenList);
+            addToken(TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
 
         } else if(str[i] == '[') {
 
-            addToken(TOKENTYPE_BRACKET_OPEN, "[", tokenList);
+            addToken(TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
 
         } else if(str[i] == ']') {
 
-            addToken(TOKENTYPE_BRACKET_CLOSE, "]", tokenList);
+            addToken(TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
 
         } else if(str[i] == '+') {
 
             // Check for "++".
             if(str[i+1] == '+') {
-                addToken(TOKENTYPE_INCREMENT, "++", tokenList);
+                addToken(TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_PLUS, "+", tokenList);
+                addToken(TOKENTYPE_PLUS, "+", lineNumber, tokenList);
             }
 
         } else if(str[i] == '-') {
 
-            addToken(TOKENTYPE_MINUS, "-", tokenList);
+            addToken(TOKENTYPE_MINUS, "-", lineNumber, tokenList);
 
         } else if(str[i] == '*') {
 
-            addToken(TOKENTYPE_MULTIPLY, "*", tokenList);
+            addToken(TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
 
         } else if(str[i] == '/') {
 
-            addToken(TOKENTYPE_DIVIDE, "/", tokenList);
+            addToken(TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
 
         } else if(isNumber(str[i])) {
 
@@ -133,6 +139,7 @@ bool tokenize(const char *str, struct TokenList *tokenList)
             addToken(
                 isFloat ? TOKENTYPE_FLOAT : TOKENTYPE_INTEGER,
                 tmp,
+                lineNumber,
                 tokenList);
 
         } else {

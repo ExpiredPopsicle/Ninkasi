@@ -54,22 +54,32 @@ int main(int argc, char *argv[])
         tokenList.first = NULL;
         tokenList.last = NULL;
         {
-            bool r = tokenize("(((123 + 456)[1 + 2][3]) * 789 - -100 / ------300", &tokenList);
+            bool r = tokenize("(((123\n +\n 456)[1 +\n 2\n]\n[\n3 4 5\n])) * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
-            assert(r);
-        }
-        {
-            struct Token *tokenPtr = tokenList.first;
-            struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
-            if(node) {
-                optimizeConstants(&node);
-                dumpExpressionAstNode(node);
-                printf("\n");
-                deleteExpressionNode(node);
+            // assert(r);
+
+            if(r) {
+                struct Token *tokenPtr = tokenList.first;
+                struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
+                if(node) {
+                    optimizeConstants(&node);
+                    dumpExpressionAstNode(node);
+                    printf("\n");
+                    deleteExpressionNode(node);
+                }
+
+                // Dump errors.
+                if(vm.errorState.firstError) {
+                    struct Error *err = vm.errorState.firstError;
+                    while(err) {
+                        printf("error: %s\n", err->errorText);
+                        err = err->next;
+                    }
+                }
             }
+            destroyTokenList(&tokenList);
         }
-        destroyTokenList(&tokenList);
     }
 
     vmDestroy(&vm);

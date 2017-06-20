@@ -18,7 +18,10 @@ void errorStateAddError(
     dynStrDelete(fixedStr);
 
     // Add error to the error list.
-    es->lastError->next = newError;
+    if(es->lastError) {
+        es->lastError->next = newError;
+    }
+    es->lastError = newError;
     if(!es->firstError) {
         es->firstError = newError;
     }
@@ -35,6 +38,7 @@ void errorStateDestroy(struct ErrorState *es)
     struct Error *e = es->firstError;
     while(e) {
         struct Error *next = e->next;
+        free(e->errorText);
         free(e);
         e = next;
     }
