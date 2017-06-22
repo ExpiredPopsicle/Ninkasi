@@ -4,6 +4,7 @@
 #include "value.h"
 
 struct VMStack;
+struct VM;
 
 struct Instruction
 {
@@ -19,6 +20,8 @@ struct Instruction
 };
 
 
-bool opcode_add(struct VMStack *stack);
+void opcode_add(struct VM *vm, struct Instruction *instruction);
+void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction);
+void opcode_nop(struct VM *vm, struct Instruction *instruction);
 
 #endif

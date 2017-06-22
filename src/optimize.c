@@ -78,6 +78,12 @@ struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type)
 
 void optimizeConstants(struct ExpressionAstNode **node)
 {
+    // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
+    // add zero, subtract zero, etc. We can do this even if we don't
+    // have both sides of the equation fully simplified. NOTE: Do NOT
+    // eliminate the other side of a multiply-by-zero, or you might
+    // optimize-away a function call.
+
     // First recurse into children and optimize them. Maybe they'll
     // become immediate values we can work with.
     if((*node)->children[0]) {

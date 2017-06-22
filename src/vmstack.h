@@ -13,7 +13,11 @@ struct VMStack
 
 void vmStackInit(struct VMStack *stack);
 void vmStackDestroy(struct VMStack *stack);
-//struct Value *vmstack_push_internal(struct VMStack *stack);
+
+/// Pushes a new value and returns a pointer to it (so the caller may
+/// fill it in).
+struct Value *vmStackPush_internal(struct VMStack *stack);
+
 bool vmStackPushInt(struct VMStack *stack, int32_t value);
 struct Value *vmStackPop(struct VMStack *stack);
 

@@ -15,37 +15,51 @@ int main(int argc, char *argv[])
     // t1->intData = 123;
     // t2->intData = 456;
 
-    vmStackPushInt(&stack, 123);
-    vmStackPushInt(&stack, 456);
 
-    opcode_add(&stack);
 
-    vmStackPushInt(&stack, 123);
-    vmStackPushInt(&stack, 456);
 
-    vmStackPushInt(&stack, 123);
-    vmStackPushInt(&stack, 456);
+    // vmStackPushInt(&stack, 123);
+    // vmStackPushInt(&stack, 456);
 
-    vmStackDump(&stack);
+    // opcode_add(&stack);
 
-    vmStackDestroy(&stack);
+    // vmStackPushInt(&stack, 123);
+    // vmStackPushInt(&stack, 456);
 
-    {
-        struct Instruction instructions[3];
+    // vmStackPushInt(&stack, 123);
+    // vmStackPushInt(&stack, 456);
 
-        instructions[0].opcode = OP_PUSHLITERAL;
-        instructions[0].pushLiteralData.value.type = VALUETYPE_INT;
-        instructions[0].pushLiteralData.value.intData = 32;
+    // vmStackDump(&stack);
 
-        instructions[1].opcode = OP_PUSHLITERAL;
-        instructions[1].pushLiteralData.value.type = VALUETYPE_INT;
-        instructions[1].pushLiteralData.value.intData = 16;
+    // vmStackDestroy(&stack);
 
-        instructions[2].opcode = OP_ADD;
-    }
 
 
     vmInit(&vm);
+
+    {
+        vm.instructions =
+            malloc(sizeof(struct Instruction) * 4);
+        vm.instructionAddressMask = 0x3;
+
+        vm.instructions[0].opcode = OP_PUSHLITERAL;
+        vm.instructions[0].pushLiteralData.value.type = VALUETYPE_INT;
+        vm.instructions[0].pushLiteralData.value.intData = 32;
+
+        vm.instructions[1].opcode = OP_PUSHLITERAL;
+        vm.instructions[1].pushLiteralData.value.type = VALUETYPE_INT;
+        vm.instructions[1].pushLiteralData.value.intData = 16;
+
+        vm.instructions[2].opcode = OP_ADD;
+
+        vm.instructions[3].opcode = OP_NOP;
+    }
+
+    vmIterate(&vm);
+    vmIterate(&vm);
+    vmIterate(&vm);
+    vmStackDump(&vm.stack);
+    return 0;
 
 
     printf("Tokenize test...\n");

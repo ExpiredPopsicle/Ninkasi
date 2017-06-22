@@ -13,7 +13,13 @@ enum ValueType
 enum Opcode
 {
     OP_ADD,
-    OP_PUSHLITERAL
+    OP_PUSHLITERAL,
+    OP_NOP,
+
+    OPCODE_REALCOUNT,
+
+    // This must be a power of two.
+    OPCODE_PADDEDCOUNT = 32
 };
 
 enum TokenType
