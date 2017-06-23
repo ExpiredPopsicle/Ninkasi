@@ -3,6 +3,7 @@
 
 struct Token;
 struct VM;
+struct CompilerState;
 
 struct ExpressionAstNode
 {
@@ -26,5 +27,9 @@ void deleteExpressionNode(struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
 struct ExpressionAstNode *parseExpression(struct VM *vm, struct Token **currentToken);
+
+
+bool compileExpression(struct CompilerState *cs, struct Token **currentToken);
+
 
 #endif

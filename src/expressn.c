@@ -480,3 +480,94 @@ struct ExpressionAstNode *parseExpression(
     dbgWriteLine("Expression parse success.");
     return valueStack;
 }
+
+bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
+{
+    struct Instruction inst;
+    uint32_t i;
+
+    // Emit children.
+    for(i = 0; i < 2; i++) {
+        if(node->children[i]) {
+            if(!emitExpression(cs, node->children[i])) {
+                return false;
+            }
+        }
+    }
+
+    memset(&inst, 0, sizeof(inst));
+
+    switch(node->opOrValue->type) {
+
+        case TOKENTYPE_INTEGER: {
+            inst.opcode = OP_PUSHLITERAL;
+            inst.pushLiteralData.value.type = VALUETYPE_INT;
+            inst.pushLiteralData.value.intData = atoi(node->opOrValue->str);
+            addInstruction(cs, &inst);
+            printf("PUSH INTEGER: %s\n", node->opOrValue->str);
+        } break;
+
+            // TODO: Float support.
+
+        case TOKENTYPE_PLUS: {
+            addInstructionSimple(cs, OP_ADD);
+            printf("ADD\n");
+        } break;
+
+        case TOKENTYPE_MINUS:
+            if(!node->children[1]) {
+                addInstructionSimple(cs, OP_NEGATE);
+                printf("NEGATE\n");
+            } else {
+                addInstructionSimple(cs, OP_SUBTRACT);
+                printf("SUBTRACT\n");
+            }
+            break;
+
+        case TOKENTYPE_MULTIPLY:
+            addInstructionSimple(cs, OP_MULTIPLY);
+            printf("MULTIPLY\n");
+            break;
+
+        case TOKENTYPE_DIVIDE:
+            addInstructionSimple(cs, OP_DIVIDE);
+            printf("DIVIDE\n");
+            break;
+
+        default: {
+            struct DynString *dynStr =
+                dynStrCreate("Unknown value or operator in emitExpression: ");
+            dynStrAppend(dynStr, node->opOrValue->str);
+            errorStateAddError(
+                &cs->vm->errorState,
+                node->opOrValue->lineNumber,
+                dynStr->data);
+            dynStrDelete(dynStr);
+            return false;
+        } break;
+    }
+
+
+    return true;
+}
+
+bool compileExpression(struct CompilerState *cs, struct Token **currentToken)
+{
+    struct ExpressionAstNode *node = parseExpression(cs->vm, currentToken);
+
+    if(node) {
+
+        bool ret;
+
+        // optimizeConstants(&node);
+
+        // dumpExpressionAstNode(node);
+
+        ret = emitExpression(cs, node);
+        deleteExpressionNode(node);
+        return ret;
+    }
+
+    return false;
+}
+

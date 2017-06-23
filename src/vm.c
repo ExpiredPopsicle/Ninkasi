@@ -10,6 +10,10 @@ static void vmInitOpcodeTable(void)
     assert(OPCODE_PADDEDCOUNT >= OPCODE_REALCOUNT);
 
     opcodeTable[OP_ADD]         = opcode_add;
+    opcodeTable[OP_SUBTRACT]    = opcode_subtract;
+    opcodeTable[OP_MULTIPLY]    = opcode_multiply;
+    opcodeTable[OP_DIVIDE]      = opcode_divide;
+    opcodeTable[OP_NEGATE]      = opcode_negate;
     opcodeTable[OP_PUSHLITERAL] = opcode_pushLiteral;
     opcodeTable[OP_NOP]         = opcode_nop;
 
@@ -34,12 +38,17 @@ void vmInit(struct VM *vm)
     errorStateInit(&vm->errorState);
     vmStackInit(&vm->stack);
     vm->instructionPointer = 0;
+
+    vm->instructions =
+        malloc(sizeof(struct Instruction) * 4);
+    vm->instructionAddressMask = 0x3;
 }
 
 void vmDestroy(struct VM *vm)
 {
     vmStackDestroy(&vm->stack);
     errorStateDestroy(&vm->errorState);
+    free(vm->instructions);
 }
 
 // ----------------------------------------------------------------------

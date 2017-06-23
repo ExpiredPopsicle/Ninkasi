@@ -21,5 +21,6 @@
 #include "error.h"
 #include "dynstr.h"
 #include "vm.h"
+#include "compiler.h"
 
 #endif
