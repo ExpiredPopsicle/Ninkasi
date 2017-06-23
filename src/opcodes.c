@@ -3,8 +3,8 @@
 void opcode_add(struct VM *vm, struct Instruction *instruction)
 {
     struct VMStack *stack = &vm->stack;
-    struct Value *in1  = vmStackPop(stack);
     struct Value *in2  = vmStackPop(stack);
+    struct Value *in1  = vmStackPop(stack);
 
     enum ValueType type = in1->type;
 
@@ -50,8 +50,8 @@ void opcode_nop(struct VM *vm, struct Instruction *instruction)
 void opcode_subtract(struct VM *vm, struct Instruction *instruction)
 {
     struct VMStack *stack = &vm->stack;
-    struct Value *in1  = vmStackPop(stack);
-    struct Value *in2  = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(stack);
+    struct Value *in1 = vmStackPop(stack);
 
     enum ValueType type = in1->type;
 
@@ -82,8 +82,8 @@ void opcode_subtract(struct VM *vm, struct Instruction *instruction)
 void opcode_multiply(struct VM *vm, struct Instruction *instruction)
 {
     struct VMStack *stack = &vm->stack;
-    struct Value *in1  = vmStackPop(stack);
-    struct Value *in2  = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(stack);
+    struct Value *in1 = vmStackPop(stack);
 
     enum ValueType type = in1->type;
 
@@ -114,8 +114,8 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction)
 void opcode_divide(struct VM *vm, struct Instruction *instruction)
 {
     struct VMStack *stack = &vm->stack;
-    struct Value *in1  = vmStackPop(stack);
-    struct Value *in2  = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(stack);
+    struct Value *in1 = vmStackPop(stack);
 
     enum ValueType type = in1->type;
 
@@ -153,7 +153,7 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction)
 void opcode_negate(struct VM *vm, struct Instruction *instruction)
 {
     struct VMStack *stack = &vm->stack;
-    struct Value *in1  = vmStackPop(stack);
+    struct Value *in1 = vmStackPop(stack);
 
     enum ValueType type = in1->type;
 

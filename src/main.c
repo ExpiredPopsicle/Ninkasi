@@ -70,9 +70,12 @@ int main(int argc, char *argv[])
         {
             // bool r = tokenize("(((123\n +\n 456)[1 +\n 2\n]\n[\n3\n])) * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
-            bool r = tokenize("123 + 456 * 789", &tokenList);
+            // bool r = tokenize("123 + 456", &tokenList);
+            // bool r = tokenize("123 + 456 * 789", &tokenList);
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
+
+            bool r = tokenize("123 + 456 * 789 - -100 / 300", &tokenList);
 
             if(r) {
                 struct CompilerState cs;
@@ -100,20 +103,33 @@ int main(int argc, char *argv[])
                         err = err->next;
                     }
                 }
+
+                addInstructionSimple(&cs, OP_NOP);
+
             }
             destroyTokenList(&tokenList);
         }
     }
 
 
-    vmIterate(&vm);
-    vmIterate(&vm);
-    vmIterate(&vm);
-    vmIterate(&vm);
-    vmIterate(&vm);
+
+    while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
+        printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
+        // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
+        vmStackDump(&vm.stack);
+        vmIterate(&vm);
+    }
+    // vmIterate(&vm);
+    // vmIterate(&vm);
+    // vmIterate(&vm);
+    // vmIterate(&vm);
+    printf("Final stack dump...\n");
     vmStackDump(&vm.stack);
 
     vmDestroy(&vm);
+
+
+    printf("%d\n", 123 + 456 * 789 - -100 / 300);
 
     return 0;
 }

@@ -58,8 +58,6 @@ void vmIterate(struct VM *vm)
 {
     struct Instruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
-
-    // FIXME: Replace this with a mask.
     opcodeTable[inst->opcode & (OPCODE_PADDEDCOUNT - 1)](vm, inst);
     vm->instructionPointer++;
 }
