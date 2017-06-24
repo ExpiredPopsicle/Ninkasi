@@ -24,6 +24,6 @@ void addToken(
     const char *str,
     int32_t lineNumber,
     struct TokenList *tokenList);
-bool tokenize(const char *str, struct TokenList *tokenList);
+bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList);
 
 #endif

@@ -8,6 +8,7 @@
 enum ValueType
 {
     VALUETYPE_INT,
+    VALUETYPE_STRING
 };
 
 enum Opcode
@@ -40,6 +41,8 @@ enum TokenType
     TOKENTYPE_PAREN_CLOSE,
     TOKENTYPE_BRACKET_OPEN,
     TOKENTYPE_BRACKET_CLOSE,
+
+    TOKENTYPE_STRING,
 
     TOKENTYPE_INVALID
 };

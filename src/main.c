@@ -75,19 +75,29 @@ int main(int argc, char *argv[])
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            bool r = tokenize("123 + 456 * 789 - -100 / 300", &tokenList);
+            // bool r = tokenize("123 + 456 * 789 - -100 / 300", &tokenList);
+
+            bool r = tokenize(&vm, "\"foo\"  + \"bar\"", &tokenList);
+
+            {
+                struct Token *t = tokenList.first;
+                while(t) {
+                    printf("token(%d): %s\n", t->type, t->str);
+                    t = t->next;
+                }
+            }
 
             if(r) {
                 struct CompilerState cs;
                 struct Token *tokenPtr = tokenList.first;
 
-                struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
-                if(node) {
-                    optimizeConstants(&node);
-                    dumpExpressionAstNode(node);
-                    printf("\n");
-                    deleteExpressionNode(node);
-                }
+                // struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
+                // if(node) {
+                //     optimizeConstants(&node);
+                //     dumpExpressionAstNode(node);
+                //     printf("\n");
+                //     deleteExpressionNode(node);
+                // }
 
                 tokenPtr = tokenList.first;
 
