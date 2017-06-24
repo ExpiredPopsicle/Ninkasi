@@ -57,6 +57,51 @@ void addToken(
     printf("Token (%d): %s\n", type, str);
 }
 
+char *tokenizerUnescapeString(const char *in)
+{
+    char *out = malloc(strlen(in) + 1);
+    uint32_t len = strlen(in);
+    uint32_t readIndex;
+    uint32_t writeIndex = 0;
+
+    for(readIndex = 0; readIndex < len; readIndex++) {
+
+        if(in[readIndex] == '\\') {
+
+            readIndex++;
+
+            // TODO: Expand this list.
+
+            switch(in[readIndex]) {
+                case 'n':
+                    out[writeIndex++] = '\n';
+                    break;
+                case 'r':
+                    out[writeIndex++] = '\r';
+                    break;
+                case 't':
+                    out[writeIndex++] = '\t';
+                    break;
+                case '"':
+                    out[writeIndex++] = '\"';
+                    break;
+                default:
+                    out[writeIndex++] = '\\';
+                    out[writeIndex++] = in[readIndex];
+                    break;
+            }
+
+
+        } else {
+            out[writeIndex++] = in[readIndex];
+        }
+    }
+
+    out[writeIndex] = 0;
+
+    return out;
+}
+
 bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 {
     uint32_t len = strlen(str);
@@ -116,10 +161,22 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
             const char *strStart = &str[i+1];
             const char *strEnd   = &str[i+1];
             char *strTmp         = NULL;
+            char *strUnescaped   = NULL;
             uint32_t len         = 0;
+            bool skipNextQuote   = false;
 
-            while(*strEnd != 0 && *strEnd != '\"') {
+            while(*strEnd != 0 && (skipNextQuote || *strEnd != '\"')) {
 
+                // We have to handle escaping here, but only for
+                // strings. We'll do actual string escaping later.
+                if(*strEnd == '\\') {
+                    skipNextQuote = !skipNextQuote;
+                } else {
+                    skipNextQuote = false;
+                }
+
+                // In order to not mess up line counting, we're just
+                // going to make newlines inside strings a bad thing.
                 if(*strEnd == '\n') {
                     errorStateAddError(
                         &vm->errorState,
@@ -130,14 +187,18 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 strEnd++;
             }
 
+            // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
             strTmp = malloc(len + 1);
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
-            addToken(TOKENTYPE_STRING, strTmp, lineNumber, tokenList);
+            strUnescaped = tokenizerUnescapeString(strTmp);
+
+            addToken(TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
 
             free(strTmp);
+            free(strUnescaped);
 
             // Skip the whole string and end quote.
             i += len + 1;

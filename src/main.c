@@ -4,8 +4,8 @@ int main(int argc, char *argv[])
 {
     struct VM vm;
 
-    struct VMStack stack;
-    vmStackInit(&stack);
+    // struct VMStack stack;
+    // vmStackInit(&stack);
 
     // struct Value *t1 = vmStackpush(&stack);
     // struct Value *t2 = vmStackpush(&stack);
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 
             // bool r = tokenize("123 + 456 * 789 - -100 / 300", &tokenList);
 
-            bool r = tokenize(&vm, "\"foo\"  + \"bar\"", &tokenList);
+            bool r = tokenize(&vm, "\"foo\"  + \"\\\"bar\\\"\"", &tokenList);
 
             {
                 struct Token *t = tokenList.first;
