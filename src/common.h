@@ -22,5 +22,6 @@
 #include "dynstr.h"
 #include "vm.h"
 #include "compiler.h"
+#include "vmstring.h"
 
 #endif

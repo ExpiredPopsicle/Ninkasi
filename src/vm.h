@@ -1,9 +1,10 @@
 #ifndef VM_H
 #define VM_H
 
-struct ErrorState;
-struct VMStack;
-struct Instruction;
+#include "error.h"
+#include "vmstack.h"
+#include "opcodes.h"
+#include "vmstring.h"
 
 struct VM
 {
@@ -13,11 +14,17 @@ struct VM
     struct Instruction *instructions;
     uint32_t instructionAddressMask;
     uint32_t instructionPointer;
+
+    struct VMStringTable stringTable;
+
+    uint32_t lastGCPass;
 };
 
 void vmInit(struct VM *vm);
 void vmDestroy(struct VM *vm);
 
 void vmIterate(struct VM *vm);
+
+void vmGarbageCollect(struct VM *vm);
 
 #endif

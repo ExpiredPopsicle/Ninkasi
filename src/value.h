@@ -8,10 +8,12 @@ struct VM;
 struct Value
 {
     enum ValueType type;
+    uint32_t lastGCPass;
 
     union
     {
         int32_t intData;
+        uint32_t stringTableEntry;
     };
 };
 

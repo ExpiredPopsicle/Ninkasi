@@ -75,9 +75,9 @@ int main(int argc, char *argv[])
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            // bool r = tokenize("123 + 456 * 789 - -100 / 300", &tokenList);
+            bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
 
-            bool r = tokenize(&vm, "\"foo\"  + \"\\\"bar\\\"\"", &tokenList);
+            // bool r = tokenize(&vm, "\"foo\"  + \"\\\"bar\\\"\"", &tokenList);
 
             {
                 struct Token *t = tokenList.first;
@@ -105,6 +105,13 @@ int main(int argc, char *argv[])
                 cs.vm = &vm;
                 compileExpression(&cs, &tokenPtr);
 
+                {
+                    uint32_t i;
+                    for(i = 0; i < 5; i++) {
+                        printf("op: %d\n", vm.instructions[i].opcode);
+                    }
+                }
+
                 // Dump errors.
                 if(vm.errorState.firstError) {
                     struct Error *err = vm.errorState.firstError;
@@ -121,14 +128,46 @@ int main(int argc, char *argv[])
         }
     }
 
-
-
     while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
         printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
         // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
-        vmStackDump(&vm.stack);
         vmIterate(&vm);
+        vmStackDump(&vm.stack);
+        vmGarbageCollect(&vm);
     }
+
+
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "bladgh");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "foom");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "dicks");
+    vmStringTableFindOrAddString(
+        &vm.stringTable, "sadf");
+
+    vmStringTableDump(&vm.stringTable);
+
+    vmStringTableGetEntryById(
+        &vm.stringTable,
+        vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
+
+    vmStringTableCleanOldStrings(&vm.stringTable, 1234);
+
+    vmStringTableDump(&vm.stringTable);
+
+
     // vmIterate(&vm);
     // vmIterate(&vm);
     // vmIterate(&vm);

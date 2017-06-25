@@ -42,10 +42,16 @@ void vmInit(struct VM *vm)
     vm->instructions =
         malloc(sizeof(struct Instruction) * 4);
     vm->instructionAddressMask = 0x3;
+
+    vmStringTableInit(&vm->stringTable);
+
+    vm->lastGCPass = 0;
 }
 
 void vmDestroy(struct VM *vm)
 {
+    vmStringTableDestroy(&vm->stringTable);
+
     vmStackDestroy(&vm->stack);
     errorStateDestroy(&vm->errorState);
     free(vm->instructions);
@@ -60,4 +66,84 @@ void vmIterate(struct VM *vm)
         vm->instructionPointer & vm->instructionAddressMask];
     opcodeTable[inst->opcode & (OPCODE_PADDEDCOUNT - 1)](vm, inst);
     vm->instructionPointer++;
+}
+
+// ----------------------------------------------------------------------
+// Garbage collection
+
+struct VMValueGCEntry
+{
+    struct Value *value;
+    struct VMValueGCEntry *next;
+};
+
+void vmGarbageCollect_markValue(
+    struct VM *vm, struct Value *v,
+    uint32_t currentGCPass)
+{
+    if(v->lastGCPass == currentGCPass) {
+        return;
+    }
+
+    struct VMValueGCEntry *openList = malloc(sizeof(struct VMValueGCEntry));
+    openList->value = v;
+    openList->next = NULL;
+
+    while(openList) {
+
+        struct VMValueGCEntry *currentEntry = openList;
+        openList = openList->next;
+
+        if(currentEntry->value->lastGCPass != currentGCPass) {
+            struct Value *value = currentEntry->value;
+            value->lastGCPass = currentGCPass;
+
+            // Add all references from this value to openList.
+
+            switch(value->type) {
+
+                // Mark strings in the string table.
+                case VALUETYPE_STRING: {
+                    struct VMString *str = vmStringTableGetEntryById(
+                        &vm->stringTable, value->stringTableEntry);
+                    if(str) {
+                        str->lastGCPass = currentGCPass;
+                    } else {
+                        errorStateAddError(
+                            &vm->errorState, -1,
+                            "GC error: Bad string table index.");
+                    }
+                } break;
+
+                default:
+                    break;
+            }
+        }
+
+        free(currentEntry);
+    }
+}
+
+void vmGarbageCollect(struct VM *vm)
+{
+    uint32_t currentGCPass = ++vm->lastGCPass;
+
+    // TODO: Remove this.
+    printf("vmGarbageCollect\n");
+
+    // Iterate through the current stack.
+    {
+        uint32_t i;
+        struct Value *values = vm->stack.values;
+        for(i = 0; i < vm->stack.size; i++) {
+            vmGarbageCollect_markValue(
+                vm, &values[i], currentGCPass);
+        }
+    }
+
+    // TODO: Iterate through current variables.
+
+    // TODO: Delete unmarked stuff.
+
+    // TODO: Delete unmarked strings.
 }
