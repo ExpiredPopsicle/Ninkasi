@@ -12,12 +12,22 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
             errorStateAddError(&cs->vm->errorState, -1, "Too many instructions.");
         }
 
-        cs->vm->instructionAddressMask <<= 1;
-        cs->vm->instructionAddressMask |= 1;
-        cs->vm->instructions = realloc(
-            cs->vm->instructions,
-            sizeof(struct Instruction) *
-            cs->vm->instructionAddressMask + 1);
+        {
+            uint32_t oldSize = cs->vm->instructionAddressMask + 1;
+            uint32_t newSize = oldSize << 1;
+
+            cs->vm->instructionAddressMask <<= 1;
+            cs->vm->instructionAddressMask |= 1;
+            cs->vm->instructions = realloc(
+                cs->vm->instructions,
+                sizeof(struct Instruction) *
+                newSize);
+
+            // Clear the new area to NOPs.
+            memset(
+                cs->vm->instructions + oldSize, 0,
+                (newSize - oldSize) * sizeof(struct Instruction));
+        }
     }
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;

@@ -13,6 +13,9 @@ enum ValueType
 
 enum Opcode
 {
+    OP_NOP = 0, // Leave this at zero so we can memset() sections of
+                // code to zero.
+
     OP_ADD,
     OP_SUBTRACT,
     OP_MULTIPLY,
@@ -20,7 +23,6 @@ enum Opcode
     OP_NEGATE,
 
     OP_PUSHLITERAL,
-    OP_NOP,
 
     OPCODE_REALCOUNT,
 
