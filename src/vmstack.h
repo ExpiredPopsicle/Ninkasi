@@ -2,6 +2,7 @@
 #define VMSTACK_H
 
 struct Value;
+struct VM;
 
 struct VMStack
 {
@@ -23,6 +24,6 @@ struct Value *vmStackPop(struct VMStack *stack);
 
 struct Value *vmStackPeek(struct VMStack *stack, uint32_t index);
 
-void vmStackDump(struct VMStack *stack);
+void vmStackDump(struct VM *vm);
 
 #endif

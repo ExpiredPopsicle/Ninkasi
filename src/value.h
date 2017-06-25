@@ -17,7 +17,7 @@ struct Value
     };
 };
 
-bool value_dump(struct Value *value);
+bool value_dump(struct VM *vm, struct Value *value);
 
 const char *valueTypeGetName(enum ValueType type);
 

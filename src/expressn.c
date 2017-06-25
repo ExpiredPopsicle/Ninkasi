@@ -507,6 +507,29 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             printf("PUSH INTEGER: %s\n", node->opOrValue->str);
         } break;
 
+        case TOKENTYPE_STRING: {
+            inst.opcode = OP_PUSHLITERAL;
+            inst.pushLiteralData.value.type = VALUETYPE_STRING;
+            inst.pushLiteralData.value.stringTableEntry =
+                vmStringTableFindOrAddString(
+                    &cs->vm->stringTable,
+                    node->opOrValue->str);
+
+            // Turn off garbage collection for this string, because
+            // it's part of the program code.
+            {
+                struct VMString *vmstr = vmStringTableGetEntryById(
+                    &cs->vm->stringTable,
+                    inst.pushLiteralData.value.stringTableEntry);
+                if(vmstr) {
+                    vmstr->dontGC = true;
+                }
+            }
+
+            addInstruction(cs, &inst);
+            printf("PUSH STRING: %s\n", node->opOrValue->str);
+        } break;
+
             // TODO: Float support.
 
         case TOKENTYPE_PLUS: {

@@ -2,8 +2,17 @@
 
 static uint32_t stringHash(const char *in)
 {
-    // FIXME: Put a real hash function here.
-    return strlen(in);
+    uint32_t len = strlen(in);
+    uint32_t a = 1;
+    uint32_t b = 0;
+    uint32_t i;
+
+    for(i = 0; i < len; i++) {
+        a = (a + in[i]) % 65521;
+        b = (b + a) % 65521;
+    }
+
+    return (b << 16) | a;
 }
 
 void vmStringTableInit(struct VMStringTable *table)
@@ -142,6 +151,7 @@ uint32_t vmStringTableFindOrAddString(
 
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
+        newString->dontGC = false;
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
         table->stringsByHash[hash & (vmStringTableHashTableSize - 1)] = newString;
@@ -186,7 +196,7 @@ void vmStringTableCleanOldStrings(
 
         while(str) {
 
-            while(str && lastGCPass != str->lastGCPass) {
+            while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
                 // TODO: Remove this.
                 printf("Purging unused string: %s\n", str->str);

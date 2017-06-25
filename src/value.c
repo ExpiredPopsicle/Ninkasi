@@ -1,6 +1,7 @@
 #include "common.h"
 
-bool value_dump(struct Value *value)
+bool value_dump(
+    struct VM *vm, struct Value *value)
 {
     // TODO: Function pointer table here?
     switch(value->type) {
@@ -8,6 +9,13 @@ bool value_dump(struct Value *value)
         case VALUETYPE_INT:
             printf("%d", value->intData);
             break;
+
+        case VALUETYPE_STRING: {
+            const char *str = vmStringTableGetStringById(
+                &vm->stringTable,
+                value->stringTableEntry);
+            printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
+        } break;
 
         default:
             printf(
@@ -24,6 +32,9 @@ const char *valueTypeGetName(enum ValueType type)
 
         case VALUETYPE_INT:
             return "integer";
+
+        case VALUETYPE_STRING:
+            return "string";
 
         default:
             // If you hit this case, then something isn't implemented

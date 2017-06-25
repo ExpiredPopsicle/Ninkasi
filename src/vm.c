@@ -143,7 +143,10 @@ void vmGarbageCollect(struct VM *vm)
 
     // TODO: Iterate through current variables.
 
-    // TODO: Delete unmarked stuff.
+    // TODO: Delete unmarked stuff from the heap.
 
-    // TODO: Delete unmarked strings.
+    // Delete unmarked strings.
+    vmStringTableCleanOldStrings(
+        &vm->stringTable,
+        currentGCPass);
 }

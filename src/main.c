@@ -75,9 +75,10 @@ int main(int argc, char *argv[])
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
+            // bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
 
-            // bool r = tokenize(&vm, "\"foo\"  + \"\\\"bar\\\"\"", &tokenList);
+            bool r = tokenize(&vm, "\"foo\"  + \"\\\"bar\\\"\"", &tokenList);
+            // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             {
                 struct Token *t = tokenList.first;
@@ -132,7 +133,7 @@ int main(int argc, char *argv[])
         printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
         // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
         vmIterate(&vm);
-        vmStackDump(&vm.stack);
+        vmStackDump(&vm);
         vmGarbageCollect(&vm);
     }
 
@@ -173,7 +174,7 @@ int main(int argc, char *argv[])
     // vmIterate(&vm);
     // vmIterate(&vm);
     printf("Final stack dump...\n");
-    vmStackDump(&vm.stack);
+    vmStackDump(&vm);
 
     vmDestroy(&vm);
 

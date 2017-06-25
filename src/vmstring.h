@@ -8,6 +8,7 @@ struct VMString
     struct VMString *nextInHashBucket;
     uint32_t stringTableIndex;
     uint32_t lastGCPass;
+    bool dontGC;
     char str[1];
 };
 

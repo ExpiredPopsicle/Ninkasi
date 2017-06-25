@@ -68,12 +68,13 @@ struct Value *vmStackPop(struct VMStack *stack)
     return &stack->values[stack->size];
 }
 
-void vmStackDump(struct VMStack *stack)
+void vmStackDump(struct VM *vm)
 {
     uint32_t i;
+    struct VMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        value_dump(vmStackPeek(stack, i));
+        value_dump(vm, vmStackPeek(stack, i));
         printf("\n");
     }
 }
