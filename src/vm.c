@@ -150,3 +150,39 @@ void vmGarbageCollect(struct VM *vm)
         &vm->stringTable,
         currentGCPass);
 }
+
+void vmRescanProgramStrings(struct VM *vm)
+{
+    // This is needed for REPL support. Without it, string literals
+    // would clutter stuff up permanently.
+
+    // Unmark dontGC on everything.
+    uint32_t i;
+    for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+        struct VMString *str = vm->stringTable.stringTable[i];
+        if(str) {
+            str->dontGC = false;
+        }
+    }
+
+    // Mark everything that's referenced from the program.
+    for(i = 0; i <= vm->instructionAddressMask; i++) {
+        if(vm->instructions[i].opcode == OP_PUSHLITERAL) {
+            if(vm->instructions[i].pushLiteralData.value.type == VALUETYPE_STRING) {
+
+                struct VMString *entry =
+                    vmStringTableGetEntryById(
+                        &vm->stringTable,
+                        vm->instructions[i].pushLiteralData.value.stringTableEntry);
+
+                if(entry) {
+                    entry->dontGC = true;
+
+                    printf("Marked string as in-use by program: %s\n", entry->str);
+                }
+
+            }
+        }
+    }
+}
+

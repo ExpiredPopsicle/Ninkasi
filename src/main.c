@@ -106,12 +106,12 @@ int main(int argc, char *argv[])
                 cs.vm = &vm;
                 compileExpression(&cs, &tokenPtr);
 
-                {
-                    uint32_t i;
-                    for(i = 0; i < 5; i++) {
-                        printf("op: %d\n", vm.instructions[i].opcode);
-                    }
-                }
+                // {
+                //     uint32_t i;
+                //     for(i = 0; i < 5; i++) {
+                //         printf("op: %d\n", vm.instructions[i].opcode);
+                //     }
+                // }
 
                 // Dump errors.
                 if(vm.errorState.firstError) {
@@ -167,6 +167,8 @@ int main(int argc, char *argv[])
     vmStringTableCleanOldStrings(&vm.stringTable, 1234);
 
     vmStringTableDump(&vm.stringTable);
+
+    vmRescanProgramStrings(&vm);
 
 
     // vmIterate(&vm);

@@ -27,4 +27,6 @@ void vmIterate(struct VM *vm);
 
 void vmGarbageCollect(struct VM *vm);
 
+void vmRescanProgramStrings(struct VM *vm);
+
 #endif
