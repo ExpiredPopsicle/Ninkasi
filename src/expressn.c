@@ -450,6 +450,12 @@ struct ExpressionAstNode *parseExpression(
         dbgWriteLine("Reduced at end!");
     }
 
+    if(!valueStack) {
+        PARSE_ERROR("No value to parse in expression.");
+        CLEANUP_OUTER();
+        return NULL;
+    }
+
     // Check that stacks are empty.
     if(opStack || valueStack->stackNext) {
         // TODO: Maybe make this a normal error, but be able to clean
