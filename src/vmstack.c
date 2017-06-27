@@ -43,9 +43,9 @@ struct Value *vmStackPush_internal(struct VMStack *stack)
     }
 }
 
-bool vmStackPushInt(struct VMStack *stack, int32_t value)
+bool vmStackPushInt(struct VM *vm, int32_t value)
 {
-    struct Value *data = vmStackPush_internal(stack);
+    struct Value *data = vmStackPush_internal(&vm->stack);
     if(data) {
         data->type = VALUETYPE_INT;
         data->intData = value;
@@ -68,8 +68,10 @@ bool vmStackPushString(struct VM *vm, const char *str)
     return false;
 }
 
-struct Value *vmStackPop(struct VMStack *stack)
+struct Value *vmStackPop(struct VM *vm)
 {
+    struct VMStack *stack = &vm->stack;
+
     // TODO: Shrink the stack if we can?
 
     // TODO: Make this a normal error. (Return NULL?)
@@ -88,13 +90,13 @@ void vmStackDump(struct VM *vm)
     struct VMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        value_dump(vm, vmStackPeek(stack, i));
+        value_dump(vm, vmStackPeek(vm, i));
         printf("\n");
     }
 }
 
-struct Value *vmStackPeek(struct VMStack *stack, uint32_t index)
+struct Value *vmStackPeek(struct VM *vm, uint32_t index)
 {
-    return &stack->values[index & stack->indexMask];
+    return &vm->stack.values[index & vm->stack.indexMask];
 }
 

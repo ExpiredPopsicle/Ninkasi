@@ -153,6 +153,9 @@ int main(int argc, char *argv[])
 
     printf("Final stack...\n");
     vmStackDump(&vm);
+    vmGarbageCollect(&vm);
+    printf("Final stack again...\n");
+    vmStackDump(&vm);
 
     printf("----------------------------------------------------------------------\n");
     printf("  String table crap\n");

@@ -3,6 +3,27 @@
 
 struct Value;
 struct VM;
+struct VMStack;
+
+// ----------------------------------------------------------------------
+// Public API
+// ----------------------------------------------------------------------
+
+bool vmStackPushInt(struct VM *vm, int32_t value);
+bool vmStackPushString(struct VM *vm, const char *str);
+
+/// Pop something off the stack and return it. NOTE: Returns a pointer
+/// to the object on the stack, which will be overwritten the next
+/// time you push something!
+struct Value *vmStackPop(struct VM *vm);
+
+struct Value *vmStackPeek(struct VM *vm, uint32_t index);
+
+void vmStackDump(struct VM *vm);
+
+// ----------------------------------------------------------------------
+// Internal structures and functions
+// ----------------------------------------------------------------------
 
 struct VMStack
 {
@@ -18,14 +39,5 @@ void vmStackDestroy(struct VMStack *stack);
 /// Pushes a new value and returns a pointer to it (so the caller may
 /// fill it in).
 struct Value *vmStackPush_internal(struct VMStack *stack);
-
-bool vmStackPushInt(struct VMStack *stack, int32_t value);
-bool vmStackPushString(struct VM *vm, const char *str);
-
-struct Value *vmStackPop(struct VMStack *stack);
-
-struct Value *vmStackPeek(struct VMStack *stack, uint32_t index);
-
-void vmStackDump(struct VM *vm);
 
 #endif

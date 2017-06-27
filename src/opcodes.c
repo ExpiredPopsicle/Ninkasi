@@ -2,9 +2,8 @@
 
 void opcode_add(struct VM *vm, struct Instruction *instruction)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *in2  = vmStackPop(stack);
-    struct Value *in1  = vmStackPop(stack);
+    struct Value *in2  = vmStackPop(vm);
+    struct Value *in1  = vmStackPop(vm);
 
     enum ValueType type = in1->type;
 
@@ -12,7 +11,7 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
 
         case VALUETYPE_INT:
             vmStackPushInt(
-                stack,
+                vm,
                 in1->intData +
                 valueToInt(vm, in2));
             break;
@@ -20,18 +19,27 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
             // TODO: Float support.
 
         case VALUETYPE_STRING: {
+
+            // Make a new string that is the concatenated values.
+            // Start with a DynString of the first one.
             struct DynString *dynStr =
                 dynStrCreate(
                     vmStringTableGetStringById(
                         &vm->stringTable,
                         in1->stringTableEntry));
+
+            // Append the other one, after conversion to string if
+            // necessary.
             dynStrAppend(dynStr, valueToString(vm, in2));
+
+            // Push the result.
             vmStackPushString(
                 vm, dynStr->data);
-            dynStrDelete(dynStr);
-        } break;
 
-            // TODO: String concatenation support.
+            // Clean up.
+            dynStrDelete(dynStr);
+
+        } break;
 
             // TODO: Array concatenation support.
 
@@ -61,9 +69,8 @@ void opcode_nop(struct VM *vm, struct Instruction *instruction)
 
 void opcode_subtract(struct VM *vm, struct Instruction *instruction)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *in2 = vmStackPop(stack);
-    struct Value *in1 = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(vm);
+    struct Value *in1 = vmStackPop(vm);
 
     enum ValueType type = in1->type;
 
@@ -71,7 +78,7 @@ void opcode_subtract(struct VM *vm, struct Instruction *instruction)
 
         case VALUETYPE_INT:
             vmStackPushInt(
-                stack,
+                vm,
                 in1->intData -
                 valueToInt(vm, in2));
             break;
@@ -93,9 +100,8 @@ void opcode_subtract(struct VM *vm, struct Instruction *instruction)
 
 void opcode_multiply(struct VM *vm, struct Instruction *instruction)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *in2 = vmStackPop(stack);
-    struct Value *in1 = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(vm);
+    struct Value *in1 = vmStackPop(vm);
 
     enum ValueType type = in1->type;
 
@@ -103,7 +109,7 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction)
 
         case VALUETYPE_INT:
             vmStackPushInt(
-                stack,
+                vm,
                 in1->intData *
                 valueToInt(vm, in2));
             break;
@@ -125,9 +131,8 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction)
 
 void opcode_divide(struct VM *vm, struct Instruction *instruction)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *in2 = vmStackPop(stack);
-    struct Value *in1 = vmStackPop(stack);
+    struct Value *in2 = vmStackPop(vm);
+    struct Value *in1 = vmStackPop(vm);
 
     enum ValueType type = in1->type;
 
@@ -141,7 +146,7 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction)
                     "Integer divide-by-zero.");
             } else {
                 vmStackPushInt(
-                    stack,
+                    vm,
                     in1->intData /
                     val2);
             }
@@ -164,8 +169,7 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction)
 
 void opcode_negate(struct VM *vm, struct Instruction *instruction)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *in1 = vmStackPop(stack);
+    struct Value *in1 = vmStackPop(vm);
 
     enum ValueType type = in1->type;
 
@@ -173,7 +177,7 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction)
 
         case VALUETYPE_INT: {
             vmStackPushInt(
-                stack,
+                vm,
                 -(in1->intData));
         } break;
 

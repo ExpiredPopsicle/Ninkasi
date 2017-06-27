@@ -23,10 +23,16 @@ struct VM
 void vmInit(struct VM *vm);
 void vmDestroy(struct VM *vm);
 
+/// Run a single instruction inside the VM and advance the program
+/// counter.
 void vmIterate(struct VM *vm);
 
+/// Force a garbage collection pass.
 void vmGarbageCollect(struct VM *vm);
 
+/// Re-check all strings in the string table to see if they're in-use
+/// by any program code. If program code has been removed that
+/// references strings, then they can be made garbage-collectible.
 void vmRescanProgramStrings(struct VM *vm);
 
 #endif
