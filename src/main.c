@@ -77,7 +77,8 @@ int main(int argc, char *argv[])
 
             // bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
 
-            bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
+            // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
+            bool r = tokenize(&vm, "1.0 + 2.2", &tokenList);
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             {
@@ -156,6 +157,8 @@ int main(int argc, char *argv[])
     vmGarbageCollect(&vm);
     printf("Final stack again...\n");
     vmStackDump(&vm);
+
+    return 0;
 
     printf("----------------------------------------------------------------------\n");
     printf("  String table crap\n");

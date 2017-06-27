@@ -10,6 +10,10 @@ bool value_dump(
             printf("%d", value->intData);
             break;
 
+        case VALUETYPE_FLOAT:
+            printf("%f", value->floatData);
+            break;
+
         case VALUETYPE_STRING: {
             const char *str = vmStringTableGetStringById(
                 &vm->stringTable,
@@ -33,6 +37,9 @@ const char *valueTypeGetName(enum ValueType type)
         case VALUETYPE_INT:
             return "integer";
 
+        case VALUETYPE_FLOAT:
+            return "float";
+
         case VALUETYPE_STRING:
             return "string";
 
@@ -52,6 +59,37 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
         case VALUETYPE_INT:
             return value->intData;
 
+        case VALUETYPE_FLOAT:
+            return (int)value->floatData;
+
+        case VALUETYPE_STRING:
+            return atoi(valueToString(vm, value));
+
+        default: {
+            struct DynString *ds = dynStrCreate("Cannot convert type ");
+            dynStrAppend(ds, valueTypeGetName(value->type));
+            dynStrAppend(ds, " to an integer.");
+            errorStateAddError(
+                &vm->errorState, -1,
+                ds->data);
+            dynStrDelete(ds);
+            return 0;
+        }
+    }
+}
+
+float valueToFloat(struct VM *vm, struct Value *value)
+{
+    // TODO: De-reference references here.
+
+    switch(value->type) {
+
+        case VALUETYPE_INT:
+            return (float)value->intData;
+
+        case VALUETYPE_FLOAT:
+            return value->floatData;
+
         case VALUETYPE_STRING:
             return atoi(valueToString(vm, value));
 
@@ -70,6 +108,8 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
 
 const char *valueToString(struct VM *vm, struct Value *value)
 {
+    // TODO: De-reference references here.
+
     switch(value->type) {
 
         case VALUETYPE_STRING:
@@ -82,6 +122,20 @@ const char *valueToString(struct VM *vm, struct Value *value)
             uint32_t id;
 
             dynStrAppendInt32(dynStr, value->intData);
+
+            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            dynStrDelete(dynStr);
+
+            return vmStringTableGetStringById(
+                &vm->stringTable,
+                id);
+        }
+
+        case VALUETYPE_FLOAT: {
+            struct DynString *dynStr = dynStrCreate("");
+            uint32_t id;
+
+            dynStrAppendFloat(dynStr, value->floatData);
 
             id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
             dynStrDelete(dynStr);

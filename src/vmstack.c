@@ -54,6 +54,17 @@ bool vmStackPushInt(struct VM *vm, int32_t value)
     return false;
 }
 
+bool vmStackPushFloat(struct VM *vm, float value)
+{
+    struct Value *data = vmStackPush_internal(&vm->stack);
+    if(data) {
+        data->type = VALUETYPE_FLOAT;
+        data->floatData = value;
+        return true;
+    }
+    return false;
+}
+
 bool vmStackPushString(struct VM *vm, const char *str)
 {
     struct VMStack *stack = &vm->stack;

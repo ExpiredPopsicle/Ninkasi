@@ -8,6 +8,7 @@
 enum ValueType
 {
     VALUETYPE_INT,
+    VALUETYPE_FLOAT,
     VALUETYPE_STRING
 };
 

@@ -507,6 +507,14 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             printf("PUSH INTEGER: %s\n", node->opOrValue->str);
         } break;
 
+        case TOKENTYPE_FLOAT: {
+            inst.opcode = OP_PUSHLITERAL;
+            inst.pushLiteralData.value.type = VALUETYPE_FLOAT;
+            inst.pushLiteralData.value.floatData = atof(node->opOrValue->str);
+            addInstruction(cs, &inst);
+            printf("PUSH FLOAT: %s\n", node->opOrValue->str);
+        } break;
+
         case TOKENTYPE_STRING: {
             inst.opcode = OP_PUSHLITERAL;
             inst.pushLiteralData.value.type = VALUETYPE_STRING;

@@ -10,6 +10,7 @@ struct VMStack;
 // ----------------------------------------------------------------------
 
 bool vmStackPushInt(struct VM *vm, int32_t value);
+bool vmStackPushFloat(struct VM *vm, float value);
 bool vmStackPushString(struct VM *vm, const char *str);
 
 /// Pop something off the stack and return it. NOTE: Returns a pointer

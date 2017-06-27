@@ -29,3 +29,12 @@ void dynStrAppendInt32(struct DynString *dynStr, int32_t value)
     sprintf(tmp, "%d", value);
     dynStrAppend(dynStr, tmp);
 }
+
+void dynStrAppendFloat(struct DynString *dynStr, float value)
+{
+    // +1 for terminator, +1 for '-', +1 for '.'.
+    // +a lot because float.
+    char tmp[sizeof(float) * 16 + 3];
+    sprintf(tmp, "%f", value);
+    dynStrAppend(dynStr, tmp);
+}

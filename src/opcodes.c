@@ -16,7 +16,12 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
                 valueToInt(vm, in2));
             break;
 
-            // TODO: Float support.
+        case VALUETYPE_FLOAT:
+            vmStackPushFloat(
+                vm,
+                in1->floatData +
+                valueToFloat(vm, in2));
+            break;
 
         case VALUETYPE_STRING: {
 
@@ -83,7 +88,12 @@ void opcode_subtract(struct VM *vm, struct Instruction *instruction)
                 valueToInt(vm, in2));
             break;
 
-            // TODO: Float support.
+        case VALUETYPE_FLOAT:
+            vmStackPushFloat(
+                vm,
+                in1->floatData -
+                valueToFloat(vm, in2));
+            break;
 
         default: {
             struct DynString *ds =
@@ -114,7 +124,12 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction)
                 valueToInt(vm, in2));
             break;
 
-            // TODO: Float support.
+        case VALUETYPE_FLOAT:
+            vmStackPushFloat(
+                vm,
+                in1->floatData *
+                valueToFloat(vm, in2));
+            break;
 
         default: {
             struct DynString *ds =
@@ -152,7 +167,12 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction)
             }
         } break;
 
-            // TODO: Float support.
+        case VALUETYPE_FLOAT:
+            vmStackPushFloat(
+                vm,
+                in1->floatData /
+                valueToFloat(vm, in2));
+            break;
 
         default: {
             struct DynString *ds =
@@ -179,6 +199,12 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction)
             vmStackPushInt(
                 vm,
                 -(in1->intData));
+        } break;
+
+        case VALUETYPE_FLOAT: {
+            vmStackPushFloat(
+                vm,
+                -(in1->floatData));
         } break;
 
             // TODO: Float support.

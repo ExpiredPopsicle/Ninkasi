@@ -13,5 +13,6 @@ void dynStrDelete(struct DynString *dynStr);
 
 void dynStrAppend(struct DynString *dynStr, const char *str);
 void dynStrAppendInt32(struct DynString *dynStr, int32_t value);
+void dynStrAppendFloat(struct DynString *dynStr, float value);
 
 #endif

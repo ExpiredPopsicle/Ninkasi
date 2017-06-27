@@ -13,6 +13,7 @@ struct Value
     union
     {
         int32_t intData;
+        float floatData;
         uint32_t stringTableEntry;
     };
 };
@@ -22,6 +23,8 @@ bool value_dump(struct VM *vm, struct Value *value);
 const char *valueTypeGetName(enum ValueType type);
 
 int32_t valueToInt(struct VM *vm, struct Value *value);
+
+float valueToFloat(struct VM *vm, struct Value *value);
 
 // Returns a string for a value, possibly converting internally.
 // Values are only guaranteed to be valid until the next garbage
