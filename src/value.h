@@ -23,5 +23,10 @@ const char *valueTypeGetName(enum ValueType type);
 
 int32_t valueToInt(struct VM *vm, struct Value *value);
 
+// Returns a string for a value, possibly converting internally.
+// Values are only guaranteed to be valid until the next garbage
+// collection pass.
+const char *valueToString(struct VM *vm, struct Value *value);
+
 
 #endif

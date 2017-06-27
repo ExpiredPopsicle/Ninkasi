@@ -129,14 +129,34 @@ int main(int argc, char *argv[])
         }
     }
 
+
+    printf("----------------------------------------------------------------------\n");
+    printf("  Execution\n");
+    printf("----------------------------------------------------------------------\n");
+
     while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
         printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
         // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
         vmIterate(&vm);
+
+        if(vm.errorState.firstError) {
+            struct Error *err = vm.errorState.firstError;
+            while(err) {
+                printf("error: %s\n", err->errorText);
+                err = err->next;
+            }
+        }
+
         vmStackDump(&vm);
         vmGarbageCollect(&vm);
     }
 
+    printf("Final stack...\n");
+    vmStackDump(&vm);
+
+    printf("----------------------------------------------------------------------\n");
+    printf("  String table crap\n");
+    printf("----------------------------------------------------------------------\n");
 
     vmStringTableFindOrAddString(
         &vm.stringTable, "sadf");

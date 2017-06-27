@@ -54,6 +54,20 @@ bool vmStackPushInt(struct VMStack *stack, int32_t value)
     return false;
 }
 
+bool vmStackPushString(struct VM *vm, const char *str)
+{
+    struct VMStack *stack = &vm->stack;
+    struct Value *data = vmStackPush_internal(stack);
+    if(data) {
+        data->type = VALUETYPE_STRING;
+        data->stringTableEntry =
+            vmStringTableFindOrAddString(
+                &vm->stringTable, str);
+        return true;
+    }
+    return false;
+}
+
 struct Value *vmStackPop(struct VMStack *stack)
 {
     // TODO: Shrink the stack if we can?

@@ -20,6 +20,8 @@ void vmStackDestroy(struct VMStack *stack);
 struct Value *vmStackPush_internal(struct VMStack *stack);
 
 bool vmStackPushInt(struct VMStack *stack, int32_t value);
+bool vmStackPushString(struct VM *vm, const char *str);
+
 struct Value *vmStackPop(struct VMStack *stack);
 
 struct Value *vmStackPeek(struct VMStack *stack, uint32_t index);

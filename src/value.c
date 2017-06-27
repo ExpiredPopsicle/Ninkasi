@@ -64,3 +64,39 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
         }
     }
 }
+
+const char *valueToString(struct VM *vm, struct Value *value)
+{
+    switch(value->type) {
+
+        case VALUETYPE_STRING:
+            return vmStringTableGetStringById(
+                &vm->stringTable,
+                value->stringTableEntry);
+
+        case VALUETYPE_INT: {
+            struct DynString *dynStr = dynStrCreate("");
+            uint32_t id;
+
+            dynStrAppendInt32(dynStr, value->intData);
+
+            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            dynStrDelete(dynStr);
+
+            return vmStringTableGetStringById(
+                &vm->stringTable,
+                id);
+        }
+
+        default: {
+            struct DynString *ds = dynStrCreate("Cannot convert type ");
+            dynStrAppend(ds, valueTypeGetName(value->type));
+            dynStrAppend(ds, " to a string.");
+            errorStateAddError(
+                &vm->errorState, -1,
+                ds->data);
+            dynStrDelete(ds);
+            return 0;
+        }
+    }
+}

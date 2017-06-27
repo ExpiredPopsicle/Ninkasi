@@ -19,6 +19,18 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
 
             // TODO: Float support.
 
+        case VALUETYPE_STRING: {
+            struct DynString *dynStr =
+                dynStrCreate(
+                    vmStringTableGetStringById(
+                        &vm->stringTable,
+                        in1->stringTableEntry));
+            dynStrAppend(dynStr, valueToString(vm, in2));
+            vmStackPushString(
+                vm, dynStr->data);
+            dynStrDelete(dynStr);
+        } break;
+
             // TODO: String concatenation support.
 
             // TODO: Array concatenation support.
