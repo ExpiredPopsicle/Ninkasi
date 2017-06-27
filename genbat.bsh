@@ -1,0 +1,5 @@
+#!/bin/bash
+
+find src -iname "*.c" | sed -e "s/^/wcc386 /" | sed -e "s/\\//\\\\/" > build.bat
+dos2unix build.bat
+
