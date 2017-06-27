@@ -234,13 +234,18 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 lineNumber,
                 tokenList);
 
+        } else if(!str[i]) {
+
+            // Looks like we hit the end of the string after skipping
+            // the whitespace. Do nothing.
+
         } else {
 
             errorStateAddError(
                 &vm->errorState,
                 lineNumber, "Unknown token.");
-            return false;
 
+            return false;
         }
 
         i++;

@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
             // bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
-            bool r = tokenize(&vm, ")2.0 * 2.2 -100", &tokenList);
+            bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             {
@@ -125,7 +125,17 @@ int main(int argc, char *argv[])
 
                 addInstructionSimple(&cs, OP_NOP);
 
+            } else {
+                printf("tokenizer failed\n");
+                if(vm.errorState.firstError) {
+                    struct Error *err = vm.errorState.firstError;
+                    while(err) {
+                        printf("error: %s\n", err->errorText);
+                        err = err->next;
+                    }
+                }
             }
+
             destroyTokenList(&tokenList);
         }
     }
@@ -158,56 +168,54 @@ int main(int argc, char *argv[])
     printf("Final stack again...\n");
     vmStackDump(&vm);
 
-    return 0;
+    if(0) {
 
-    printf("----------------------------------------------------------------------\n");
-    printf("  String table crap\n");
-    printf("----------------------------------------------------------------------\n");
+        printf("----------------------------------------------------------------------\n");
+        printf("  String table crap\n");
+        printf("----------------------------------------------------------------------\n");
 
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
 
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "bladgh");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "foom");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "dicks");
-    vmStringTableFindOrAddString(
-        &vm.stringTable, "sadf");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "bladgh");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "foom");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "dicks");
+        vmStringTableFindOrAddString(
+            &vm.stringTable, "sadf");
 
-    vmStringTableDump(&vm.stringTable);
+        vmStringTableDump(&vm.stringTable);
 
-    vmStringTableGetEntryById(
-        &vm.stringTable,
-        vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
+        vmStringTableGetEntryById(
+            &vm.stringTable,
+            vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
 
-    vmStringTableCleanOldStrings(&vm.stringTable, 1234);
+        vmStringTableCleanOldStrings(&vm.stringTable, 1234);
 
-    vmStringTableDump(&vm.stringTable);
+        vmStringTableDump(&vm.stringTable);
 
-    vmRescanProgramStrings(&vm);
+        vmRescanProgramStrings(&vm);
 
 
-    // vmIterate(&vm);
-    // vmIterate(&vm);
-    // vmIterate(&vm);
-    // vmIterate(&vm);
-    printf("Final stack dump...\n");
-    vmStackDump(&vm);
+        // vmIterate(&vm);
+        // vmIterate(&vm);
+        // vmIterate(&vm);
+        // vmIterate(&vm);
+        printf("Final stack dump...\n");
+        vmStackDump(&vm);
+    }
 
     vmDestroy(&vm);
-
-
-    printf("%d\n", 123 + 456 * 789 - -100 / 300);
 
     return 0;
 }

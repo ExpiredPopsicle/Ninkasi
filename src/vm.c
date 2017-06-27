@@ -42,6 +42,7 @@ void vmInit(struct VM *vm)
     vm->instructions =
         malloc(sizeof(struct Instruction) * 4);
     vm->instructionAddressMask = 0x3;
+    memset(vm->instructions, 0, sizeof(struct Instruction) * 4);
 
     vmStringTableInit(&vm->stringTable);
 
