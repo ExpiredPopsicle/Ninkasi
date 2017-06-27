@@ -52,6 +52,9 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
         case VALUETYPE_INT:
             return value->intData;
 
+        case VALUETYPE_STRING:
+            return atoi(valueToString(vm, value));
+
         default: {
             struct DynString *ds = dynStrCreate("Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));

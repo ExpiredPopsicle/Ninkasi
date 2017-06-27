@@ -427,7 +427,7 @@ struct ExpressionAstNode *parseExpression(
         // Attempt to reduce.
         if(opStack) {
 
-            if(getPrecedence((*currentToken)->type) > getPrecedence(opStack->opOrValue->type)) {
+            if(getPrecedence((*currentToken)->type) >= getPrecedence(opStack->opOrValue->type)) {
 
                 reduce(&opStack, &valueStack);
                 dbgWriteLine("Reduced!");
