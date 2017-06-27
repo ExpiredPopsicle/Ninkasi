@@ -81,11 +81,13 @@ void vmGarbageCollect_markValue(
     struct VM *vm, struct Value *v,
     uint32_t currentGCPass)
 {
+    struct VMValueGCEntry *openList;
+
     if(v->lastGCPass == currentGCPass) {
         return;
     }
 
-    struct VMValueGCEntry *openList = malloc(sizeof(struct VMValueGCEntry));
+    openList = malloc(sizeof(struct VMValueGCEntry));
     openList->value = v;
     openList->next = NULL;
 

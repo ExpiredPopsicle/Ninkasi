@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
             // bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
-            bool r = tokenize(&vm, "1.0 + 2.2", &tokenList);
+            bool r = tokenize(&vm, "2.0 * 2.2 -100", &tokenList);
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             {
