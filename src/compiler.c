@@ -41,3 +41,42 @@ void addInstructionSimple(struct CompilerState *cs, enum Opcode opcode)
     inst.opcode = opcode;
     addInstruction(cs, &inst);
 }
+
+void pushContext(struct CompilerState *cs)
+{
+    struct CompilerStateContext *newContext =
+        malloc(sizeof(struct CompilerStateContext));
+    memset(newContext, 0, sizeof(*newContext));
+    newContext->parent = cs->context;
+    cs->context = newContext;
+
+    dbgWriteLine("Pushed context");
+}
+
+void popContext(struct CompilerState *cs)
+{
+    struct CompilerStateContext *oldContext =
+        cs->context;
+    cs->context = cs->context->parent;
+
+    // Free variable data.
+    {
+        struct CompilerStateContextVariable *var =
+            oldContext->variables;
+
+        while(var) {
+
+            struct CompilerStateContextVariable *next =
+                var->next;
+            free(var->name);
+            free(var);
+            var = next;
+        }
+    }
+
+    // Free the context itself.
+    free(oldContext);
+
+    dbgWriteLine("Popped context");
+}
+

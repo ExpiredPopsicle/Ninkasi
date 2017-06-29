@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" \"bar\" \"blah\"", &tokenList);
-            bool r = tokenize(&vm, "this - is + a / test * of + 123identifiers", &tokenList);
+            bool r = tokenize(&vm, "this - is + a / test * of + identifiers123", &tokenList);
 
             {
                 struct Token *t = tokenList.first;
@@ -108,7 +108,13 @@ int main(int argc, char *argv[])
 
                 cs.instructionWriteIndex = 0;
                 cs.vm = &vm;
+                cs.context = NULL;
+
+                pushContext(&cs);
+
                 compileExpression(&cs, &tokenPtr);
+
+                popContext(&cs);
 
                 // {
                 //     uint32_t i;
