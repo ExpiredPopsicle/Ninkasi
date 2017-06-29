@@ -64,7 +64,7 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
 
 void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction)
 {
-    struct Value *stackVal = vmStackPush_internal(&vm->stack);
+    struct Value *stackVal = vmStackPush_internal(vm);
     *stackVal = instruction->pushLiteralData.value;
 }
 
@@ -220,5 +220,18 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction)
             dynStrDelete(ds);
         } break;
     }
+}
+
+void opcode_pop(struct VM *vm, struct Instruction *instruction)
+{
+    vmStackPop(vm);
+}
+
+void opcode_dump(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *v = vmStackPop(vm);
+    printf("Debug dump: ");
+    value_dump(vm, v);
+    printf("\n");
 }
 

@@ -27,6 +27,10 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction);
 void opcode_negate(struct VM *vm, struct Instruction *instruction);
 
 void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction);
+void opcode_pop(struct VM *vm, struct Instruction *instruction);
+
 void opcode_nop(struct VM *vm, struct Instruction *instruction);
+
+void opcode_dump(struct VM *vm, struct Instruction *instruction);
 
 #endif

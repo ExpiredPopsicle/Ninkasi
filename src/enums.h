@@ -25,6 +25,10 @@ enum Opcode
 
     OP_PUSHLITERAL,
 
+    OP_POP,
+
+    OP_DUMP,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.

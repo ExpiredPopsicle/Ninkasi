@@ -51,6 +51,7 @@ void pushContext(struct CompilerState *cs)
     cs->context = newContext;
 
     dbgWriteLine("Pushed context");
+    dbgPush();
 }
 
 void popContext(struct CompilerState *cs)
@@ -65,18 +66,49 @@ void popContext(struct CompilerState *cs)
             oldContext->variables;
 
         while(var) {
-
             struct CompilerStateContextVariable *next =
                 var->next;
             free(var->name);
             free(var);
             var = next;
+
+            // TODO: Emit "pop" instructions.
+            addInstructionSimple(cs, OP_POP);
+
+            dbgWriteLine("Variable removed.");
         }
     }
 
     // Free the context itself.
     free(oldContext);
 
+    dbgPop();
     dbgWriteLine("Popped context");
 }
 
+void addVariable(struct CompilerState *cs, const char *name)
+{
+    // Add an instruction to make some stack space for this variable.
+    struct Instruction inst;
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = OP_PUSHLITERAL;
+    inst.pushLiteralData.value.type = VALUETYPE_INT;
+    inst.pushLiteralData.value.intData = 0;
+    addInstruction(cs, &inst);
+
+    // Add a variable to our context.
+    {
+        struct CompilerStateContextVariable *var =
+            malloc(sizeof(struct CompilerStateContextVariable));
+        memset(var, 0, sizeof(*var));
+
+        var->next = cs->context->variables;
+        var->isGlobal = !cs->context->parent;
+        var->name = strdup(name);
+        var->stackPos = cs->context->stackFrameOffset++;
+
+        cs->context->variables = var;
+    }
+
+    dbgWriteLine("Variable added.");
+}

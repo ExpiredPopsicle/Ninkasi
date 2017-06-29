@@ -68,21 +68,22 @@ int main(int argc, char *argv[])
         tokenList.first = NULL;
         tokenList.last = NULL;
         {
-            // bool r = tokenize("(((123\n +\n 456)[1 +\n 2\n]\n[\n3\n])) * 789 - -100 / ------300", &tokenList);
+            // bool r = tokenize(&vm, "(((123\n +\n 456)[1 +\n 2\n]\n[\n3\n])) * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
             // bool r = tokenize("123 + 456", &tokenList);
             // bool r = tokenize("123 + 456 * 789", &tokenList);
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            // bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 300", &tokenList);
+            bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 3", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
             // bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" \"bar\" \"blah\"", &tokenList);
-            bool r = tokenize(&vm, "this - is + a / test * of + identifiers123", &tokenList);
+
+            // bool r = tokenize(&vm, "this - is + a / test * of + identifiers123", &tokenList);
 
             {
                 struct Token *t = tokenList.first;
@@ -112,7 +113,12 @@ int main(int argc, char *argv[])
 
                 pushContext(&cs);
 
+                addVariable(&cs, "foo");
+                addVariable(&cs, "bar");
+
                 compileExpression(&cs, &tokenPtr);
+
+                addInstructionSimple(&cs, OP_DUMP);
 
                 popContext(&cs);
 
@@ -149,27 +155,33 @@ int main(int argc, char *argv[])
         }
     }
 
+    if(!vm.errorState.firstError) {
 
-    printf("----------------------------------------------------------------------\n");
-    printf("  Execution\n");
-    printf("----------------------------------------------------------------------\n");
+        printf("----------------------------------------------------------------------\n");
+        printf("  Execution\n");
+        printf("----------------------------------------------------------------------\n");
 
-    while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
-        printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
-        // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
-        vmIterate(&vm);
+        while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
+            printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
+            // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
+            vmIterate(&vm);
 
-        if(vm.errorState.firstError) {
-            struct Error *err = vm.errorState.firstError;
-            while(err) {
-                printf("error: %s\n", err->errorText);
-                err = err->next;
+            if(vm.errorState.firstError) {
+                struct Error *err = vm.errorState.firstError;
+                while(err) {
+                    printf("error: %s\n", err->errorText);
+                    err = err->next;
+                }
             }
-        }
 
-        vmStackDump(&vm);
-        vmGarbageCollect(&vm);
+            vmStackDump(&vm);
+            vmGarbageCollect(&vm);
+        }
     }
+
+    printf("----------------------------------------------------------------------\n");
+    printf("  Finish\n");
+    printf("----------------------------------------------------------------------\n");
 
     printf("Final stack...\n");
     vmStackDump(&vm);

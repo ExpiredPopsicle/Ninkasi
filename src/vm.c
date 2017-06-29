@@ -16,6 +16,9 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_NEGATE]      = opcode_negate;
     opcodeTable[OP_PUSHLITERAL] = opcode_pushLiteral;
     opcodeTable[OP_NOP]         = opcode_nop;
+    opcodeTable[OP_POP]         = opcode_pop;
+
+    opcodeTable[OP_DUMP]        = opcode_dump;
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
@@ -63,10 +66,15 @@ void vmDestroy(struct VM *vm)
 
 void vmIterate(struct VM *vm)
 {
-    struct Instruction *inst = &vm->instructions[
-        vm->instructionPointer & vm->instructionAddressMask];
-    opcodeTable[inst->opcode & (OPCODE_PADDEDCOUNT - 1)](vm, inst);
-    vm->instructionPointer++;
+    dbgWriteLine("Iterating...");
+    {
+        struct Instruction *inst = &vm->instructions[
+            vm->instructionPointer & vm->instructionAddressMask];
+        uint32_t opcodeId = inst->opcode & (OPCODE_PADDEDCOUNT - 1);
+        // printf("Opcode id: %u\n", opcodeId);
+        opcodeTable[opcodeId](vm, inst);
+        vm->instructionPointer++;
+    }
 }
 
 // ----------------------------------------------------------------------

@@ -14,19 +14,36 @@ void vmStackDestroy(struct VMStack *stack)
     memset(stack, 0, sizeof(struct VMStack));
 }
 
-struct Value *vmStackPush_internal(struct VMStack *stack)
+struct Value *vmStackPush_internal(struct VM *vm)
 {
+    struct VMStack *stack = &vm->stack;
+
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
 
         stack->capacity <<= 1;
+
+        // TODO: Add an adjustable stack size limit.
+        if(stack->capacity > 0xffff) {
+
+            errorStateAddError(
+                &vm->errorState, -1,
+                "Stack overflow.");
+
+            return &stack->values[0];
+        }
 
         // TODO: Make a more reasonable stack space limit than "we ran
         // out of 32-bit integer".
         // TODO: Make this a normal error. (Return NULL?)
         assert(stack->capacity);
         if(!stack->capacity) {
-            return NULL;
+
+            errorStateAddError(
+                &vm->errorState, -1,
+                "Stack ran out of address space.");
+
+            return &stack->values[0];
         }
 
         stack->indexMask <<= 1;
@@ -45,7 +62,7 @@ struct Value *vmStackPush_internal(struct VMStack *stack)
 
 bool vmStackPushInt(struct VM *vm, int32_t value)
 {
-    struct Value *data = vmStackPush_internal(&vm->stack);
+    struct Value *data = vmStackPush_internal(vm);
     if(data) {
         data->type = VALUETYPE_INT;
         data->intData = value;
@@ -56,7 +73,7 @@ bool vmStackPushInt(struct VM *vm, int32_t value)
 
 bool vmStackPushFloat(struct VM *vm, float value)
 {
-    struct Value *data = vmStackPush_internal(&vm->stack);
+    struct Value *data = vmStackPush_internal(vm);
     if(data) {
         data->type = VALUETYPE_FLOAT;
         data->floatData = value;
@@ -67,8 +84,7 @@ bool vmStackPushFloat(struct VM *vm, float value)
 
 bool vmStackPushString(struct VM *vm, const char *str)
 {
-    struct VMStack *stack = &vm->stack;
-    struct Value *data = vmStackPush_internal(stack);
+    struct Value *data = vmStackPush_internal(vm);
     if(data) {
         data->type = VALUETYPE_STRING;
         data->stringTableEntry =
@@ -85,10 +101,15 @@ struct Value *vmStackPop(struct VM *vm)
 
     // TODO: Shrink the stack if we can?
 
-    // TODO: Make this a normal error. (Return NULL?)
+    // TODO: Make this a normal error.
     assert(stack->size);
+
     if(stack->size == 0) {
-        return NULL;
+        // Stack underflow. We'll return the bottom of the stack, just
+        // so that whatever is expecting a valid piece of data here
+        // won't explode, but the error will be visible next check.
+        errorStateAddError(&vm->errorState, -1, "Stack underflow.");
+        return &stack->values[0];
     }
 
     stack->size--;

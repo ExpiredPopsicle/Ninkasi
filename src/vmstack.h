@@ -39,6 +39,6 @@ void vmStackDestroy(struct VMStack *stack);
 
 /// Pushes a new value and returns a pointer to it (so the caller may
 /// fill it in).
-struct Value *vmStackPush_internal(struct VMStack *stack);
+struct Value *vmStackPush_internal(struct VM *vm);
 
 #endif

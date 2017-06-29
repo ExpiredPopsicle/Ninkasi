@@ -22,6 +22,8 @@ struct CompilerStateContext
 {
     struct CompilerStateContext *parent;
     struct CompilerStateContextVariable *variables;
+
+    uint32_t stackFrameOffset;
 };
 
 struct CompilerState
@@ -38,5 +40,7 @@ void addInstructionSimple(struct CompilerState *cs, enum Opcode opcode);
 
 void pushContext(struct CompilerState *cs);
 void popContext(struct CompilerState *cs);
+
+void addVariable(struct CompilerState *cs, const char *name);
 
 #endif
