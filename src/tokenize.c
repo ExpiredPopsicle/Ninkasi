@@ -102,6 +102,49 @@ char *tokenizerUnescapeString(const char *in)
     return out;
 }
 
+void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
+{
+    struct Token *tok = tokenList->first;
+
+    while(tok) {
+
+        if(tok->type == TOKENTYPE_STRING &&
+            tok->next &&
+            tok->next->type == TOKENTYPE_STRING)
+        {
+            // Found two strings in a row.
+            struct Token *next = tok->next;
+
+            // Make a concatenated string.
+            char *newStr = malloc(strlen(tok->str) + strlen(tok->next->str) + 1);
+            strcpy(newStr, tok->str);
+            strcat(newStr, tok->next->str);
+
+            // Replace this token's string with it.
+            free(tok->str);
+            tok->str = newStr;
+
+            // Snip the next token out of the list.
+            tok->next = next->next;
+            deleteToken(next);
+
+            // Fixup "last" pointer in the TokenList.
+            if(tok->next == NULL) {
+                assert(next == tokenList->last);
+                tokenList->last = tok;
+            }
+
+        } else {
+
+            // Only advance to the next one if we didn't do any
+            // actions (because we may have to concatenate even more
+            // stuff onto this token).
+            tok = tok->next;
+
+        }
+    }
+}
+
 bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 {
     uint32_t len = strlen(str);
@@ -250,6 +293,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         i++;
     }
+
+    consolidateStringLiterals(vm, tokenList);
 
     return true;
 }

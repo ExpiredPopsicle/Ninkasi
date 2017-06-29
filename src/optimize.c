@@ -22,7 +22,9 @@ bool isImmediateValue(struct ExpressionAstNode *node)
     return false;
 }
 
-struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type)
+struct ExpressionAstNode *makeImmediateExpressionNode(
+    enum TokenType type,
+    uint32_t lineNumber)
 {
     struct ExpressionAstNode *newNode = malloc(sizeof(struct ExpressionAstNode));
     struct Token *newToken = malloc(sizeof(struct Token));
@@ -31,6 +33,7 @@ struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type)
     newNode->ownedToken = true;
     newNode->opOrValue = newToken;
     newToken->type = type;
+    newToken->lineNumber = lineNumber;
     return newNode;
 }
 
@@ -108,7 +111,9 @@ void optimizeConstants(struct ExpressionAstNode **node)
             // Make a new literal value node with the same type as
             // whatever we have on the left.
             struct ExpressionAstNode *newNode =
-                makeImmediateExpressionNode((*node)->children[0]->opOrValue->type);
+                makeImmediateExpressionNode(
+                    (*node)->children[0]->opOrValue->type,
+                    (*node)->children[0]->opOrValue->lineNumber);
 
             printf("Optimizing operator: %s\n", (*node)->opOrValue->str);
 

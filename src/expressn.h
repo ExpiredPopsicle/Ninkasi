@@ -1,6 +1,8 @@
 #ifndef EXPRESSN_H
 #define EXPRESSN_H
 
+#include "basetype.h"
+
 struct Token;
 struct VM;
 struct CompilerState;
@@ -22,7 +24,10 @@ bool isExpressionEndingToken(struct Token *token);
 bool isSubexpressionEndingToken(struct Token *token);
 int32_t getPrecedence(enum TokenType t);
 
-struct ExpressionAstNode *makeImmediateExpressionNode(enum TokenType type);
+struct ExpressionAstNode *makeImmediateExpressionNode(
+    enum TokenType type,
+    uint32_t lineNumber);
+
 void deleteExpressionNode(struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
