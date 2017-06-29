@@ -119,6 +119,8 @@ int32_t getPrecedence(enum TokenType t)
         case TOKENTYPE_PLUS:
         case TOKENTYPE_MINUS:
             return 6;
+        case TOKENTYPE_ASSIGNMENT:
+            return 15;
         default:
             // Error?
             return -1;
@@ -500,39 +502,15 @@ struct ExpressionAstNode *parseExpression(
     return valueStack;
 }
 
-
 bool emitFetchVariable(
     struct CompilerState *cs,
     const char *name,
     struct ExpressionAstNode *node)
 {
-    // Find the variable.
-    struct CompilerStateContext *ctx = cs->context;
-    struct CompilerStateContextVariable *var = NULL;
-    while(ctx) {
-        var = ctx->variables;
-        while(var) {
-            if(!strcmp(var->name, name)) {
-                // Found it.
-                ctx = NULL;
-                break;
-            }
-            var = var->next;
-        }
-        if(!var) {
-            ctx = ctx->parent;
-        }
-    }
+    struct CompilerStateContextVariable *var =
+        lookupVariable(cs, name, node->opOrValue->lineNumber);
 
     if(!var) {
-        struct DynString *dynStr =
-            dynStrCreate("Cannot find variable: ");
-        dynStrAppend(dynStr, name);
-        errorStateAddError(
-            &cs->vm->errorState,
-            node->opOrValue->lineNumber,
-            dynStr->data);
-        dynStrDelete(dynStr);
         return false;
     }
 
@@ -568,33 +546,90 @@ bool emitFetchVariable(
     return true;
 }
 
-bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
-
-bool emitExpressionLValue(struct CompilerState *cs, struct ExpressionAstNode *node)
+bool emitSetVariable(
+    struct CompilerState *cs,
+    const char *name,
+    struct ExpressionAstNode *node)
 {
-    struct Instruction inst;
-    uint32_t i;
+    struct CompilerStateContextVariable *var =
+        lookupVariable(cs, name, node->opOrValue->lineNumber);
 
-    // Emit children.
-    for(i = 0; i < 2; i++) {
-        if(node->children[i]) {
-            if(!emitExpression(cs, node->children[i])) {
-                return false;
-            }
-        }
+    if(!var) {
+        return false;
     }
 
-    memset(&inst, 0, sizeof(inst));
+    {
+        struct Instruction inst;
+        memset(&inst, 0, sizeof(inst));
+        inst.opcode = OP_PUSHLITERAL;
+        inst.pushLiteralData.value.type = VALUETYPE_INT;
 
-    switch(node->opOrValue->type) {
+        if(var->isGlobal) {
 
-        // TODO: Variables.
+            // Positive values for global variables (absolute stack
+            // position).
+            inst.pushLiteralData.value.intData = var->stackPos;
+
+        } else {
+
+            // Negative values for local variables (stack position -
+            // value).
+            inst.pushLiteralData.value.intData =
+                var->stackPos - cs->context->stackFrameOffset;
+
+        }
+
+        addInstruction(cs, &inst);
+
+        addInstructionSimple(cs, OP_STACKPOKE);
+    }
+
+    printf("SET VAR: %s\n", name);
+
+    return true;
+}
+
+bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
+
+bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode *node)
+{
+    if(!node->children[1]) {
+        errorStateAddError(
+            &cs->vm->errorState,
+            node->opOrValue->lineNumber,
+            "No RValue to assign in assignment.");
+        return false;
+    }
+
+    if(!node->children[0]) {
+        errorStateAddError(
+            &cs->vm->errorState,
+            node->opOrValue->lineNumber,
+            "No LValue to assign in assignment.");
+        return false;
+    }
+
+    // Emit the value we want to assign.
+    emitExpression(cs, node->children[1]);
+
+    // Emit the assignment itself, which will depend on what we're
+    // assigning to.
+
+    switch(node->children[0]->opOrValue->type) {
+
+        // Variable assignment.
+        case TOKENTYPE_IDENTIFIER: {
+            emitSetVariable(
+                cs,
+                node->children[0]->opOrValue->str,
+                node);
+        } break;
 
         // TODO: Array index.
 
         default: {
             struct DynString *dynStr =
-                dynStrCreate("Operator cannot be used to generate an LValue: ");
+                dynStrCreate("Operator or value cannot be used to generate an LValue: ");
             dynStrAppend(dynStr, node->opOrValue->str);
             errorStateAddError(
                 &cs->vm->errorState,
@@ -613,6 +648,12 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 {
     struct Instruction inst;
     uint32_t i;
+
+    // Assignments are special, because we need to evaluate the left
+    // side as an LValue.
+    if(node->opOrValue->type == TOKENTYPE_ASSIGNMENT) {
+        return emitExpressionAssignment(cs, node);
+    }
 
     // Emit children.
     for(i = 0; i < 2; i++) {

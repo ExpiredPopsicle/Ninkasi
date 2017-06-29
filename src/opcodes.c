@@ -276,6 +276,41 @@ void opcode_stackPeek(struct VM *vm, struct Instruction *instruction)
 
 void opcode_stackPoke(struct VM *vm, struct Instruction *instruction)
 {
-    // TODO
+    // Read index.
+    struct Value *stackAddrValue = vmStackPop(vm);
+    if(stackAddrValue->type != VALUETYPE_INT) {
+        errorStateAddError(&vm->errorState, -1,
+            "Attempted to use a non-integer as a stack index.");
+        return;
+    }
+
+    // Copy to stack.
+    if(stackAddrValue->intData >= 0) {
+
+        // Absolute stack address. Probably a global variable.
+        uint32_t stackAddress = stackAddrValue->intData;
+        struct Value *vIn = vmStackPeek(vm, (vm->stack.size - 1));
+        struct Value *vOut = vmStackPeek(vm, stackAddrValue->intData);
+        *vOut = *vIn;
+
+        printf("Set global value at stack position: %u\n", stackAddress);
+
+    } else {
+
+        printf("Setting local value...\n");
+        printf("  Stack size: %u\n", vm->stack.size);
+        printf("  v->intData: %d\n", stackAddrValue->intData);
+
+        {
+            // Negative stack address. Probably a local variable.
+            uint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
+            struct Value *vIn = vmStackPeek(vm, (vm->stack.size - 1));
+            struct Value *vOut = vmStackPeek(vm, stackAddress);
+            *vOut = *vIn;
+
+            printf("Set local value at stack position: %u\n", stackAddress);
+        }
+
+    }
 }
 

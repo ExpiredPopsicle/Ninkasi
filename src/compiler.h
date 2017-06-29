@@ -43,6 +43,10 @@ void popContext(struct CompilerState *cs);
 
 void addVariable(struct CompilerState *cs, const char *name);
 
+struct CompilerStateContextVariable *lookupVariable(
+    struct CompilerState *cs,
+    const char *name,
+    uint32_t lineNumber);
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
 

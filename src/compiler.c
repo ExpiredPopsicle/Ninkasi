@@ -133,6 +133,7 @@ void addVariable(struct CompilerState *cs, const char *name)
                 *currentToken ? (*currentToken)->lineNumber : -1,   \
                 errStr->data);                                      \
             dynStrDelete(errStr);                                   \
+            return false;                                           \
         } else {                                                    \
             *currentToken = (*currentToken)->next;                  \
         }                                                           \
@@ -169,4 +170,42 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
 
 
     return true;
+}
+
+struct CompilerStateContextVariable *lookupVariable(
+    struct CompilerState *cs,
+    const char *name,
+    uint32_t lineNumber)
+{
+    struct CompilerStateContext *ctx = cs->context;
+    struct CompilerStateContextVariable *var = NULL;
+
+    while(ctx) {
+        var = ctx->variables;
+        while(var) {
+            if(!strcmp(var->name, name)) {
+                // Found it.
+                ctx = NULL;
+                break;
+            }
+            var = var->next;
+        }
+        if(!var) {
+            ctx = ctx->parent;
+        }
+    }
+
+    if(!var) {
+        struct DynString *dynStr =
+            dynStrCreate("Cannot find variable: ");
+        dynStrAppend(dynStr, name);
+        errorStateAddError(
+            &cs->vm->errorState,
+            lineNumber,
+            dynStr->data);
+        dynStrDelete(dynStr);
+        return NULL;
+    }
+
+    return var;
 }
