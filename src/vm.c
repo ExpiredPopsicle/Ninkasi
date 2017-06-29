@@ -5,6 +5,10 @@
 
 typedef void (*VMOpcodeCall)(struct VM *vm, struct Instruction *instruction);
 static VMOpcodeCall opcodeTable[OPCODE_PADDEDCOUNT];
+static const char *opcodeNameTable[OPCODE_PADDEDCOUNT];
+
+#define NAME_OPCODE(x) do { opcodeNameTable[x] = #x; } while(0)
+
 static void vmInitOpcodeTable(void)
 {
     assert(OPCODE_PADDEDCOUNT >= OPCODE_REALCOUNT);
@@ -19,6 +23,24 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_POP]         = opcode_pop;
 
     opcodeTable[OP_DUMP]        = opcode_dump;
+
+    opcodeTable[OP_STACKPEEK]   = opcode_stackPeek;
+    opcodeTable[OP_STACKPOKE]   = opcode_stackPoke;
+
+    NAME_OPCODE(OP_ADD);
+    NAME_OPCODE(OP_SUBTRACT);
+    NAME_OPCODE(OP_MULTIPLY);
+    NAME_OPCODE(OP_DIVIDE);
+    NAME_OPCODE(OP_NEGATE);
+    NAME_OPCODE(OP_PUSHLITERAL);
+    NAME_OPCODE(OP_NOP);
+    NAME_OPCODE(OP_POP);
+
+    NAME_OPCODE(OP_DUMP);
+
+    NAME_OPCODE(OP_STACKPEEK);
+    NAME_OPCODE(OP_STACKPOKE);
+
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
@@ -66,15 +88,14 @@ void vmDestroy(struct VM *vm)
 
 void vmIterate(struct VM *vm)
 {
-    dbgWriteLine("Iterating...");
-    {
-        struct Instruction *inst = &vm->instructions[
-            vm->instructionPointer & vm->instructionAddressMask];
-        uint32_t opcodeId = inst->opcode & (OPCODE_PADDEDCOUNT - 1);
-        // printf("Opcode id: %u\n", opcodeId);
-        opcodeTable[opcodeId](vm, inst);
-        vm->instructionPointer++;
-    }
+    struct Instruction *inst = &vm->instructions[
+        vm->instructionPointer & vm->instructionAddressMask];
+    uint32_t opcodeId = inst->opcode & (OPCODE_PADDEDCOUNT - 1);
+
+    printf("Executing: %s\n", vmGetOpcodeName(opcodeId));
+
+    opcodeTable[opcodeId](vm, inst);
+    vm->instructionPointer++;
 }
 
 // ----------------------------------------------------------------------
@@ -197,3 +218,7 @@ void vmRescanProgramStrings(struct VM *vm)
     }
 }
 
+const char *vmGetOpcodeName(enum Opcode op)
+{
+    return opcodeNameTable[op & (OPCODE_PADDEDCOUNT - 1)];
+}

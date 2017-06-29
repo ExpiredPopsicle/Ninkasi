@@ -499,6 +499,115 @@ struct ExpressionAstNode *parseExpression(
     return valueStack;
 }
 
+
+bool emitFetchVariable(
+    struct CompilerState *cs,
+    const char *name,
+    struct ExpressionAstNode *node)
+{
+    // Find the variable.
+    struct CompilerStateContext *ctx = cs->context;
+    struct CompilerStateContextVariable *var = NULL;
+    while(ctx) {
+        var = ctx->variables;
+        while(var) {
+            if(!strcmp(var->name, name)) {
+                // Found it.
+                ctx = NULL;
+                break;
+            }
+            var = var->next;
+        }
+        if(!var) {
+            ctx = ctx->parent;
+        }
+    }
+
+    if(!var) {
+        struct DynString *dynStr =
+            dynStrCreate("Cannot find variable: ");
+        dynStrAppend(dynStr, name);
+        errorStateAddError(
+            &cs->vm->errorState,
+            node->opOrValue->lineNumber,
+            dynStr->data);
+        dynStrDelete(dynStr);
+        return false;
+    }
+
+    {
+        struct Instruction inst;
+        memset(&inst, 0, sizeof(inst));
+        inst.opcode = OP_PUSHLITERAL;
+        inst.pushLiteralData.value.type = VALUETYPE_INT;
+
+        if(var->isGlobal) {
+
+            // Positive values for global variables (absolute stack
+            // position).
+            inst.pushLiteralData.value.intData = var->stackPos;
+
+        } else {
+
+            // Negative values for local variables (stack position -
+            // value).
+            inst.pushLiteralData.value.intData =
+                var->stackPos - cs->context->stackFrameOffset;
+
+        }
+
+        addInstruction(cs, &inst);
+
+        addInstructionSimple(cs, OP_STACKPEEK);
+        cs->context->stackFrameOffset++;
+    }
+
+    printf("GET VAR: %s\n", name);
+
+    return true;
+}
+
+bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
+
+bool emitExpressionLValue(struct CompilerState *cs, struct ExpressionAstNode *node)
+{
+    struct Instruction inst;
+    uint32_t i;
+
+    // Emit children.
+    for(i = 0; i < 2; i++) {
+        if(node->children[i]) {
+            if(!emitExpression(cs, node->children[i])) {
+                return false;
+            }
+        }
+    }
+
+    memset(&inst, 0, sizeof(inst));
+
+    switch(node->opOrValue->type) {
+
+        // TODO: Variables.
+
+        // TODO: Array index.
+
+        default: {
+            struct DynString *dynStr =
+                dynStrCreate("Operator cannot be used to generate an LValue: ");
+            dynStrAppend(dynStr, node->opOrValue->str);
+            errorStateAddError(
+                &cs->vm->errorState,
+                node->opOrValue->lineNumber,
+                dynStr->data);
+            dynStrDelete(dynStr);
+            return false;
+        } break;
+
+    }
+
+    return true;
+}
+
 bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 {
     struct Instruction inst;
@@ -522,7 +631,10 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             inst.pushLiteralData.value.type = VALUETYPE_INT;
             inst.pushLiteralData.value.intData = atoi(node->opOrValue->str);
             addInstruction(cs, &inst);
+            cs->context->stackFrameOffset++;
+
             printf("PUSH INTEGER: %s\n", node->opOrValue->str);
+
         } break;
 
         case TOKENTYPE_FLOAT: {
@@ -530,7 +642,10 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             inst.pushLiteralData.value.type = VALUETYPE_FLOAT;
             inst.pushLiteralData.value.floatData = atof(node->opOrValue->str);
             addInstruction(cs, &inst);
+            cs->context->stackFrameOffset++;
+
             printf("PUSH FLOAT: %s\n", node->opOrValue->str);
+
         } break;
 
         case TOKENTYPE_STRING: {
@@ -553,14 +668,18 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             }
 
             addInstruction(cs, &inst);
-            printf("PUSH STRING: %s\n", node->opOrValue->str);
-        } break;
+            cs->context->stackFrameOffset++;
 
-            // TODO: Float support.
+            printf("PUSH STRING: %s\n", node->opOrValue->str);
+
+        } break;
 
         case TOKENTYPE_PLUS: {
             addInstructionSimple(cs, OP_ADD);
+            cs->context->stackFrameOffset--;
+
             printf("ADD\n");
+
         } break;
 
         case TOKENTYPE_MINUS:
@@ -569,19 +688,30 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
                 printf("NEGATE\n");
             } else {
                 addInstructionSimple(cs, OP_SUBTRACT);
+                cs->context->stackFrameOffset--;
                 printf("SUBTRACT\n");
             }
             break;
 
         case TOKENTYPE_MULTIPLY:
             addInstructionSimple(cs, OP_MULTIPLY);
+            cs->context->stackFrameOffset--;
             printf("MULTIPLY\n");
             break;
 
         case TOKENTYPE_DIVIDE:
             addInstructionSimple(cs, OP_DIVIDE);
+            cs->context->stackFrameOffset--;
             printf("DIVIDE\n");
             break;
+
+        case TOKENTYPE_IDENTIFIER:
+            emitFetchVariable(cs, node->opOrValue->str, node);
+            break;
+
+            // TODO: Array index.
+
+            // TODO: Function calls.
 
         default: {
             struct DynString *dynStr =
@@ -614,6 +744,13 @@ bool compileExpression(struct CompilerState *cs, struct Token **currentToken)
 
         ret = emitExpression(cs, node);
         deleteExpressionNode(node);
+
+        // TODO: Remove this. (Debugging output.)
+        {
+            addInstructionSimple(cs, OP_DUMP);
+            cs->context->stackFrameOffset--;
+        }
+
         return ret;
     }
 

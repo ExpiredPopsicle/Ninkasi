@@ -29,6 +29,9 @@ enum Opcode
 
     OP_DUMP,
 
+    OP_STACKPEEK,
+    OP_STACKPOKE,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.

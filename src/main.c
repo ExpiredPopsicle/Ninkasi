@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            bool r = tokenize(&vm, "123 + 456 * 789 - -100 / 3", &tokenList);
+            bool r = tokenize(&vm, "foo + bar + 123 + 456 * 789 - -100 / 3", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
             // bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
@@ -114,11 +114,11 @@ int main(int argc, char *argv[])
                 pushContext(&cs);
 
                 addVariable(&cs, "foo");
+                vmStackPeek(&vm, 0)->intData = 1234;
                 addVariable(&cs, "bar");
+                vmStackPeek(&vm, 0)->intData = 5678;
 
                 compileExpression(&cs, &tokenPtr);
-
-                addInstructionSimple(&cs, OP_DUMP);
 
                 popContext(&cs);
 
@@ -162,7 +162,8 @@ int main(int argc, char *argv[])
         printf("----------------------------------------------------------------------\n");
 
         while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
-            printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
+
+            // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
             // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
             vmIterate(&vm);
 

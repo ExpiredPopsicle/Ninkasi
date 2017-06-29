@@ -35,4 +35,6 @@ void vmGarbageCollect(struct VM *vm);
 /// references strings, then they can be made garbage-collectible.
 void vmRescanProgramStrings(struct VM *vm);
 
+const char *vmGetOpcodeName(enum Opcode op);
+
 #endif

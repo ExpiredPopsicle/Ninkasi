@@ -207,8 +207,6 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction)
                 -(in1->floatData));
         } break;
 
-            // TODO: Float support.
-
         default: {
             struct DynString *ds =
                 dynStrCreate("Negation unimplemented for type ");
@@ -233,5 +231,45 @@ void opcode_dump(struct VM *vm, struct Instruction *instruction)
     printf("Debug dump: ");
     value_dump(vm, v);
     printf("\n");
+}
+
+void opcode_stackPeek(struct VM *vm, struct Instruction *instruction)
+{
+    // Read index.
+    struct Value *v = vmStackPop(vm);
+    if(v->type != VALUETYPE_INT) {
+        errorStateAddError(&vm->errorState, -1,
+            "Attempted to use a non-integer as a stack index.");
+        return;
+    }
+
+    // Copy stack data over.
+    if(v->intData >= 0) {
+
+        // Absolute stack address. Probably a global variable.
+        uint32_t stackAddress = v->intData;
+        struct Value *vIn = vmStackPeek(vm, v->intData);
+        struct Value *vOut = vmStackPush_internal(vm);
+        *vOut = *vIn;
+
+        printf("Fetched global value at stack position: %u\n", stackAddress);
+
+    } else {
+
+        // Negative stack address. Probably a local variable.
+        uint32_t stackAddress = vm->stack.size - v->intData;
+        struct Value *vIn = vmStackPeek(
+            vm, stackAddress);
+        struct Value *vOut = vmStackPush_internal(vm);
+        *vOut = *vIn;
+
+        printf("Fetched local value at stack position: %u\n", stackAddress);
+
+    }
+}
+
+void opcode_stackPoke(struct VM *vm, struct Instruction *instruction)
+{
+    // TODO
 }
 

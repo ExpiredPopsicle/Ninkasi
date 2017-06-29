@@ -33,4 +33,7 @@ void opcode_nop(struct VM *vm, struct Instruction *instruction);
 
 void opcode_dump(struct VM *vm, struct Instruction *instruction);
 
+void opcode_stackPeek(struct VM *vm, struct Instruction *instruction);
+void opcode_stackPoke(struct VM *vm, struct Instruction *instruction);
+
 #endif

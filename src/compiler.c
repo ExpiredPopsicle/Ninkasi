@@ -74,6 +74,7 @@ void popContext(struct CompilerState *cs)
 
             // TODO: Emit "pop" instructions.
             addInstructionSimple(cs, OP_POP);
+            oldContext->stackFrameOffset--;
 
             dbgWriteLine("Variable removed.");
         }
