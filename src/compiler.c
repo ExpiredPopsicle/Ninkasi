@@ -133,8 +133,9 @@ void addVariable(struct CompilerState *cs, const char *name)
                 *currentToken ? (*currentToken)->lineNumber : -1,   \
                 errStr->data);                                      \
             dynStrDelete(errStr);                                   \
+        } else {                                                    \
+            *currentToken = (*currentToken)->next;                  \
         }                                                           \
-        *currentToken = (*currentToken)->next;                      \
     } while(0)
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
