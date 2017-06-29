@@ -47,6 +47,8 @@ enum TokenType
 
     TOKENTYPE_STRING,
 
+    TOKENTYPE_IDENTIFIER,
+
     TOKENTYPE_INVALID
 };
 

@@ -191,7 +191,7 @@ int32_t getPrecedence(enum TokenType t)
         opStack = astNode;                      \
     } while(0)
 
-void reduce(
+bool reduce(
     struct ExpressionAstNode **opStack,
     struct ExpressionAstNode **valueStack)
 {
@@ -199,7 +199,9 @@ void reduce(
     struct ExpressionAstNode *valNode2 = (*valueStack);
     struct ExpressionAstNode *opNode   = (*opStack);
 
-    assert(valNode1 && valNode2 && opNode);
+    if(!valNode1 || !valNode2 || !opNode) {
+        return false;
+    }
 
     // Pop off the values.
     (*valueStack) = (*valueStack)->stackNext->stackNext;
@@ -214,6 +216,8 @@ void reduce(
     opNode->children[1] = valNode2;
     opNode->stackNext = (*valueStack);
     (*valueStack) = opNode;
+
+    return true;
 }
 
 struct ExpressionAstNode *parseExpression(
@@ -430,7 +434,11 @@ struct ExpressionAstNode *parseExpression(
             if(getPrecedence((*currentToken)->type) >=
                 getPrecedence(opStack->opOrValue->type))
             {
-                reduce(&opStack, &valueStack);
+                if(!reduce(&opStack, &valueStack)) {
+                    PARSE_ERROR("Expression parse failure.");
+                    CLEANUP_INLOOP();
+                    return NULL;
+                }
                 dbgWriteLine("Reduced!");
             } else {
                 dbgWriteLine(
@@ -446,7 +454,11 @@ struct ExpressionAstNode *parseExpression(
 
     // Reduce all remaining operations.
     while(opStack) {
-        reduce(&opStack, &valueStack);
+        if(!reduce(&opStack, &valueStack)) {
+            PARSE_ERROR("Expression parse failure.");
+            CLEANUP_OUTER();
+            return NULL;
+        }
         dbgWriteLine("Reduced at end!");
     }
 

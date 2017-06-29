@@ -81,7 +81,8 @@ int main(int argc, char *argv[])
             // bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
             // bool r = tokenize(&vm, "1  + 2", &tokenList);
 
-            bool r = tokenize(&vm, "\"foo\" \"bar\" \"blah\"", &tokenList);
+            // bool r = tokenize(&vm, "\"foo\" \"bar\" \"blah\"", &tokenList);
+            bool r = tokenize(&vm, "this - is + a / test * of + 123identifiers", &tokenList);
 
             {
                 struct Token *t = tokenList.first;

@@ -145,6 +145,21 @@ void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
     }
 }
 
+bool isValidIdentifierCharacter(char c, bool isFirstCharacter)
+{
+    if(!isFirstCharacter) {
+        if(c >= '0' && c <= '9') {
+            return true;
+        }
+    }
+
+    if(c == '_') return true;
+    if(c >= 'a' && c <= 'z') return true;
+    if(c >= 'A' && c <= 'Z') return true;
+
+    return false;
+}
+
 bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 {
     uint32_t len = strlen(str);
@@ -276,6 +291,24 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 tmp,
                 lineNumber,
                 tokenList);
+
+        } else if(isValidIdentifierCharacter(str[i], true)) {
+
+            uint32_t startIndex = i;
+            char *tmp;
+
+            i++;
+            while(isValidIdentifierCharacter(str[i], false)) {
+                i++;
+            }
+
+            tmp = malloc((i - startIndex) + 1);
+            memcpy(tmp, str + startIndex, (i - startIndex));
+            tmp[(i - startIndex)] = 0;
+
+            addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+
+            free(tmp);
 
         } else if(!str[i]) {
 
