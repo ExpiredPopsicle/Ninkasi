@@ -75,7 +75,7 @@ int main(int argc, char *argv[])
             // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
             // assert(r);
 
-            bool r = tokenize(&vm, "foo + bar + 123 + 456 * 789 - -100 / 3", &tokenList);
+            bool r = tokenize(&vm, "123 + 456 * (789 + foo * bar) - -100 / 3", &tokenList);
 
             // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
             // bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
@@ -113,13 +113,17 @@ int main(int argc, char *argv[])
 
                 pushContext(&cs);
 
+                addVariable(&cs, "cheese");
+                addVariable(&cs, "butts");
+
+                pushContext(&cs);
+
                 addVariable(&cs, "foo");
-                vmStackPeek(&vm, 0)->intData = 1234;
                 addVariable(&cs, "bar");
-                vmStackPeek(&vm, 0)->intData = 5678;
 
                 compileExpression(&cs, &tokenPtr);
 
+                popContext(&cs);
                 popContext(&cs);
 
                 // {

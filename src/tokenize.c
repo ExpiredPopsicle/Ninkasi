@@ -310,6 +310,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             free(tmp);
 
+            i--;
+
         } else if(!str[i]) {
 
             // Looks like we hit the end of the string after skipping

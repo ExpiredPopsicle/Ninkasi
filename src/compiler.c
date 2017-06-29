@@ -48,6 +48,12 @@ void pushContext(struct CompilerState *cs)
         malloc(sizeof(struct CompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
     newContext->parent = cs->context;
+
+    // Set stack frame offset.
+    if(newContext->parent) {
+        newContext->stackFrameOffset = newContext->parent->stackFrameOffset;
+    }
+
     cs->context = newContext;
 
     dbgWriteLine("Pushed context");

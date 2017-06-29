@@ -256,14 +256,20 @@ void opcode_stackPeek(struct VM *vm, struct Instruction *instruction)
 
     } else {
 
-        // Negative stack address. Probably a local variable.
-        uint32_t stackAddress = vm->stack.size - v->intData;
-        struct Value *vIn = vmStackPeek(
-            vm, stackAddress);
-        struct Value *vOut = vmStackPush_internal(vm);
-        *vOut = *vIn;
+        printf("Fetching local value...\n");
+        printf("  Stack size: %u\n", vm->stack.size);
+        printf("  v->intData: %d\n", v->intData);
 
-        printf("Fetched local value at stack position: %u\n", stackAddress);
+        {
+            // Negative stack address. Probably a local variable.
+            uint32_t stackAddress = vm->stack.size + v->intData;
+            struct Value *vIn = vmStackPeek(
+                vm, stackAddress);
+            struct Value *vOut = vmStackPush_internal(vm);
+            *vOut = *vIn;
+
+            printf("Fetched local value at stack position: %u\n", stackAddress);
+        }
 
     }
 }
