@@ -43,4 +43,8 @@ void popContext(struct CompilerState *cs);
 
 void addVariable(struct CompilerState *cs, const char *name);
 
+
+bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
+
+
 #endif

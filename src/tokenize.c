@@ -214,6 +214,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             addToken(TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
 
+        } else if(str[i] == ';') {
+
+            addToken(TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
+
         } else if(str[i] == '\"') {
 
             const char *strStart = &str[i+1];

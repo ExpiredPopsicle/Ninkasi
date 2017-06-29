@@ -91,7 +91,8 @@ bool isSubexpressionEndingToken(struct Token *token)
 
 bool isExpressionEndingToken(struct Token *token)
 {
-    return !token || isSubexpressionEndingToken(token);
+    return !token || isSubexpressionEndingToken(token) ||
+        token->type == TOKENTYPE_SEMICOLON;
 }
 
 bool isPrefixOperator(struct Token *token)
@@ -163,7 +164,7 @@ int32_t getPrecedence(enum TokenType t)
 
 #define EXPECT_AND_SKIP(x)                                          \
     do {                                                            \
-        if(!(*currentToken) || (*currentToken)->type != x) {        \
+        if(!(*currentToken) || (*currentToken)->type != (x)) {      \
             struct DynString *errStr =                              \
                 dynStrCreate("Unexpected token: ");                 \
             dynStrAppend(                                           \
@@ -744,12 +745,6 @@ bool compileExpression(struct CompilerState *cs, struct Token **currentToken)
 
         ret = emitExpression(cs, node);
         deleteExpressionNode(node);
-
-        // TODO: Remove this. (Debugging output.)
-        {
-            addInstructionSimple(cs, OP_DUMP);
-            cs->context->stackFrameOffset--;
-        }
 
         return ret;
     }

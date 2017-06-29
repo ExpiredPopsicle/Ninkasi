@@ -119,3 +119,53 @@ void addVariable(struct CompilerState *cs, const char *name)
 
     dbgWriteLine("Variable added.");
 }
+
+#define EXPECT_AND_SKIP_STATEMENT(x)                                \
+    do {                                                            \
+        if(!(*currentToken) || (*currentToken)->type != (x)) {      \
+            struct DynString *errStr =                              \
+                dynStrCreate("Unexpected token: ");                 \
+            dynStrAppend(                                           \
+                errStr,                                             \
+                *currentToken ? (*currentToken)->str : "<none>");   \
+            errorStateAddError(                                     \
+                &cs->vm->errorState,                                \
+                *currentToken ? (*currentToken)->lineNumber : -1,   \
+                errStr->data);                                      \
+            dynStrDelete(errStr);                                   \
+        }                                                           \
+        *currentToken = (*currentToken)->next;                      \
+    } while(0)
+
+bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
+{
+    if(!*currentToken) {
+        errorStateAddError(
+            &cs->vm->errorState, -1, "Ran out of tokens to parse.");
+        return false;
+    }
+
+    switch((*currentToken)->type) {
+
+        // TODO: Other statement types.
+
+        default:
+
+            if(!compileExpression(cs, currentToken)) {
+                return false;
+            }
+
+            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+            // TODO: Remove this. (Debugging output.)
+            {
+                addInstructionSimple(cs, OP_DUMP);
+                cs->context->stackFrameOffset--;
+            }
+
+            break;
+    }
+
+
+    return true;
+}
