@@ -377,7 +377,7 @@ struct ExpressionAstNode *parseExpression(
 
                 EXPECT_AND_SKIP(TOKENTYPE_BRACKET_CLOSE);
 
-                dbgWriteLine("Index-into operator complete.");
+                dbgWriteLine("Function call operator complete.");
 
             } else {
 
