@@ -42,6 +42,8 @@ void pushContext(struct CompilerState *cs);
 void popContext(struct CompilerState *cs);
 
 void addVariable(struct CompilerState *cs, const char *name);
+void addVariableWithoutStackAllocation(
+    struct CompilerState *cs, const char *name);
 
 struct CompilerStateContextVariable *lookupVariable(
     struct CompilerState *cs,
@@ -49,8 +51,7 @@ struct CompilerStateContextVariable *lookupVariable(
     uint32_t lineNumber);
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
-
 bool compileBlock(struct CompilerState *cs, struct Token **currentToken);
-
+bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken);
 
 #endif

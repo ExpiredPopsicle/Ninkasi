@@ -322,7 +322,11 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
             memcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 
-            addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+            if(!strcmp(tmp, "var")) {
+                addToken(TOKENTYPE_VAR, tmp, lineNumber, tokenList);
+            } else {
+                addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+            }
 
             free(tmp);
 

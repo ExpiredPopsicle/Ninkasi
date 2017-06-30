@@ -93,6 +93,25 @@ void popContext(struct CompilerState *cs)
     dbgWriteLine("Popped context");
 }
 
+void addVariableWithoutStackAllocation(struct CompilerState *cs, const char *name)
+{
+    // Add a variable to our context.
+    {
+        struct CompilerStateContextVariable *var =
+            malloc(sizeof(struct CompilerStateContextVariable));
+        memset(var, 0, sizeof(*var));
+
+        var->next = cs->context->variables;
+        var->isGlobal = !cs->context->parent;
+        var->name = strdup(name);
+        var->stackPos = cs->context->stackFrameOffset - 1;
+
+        cs->context->variables = var;
+    }
+
+    dbgWriteLine("Variable added.");
+}
+
 void addVariable(struct CompilerState *cs, const char *name)
 {
     // Add an instruction to make some stack space for this variable.
@@ -103,21 +122,9 @@ void addVariable(struct CompilerState *cs, const char *name)
     inst.pushLiteralData.value.intData = 0;
     addInstruction(cs, &inst);
 
-    // Add a variable to our context.
-    {
-        struct CompilerStateContextVariable *var =
-            malloc(sizeof(struct CompilerStateContextVariable));
-        memset(var, 0, sizeof(*var));
+    cs->context->stackFrameOffset++;
 
-        var->next = cs->context->variables;
-        var->isGlobal = !cs->context->parent;
-        var->name = strdup(name);
-        var->stackPos = cs->context->stackFrameOffset++;
-
-        cs->context->variables = var;
-    }
-
-    dbgWriteLine("Variable added.");
+    addVariableWithoutStackAllocation(cs, name);
 }
 
 #define EXPECT_AND_SKIP_STATEMENT(x)                                \
@@ -149,19 +156,24 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
 
     switch((*currentToken)->type) {
 
-        // TODO: Other statement types.
+        case TOKENTYPE_VAR:
+            // "var" = Variable declaration.
+            return compileVariableDeclaration(cs, currentToken);
+
         case TOKENTYPE_CURLYBRACE_OPEN:
+            // Curly braces mean we need to parse a block.
             return compileBlock(cs, currentToken);
 
         default:
-
+            // Fall back to just parsing an expression.
             if(!compileExpression(cs, currentToken)) {
                 return false;
             }
 
             EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
 
-            // TODO: Remove this. (Debugging output.)
+            // TODO: Remove this. (Debugging output.) Replace it with
+            // a OP_POP.
             {
                 addInstructionSimple(cs, OP_DUMP);
                 cs->context->stackFrameOffset--;
@@ -230,3 +242,47 @@ bool compileBlock(struct CompilerState *cs, struct Token **currentToken)
 
     return true;
 }
+
+bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken)
+{
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_VAR);
+
+    if(!*currentToken || (*currentToken)->type != TOKENTYPE_IDENTIFIER) {
+        errorStateAddError(
+            &cs->vm->errorState,
+            *currentToken ? (*currentToken)->lineNumber : -1,
+            "Expected identifier in variable declaration.");
+        return false;
+    }
+
+    {
+        const char *variableName = (*currentToken)->str;
+
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IDENTIFIER);
+
+        if(*currentToken && (*currentToken)->type == TOKENTYPE_ASSIGNMENT) {
+
+            // Something in the form of "var foo = expression;" We'll just
+            // treat the "foo = expression;" part as a separate thing.
+
+            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ASSIGNMENT);
+
+            if(!compileExpression(cs, currentToken)) {
+                return false;
+            }
+
+            addVariableWithoutStackAllocation(cs, variableName);
+
+        } else {
+
+            // Something in the form of "var foo;"
+
+            addVariable(cs, variableName);
+        }
+    }
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    return true;
+}
+
