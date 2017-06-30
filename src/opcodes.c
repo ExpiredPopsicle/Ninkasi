@@ -68,6 +68,39 @@ void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction)
     *stackVal = instruction->pushLiteralData.value;
 }
 
+void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *stackVal = vmStackPush_internal(vm);
+    vm->instructionPointer++;
+
+    stackVal->type = VALUETYPE_INT;
+    stackVal->intData =
+        vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_int;
+}
+
+void opcode_pushLiteral_float(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *stackVal = vmStackPush_internal(vm);
+    vm->instructionPointer++;
+
+    stackVal->type = VALUETYPE_FLOAT;
+    stackVal->floatData =
+        vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_float;
+}
+
+void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *stackVal = vmStackPush_internal(vm);
+    vm->instructionPointer++;
+
+    stackVal->type = VALUETYPE_STRING;
+    stackVal->stringTableEntry =
+        vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_string;
+
+    printf("Pushing literal string: %d = %d\n", vm->instructionPointer, stackVal->stringTableEntry);
+
+}
+
 void opcode_nop(struct VM *vm, struct Instruction *instruction)
 {
 }

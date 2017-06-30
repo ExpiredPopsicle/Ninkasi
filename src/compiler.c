@@ -2,6 +2,11 @@
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 {
+    // if(inst->opcode == OP_NOP && cs->instructionWriteIndex == 6) {
+    //     assert(0);
+    //     printf("Writing NOP at index %d\n", cs->instructionWriteIndex);
+    // }
+
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
         // TODO: Remove this.
@@ -110,6 +115,57 @@ void addVariableWithoutStackAllocation(struct CompilerState *cs, const char *nam
     }
 
     dbgWriteLine("Variable added.");
+}
+
+void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
+{
+    struct Instruction inst;
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = OP_PUSHLITERAL_INT;
+    addInstruction(cs, &inst);
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opData_int = value;
+    addInstruction(cs, &inst);
+}
+
+void emitPushLiteralFloat(struct CompilerState *cs, float value)
+{
+    struct Instruction inst;
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = OP_PUSHLITERAL_FLOAT;
+    addInstruction(cs, &inst);
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opData_float = value;
+    addInstruction(cs, &inst);
+}
+
+void emitPushLiteralString(struct CompilerState *cs, const char *str)
+{
+    struct Instruction inst;
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = OP_PUSHLITERAL_STRING;
+    addInstruction(cs, &inst);
+
+    memset(&inst, 0, sizeof(inst));
+    inst.opData_string =
+        vmStringTableFindOrAddString(
+            &cs->vm->stringTable,
+            str);
+    addInstruction(cs, &inst);
+
+    // Mark as not garbage-collected.
+    {
+        struct VMString *entry = vmStringTableGetEntryById(
+            &cs->vm->stringTable, inst.opData_string);
+        if(entry) {
+            entry->dontGC = true;
+        }
+    }
 }
 
 void addVariable(struct CompilerState *cs, const char *name)

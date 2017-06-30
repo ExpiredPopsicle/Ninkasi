@@ -101,9 +101,6 @@ struct Value *vmStackPop(struct VM *vm)
 
     // TODO: Shrink the stack if we can?
 
-    // TODO: Make this a normal error.
-    assert(stack->size);
-
     if(stack->size == 0) {
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here

@@ -54,4 +54,8 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
 bool compileBlock(struct CompilerState *cs, struct Token **currentToken);
 bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken);
 
+void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
+void emitPushLiteralFloat(struct CompilerState *cs, float value);
+void emitPushLiteralString(struct CompilerState *cs, const char *str);
+
 #endif

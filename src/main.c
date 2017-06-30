@@ -4,63 +4,7 @@ int main(int argc, char *argv[])
 {
     struct VM vm;
 
-    // struct VMStack stack;
-    // vmStackInit(&stack);
-
-    // struct Value *t1 = vmStackpush(&stack);
-    // struct Value *t2 = vmStackpush(&stack);
-
-    // t1->type = VALUETYPE_INT;
-    // t2->type = VALUETYPE_INT;
-    // t1->intData = 123;
-    // t2->intData = 456;
-
-
-
-
-    // vmStackPushInt(&stack, 123);
-    // vmStackPushInt(&stack, 456);
-
-    // opcode_add(&stack);
-
-    // vmStackPushInt(&stack, 123);
-    // vmStackPushInt(&stack, 456);
-
-    // vmStackPushInt(&stack, 123);
-    // vmStackPushInt(&stack, 456);
-
-    // vmStackDump(&stack);
-
-    // vmStackDestroy(&stack);
-
-
-
     vmInit(&vm);
-
-    // {
-    //     // vm.instructions =
-    //     //     malloc(sizeof(struct Instruction) * 4);
-    //     // vm.instructionAddressMask = 0x3;
-
-    //     vm.instructions[0].opcode = OP_PUSHLITERAL;
-    //     vm.instructions[0].pushLiteralData.value.type = VALUETYPE_INT;
-    //     vm.instructions[0].pushLiteralData.value.intData = 32;
-
-    //     vm.instructions[1].opcode = OP_PUSHLITERAL;
-    //     vm.instructions[1].pushLiteralData.value.type = VALUETYPE_INT;
-    //     vm.instructions[1].pushLiteralData.value.intData = 16;
-
-    //     vm.instructions[2].opcode = OP_ADD;
-
-    //     vm.instructions[3].opcode = OP_NOP;
-    // }
-
-    // vmIterate(&vm);
-    // vmIterate(&vm);
-    // vmIterate(&vm);
-    // vmStackDump(&vm.stack);
-
-
 
     printf("Tokenize test...\n");
     {
@@ -78,9 +22,10 @@ int main(int argc, char *argv[])
             bool r = tokenize(&vm,
                 // "{ var butts = 3; foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
                 // "bar = foo + 1 + 2 + 3; }",
-                "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }",
+                // "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }",
                 // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
                 // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
+                "{ \"foo\" + \"bar\"; }",
                 &tokenList);
 
             // bool r = tokenize(&vm,
@@ -159,7 +104,8 @@ int main(int argc, char *argv[])
                     }
                 }
 
-                addInstructionSimple(&cs, OP_NOP);
+                // addInstructionSimple(&cs, OP_NOP);
+                // addInstructionSimple(&cs, OP_DUMP);
 
             } else {
                 printf("tokenizer failed\n");
@@ -177,6 +123,17 @@ int main(int argc, char *argv[])
     }
 
     if(!vm.errorState.firstError) {
+
+        printf("----------------------------------------------------------------------\n");
+        printf("  Dump\n");
+        printf("----------------------------------------------------------------------\n");
+
+        {
+            uint32_t i;
+            for(i = 0; i <= vm.instructionAddressMask; i++) {
+                printf("%4d: %s\n", i, vmGetOpcodeName(vm.instructions[i].opcode));
+            }
+        }
 
         printf("----------------------------------------------------------------------\n");
         printf("  Execution\n");
@@ -198,6 +155,11 @@ int main(int argc, char *argv[])
 
             vmStackDump(&vm);
             vmGarbageCollect(&vm);
+
+            printf("next instruction %d: %d = %s\n",
+                vm.instructionPointer,
+                vm.instructions[vm.instructionPointer].opcode,
+                vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
         }
     }
 
