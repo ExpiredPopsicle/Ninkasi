@@ -514,32 +514,22 @@ bool emitFetchVariable(
         return false;
     }
 
-    {
-        struct Instruction inst;
-        memset(&inst, 0, sizeof(inst));
-        inst.opcode = OP_PUSHLITERAL;
-        inst.pushLiteralData.value.type = VALUETYPE_INT;
+    if(var->isGlobal) {
 
-        if(var->isGlobal) {
+        // Positive values for global variables (absolute stack
+        // position).
+        emitPushLiteralInt(cs, var->stackPos);
 
-            // Positive values for global variables (absolute stack
-            // position).
-            inst.pushLiteralData.value.intData = var->stackPos;
+    } else {
 
-        } else {
-
-            // Negative values for local variables (stack position -
-            // value).
-            inst.pushLiteralData.value.intData =
-                var->stackPos - cs->context->stackFrameOffset;
-
-        }
-
-        addInstruction(cs, &inst);
-
-        addInstructionSimple(cs, OP_STACKPEEK);
-        cs->context->stackFrameOffset++;
+        // Negative values for local variables (stack position -
+        // value).
+        emitPushLiteralInt(cs,
+            var->stackPos - cs->context->stackFrameOffset);
     }
+
+    addInstructionSimple(cs, OP_STACKPEEK);
+    cs->context->stackFrameOffset++;
 
     printf("GET VAR: %s\n", name);
 
@@ -558,31 +548,22 @@ bool emitSetVariable(
         return false;
     }
 
-    {
-        struct Instruction inst;
-        memset(&inst, 0, sizeof(inst));
-        inst.opcode = OP_PUSHLITERAL;
-        inst.pushLiteralData.value.type = VALUETYPE_INT;
+    if(var->isGlobal) {
 
-        if(var->isGlobal) {
+        // Positive values for global variables (absolute stack
+        // position).
+        emitPushLiteralInt(cs, var->stackPos);
 
-            // Positive values for global variables (absolute stack
-            // position).
-            inst.pushLiteralData.value.intData = var->stackPos;
+    } else {
 
-        } else {
+        // Negative values for local variables (stack position -
+        // value).
+        emitPushLiteralInt(cs,
+            var->stackPos - cs->context->stackFrameOffset);
 
-            // Negative values for local variables (stack position -
-            // value).
-            inst.pushLiteralData.value.intData =
-                var->stackPos - cs->context->stackFrameOffset;
-
-        }
-
-        addInstruction(cs, &inst);
-
-        addInstructionSimple(cs, OP_STACKPOKE);
     }
+
+    addInstructionSimple(cs, OP_STACKPOKE);
 
     printf("SET VAR: %s\n", name);
 
@@ -669,10 +650,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
     switch(node->opOrValue->type) {
 
         case TOKENTYPE_INTEGER: {
-            inst.opcode = OP_PUSHLITERAL;
-            inst.pushLiteralData.value.type = VALUETYPE_INT;
-            inst.pushLiteralData.value.intData = atoi(node->opOrValue->str);
-            addInstruction(cs, &inst);
+            emitPushLiteralInt(cs, atoi(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
             printf("PUSH INTEGER: %s\n", node->opOrValue->str);
@@ -680,10 +658,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
         } break;
 
         case TOKENTYPE_FLOAT: {
-            inst.opcode = OP_PUSHLITERAL;
-            inst.pushLiteralData.value.type = VALUETYPE_FLOAT;
-            inst.pushLiteralData.value.floatData = atof(node->opOrValue->str);
-            addInstruction(cs, &inst);
+            emitPushLiteralFloat(cs, atof(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
             printf("PUSH FLOAT: %s\n", node->opOrValue->str);
@@ -691,26 +666,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
         } break;
 
         case TOKENTYPE_STRING: {
-            // inst.opcode = OP_PUSHLITERAL;
-            // inst.pushLiteralData.value.type = VALUETYPE_STRING;
-            // inst.pushLiteralData.value.stringTableEntry =
-            //     vmStringTableFindOrAddString(
-            //         &cs->vm->stringTable,
-            //         node->opOrValue->str);
             emitPushLiteralString(cs, node->opOrValue->str);
-
-            // // Turn off garbage collection for this string, because
-            // // it's part of the program code.
-            // {
-            //     struct VMString *vmstr = vmStringTableGetEntryById(
-            //         &cs->vm->stringTable,
-            //         inst.pushLiteralData.value.stringTableEntry);
-            //     if(vmstr) {
-            //         vmstr->dontGC = true;
-            //     }
-            // }
-
-            // addInstruction(cs, &inst);
             cs->context->stackFrameOffset++;
 
             printf("PUSH STRING: %s\n", node->opOrValue->str);

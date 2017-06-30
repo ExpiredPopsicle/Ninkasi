@@ -62,12 +62,6 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction)
-{
-    struct Value *stackVal = vmStackPush_internal(vm);
-    *stackVal = instruction->pushLiteralData.value;
-}
-
 void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction)
 {
     struct Value *stackVal = vmStackPush_internal(vm);

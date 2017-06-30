@@ -22,10 +22,12 @@ int main(int argc, char *argv[])
             bool r = tokenize(&vm,
                 // "{ var butts = 3; foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
                 // "bar = foo + 1 + 2 + 3; }",
-                // "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }",
+                "{"
+                "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }"
                 // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
                 // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
-                "{ \"foo\" + \"bar\"; }",
+                "{ \"foo\" + \"bar\"; }"
+                "}",
                 &tokenList);
 
             // bool r = tokenize(&vm,
@@ -131,7 +133,28 @@ int main(int argc, char *argv[])
         {
             uint32_t i;
             for(i = 0; i <= vm.instructionAddressMask; i++) {
-                printf("%4d: %s\n", i, vmGetOpcodeName(vm.instructions[i].opcode));
+
+                enum Opcode opcode = vm.instructions[i].opcode;
+                struct Instruction *maybeParams =
+                    &vm.instructions[(i+1) & vm.instructionAddressMask];
+
+                // Output opcode.
+                printf("%4d: %s", i, vmGetOpcodeName(opcode));
+
+                // Output parameters.
+                if(vm.instructions[i].opcode == OP_PUSHLITERAL_INT) {
+                    i++;
+                    printf(" %d", maybeParams->opData_int);
+                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
+                    i++;
+                    printf(" %f", maybeParams->opData_float);
+                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_STRING) {
+                    const char *str = vmStringTableGetStringById(&vm.stringTable, maybeParams->opData_string);
+                    i++;
+                    printf(" %d:%s", maybeParams->opData_string, str ? str : "<bad string>");
+                }
+
+                printf("\n");
             }
         }
 

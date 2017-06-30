@@ -18,7 +18,6 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_MULTIPLY]           = opcode_multiply;
     opcodeTable[OP_DIVIDE]             = opcode_divide;
     opcodeTable[OP_NEGATE]             = opcode_negate;
-    opcodeTable[OP_PUSHLITERAL]        = opcode_pushLiteral;
     opcodeTable[OP_PUSHLITERAL_INT]    = opcode_pushLiteral_int;
     opcodeTable[OP_PUSHLITERAL_FLOAT]  = opcode_pushLiteral_float;
     opcodeTable[OP_PUSHLITERAL_STRING] = opcode_pushLiteral_string;
@@ -35,7 +34,6 @@ static void vmInitOpcodeTable(void)
     NAME_OPCODE(OP_MULTIPLY);
     NAME_OPCODE(OP_DIVIDE);
     NAME_OPCODE(OP_NEGATE);
-    NAME_OPCODE(OP_PUSHLITERAL);
     NAME_OPCODE(OP_PUSHLITERAL_INT);
     NAME_OPCODE(OP_PUSHLITERAL_FLOAT);
     NAME_OPCODE(OP_PUSHLITERAL_STRING);
@@ -206,24 +204,8 @@ void vmRescanProgramStrings(struct VM *vm)
     // Mark everything that's referenced from the program.
     for(i = 0; i <= vm->instructionAddressMask; i++) {
 
-        if(vm->instructions[i].opcode == OP_PUSHLITERAL) {
+        if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
 
-            if(vm->instructions[i].pushLiteralData.value.type == VALUETYPE_STRING) {
-
-                struct VMString *entry =
-                    vmStringTableGetEntryById(
-                        &vm->stringTable,
-                        vm->instructions[i].pushLiteralData.value.stringTableEntry);
-
-                if(entry) {
-                    entry->dontGC = true;
-
-                    printf("Marked string as in-use by program: %s\n", entry->str);
-                }
-
-            }
-
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
             i++;
             {
                 struct VMString *entry =

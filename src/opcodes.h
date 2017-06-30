@@ -15,14 +15,6 @@ struct Instruction
         float opData_float;
         uint32_t opData_string;
     };
-
-    union
-    {
-        struct
-        {
-            struct Value value;
-        } pushLiteralData;
-    };
 };
 
 
@@ -32,7 +24,6 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction);
 void opcode_divide(struct VM *vm, struct Instruction *instruction);
 void opcode_negate(struct VM *vm, struct Instruction *instruction);
 
-void opcode_pushLiteral(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_float(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction);
