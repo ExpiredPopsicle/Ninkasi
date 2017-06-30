@@ -192,6 +192,14 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             addToken(TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
 
+        } else if(str[i] == '{') {
+
+            addToken(TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
+
+        } else if(str[i] == '}') {
+
+            addToken(TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
+
         } else if(str[i] == '+') {
 
             // Check for "++".

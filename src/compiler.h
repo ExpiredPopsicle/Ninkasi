@@ -50,5 +50,7 @@ struct CompilerStateContextVariable *lookupVariable(
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
 
+bool compileBlock(struct CompilerState *cs, struct Token **currentToken);
+
 
 #endif

@@ -150,6 +150,8 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
     switch((*currentToken)->type) {
 
         // TODO: Other statement types.
+        case TOKENTYPE_CURLYBRACE_OPEN:
+            return compileBlock(cs, currentToken);
 
         default:
 
@@ -208,4 +210,23 @@ struct CompilerStateContextVariable *lookupVariable(
     }
 
     return var;
+}
+
+bool compileBlock(struct CompilerState *cs, struct Token **currentToken)
+{
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
+
+    pushContext(cs);
+
+    while(*currentToken && (*currentToken)->type != TOKENTYPE_CURLYBRACE_CLOSE) {
+        if(!compileStatement(cs, currentToken)) {
+            return false;
+        }
+    }
+
+    popContext(cs);
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_CLOSE);
+
+    return true;
 }

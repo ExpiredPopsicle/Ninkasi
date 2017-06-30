@@ -76,8 +76,8 @@ int main(int argc, char *argv[])
             // assert(r);
 
             bool r = tokenize(&vm,
-                "foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
-                "bar = foo + 1 + 2 + 3;",
+                "{ foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
+                "bar = foo + 1 + 2 + 3; }",
                 // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
                 // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
                 &tokenList);
@@ -130,12 +130,14 @@ int main(int argc, char *argv[])
                 addVariable(&cs, "foo");
                 addVariable(&cs, "bar");
 
-                while(tokenPtr) {
-                    printf("%s\n", tokenPtr->str);
-                    if(!compileStatement(&cs, &tokenPtr)) {
-                        break;
-                    }
-                }
+                compileStatement(&cs, &tokenPtr);
+
+                // while(tokenPtr) {
+                //     printf("%s\n", tokenPtr->str);
+                //     if(!compileStatement(&cs, &tokenPtr)) {
+                //         break;
+                //     }
+                // }
 
                 popContext(&cs);
                 popContext(&cs);
