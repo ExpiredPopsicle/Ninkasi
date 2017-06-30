@@ -51,6 +51,10 @@ struct Value *vmStackPush_internal(struct VM *vm)
         stack->values = realloc(
             stack->values,
             stack->capacity * sizeof(struct Value));
+
+        memset(
+            &stack->values[stack->size], 0,
+            sizeof(struct Value) * (stack->capacity - stack->size));
     }
 
     {

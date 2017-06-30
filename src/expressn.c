@@ -180,12 +180,11 @@ int32_t getPrecedence(enum TokenType t)
         NEXT_TOKEN();                                               \
     } while(0)
 
-#define MAKE_OP(x)                                                      \
-    struct ExpressionAstNode *astNode = malloc(sizeof(struct ExpressionAstNode)); \
-    memset(astNode, 0, sizeof(*astNode));                               \
-    astNode->stackNext = opStack;                                       \
-    astNode->children[0] = NULL;                                        \
-    astNode->children[1] = NULL;                                        \
+#define MAKE_OP(x)                                  \
+    struct ExpressionAstNode *astNode =             \
+        malloc(sizeof(struct ExpressionAstNode));   \
+    memset(astNode, 0, sizeof(*astNode));           \
+    astNode->stackNext = opStack;                   \
     astNode->opOrValue = x;
 
 #define PUSH_OP(x)                              \
