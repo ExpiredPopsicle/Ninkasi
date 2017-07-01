@@ -341,3 +341,8 @@ void opcode_stackPoke(struct VM *vm, struct Instruction *instruction)
     }
 }
 
+void opcode_jumpRelative(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *offsetVal = vmStackPop(vm);
+    vm->instructionPointer += valueToInt(vm, offsetVal);
+}

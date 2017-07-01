@@ -1,0 +1,9 @@
+var foo = 123;
+var bar;
+bar = foo + foo;
+
+function test(a, b, c) {
+    "beep" + "boop";
+}
+
+bar = "asdf";

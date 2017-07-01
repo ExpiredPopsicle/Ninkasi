@@ -218,9 +218,13 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
             // "var" = Variable declaration.
             return compileVariableDeclaration(cs, currentToken);
 
+        case TOKENTYPE_FUNCTION:
+            // "function" = Function definition.
+            return compileFunctionDefinition(cs, currentToken);
+
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
-            return compileBlock(cs, currentToken);
+            return compileBlock(cs, currentToken, false);
 
         default:
             // Fall back to just parsing an expression.
@@ -282,11 +286,12 @@ struct CompilerStateContextVariable *lookupVariable(
     return var;
 }
 
-bool compileBlock(struct CompilerState *cs, struct Token **currentToken)
+bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool noBracesOrContext)
 {
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
-
-    pushContext(cs);
+    if(!noBracesOrContext) {
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
+        pushContext(cs);
+    }
 
     while(*currentToken && (*currentToken)->type != TOKENTYPE_CURLYBRACE_CLOSE) {
         if(!compileStatement(cs, currentToken)) {
@@ -294,9 +299,10 @@ bool compileBlock(struct CompilerState *cs, struct Token **currentToken)
         }
     }
 
-    popContext(cs);
-
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_CLOSE);
+    if(!noBracesOrContext) {
+        popContext(cs);
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_CLOSE);
+    }
 
     return true;
 }
@@ -340,6 +346,83 @@ bool compileVariableDeclaration(struct CompilerState *cs, struct Token **current
     }
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    return true;
+}
+
+bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken)
+{
+    const char *functionName = NULL;
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
+
+    // Read the function name.
+    if(*currentToken && (*currentToken)->type == TOKENTYPE_IDENTIFIER) {
+        functionName = (*currentToken)->str;
+        *currentToken = (*currentToken)->next;
+    } else {
+        errorStateAddError(
+            &cs->vm->errorState,
+            *currentToken ? (*currentToken)->lineNumber : -1,
+            "Expected identifier for function name.");
+        return false;
+    }
+
+    // Skip '('.
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+
+    // Read variable names and skip commas until we get to a closing
+    // parenthesis.
+    while(*currentToken) {
+
+        if((*currentToken)->type == TOKENTYPE_IDENTIFIER) {
+
+            // TODO: Do something useful with this.
+            *currentToken = (*currentToken)->next;
+
+        } else {
+
+            errorStateAddError(
+                &cs->vm->errorState,
+                *currentToken ? (*currentToken)->lineNumber : -1,
+                "Expected identifier for function argument name.");
+        }
+
+        if(*currentToken && (*currentToken)->type == TOKENTYPE_PAREN_CLOSE) {
+            break;
+        }
+
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_COMMA);
+    }
+
+    // Skip ')'.
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+
+
+    {
+        // Add some instructions to skip around this function. This is
+        // kind of a weird way to do it, but it means that we can just
+        // start programs at instruction 0 and not worry about
+        // functions in the middle. If declared at global scope, this
+        // will only happen once per function so whatever.
+        uint32_t skipOffset;
+        emitPushLiteralInt(cs, 0);
+        skipOffset = cs->instructionWriteIndex - 1;
+        addInstructionSimple(cs, OP_JUMP_RELATIVE);
+
+        // Parse and emit actual function code.
+        pushContext(cs);
+        compileStatement(cs, currentToken);
+        popContext(cs);
+
+        // Go back and fix up our relative jump that skips this
+        // function now that we know how long it is.
+        cs->vm->instructions[skipOffset].opData_int =
+            cs->instructionWriteIndex - skipOffset;
+    }
+
+
+    // TODO
 
     return true;
 }

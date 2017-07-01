@@ -34,6 +34,8 @@ enum Opcode
     OP_STACKPEEK,
     OP_STACKPOKE,
 
+    OP_JUMP_RELATIVE,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
@@ -60,7 +62,11 @@ enum TokenType
     TOKENTYPE_SEMICOLON,
     TOKENTYPE_ASSIGNMENT,
 
+    TOKENTYPE_COMMA,
+
     TOKENTYPE_VAR,
+    TOKENTYPE_FUNCTION,
+    TOKENTYPE_RETURN,
 
     TOKENTYPE_INVALID
 };

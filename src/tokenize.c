@@ -230,6 +230,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             addToken(TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
 
+        } else if(str[i] == ',') {
+
+            addToken(TOKENTYPE_COMMA, ",", lineNumber, tokenList);
+
         } else if(str[i] == '\"') {
 
             const char *strStart = &str[i+1];
@@ -324,6 +328,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             if(!strcmp(tmp, "var")) {
                 addToken(TOKENTYPE_VAR, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "function")) {
+                addToken(TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "return")) {
+                addToken(TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
             } else {
                 addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }

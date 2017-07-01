@@ -1,8 +1,32 @@
 #include "common.h"
 
+char *loadScript(const char *filename)
+{
+    FILE *in = fopen(filename, "rb");
+    uint32_t len;
+    char *buf;
+
+    if(!in) {
+        return NULL;
+    }
+
+    fseek(in, 0, SEEK_END);
+    len = ftell(in);
+    fseek(in, 0, SEEK_SET);
+
+    buf = malloc(len + 1);
+    fread(buf, len, 1, in);
+    buf[len] = 0;
+
+    return buf;
+}
+
+
 int main(int argc, char *argv[])
 {
     struct VM vm;
+    char *script = loadScript("test.txt");
+    assert(script);
 
     vmInit(&vm);
 
@@ -22,12 +46,13 @@ int main(int argc, char *argv[])
             bool r = tokenize(&vm,
                 // "{ var butts = 3; foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
                 // "bar = foo + 1 + 2 + 3; }",
-                "{"
-                "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }"
-                // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
-                // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
-                "{ \"foo\" + \"bar\"; }"
-                "}",
+                // "{"
+                // "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }"
+                // // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
+                // // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
+                // "{ \"foo\" + \"bar\"; }"
+                // "}",
+                script,
                 &tokenList);
 
             // bool r = tokenize(&vm,
@@ -68,17 +93,19 @@ int main(int argc, char *argv[])
                 cs.vm = &vm;
                 cs.context = NULL;
 
+                // Global context.
                 pushContext(&cs);
 
-                addVariable(&cs, "cheese");
-                addVariable(&cs, "butts");
+                // addVariable(&cs, "cheese");
+                // addVariable(&cs, "butts");
 
-                pushContext(&cs);
+                // pushContext(&cs);
 
-                addVariable(&cs, "foo");
-                addVariable(&cs, "bar");
+                // addVariable(&cs, "foo");
+                // addVariable(&cs, "bar");
 
-                compileStatement(&cs, &tokenPtr);
+                // compileStatement(&cs, &tokenPtr);
+                compileBlock(&cs, &tokenPtr, true);
 
                 // while(tokenPtr) {
                 //     printf("%s\n", tokenPtr->str);
@@ -87,7 +114,7 @@ int main(int argc, char *argv[])
                 //     }
                 // }
 
-                popContext(&cs);
+                // popContext(&cs);
                 popContext(&cs);
 
                 // {
@@ -244,6 +271,8 @@ int main(int argc, char *argv[])
     }
 
     vmDestroy(&vm);
+
+    free(script);
 
     return 0;
 }
