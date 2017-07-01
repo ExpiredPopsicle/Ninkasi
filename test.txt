@@ -2,9 +2,16 @@ var foo = 123;
 var bar;
 bar = foo + foo;
 
-function test(a, b, c)
 {
-    "beep" + "boop" + a + b + c;
+    var shouldNotBeInFunction;
+
+    function test(a, b, c)
+    {
+        shouldNotBeInFunction;
+        foo;
+        // kjmsdckjlsadcklsc
+        "beep" + "boop" + a + b + c;
+    }
 }
 
 bar = "asdf";

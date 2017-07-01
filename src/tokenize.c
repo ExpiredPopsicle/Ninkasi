@@ -220,7 +220,18 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         } else if(str[i] == '/') {
 
-            addToken(TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
+            if(str[i+1] == '/') {
+
+                // This is a comment. Run to the end of the line and
+                // skip everything.
+                while(str[i] && str[i] != '\n') {
+                    i++;
+                }
+                i--;
+
+            } else {
+                addToken(TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
+            }
 
         } else if(str[i] == ';') {
 
