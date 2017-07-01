@@ -9,6 +9,11 @@ struct CompilerStateContextVariable
     char *name;
     bool isGlobal;
 
+    // True if we should not pop this variable off the stack when it
+    // goes out of scope. This is for things like function arguments,
+    // which really belong to the calling function.
+    bool doNotPopWhenOutOfScope;
+
     // If this is a global, then stackPos is the position in the stack
     // from the very beginning of the stack, meaning we should refer
     // to it with its absolute position. If this is not a global, then
@@ -42,7 +47,7 @@ void pushContext(struct CompilerState *cs);
 void popContext(struct CompilerState *cs);
 
 void addVariable(struct CompilerState *cs, const char *name);
-void addVariableWithoutStackAllocation(
+struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
     struct CompilerState *cs, const char *name);
 
 struct CompilerStateContextVariable *lookupVariable(

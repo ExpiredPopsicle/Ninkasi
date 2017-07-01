@@ -346,3 +346,65 @@ void opcode_jumpRelative(struct VM *vm, struct Instruction *instruction)
     struct Value *offsetVal = vmStackPop(vm);
     vm->instructionPointer += valueToInt(vm, offsetVal);
 }
+
+void opcode_call(struct VM *vm, struct Instruction *instruction)
+{
+    // Expected stack state at start...
+    //   function id
+    //   _argumentCount
+    //   <_argumentCount number of arguments>
+
+    // TODO: Pop the top of the stack and save it. That's the function
+    // id.
+
+    // TODO: Look up the function in our not-yet-existing table of
+    // function objects.
+
+    // TODO: PEEK at the top of the stack. That's _argumentCount.
+
+    // TODO: Compare _argumentCount to the stored function object's
+    // _argumentCount. Throw an error if they mismatch.
+
+    // TODO: Push the current instruction pointer (_returnPointer).
+
+    // TODO: Set the instruction pointer to the saved function
+    // object's instruction pointer. Maybe minus one.
+
+    // Expected stack state at end...
+    //   _returnPointer
+    //   _argumentCount
+    //   <_argumentCount number of arguments>
+}
+
+void opcode_return(struct VM *vm, struct Instruction *instruction)
+{
+    // Expected stack state at start...
+    //   _returnValue
+    //   context amount to throw away (contextCount) (generate from cs->context->stackFrameOffset - functionArgumentCount?)
+    //   <contextCount number of slots>
+    //   _returnPointer (from CALL)
+    //   _argumentCount (from before CALL)
+    //   <_argumentCount number of arguments> (from before CALL)
+
+    // TODO: Pop a value off the stack. That's _returnValue.
+
+    // TODO: Pop a value, contextCount, off the stack.
+
+    // TODO: Pop contextCount more values off the stack and throw them
+    // away. (Function context we're done with.)
+
+    // TODO: Pop the _returnPointer off the stack and keep it.
+
+    // TODO: Pop the _argumentCount off the stack and keep it.
+
+    // TODO: Pop _argumentCount values off the stack and throw them
+    // away. (Function arguments we're done with.)
+
+    // TODO: Push _returnValue back onto the stack.
+
+    // TODO: Set the instruction pointer to _returnPointer - 1.
+
+    // Expected stack state at end...
+    //   _returnValue
+}
+

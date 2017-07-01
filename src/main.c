@@ -18,6 +18,8 @@ char *loadScript(const char *filename)
     fread(buf, len, 1, in);
     buf[len] = 0;
 
+    fclose(in);
+
     return buf;
 }
 

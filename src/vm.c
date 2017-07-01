@@ -31,6 +31,9 @@ static void vmInitOpcodeTable(void)
 
     opcodeTable[OP_JUMP_RELATIVE]       = opcode_jumpRelative;
 
+    opcodeTable[OP_CALL]                = opcode_call;
+    opcodeTable[OP_RETURN]              = opcode_return;
+
     NAME_OPCODE(OP_ADD);
     NAME_OPCODE(OP_SUBTRACT);
     NAME_OPCODE(OP_MULTIPLY);
@@ -48,6 +51,9 @@ static void vmInitOpcodeTable(void)
     NAME_OPCODE(OP_STACKPOKE);
 
     NAME_OPCODE(OP_JUMP_RELATIVE);
+
+    NAME_OPCODE(OP_CALL);
+    NAME_OPCODE(OP_RETURN);
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions

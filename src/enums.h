@@ -36,6 +36,9 @@ enum Opcode
 
     OP_JUMP_RELATIVE,
 
+    OP_CALL,
+    OP_RETURN,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.

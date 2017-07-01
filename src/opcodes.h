@@ -34,9 +34,20 @@ void opcode_nop(struct VM *vm, struct Instruction *instruction);
 
 void opcode_dump(struct VM *vm, struct Instruction *instruction);
 
+/// Pops a stack index off the top of the stack, and then pushes a
+/// copy of the value at that index to the top of the stack.
 void opcode_stackPeek(struct VM *vm, struct Instruction *instruction);
+
+/// Pops a stack index off the top of the stack, and then copies the
+/// new top of the stack into that index. Does NOT pop the second
+/// value off!
 void opcode_stackPoke(struct VM *vm, struct Instruction *instruction);
 
+/// Pops a value off the stack and adds that number to the instruction
+/// pointer.
 void opcode_jumpRelative(struct VM *vm, struct Instruction *instruction);
+
+void opcode_call(struct VM *vm, struct Instruction *instruction);
+void opcode_return(struct VM *vm, struct Instruction *instruction);
 
 #endif
