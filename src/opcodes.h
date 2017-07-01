@@ -14,6 +14,7 @@ struct Instruction
         int32_t opData_int;
         float opData_float;
         uint32_t opData_string;
+        uint32_t opData_functionId;
     };
 };
 
@@ -27,6 +28,7 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_float(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction);
+void opcode_pushLiteral_functionId(struct VM *vm, struct Instruction *instruction);
 
 void opcode_pop(struct VM *vm, struct Instruction *instruction);
 

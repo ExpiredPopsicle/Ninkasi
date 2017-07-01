@@ -21,6 +21,10 @@ bool value_dump(
             printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
         } break;
 
+        case VALUETYPE_FUNCTIONID:
+            printf("<function:%u>", value->functionId);
+            break;
+
         default:
             printf(
                 "value_dump unimplemented for type %s",
@@ -42,6 +46,9 @@ const char *valueTypeGetName(enum ValueType type)
 
         case VALUETYPE_STRING:
             return "string";
+
+        case VALUETYPE_FUNCTIONID:
+            return "function";
 
         default:
             // If you hit this case, then something isn't implemented

@@ -21,6 +21,7 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_PUSHLITERAL_INT]    = opcode_pushLiteral_int;
     opcodeTable[OP_PUSHLITERAL_FLOAT]  = opcode_pushLiteral_float;
     opcodeTable[OP_PUSHLITERAL_STRING] = opcode_pushLiteral_string;
+    opcodeTable[OP_PUSHLITERAL_FUNCTIONID] = opcode_pushLiteral_functionId;
     opcodeTable[OP_NOP]                = opcode_nop;
     opcodeTable[OP_POP]                = opcode_pop;
 
@@ -29,10 +30,10 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_STACKPEEK]          = opcode_stackPeek;
     opcodeTable[OP_STACKPOKE]          = opcode_stackPoke;
 
-    opcodeTable[OP_JUMP_RELATIVE]       = opcode_jumpRelative;
+    opcodeTable[OP_JUMP_RELATIVE]      = opcode_jumpRelative;
 
-    opcodeTable[OP_CALL]                = opcode_call;
-    opcodeTable[OP_RETURN]              = opcode_return;
+    opcodeTable[OP_CALL]               = opcode_call;
+    opcodeTable[OP_RETURN]             = opcode_return;
 
     NAME_OPCODE(OP_ADD);
     NAME_OPCODE(OP_SUBTRACT);
@@ -42,6 +43,7 @@ static void vmInitOpcodeTable(void)
     NAME_OPCODE(OP_PUSHLITERAL_INT);
     NAME_OPCODE(OP_PUSHLITERAL_FLOAT);
     NAME_OPCODE(OP_PUSHLITERAL_STRING);
+    NAME_OPCODE(OP_PUSHLITERAL_FUNCTIONID);
     NAME_OPCODE(OP_NOP);
     NAME_OPCODE(OP_POP);
 
@@ -85,6 +87,9 @@ void vmInit(struct VM *vm)
     vmStringTableInit(&vm->stringTable);
 
     vm->lastGCPass = 0;
+
+    vm->functionCount = 0;
+    vm->functionTable = NULL;
 }
 
 void vmDestroy(struct VM *vm)
@@ -94,6 +99,7 @@ void vmDestroy(struct VM *vm)
     vmStackDestroy(&vm->stack);
     errorStateDestroy(&vm->errorState);
     free(vm->instructions);
+    free(vm->functionTable);
 }
 
 // ----------------------------------------------------------------------
@@ -239,4 +245,17 @@ void vmRescanProgramStrings(struct VM *vm)
 const char *vmGetOpcodeName(enum Opcode op)
 {
     return opcodeNameTable[op & (OPCODE_PADDEDCOUNT - 1)];
+}
+
+struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
+{
+    if(functionId) {
+        *functionId = vm->functionCount++;
+    }
+
+    vm->functionTable = realloc(
+        vm->functionTable,
+        sizeof(struct VMFunction) * vm->functionCount);
+
+    return &vm->functionTable[vm->functionCount - 1];
 }

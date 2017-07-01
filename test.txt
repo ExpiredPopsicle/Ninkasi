@@ -7,7 +7,7 @@ bar = foo + foo;
 
     function test(a, b, c)
     {
-        shouldNotBeInFunction;
+        return 123456;
         foo;
         // kjmsdckjlsadcklsc
         "beep" + "boop" + a + b + c;

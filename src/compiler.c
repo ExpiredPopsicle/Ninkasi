@@ -52,6 +52,7 @@ void pushContext(struct CompilerState *cs)
     struct CompilerStateContext *newContext =
         malloc(sizeof(struct CompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
+    newContext->currentFunctionId = ~(uint32_t)0;
     newContext->parent = cs->context;
 
     // Set stack frame offset.
@@ -116,6 +117,21 @@ void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_int = value;
+    addInstruction(cs, &inst);
+}
+
+void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
+{
+    struct Instruction inst;
+
+    // Add instruction.
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = OP_PUSHLITERAL_FUNCTIONID;
+    addInstruction(cs, &inst);
+
+    // Add parameter.
+    memset(&inst, 0, sizeof(inst));
+    inst.opData_functionId = functionId;
     addInstruction(cs, &inst);
 }
 
@@ -226,6 +242,10 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
         case TOKENTYPE_FUNCTION:
             // "function" = Function definition.
             return compileFunctionDefinition(cs, currentToken);
+
+        case TOKENTYPE_RETURN:
+            // "return" = Return statement.
+            return compileReturnStatement(cs, currentToken);
 
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
@@ -355,6 +375,59 @@ bool compileVariableDeclaration(struct CompilerState *cs, struct Token **current
     return true;
 }
 
+void emitReturn(struct CompilerState *cs)
+{
+    // Find the function we're in.
+    struct CompilerStateContext *ctx = cs->context;
+    struct VMFunction *func;
+    while(ctx && ctx->currentFunctionId == ~(uint32_t)0) {
+        ctx = ctx->parent;
+    }
+
+    if(!ctx) {
+        errorStateAddError(
+            &cs->vm->errorState,
+            -1,
+            "return statement outside of function.");
+        return;
+    }
+
+    if(ctx->currentFunctionId >= cs->vm->functionCount) {
+        errorStateAddError(
+            &cs->vm->errorState,
+            -1,
+            "Bad function id when attempting to emit return.");
+        return;
+    }
+
+    func = &cs->vm->functionTable[ctx->currentFunctionId];
+
+    {
+        // We want to throw away the context except for...
+        //   The return value.
+        //   The return pointer.
+        //   The argument list.
+        uint32_t throwAwayContext =
+            cs->context->stackFrameOffset - func->argumentCount - 3;
+        printf("stackFrameOffset: %d\n", cs->context->stackFrameOffset);
+        printf("argumentCount:    %d\n", func->argumentCount);
+        printf("throwAwayContext: %d\n", throwAwayContext);
+        emitPushLiteralInt(cs, throwAwayContext);
+        addInstructionSimple(cs, OP_RETURN);
+    }
+}
+
+bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToken)
+{
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_RETURN);
+    if(!compileExpression(cs, currentToken)) {
+        return false;
+    }
+    emitReturn(cs);
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    return true;
+}
+
 bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken)
 {
     const char *functionName = NULL;
@@ -363,9 +436,33 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     struct CompilerStateContext *savedContext;
     struct CompilerStateContext *searchContext;
     struct CompilerStateContextVariable *varTmp;
-    uint32_t functionArgumentCount;
+    uint32_t functionArgumentCount = 0;
+
+    uint32_t functionId = 0;
+    struct VMFunction *functionObject = vmCreateFunction(
+        cs->vm, &functionId);
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
+
+    // Read the function name.
+    if(*currentToken && (*currentToken)->type == TOKENTYPE_IDENTIFIER) {
+        functionName = (*currentToken)->str;
+        *currentToken = (*currentToken)->next;
+    } else {
+        errorStateAddError(
+            &cs->vm->errorState,
+            *currentToken ? (*currentToken)->lineNumber : -1,
+            "Expected identifier for function name.");
+        return false;
+    }
+
+    // At the parent scope, create a variable with the name of the
+    // function and give it an immediate value for the function.
+    // Recursive function calls will not be possible if the function
+    // cannot refer to itself before it's finished being fully
+    // created.
+    emitPushLiteralFunctionId(cs, functionId);
+    addVariableWithoutStackAllocation(cs, functionName);
 
     // Add some instructions to skip around this function. This is
     // kind of a weird way to do it, but it means that we can just
@@ -388,26 +485,9 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
         searchContext = searchContext->parent;
     }
     functionLocalContext->parent = searchContext;
+    functionLocalContext->currentFunctionId = functionId;
     // Switch the new context in.
     cs->context = functionLocalContext;
-
-    // Read the function name.
-    if(*currentToken && (*currentToken)->type == TOKENTYPE_IDENTIFIER) {
-        functionName = (*currentToken)->str;
-        *currentToken = (*currentToken)->next;
-    } else {
-        errorStateAddError(
-            &cs->vm->errorState,
-            *currentToken ? (*currentToken)->lineNumber : -1,
-            "Expected identifier for function name.");
-        return false;
-    }
-
-    // TODO: At the parent scope, create a variable with the name of
-    // the function and give it an immediate value for the function.
-    // Recursive function calls will not be possible if the function
-    // cannot refer to itself before it's finished being fully
-    // created.
 
     // TODO: Add a current function variable to the context structure,
     // so we can correctly generate contextCount values based on the
@@ -448,9 +528,12 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_COMMA);
     }
 
-    // TODO: Store the functionArgumentCount on the function object.
+    // Store the functionArgumentCount on the function object.
+    functionObject->argumentCount = functionArgumentCount;
+    printf("Function argument count is: %d\n", functionArgumentCount);
 
-    // TODO: Store the function start address on the function object.
+    // Store the function start address on the function object.
+    functionObject->firstInstructionIndex = cs->instructionWriteIndex;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
@@ -477,13 +560,17 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // Parse and emit actual function code.
     compileStatement(cs, currentToken);
 
-    // TODO: Add a RET instruction just in case the function reaches
-    // the end without returning.
-    emitPushLiteralInt(cs, 0); // Amount of stack to pop (we're
-                               // already at the right place).
+    // functionObject pointer may have been invalidated in the
+    // recursive code because of a reallocation (from a function added
+    // inside the function), so let's update it just in case.
+    functionObject = &cs->vm->functionTable[functionId];
+
+    // Add a RETURN instruction just in case the function reaches the
+    // end without returning.
     emitPushLiteralInt(cs, 0); // Return value (zero is probably fine
                                // as a default).
-    addInstructionSimple(cs, OP_RETURN);
+    cs->context->stackFrameOffset++;
+    emitReturn(cs);
 
     // Go back and fix up our relative jump that skips this
     // function now that we know how long it is.

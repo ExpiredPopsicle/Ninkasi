@@ -6,6 +6,8 @@
 #include "opcodes.h"
 #include "vmstring.h"
 
+struct VMFunction;
+
 struct VM
 {
     struct ErrorState errorState;
@@ -18,6 +20,9 @@ struct VM
     struct VMStringTable stringTable;
 
     uint32_t lastGCPass;
+
+    uint32_t functionCount;
+    struct VMFunction *functionTable;
 };
 
 void vmInit(struct VM *vm);
@@ -36,5 +41,7 @@ void vmGarbageCollect(struct VM *vm);
 void vmRescanProgramStrings(struct VM *vm);
 
 const char *vmGetOpcodeName(enum Opcode op);
+
+struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId);
 
 #endif

@@ -15,6 +15,7 @@ struct Value
         int32_t intData;
         float floatData;
         uint32_t stringTableEntry;
+        uint32_t functionId;
     };
 };
 

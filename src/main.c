@@ -177,6 +177,9 @@ int main(int argc, char *argv[])
                 } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
                     i++;
                     printf(" %f", maybeParams->opData_float);
+                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
+                    i++;
+                    printf(" %u", maybeParams->opData_functionId);
                 } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_STRING) {
                     const char *str = vmStringTableGetStringById(&vm.stringTable, maybeParams->opData_string);
                     i++;

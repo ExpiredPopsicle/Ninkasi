@@ -95,6 +95,16 @@ void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction)
 
 }
 
+void opcode_pushLiteral_functionId(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *stackVal = vmStackPush_internal(vm);
+    vm->instructionPointer++;
+
+    stackVal->type = VALUETYPE_FUNCTIONID;
+    stackVal->functionId =
+        vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_functionId;
+}
+
 void opcode_nop(struct VM *vm, struct Instruction *instruction)
 {
 }
@@ -379,8 +389,9 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
 void opcode_return(struct VM *vm, struct Instruction *instruction)
 {
     // Expected stack state at start...
+    //   context amount to throw away (contextCount)
+    //       (generate from cs->context->stackFrameOffset - functionArgumentCount? - 1 or 2)
     //   _returnValue
-    //   context amount to throw away (contextCount) (generate from cs->context->stackFrameOffset - functionArgumentCount?)
     //   <contextCount number of slots>
     //   _returnPointer (from CALL)
     //   _argumentCount (from before CALL)

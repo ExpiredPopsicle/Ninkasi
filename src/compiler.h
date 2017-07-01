@@ -29,6 +29,8 @@ struct CompilerStateContext
     struct CompilerStateContextVariable *variables;
 
     uint32_t stackFrameOffset;
+
+    uint32_t currentFunctionId;
 };
 
 struct CompilerState
@@ -59,6 +61,7 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
 bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool noBracesOrContext);
 bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken);
 bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken);
+bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToken);
 
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);
