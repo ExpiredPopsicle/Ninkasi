@@ -404,9 +404,10 @@ void emitReturn(struct CompilerState *cs)
 
     {
         // We want to throw away the context except for...
-        //   The return value.
-        //   The return pointer.
-        //   The argument list.
+        //   The return value.   (-1)
+        //   The return pointer. (-1)
+        //   The argument list.  (-func->argumentCount)
+        //   This thing we're about pushing right now. (-1)
         uint32_t throwAwayContext =
             cs->context->stackFrameOffset - func->argumentCount - 3;
         printf("stackFrameOffset: %d\n", cs->context->stackFrameOffset);
@@ -488,11 +489,6 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     functionLocalContext->currentFunctionId = functionId;
     // Switch the new context in.
     cs->context = functionLocalContext;
-
-    // TODO: Add a current function variable to the context structure,
-    // so we can correctly generate contextCount values based on the
-    // stack frame offset and function argument count when we see a
-    // return statement.
 
     // Skip '('.
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
