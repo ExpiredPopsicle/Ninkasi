@@ -2,15 +2,10 @@
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 {
-    // if(inst->opcode == OP_NOP && cs->instructionWriteIndex == 6) {
-    //     assert(0);
-    //     printf("Writing NOP at index %d\n", cs->instructionWriteIndex);
-    // }
-
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
         // TODO: Remove this.
-        printf("Expanding VM instruction space\n");
+        dbgWriteLine("Expanding VM instruction space.");
 
         // FIXME: Add a dynamic or settable memory limit.
         if(cs->vm->instructionAddressMask >= 0xfffff) {
@@ -227,7 +222,10 @@ void addVariable(struct CompilerState *cs, const char *name)
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
 {
-    printf("Entering compileStatement with stackFrameOffset: %u\n", cs->context->stackFrameOffset);
+    // FIXME: Remove this.
+    dbgWriteLine(
+        "Entering compileStatement with stackFrameOffset: %u",
+        cs->context->stackFrameOffset);
 
     if(!*currentToken) {
         errorStateAddError(
@@ -320,11 +318,22 @@ bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool no
         pushContext(cs);
     }
 
+    // FIXME: Remove this.
+    dbgWriteLine("Compiling block");
+    dbgPush();
+
     while(*currentToken && (*currentToken)->type != TOKENTYPE_CURLYBRACE_CLOSE) {
         if(!compileStatement(cs, currentToken)) {
+
+            // FIXME: Remove this.
+            dbgPop();
+
             return false;
         }
     }
+
+    // FIXME: Remove this.
+    dbgPop();
 
     if(!noBracesOrContext) {
         popContext(cs);
@@ -412,9 +421,12 @@ void emitReturn(struct CompilerState *cs)
         //   This thing we're about pushing right now. (-1)
         uint32_t throwAwayContext =
             cs->context->stackFrameOffset - func->argumentCount - 3;
-        printf("stackFrameOffset: %d\n", cs->context->stackFrameOffset);
-        printf("argumentCount:    %d\n", func->argumentCount);
-        printf("throwAwayContext: %d\n", throwAwayContext);
+
+        // FIXME: Remove these.
+        dbgWriteLine("stackFrameOffset: %d", cs->context->stackFrameOffset);
+        dbgWriteLine("argumentCount:    %d", func->argumentCount);
+        dbgWriteLine("throwAwayContext: %d", throwAwayContext);
+
         emitPushLiteralInt(cs, throwAwayContext);
         addInstructionSimple(cs, OP_RETURN);
     }
@@ -496,12 +508,6 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // Skip '('.
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
-    // // Add the function id itself as a variable inside the function
-    // // (because it's on the stack anyway).
-    // varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
-    // varTmp->doNotPopWhenOutOfScope = true;
-    // cs->context->stackFrameOffset++;
-
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
     while(*currentToken) {
@@ -539,11 +545,15 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
 
     // Store the functionArgumentCount on the function object.
     functionObject->argumentCount = functionArgumentCount;
-    printf("Function argument count is: %d\n", functionArgumentCount);
+
+    // FIXME: Remove this.
+    dbgWriteLine("Function argument count is: %d", functionArgumentCount);
 
     // Store the function start address on the function object.
     functionObject->firstInstructionIndex = cs->instructionWriteIndex;
 
+    // Add the function id itself as a variable inside the function
+    // (because it's on the stack anyway).
     varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
