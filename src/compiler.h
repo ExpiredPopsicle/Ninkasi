@@ -63,8 +63,8 @@ struct CompilerStateContextVariable *lookupVariable(
 
 bool compileStatement(struct CompilerState *cs);
 bool compileBlock(struct CompilerState *cs, bool noBracesOrContext);
-bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken);
-bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken);
+bool compileVariableDeclaration(struct CompilerState *cs);
+bool compileFunctionDefinition(struct CompilerState *cs);
 bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToken);
 
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
@@ -73,5 +73,7 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str);
 
 struct Token *vmCompilerNextToken(struct CompilerState *cs);
 enum TokenType vmCompilerTokenType(struct CompilerState *cs);
+uint32_t vmCompilerGetLinenumber(struct CompilerState *cs);
+const char *vmCompilerTokenString(struct CompilerState *cs);
 
 #endif

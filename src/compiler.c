@@ -201,23 +201,23 @@ void addVariable(struct CompilerState *cs, const char *name)
     addVariableWithoutStackAllocation(cs, name);
 }
 
-#define EXPECT_AND_SKIP_STATEMENT(x)                                    \
-    do {                                                                \
-        if(vmCompilerTokenType(cs) != (x)) {                            \
-            struct DynString *errStr =                                  \
-                dynStrCreate("Unexpected token: ");                     \
-            dynStrAppend(                                               \
-                errStr,                                                 \
-                cs->currentToken ? cs->currentToken->str : "<none>");   \
-            errorStateAddError(                                         \
-                &cs->vm->errorState,                                    \
-                cs->currentToken ? cs->currentToken->lineNumber : -1,   \
-                errStr->data);                                          \
-            dynStrDelete(errStr);                                       \
-            return false;                                               \
-        } else {                                                        \
-            vmCompilerNextToken(cs);                                    \
-        }                                                               \
+#define EXPECT_AND_SKIP_STATEMENT(x)                \
+    do {                                            \
+        if(vmCompilerTokenType(cs) != (x)) {        \
+            struct DynString *errStr =              \
+                dynStrCreate("Unexpected token: "); \
+            dynStrAppend(                           \
+                errStr,                             \
+                vmCompilerTokenString(cs));         \
+            errorStateAddError(                     \
+                &cs->vm->errorState,                \
+                vmCompilerGetLinenumber(cs),        \
+                errStr->data);                      \
+            dynStrDelete(errStr);                   \
+            return false;                           \
+        } else {                                    \
+            vmCompilerNextToken(cs);                \
+        }                                           \
     } while(0)
 
 bool compileStatement(struct CompilerState *cs)
@@ -237,13 +237,11 @@ bool compileStatement(struct CompilerState *cs)
 
         case TOKENTYPE_VAR:
             // "var" = Variable declaration.
-            return compileVariableDeclaration(
-                cs, &cs->currentToken);
+            return compileVariableDeclaration(cs);
 
         case TOKENTYPE_FUNCTION:
             // "function" = Function definition.
-            return compileFunctionDefinition(
-                cs, &cs->currentToken);
+            return compileFunctionDefinition(cs);
 
         case TOKENTYPE_RETURN:
             // "return" = Return statement.
@@ -348,31 +346,31 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
     return true;
 }
 
-bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken)
+bool compileVariableDeclaration(struct CompilerState *cs)
 {
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_VAR);
 
-    if(!*currentToken || (*currentToken)->type != TOKENTYPE_IDENTIFIER) {
+    if(vmCompilerTokenType(cs) != TOKENTYPE_IDENTIFIER) {
         errorStateAddError(
             &cs->vm->errorState,
-            *currentToken ? (*currentToken)->lineNumber : -1,
+            vmCompilerGetLinenumber(cs),
             "Expected identifier in variable declaration.");
         return false;
     }
 
     {
-        const char *variableName = (*currentToken)->str;
+        const char *variableName = vmCompilerTokenString(cs);
 
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IDENTIFIER);
 
-        if(*currentToken && (*currentToken)->type == TOKENTYPE_ASSIGNMENT) {
+        if(vmCompilerTokenType(cs) == TOKENTYPE_ASSIGNMENT) {
 
             // Something in the form of "var foo = expression;" We'll just
             // treat the "foo = expression;" part as a separate thing.
 
             EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ASSIGNMENT);
 
-            if(!compileExpression(cs, currentToken)) {
+            if(!compileExpression(cs, &cs->currentToken)) {
                 return false;
             }
 
@@ -448,7 +446,7 @@ bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToke
     return true;
 }
 
-bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken)
+bool compileFunctionDefinition(struct CompilerState *cs)
 {
     const char *functionName = NULL;
     uint32_t skipOffset;
@@ -465,13 +463,13 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
 
     // Read the function name.
-    if(*currentToken && (*currentToken)->type == TOKENTYPE_IDENTIFIER) {
-        functionName = (*currentToken)->str;
-        *currentToken = (*currentToken)->next;
+    if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
+        functionName = vmCompilerTokenString(cs);
+        vmCompilerNextToken(cs);
     } else {
         errorStateAddError(
             &cs->vm->errorState,
-            *currentToken ? (*currentToken)->lineNumber : -1,
+            vmCompilerGetLinenumber(cs),
             "Expected identifier for function name.");
         return false;
     }
@@ -515,12 +513,12 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
 
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
-    while(*currentToken) {
+    while(vmCompilerTokenType(cs) != TOKENTYPE_INVALID) {
 
         // Add each of them as a local variable to the new context.
-        if((*currentToken)->type == TOKENTYPE_IDENTIFIER) {
+        if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
 
-            const char *argumentName = (*currentToken)->str;
+            const char *argumentName = vmCompilerTokenString(cs);
 
             // FIXME: Some day, figure out why the heck the variables
             // are offset +1 in the stack.
@@ -531,17 +529,17 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
 
             functionArgumentCount++;
 
-            *currentToken = (*currentToken)->next;
+            vmCompilerNextToken(cs);
 
-        } else if((*currentToken)->type != TOKENTYPE_PAREN_CLOSE) {
+        } else if(vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE) {
 
             errorStateAddError(
                 &cs->vm->errorState,
-                *currentToken ? (*currentToken)->lineNumber : -1,
+                vmCompilerGetLinenumber(cs),
                 "Expected identifier for function argument name.");
         }
 
-        if(*currentToken && (*currentToken)->type == TOKENTYPE_PAREN_CLOSE) {
+        if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
             break;
         }
 
@@ -625,3 +623,18 @@ enum TokenType vmCompilerTokenType(struct CompilerState *cs)
     return TOKENTYPE_INVALID;
 }
 
+uint32_t vmCompilerGetLinenumber(struct CompilerState *cs)
+{
+    if(cs->currentToken) {
+        return cs->currentToken->lineNumber;
+    }
+    return cs->currentLineNumber;
+}
+
+const char *vmCompilerTokenString(struct CompilerState *cs)
+{
+    if(cs->currentToken) {
+        return cs->currentToken->str;
+    }
+    return "<invalid token>";
+}
