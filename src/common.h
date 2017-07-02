@@ -8,6 +8,8 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
+#include "config.h"
+
 #include "basetype.h"
 #include "enums.h"
 #include "vmstack.h"

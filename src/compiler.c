@@ -263,14 +263,14 @@ bool compileStatement(struct CompilerState *cs)
                 return false;
             }
 
-            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
-
-            // TODO: Remove this. (Debugging output.) Replace it with
-            // a OP_POP.
-            {
+            if(vmCompilerTokenType(cs) == TOKENTYPE_SEMICOLON) {
+                // TODO: Remove this. (Debugging output.) Replace it with
+                // a OP_POP.
                 addInstructionSimple(cs, OP_DUMP);
                 cs->context->stackFrameOffset--;
             }
+
+            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
 
             break;
     }

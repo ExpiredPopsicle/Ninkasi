@@ -1,6 +1,7 @@
 #ifndef OPCODE_H
 #define OPCODE_H
 
+#include "config.h"
 #include "value.h"
 
 struct VMStack;

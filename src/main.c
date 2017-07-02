@@ -23,11 +23,41 @@ char *loadScript(const char *filename)
     return buf;
 }
 
+char **splitLines(const char *str, uint32_t *lineCount)
+{
+    char **lines = NULL;
+
+    uint32_t len = strlen(str);
+    char *workStr = strdup(str);
+
+    uint32_t i = 0;
+    uint32_t lineStart = 0;
+
+    *lineCount = 0;
+
+    for(i = 0; i < len + 1; i++) {
+
+        if(workStr[i] == '\n' || workStr[i] == 0) {
+            workStr[i] = 0;
+
+            (*lineCount)++;
+            lines = realloc(lines, sizeof(char*) * (*lineCount));
+            lines[(*lineCount)-1] = &workStr[lineStart];
+
+            lineStart = i + 1;
+        }
+    }
+
+    return lines;
+}
+
 
 int main(int argc, char *argv[])
 {
     struct VM vm;
     char *script = loadScript("test.txt");
+    uint32_t lineCount = 0;
+    char **lines = splitLines(script, &lineCount);
     assert(script);
 
     vmInit(&vm);
@@ -159,19 +189,49 @@ int main(int argc, char *argv[])
     if(!vm.errorState.firstError) {
 
         printf("----------------------------------------------------------------------\n");
+        printf("  Original script\n");
+        printf("----------------------------------------------------------------------\n");
+
+        {
+            uint32_t i;
+            for(i = 0; i < lineCount; i++) {
+                printf("%4u : %s\n", i, lines[i]);
+            }
+        }
+
+        printf("----------------------------------------------------------------------\n");
         printf("  Dump\n");
         printf("----------------------------------------------------------------------\n");
 
         {
             uint32_t i;
+
+          #if VM_DEBUG
+            uint32_t lastLine = 0;
+          #endif
+
             for(i = 0; i <= vm.instructionAddressMask; i++) {
 
                 enum Opcode opcode = vm.instructions[i].opcode;
                 struct Instruction *maybeParams =
                     &vm.instructions[(i+1) & vm.instructionAddressMask];
 
+              #if VM_DEBUG
+
+                while(lastLine < vm.instructions[i].lineNumber && lastLine < lineCount) {
+                    printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
+                    lastLine++;
+                }
+
                 // Output opcode.
-                printf("%4d: %s", i, vmGetOpcodeName(opcode));
+                printf("%4u %.4x: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+
+              #else
+
+                // Output opcode.
+                printf("%.4x: %s", i, vmGetOpcodeName(opcode));
+
+              #endif
 
                 // Output parameters.
                 if(vm.instructions[i].opcode == OP_PUSHLITERAL_INT) {
@@ -282,6 +342,8 @@ int main(int argc, char *argv[])
     vmDestroy(&vm);
 
     free(script);
+    free(lines[0]);
+    free(lines);
 
     return 0;
 }
