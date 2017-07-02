@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
                 // addVariable(&cs, "bar");
 
                 // compileStatement(&cs, &tokenPtr);
-                compileBlock(&cs, &tokenPtr, true);
+                compileBlock(&cs, true);
 
                 // while(tokenPtr) {
                 //     printf("%s\n", tokenPtr->str);

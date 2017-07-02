@@ -61,8 +61,8 @@ struct CompilerStateContextVariable *lookupVariable(
     const char *name,
     uint32_t lineNumber);
 
-bool compileStatement(struct CompilerState *cs, struct Token **currentToken);
-bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool noBracesOrContext);
+bool compileStatement(struct CompilerState *cs);
+bool compileBlock(struct CompilerState *cs, bool noBracesOrContext);
 bool compileVariableDeclaration(struct CompilerState *cs, struct Token **currentToken);
 bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentToken);
 bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToken);

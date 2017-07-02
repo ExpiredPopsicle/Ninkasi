@@ -201,59 +201,62 @@ void addVariable(struct CompilerState *cs, const char *name)
     addVariableWithoutStackAllocation(cs, name);
 }
 
-#define EXPECT_AND_SKIP_STATEMENT(x)                                \
-    do {                                                            \
-        if(!(*currentToken) || (*currentToken)->type != (x)) {      \
-            struct DynString *errStr =                              \
-                dynStrCreate("Unexpected token: ");                 \
-            dynStrAppend(                                           \
-                errStr,                                             \
-                *currentToken ? (*currentToken)->str : "<none>");   \
-            errorStateAddError(                                     \
-                &cs->vm->errorState,                                \
-                *currentToken ? (*currentToken)->lineNumber : -1,   \
-                errStr->data);                                      \
-            dynStrDelete(errStr);                                   \
-            return false;                                           \
-        } else {                                                    \
-            *currentToken = (*currentToken)->next;                  \
-        }                                                           \
+#define EXPECT_AND_SKIP_STATEMENT(x)                                    \
+    do {                                                                \
+        if(vmCompilerTokenType(cs) != (x)) {                            \
+            struct DynString *errStr =                                  \
+                dynStrCreate("Unexpected token: ");                     \
+            dynStrAppend(                                               \
+                errStr,                                                 \
+                cs->currentToken ? cs->currentToken->str : "<none>");   \
+            errorStateAddError(                                         \
+                &cs->vm->errorState,                                    \
+                cs->currentToken ? cs->currentToken->lineNumber : -1,   \
+                errStr->data);                                          \
+            dynStrDelete(errStr);                                       \
+            return false;                                               \
+        } else {                                                        \
+            vmCompilerNextToken(cs);                                    \
+        }                                                               \
     } while(0)
 
-bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
+bool compileStatement(struct CompilerState *cs)
 {
     // FIXME: Remove this.
     dbgWriteLine(
         "Entering compileStatement with stackFrameOffset: %u",
         cs->context->stackFrameOffset);
 
-    if(!*currentToken) {
+    if(vmCompilerTokenType(cs) == TOKENTYPE_INVALID) {
         errorStateAddError(
             &cs->vm->errorState, -1, "Ran out of tokens to parse.");
         return false;
     }
 
-    switch((*currentToken)->type) {
+    switch(vmCompilerTokenType(cs)) {
 
         case TOKENTYPE_VAR:
             // "var" = Variable declaration.
-            return compileVariableDeclaration(cs, currentToken);
+            return compileVariableDeclaration(
+                cs, &cs->currentToken);
 
         case TOKENTYPE_FUNCTION:
             // "function" = Function definition.
-            return compileFunctionDefinition(cs, currentToken);
+            return compileFunctionDefinition(
+                cs, &cs->currentToken);
 
         case TOKENTYPE_RETURN:
             // "return" = Return statement.
-            return compileReturnStatement(cs, currentToken);
+            return compileReturnStatement(
+                cs, &cs->currentToken);
 
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
-            return compileBlock(cs, currentToken, false);
+            return compileBlock(cs, false);
 
         default:
             // Fall back to just parsing an expression.
-            if(!compileExpression(cs, currentToken)) {
+            if(!compileExpression(cs, &cs->currentToken)) {
                 return false;
             }
 
@@ -268,7 +271,6 @@ bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
 
             break;
     }
-
 
     return true;
 }
@@ -311,7 +313,7 @@ struct CompilerStateContextVariable *lookupVariable(
     return var;
 }
 
-bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool noBracesOrContext)
+bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
 {
     if(!noBracesOrContext) {
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
@@ -322,8 +324,11 @@ bool compileBlock(struct CompilerState *cs, struct Token **currentToken, bool no
     dbgWriteLine("Compiling block");
     dbgPush();
 
-    while(*currentToken && (*currentToken)->type != TOKENTYPE_CURLYBRACE_CLOSE) {
-        if(!compileStatement(cs, currentToken)) {
+    while(
+        vmCompilerTokenType(cs) != TOKENTYPE_CURLYBRACE_CLOSE &&
+        vmCompilerTokenType(cs) != TOKENTYPE_INVALID)
+    {
+        if(!compileStatement(cs)) {
 
             // FIXME: Remove this.
             dbgPop();
@@ -575,7 +580,7 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
 
     // Parse and emit actual function code.
-    compileStatement(cs, currentToken);
+    compileStatement(cs);
 
     // functionObject pointer may have been invalidated in the
     // recursive code because of a reallocation (from a function added
