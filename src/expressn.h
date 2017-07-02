@@ -42,7 +42,7 @@ void dumpExpressionAstNode(struct ExpressionAstNode *node);
 struct ExpressionAstNode *parseExpression(struct VM *vm, struct Token **currentToken);
 
 
-bool compileExpression(struct CompilerState *cs, struct Token **currentToken);
+bool compileExpression(struct CompilerState *cs);
 
 
 #endif

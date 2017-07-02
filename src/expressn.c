@@ -789,9 +789,10 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
     return true;
 }
 
-bool compileExpression(struct CompilerState *cs, struct Token **currentToken)
+bool compileExpression(struct CompilerState *cs)
 {
-    struct ExpressionAstNode *node = parseExpression(cs->vm, currentToken);
+    struct ExpressionAstNode *node =
+        parseExpression(cs->vm, &cs->currentToken);
 
     if(node) {
 

@@ -245,8 +245,7 @@ bool compileStatement(struct CompilerState *cs)
 
         case TOKENTYPE_RETURN:
             // "return" = Return statement.
-            return compileReturnStatement(
-                cs, &cs->currentToken);
+            return compileReturnStatement(cs);
 
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
@@ -254,7 +253,7 @@ bool compileStatement(struct CompilerState *cs)
 
         default:
             // Fall back to just parsing an expression.
-            if(!compileExpression(cs, &cs->currentToken)) {
+            if(!compileExpression(cs)) {
                 return false;
             }
 
@@ -370,7 +369,7 @@ bool compileVariableDeclaration(struct CompilerState *cs)
 
             EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ASSIGNMENT);
 
-            if(!compileExpression(cs, &cs->currentToken)) {
+            if(!compileExpression(cs)) {
                 return false;
             }
 
@@ -435,10 +434,10 @@ void emitReturn(struct CompilerState *cs)
     }
 }
 
-bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToken)
+bool compileReturnStatement(struct CompilerState *cs)
 {
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_RETURN);
-    if(!compileExpression(cs, currentToken)) {
+    if(!compileExpression(cs)) {
         return false;
     }
     emitReturn(cs);
