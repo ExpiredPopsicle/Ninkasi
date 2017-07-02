@@ -7,6 +7,21 @@ function cheese()
     return "CHEESE";
 }
 
+function getFunctionId()
+{
+    return _functionId;
+}
+
+function getArgumentCount(a, b, c, d, e)
+{
+    return _argumentCount;
+}
+
+function getReturnPointer()
+{
+    return _returnPointer;
+}
+
 {
     var shouldNotBeInFunction;
 
@@ -20,6 +35,8 @@ function cheese()
     {
         return "beep" + "boop" + b;
     }
+
+
 
     foo = 1;
     foo = 2;
@@ -39,6 +56,8 @@ function cheese()
 bar = "asdf";
 
 
+
+
 // function test1()
 // {
 //     return "t1value";
@@ -50,3 +69,8 @@ bar = "asdf";
 // }
 
 // test1() + test2();
+
+getFunctionId();
+
+"Argument count is " + getArgumentCount(0, 0, 0, 0, 0);
+"Return pointer is " + getReturnPointer();

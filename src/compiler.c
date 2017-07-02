@@ -511,12 +511,12 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
 
             const char *argumentName = (*currentToken)->str;
 
+            // FIXME: Some day, figure out why the heck the variables
+            // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
             varTmp = addVariableWithoutStackAllocation(cs, argumentName);
-            cs->context->stackFrameOffset--;
 
             varTmp->doNotPopWhenOutOfScope = true;
-            cs->context->stackFrameOffset++;
 
             functionArgumentCount++;
 
@@ -544,6 +544,10 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // Store the function start address on the function object.
     functionObject->firstInstructionIndex = cs->instructionWriteIndex;
 
+    varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
+    varTmp->doNotPopWhenOutOfScope = true;
+    cs->context->stackFrameOffset++;
+
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
@@ -555,7 +559,7 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // automatically.
     varTmp = addVariableWithoutStackAllocation(cs, "_returnPointer");
     varTmp->doNotPopWhenOutOfScope = true;
-    cs->context->stackFrameOffset++;
+    // cs->context->stackFrameOffset++;
 
     // Skip ')'.
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
