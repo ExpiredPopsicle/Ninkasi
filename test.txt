@@ -74,3 +74,9 @@ getFunctionId();
 
 "Argument count is " + getArgumentCount(0, 0, 0, 0, 0);
 "Return pointer is " + getReturnPointer();
+
+function blahtest(a, b, c)
+{
+    1;
+}
+

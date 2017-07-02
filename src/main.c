@@ -131,24 +131,32 @@ int main(int argc, char *argv[])
                 // Global context.
                 pushContext(&cs);
 
-                // addVariable(&cs, "cheese");
-                // addVariable(&cs, "butts");
+                {
+                    struct CompilerStateContext *ctx = cs.context;
+                    printf("Context at VERY start: %p\n", cs.context);
 
-                // pushContext(&cs);
+                    // addVariable(&cs, "cheese");
+                    // addVariable(&cs, "butts");
 
-                // addVariable(&cs, "foo");
-                // addVariable(&cs, "bar");
+                    // pushContext(&cs);
 
-                // compileStatement(&cs, &tokenPtr);
-                compileBlock(&cs, true);
+                    // addVariable(&cs, "foo");
+                    // addVariable(&cs, "bar");
 
-                // while(tokenPtr) {
-                //     printf("%s\n", tokenPtr->str);
-                //     if(!compileStatement(&cs, &tokenPtr)) {
-                //         break;
-                //     }
-                // }
+                    // compileStatement(&cs, &tokenPtr);
+                    compileBlock(&cs, true);
 
+                    // while(tokenPtr) {
+                    //     printf("%s\n", tokenPtr->str);
+                    //     if(!compileStatement(&cs, &tokenPtr)) {
+                    //         break;
+                    //     }
+                    // }
+
+                    printf("Context at VERY end:   %p\n", cs.context);
+
+                    assert(ctx == cs.context);
+                }
                 // popContext(&cs);
                 popContext(&cs);
 

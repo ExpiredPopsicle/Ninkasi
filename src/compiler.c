@@ -9,7 +9,7 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 
         // FIXME: Add a dynamic or settable memory limit.
         if(cs->vm->instructionAddressMask >= 0xfffff) {
-            errorStateAddError(&cs->vm->errorState, -1, "Too many instructions.");
+            vmCompilerAddError(cs, "Too many instructions.");
         }
 
         {
@@ -63,7 +63,7 @@ void pushContext(struct CompilerState *cs)
 
     cs->context = newContext;
 
-    dbgWriteLine("Pushed context");
+    dbgWriteLine("Pushed context: %p", cs->context);
     dbgPush();
 }
 
@@ -102,7 +102,7 @@ void popContext(struct CompilerState *cs)
     free(oldContext);
 
     dbgPop();
-    dbgWriteLine("Popped context");
+    dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
 }
 
 
@@ -215,10 +215,7 @@ void addVariable(struct CompilerState *cs, const char *name)
             dynStrAppend(                           \
                 errStr,                             \
                 vmCompilerTokenString(cs));         \
-            errorStateAddError(                     \
-                &cs->vm->errorState,                \
-                vmCompilerGetLinenumber(cs),        \
-                errStr->data);                      \
+            vmCompilerAddError(cs, errStr->data);   \
             dynStrDelete(errStr);                   \
             return false;                           \
         } else {                                    \
@@ -234,8 +231,7 @@ bool compileStatement(struct CompilerState *cs)
         cs->context->stackFrameOffset);
 
     if(vmCompilerTokenType(cs) == TOKENTYPE_INVALID) {
-        errorStateAddError(
-            &cs->vm->errorState, -1, "Ran out of tokens to parse.");
+        vmCompilerAddError(cs, "Ran out of tokens to parse.");
         return false;
     }
 
@@ -305,10 +301,7 @@ struct CompilerStateContextVariable *lookupVariable(
         struct DynString *dynStr =
             dynStrCreate("Cannot find variable: ");
         dynStrAppend(dynStr, name);
-        errorStateAddError(
-            &cs->vm->errorState,
-            lineNumber,
-            dynStr->data);
+        vmCompilerAddError(cs, dynStr->data);
         dynStrDelete(dynStr);
         return NULL;
     }
@@ -356,10 +349,7 @@ bool compileVariableDeclaration(struct CompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_VAR);
 
     if(vmCompilerTokenType(cs) != TOKENTYPE_IDENTIFIER) {
-        errorStateAddError(
-            &cs->vm->errorState,
-            vmCompilerGetLinenumber(cs),
-            "Expected identifier in variable declaration.");
+        vmCompilerAddError(cs, "Expected identifier in variable declaration.");
         return false;
     }
 
@@ -404,18 +394,14 @@ void emitReturn(struct CompilerState *cs)
     }
 
     if(!ctx) {
-        errorStateAddError(
-            &cs->vm->errorState,
-            -1,
-            "return statement outside of function.");
+        vmCompilerAddError(
+            cs, "return statement outside of function.");
         return;
     }
 
     if(ctx->currentFunctionId >= cs->vm->functionCount) {
-        errorStateAddError(
-            &cs->vm->errorState,
-            -1,
-            "Bad function id when attempting to emit return.");
+        vmCompilerAddError(
+            cs, "Bad function id when attempting to emit return.");
         return;
     }
 
@@ -453,6 +439,7 @@ bool compileReturnStatement(struct CompilerState *cs)
 
 bool compileFunctionDefinition(struct CompilerState *cs)
 {
+    bool ret = true;
     const char *functionName = NULL;
     uint32_t skipOffset;
     struct CompilerStateContext *functionLocalContext;
@@ -464,6 +451,8 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     uint32_t functionId = 0;
     struct VMFunction *functionObject = vmCreateFunction(
         cs->vm, &functionId);
+
+    printf("Context start: %p\n", cs->context);
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
 
@@ -478,6 +467,8 @@ bool compileFunctionDefinition(struct CompilerState *cs)
             "Expected identifier for function name.");
         return false;
     }
+
+    printf("WTF context1\n");
 
     // At the parent scope, create a variable with the name of the
     // function and give it an immediate value for the function.
@@ -514,7 +505,11 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     cs->context = functionLocalContext;
 
     // Skip '('.
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+        vmCompilerNextToken(cs);
+    } else {
+        vmCompilerAddError(cs, "Expected '('.");
+    }
 
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
@@ -538,17 +533,21 @@ bool compileFunctionDefinition(struct CompilerState *cs)
 
         } else if(vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE) {
 
-            errorStateAddError(
-                &cs->vm->errorState,
-                vmCompilerGetLinenumber(cs),
-                "Expected identifier for function argument name.");
+            vmCompilerAddError(
+                cs, "Expected identifier for function argument name.");
+            ret = false;
+            break;
         }
 
         if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
             break;
         }
 
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_COMMA);
+        if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
+            vmCompilerNextToken(cs);
+        } else {
+            vmCompilerAddError(cs, "Expected ')' or ','.");
+        }
     }
 
     // Store the functionArgumentCount on the function object.
@@ -577,13 +576,16 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // automatically.
     varTmp = addVariableWithoutStackAllocation(cs, "_returnPointer");
     varTmp->doNotPopWhenOutOfScope = true;
-    // cs->context->stackFrameOffset++;
 
     // Skip ')'.
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
+        vmCompilerNextToken(cs);
+    } else {
+        vmCompilerAddError(cs, "Expected ')'.");
+    }
 
     // Parse and emit actual function code.
-    compileStatement(cs);
+    ret = ret && compileStatement(cs);
 
     // functionObject pointer may have been invalidated in the
     // recursive code because of a reallocation (from a function added
@@ -606,7 +608,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     popContext(cs);
     cs->context = savedContext;
 
-    return true;
+    printf("Context end:   %p\n", cs->context);
+
+    return ret;
 }
 
 struct Token *vmCompilerNextToken(struct CompilerState *cs)
@@ -642,4 +646,12 @@ const char *vmCompilerTokenString(struct CompilerState *cs)
         return cs->currentToken->str;
     }
     return "<invalid token>";
+}
+
+void vmCompilerAddError(struct CompilerState *cs, const char *error)
+{
+    errorStateAddError(
+        &cs->vm->errorState,
+        vmCompilerGetLinenumber(cs),
+        error);
 }
