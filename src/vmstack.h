@@ -17,6 +17,7 @@ bool vmStackPushString(struct VM *vm, const char *str);
 /// to the object on the stack, which will be overwritten the next
 /// time you push something!
 struct Value *vmStackPop(struct VM *vm);
+void vmStackPopN(struct VM *vm, uint32_t count);
 
 struct Value *vmStackPeek(struct VM *vm, uint32_t index);
 

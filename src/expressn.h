@@ -16,6 +16,14 @@ struct ExpressionAstNode
     // True if the token was generated for this ExpressionAstNode, and
     // should be deleted with it.
     bool ownedToken;
+
+    // True if this is the first node in a chain of function call
+    // argument nodes. The left side of this (children[0]) will be the
+    // function lookup, and the right side will be the first argument.
+    // The argument's node will have an expression on the left for the
+    // argument itself, and the next argument on the right, and so on
+    // until the right side argument is NULL.
+    bool isRootFunctionCallNode;
 };
 
 bool isPrefixOperator(struct Token *token);

@@ -86,7 +86,8 @@ bool isSubexpressionEndingToken(struct Token *token)
 {
     return !token ||
         token->type == TOKENTYPE_PAREN_CLOSE ||
-        token->type == TOKENTYPE_BRACKET_CLOSE;
+        token->type == TOKENTYPE_BRACKET_CLOSE ||
+        token->type == TOKENTYPE_COMMA;
 }
 
 bool isExpressionEndingToken(struct Token *token)
@@ -104,7 +105,8 @@ bool isPrefixOperator(struct Token *token)
 bool isPostfixOperator(struct Token *token)
 {
     return token && (
-        token->type == TOKENTYPE_BRACKET_OPEN);
+        token->type == TOKENTYPE_BRACKET_OPEN ||
+        token->type == TOKENTYPE_PAREN_OPEN);
 }
 
 int32_t getPrecedence(enum TokenType t)
@@ -363,19 +365,54 @@ struct ExpressionAstNode *parseExpression(
                 // TODO: Keep handling expressions as long as we end
                 // up on a comma.
 
+                postfixNode->isRootFunctionCallNode = true;
+
                 dbgPush();
                 NEXT_TOKEN();
-                postfixNode->children[1] = parseExpression(vm, currentToken);
+                {
+                    struct ExpressionAstNode *lastParamNode = postfixNode;
+                    uint32_t argCount = 0;
+
+                    while(*currentToken && (*currentToken)->type != TOKENTYPE_PAREN_CLOSE) {
+
+                        // Make a new node for this parameter.
+                        struct ExpressionAstNode *thisParamNode =
+                            malloc(sizeof(struct ExpressionAstNode));
+                        memset(thisParamNode, 0, sizeof(*thisParamNode));
+                        thisParamNode->opOrValue = postfixNode->opOrValue;
+
+                        // Parse the expression.
+                        thisParamNode->children[0] = parseExpression(vm, currentToken);
+
+                        // Add us to the end of the chain.
+                        lastParamNode->children[1] = thisParamNode;
+                        lastParamNode = thisParamNode;
+
+                        // Error-check.
+                        if(!thisParamNode->children[0]) {
+                            PARSE_ERROR("Function parameter subexpression parse failure.");
+                            CLEANUP_INLOOP();
+                            return NULL;
+                        }
+
+                        // Skip commas.
+                        if(*currentToken && (*currentToken)->type == TOKENTYPE_COMMA) {
+                            *currentToken = (*currentToken)->next;
+                        } else if(*currentToken && (*currentToken)->type == TOKENTYPE_PAREN_CLOSE) {
+                            // This is okay. It just means we're at the end.
+                        } else {
+                            // Anything else is bad.
+                            PARSE_ERROR("Expected ',' or ')' in function parameter parsing.");
+                            CLEANUP_INLOOP();
+                            return NULL;
+                        }
+
+                        argCount++;
+                    }
+                }
                 dbgPop();
 
-                // Error-check.
-                if(!postfixNode->children[1]) {
-                    PARSE_ERROR("Subexpression parse failure.");
-                    CLEANUP_INLOOP();
-                    return NULL;
-                }
-
-                EXPECT_AND_SKIP(TOKENTYPE_BRACKET_CLOSE);
+                EXPECT_AND_SKIP(TOKENTYPE_PAREN_CLOSE);
 
                 dbgWriteLine("Function call operator complete.");
 
@@ -709,7 +746,27 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
             // TODO: Array index.
 
-            // TODO: Function calls.
+        case TOKENTYPE_PAREN_OPEN: {
+            // Function calls.
+
+            if(node->isRootFunctionCallNode) {
+
+                // Count up the arguments.
+                uint32_t argumentCount = 0;
+                struct ExpressionAstNode *argumentAstNode = node->children[1];
+                while(argumentAstNode) {
+                    argumentAstNode = argumentAstNode->children[1];
+                    argumentCount++;
+                }
+
+                printf("Emitting function call with arguments: %u\n", argumentCount);
+                emitPushLiteralInt(cs, argumentCount);
+                addInstructionSimple(cs, OP_CALL);
+
+                cs->context->stackFrameOffset -= argumentCount;
+            }
+
+        } break;
 
         default: {
             struct DynString *dynStr =

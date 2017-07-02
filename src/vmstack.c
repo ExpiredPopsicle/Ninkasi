@@ -109,12 +109,31 @@ struct Value *vmStackPop(struct VM *vm)
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
-        errorStateAddError(&vm->errorState, -1, "Stack underflow.");
+        errorStateAddError(&vm->errorState, -1, "Stack underflow in pop.");
         return &stack->values[0];
     }
 
     stack->size--;
     return &stack->values[stack->size];
+}
+
+void vmStackPopN(struct VM *vm, uint32_t count)
+{
+    struct VMStack *stack = &vm->stack;
+
+    // TODO: Shrink the stack if we can?
+
+    printf("pop count: %u\n", count);
+
+    if(stack->size < count) {
+        // Stack underflow. We'll return the bottom of the stack, just
+        // so that whatever is expecting a valid piece of data here
+        // won't explode, but the error will be visible next check.
+        errorStateAddError(&vm->errorState, -1, "Stack underflow in popN.");
+        return &stack->values[0];
+    }
+
+    stack->size -= count;
 }
 
 void vmStackDump(struct VM *vm)

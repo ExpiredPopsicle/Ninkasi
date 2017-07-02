@@ -7,11 +7,18 @@ bar = foo + foo;
 
     function test(a, b, c)
     {
-        return 123456;
-        foo;
-        // kjmsdckjlsadcklsc
-        "beep" + "boop" + a + b + c;
+        return "beep" + "boop" + b;
     }
+
+    foo = 1;
+    foo = 2;
+    foo = 3;
+    foo = 4;
+    foo = 5;
+    foo = test(123, 456, 789);
+    bar = test(123, 456, 789);
+
+    // "foom";
 }
 
 bar = "asdf";

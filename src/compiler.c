@@ -227,6 +227,8 @@ void addVariable(struct CompilerState *cs, const char *name)
 
 bool compileStatement(struct CompilerState *cs, struct Token **currentToken)
 {
+    printf("Entering compileStatement with stackFrameOffset: %u\n", cs->context->stackFrameOffset);
+
     if(!*currentToken) {
         errorStateAddError(
             &cs->vm->errorState, -1, "Ran out of tokens to parse.");
@@ -493,15 +495,25 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // Skip '('.
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
+    // // Add the function id itself as a variable inside the function
+    // // (because it's on the stack anyway).
+    // varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
+    // varTmp->doNotPopWhenOutOfScope = true;
+    // cs->context->stackFrameOffset++;
+
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
     while(*currentToken) {
 
+        // Add each of them as a local variable to the new context.
         if((*currentToken)->type == TOKENTYPE_IDENTIFIER) {
 
             const char *argumentName = (*currentToken)->str;
 
+            cs->context->stackFrameOffset++;
             varTmp = addVariableWithoutStackAllocation(cs, argumentName);
+            cs->context->stackFrameOffset--;
+
             varTmp->doNotPopWhenOutOfScope = true;
             cs->context->stackFrameOffset++;
 
@@ -537,12 +549,6 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     varTmp = addVariableWithoutStackAllocation(cs, "_argumentCount");
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
-
-    // // The CALL instruction will push this onto the stack
-    // // automatically.
-    // varTmp = addVariableWithoutStackAllocation(cs, "_returnValue");
-    // varTmp->doNotPopWhenOutOfScope = true;
-    // cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.

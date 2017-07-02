@@ -15,6 +15,10 @@ void dynStrDelete(struct DynString *dynStr)
 
 void dynStrAppend(struct DynString *dynStr, const char *str)
 {
+    if(!str) {
+        str = "<null>";
+    }
+
     dynStr->data = realloc(
         dynStr->data,
         strlen(dynStr->data) + strlen(str) + 1);

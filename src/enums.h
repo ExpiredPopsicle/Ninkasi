@@ -73,7 +73,7 @@ enum TokenType
     TOKENTYPE_FUNCTION,
     TOKENTYPE_RETURN,
 
-    TOKENTYPE_INVALID
+    TOKENTYPE_INVALID,
 };
 
 #endif

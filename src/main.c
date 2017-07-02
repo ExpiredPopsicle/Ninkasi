@@ -206,6 +206,7 @@ int main(int argc, char *argv[])
                     printf("error: %s\n", err->errorText);
                     err = err->next;
                 }
+                break;
             }
 
             vmStackDump(&vm);

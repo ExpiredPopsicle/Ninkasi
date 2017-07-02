@@ -360,30 +360,68 @@ void opcode_jumpRelative(struct VM *vm, struct Instruction *instruction)
 void opcode_call(struct VM *vm, struct Instruction *instruction)
 {
     // Expected stack state at start...
-    //   function id
     //   _argumentCount
     //   <_argumentCount number of arguments>
+    //   function id
 
-    // TODO: Pop the top of the stack and save it. That's the function
-    // id.
+    uint32_t argumentCount = 0;
+    uint32_t functionId = 0;
+    struct VMFunction *funcOb = NULL;
 
-    // TODO: Look up the function in our not-yet-existing table of
-    // function objects.
+    // PEEK at the top of the stack. That's _argumentCount.
+    argumentCount = valueToInt(vm, vmStackPeek(vm, (vm->stack.size - 1)));
 
-    // TODO: PEEK at the top of the stack. That's _argumentCount.
+    printf("Calling function with argument count: %u\n", argumentCount);
 
-    // TODO: Compare _argumentCount to the stored function object's
+    // PEEK at the function id (stack top - _argumentCount). Save it.
+    {
+        struct Value *functionIdValue = vmStackPeek(
+            vm, vm->stack.size - (argumentCount + 2));
+
+        if(functionIdValue->type != VALUETYPE_FUNCTIONID) {
+            errorStateAddError(
+                &vm->errorState,
+                -1,
+                "Tried to call something that is not a function id.");
+            return;
+        }
+
+        functionId = functionIdValue->functionId;
+        printf("Calling function with id: %u\n", functionId);
+    }
+
+    // Look up the function in our table of function objects.
+    if(functionId >= vm->functionCount) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Bad function id.");
+        return;
+    }
+    funcOb = &vm->functionTable[functionId];
+
+    // Compare _argumentCount to the stored function object's
     // _argumentCount. Throw an error if they mismatch.
+    if(funcOb->argumentCount != argumentCount) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Incorrect argument count for function call.");
+        return;
+    }
 
-    // TODO: Push the current instruction pointer (_returnPointer).
+    // Push the current instruction pointer (_returnPointer).
+    vmStackPushInt(vm, vm->instructionPointer);
 
-    // TODO: Set the instruction pointer to the saved function
-    // object's instruction pointer. Maybe minus one.
+    // Set the instruction pointer to the saved function object's
+    // instruction pointer. Maybe minus one.
+    vm->instructionPointer = funcOb->firstInstructionIndex - 1;
 
     // Expected stack state at end...
     //   _returnPointer
     //   _argumentCount
     //   <_argumentCount number of arguments>
+    //   function id
 }
 
 void opcode_return(struct VM *vm, struct Instruction *instruction)
@@ -396,24 +434,44 @@ void opcode_return(struct VM *vm, struct Instruction *instruction)
     //   _returnPointer (from CALL)
     //   _argumentCount (from before CALL)
     //   <_argumentCount number of arguments> (from before CALL)
+    //   function id (from before CALL)
 
-    // TODO: Pop a value off the stack. That's _returnValue.
+    struct Value *returnValue = NULL;
+    struct Value *contextCountValue = NULL;
+    uint32_t returnAddress = 0;
+    uint32_t argumentCount = 0;
 
-    // TODO: Pop a value, contextCount, off the stack.
+    // Pop a value, contextCount, off the stack.
+    contextCountValue = vmStackPop(vm);
 
-    // TODO: Pop contextCount more values off the stack and throw them
-    // away. (Function context we're done with.)
+    // Pop a value off the stack. That's _returnValue.
+    returnValue = vmStackPop(vm);
 
-    // TODO: Pop the _returnPointer off the stack and keep it.
+    // Pop contextCount more values off the stack and throw them away.
+    // (Function context we're done with.)
+    vmStackPopN(vm, valueToInt(vm, contextCountValue));
 
-    // TODO: Pop the _argumentCount off the stack and keep it.
+    // Pop the _returnPointer off the stack and keep it.
+    returnAddress = valueToInt(vm, vmStackPop(vm));
 
-    // TODO: Pop _argumentCount values off the stack and throw them
-    // away. (Function arguments we're done with.)
+    // Pop the _argumentCount off the stack and keep it.
+    argumentCount = valueToInt(vm, vmStackPop(vm));
 
-    // TODO: Push _returnValue back onto the stack.
+    // Pop _argumentCount values off the stack and throw them away.
+    // (Function arguments we're done with.)
+    vmStackPopN(vm, argumentCount);
 
-    // TODO: Set the instruction pointer to _returnPointer - 1.
+    // Pop function id off the stack.
+    vmStackPop(vm);
+
+    // Push _returnValue back onto the stack.
+    {
+        struct Value *returnValueWrite = vmStackPush_internal(vm);
+        *returnValueWrite = *returnValue;
+    }
+
+    // Set the instruction pointer to _returnPointer - 1.
+    vm->instructionPointer = returnAddress;
 
     // Expected stack state at end...
     //   _returnValue
