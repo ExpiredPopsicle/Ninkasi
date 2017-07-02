@@ -3,6 +3,7 @@
 
 struct VM;
 struct Instruction;
+struct Token;
 
 struct CompilerStateContextVariable
 {
@@ -40,6 +41,9 @@ struct CompilerState
     uint32_t instructionWriteIndex;
 
     struct CompilerStateContext *context;
+
+    struct Token *currentToken;
+    uint32_t currentLineNumber;
 };
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst);
@@ -66,5 +70,8 @@ bool compileReturnStatement(struct CompilerState *cs, struct Token **currentToke
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);
 void emitPushLiteralString(struct CompilerState *cs, const char *str);
+
+struct Token *vmCompilerNextToken(struct CompilerState *cs);
+enum TokenType vmCompilerTokenType(struct CompilerState *cs);
 
 #endif

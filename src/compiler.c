@@ -601,3 +601,22 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     return true;
 }
 
+struct Token *vmCompilerNextToken(struct CompilerState *cs)
+{
+    if(cs->currentToken) {
+        cs->currentToken = cs->currentToken->next;
+        if(cs->currentToken) {
+            cs->currentLineNumber = cs->currentToken->lineNumber;
+        }
+    }
+    return cs->currentToken;
+}
+
+enum TokenType vmCompilerTokenType(struct CompilerState *cs)
+{
+    if(cs->currentToken) {
+        return cs->currentToken->type;
+    }
+    return TOKENTYPE_INVALID;
+}
+

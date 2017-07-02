@@ -94,6 +94,9 @@ int main(int argc, char *argv[])
                 cs.instructionWriteIndex = 0;
                 cs.vm = &vm;
                 cs.context = NULL;
+                cs.currentToken = tokenList.first;
+                cs.currentLineNumber =
+                    cs.currentToken ? cs.currentToken->lineNumber : 0;
 
                 // Global context.
                 pushContext(&cs);
