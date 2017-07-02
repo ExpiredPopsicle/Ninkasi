@@ -129,11 +129,9 @@ int32_t getPrecedence(enum TokenType t)
     }
 }
 
-
 #define PARSE_ERROR(x)                          \
-    errorStateAddError(                         \
-        &vm->errorState,                        \
-        vmCompilerGetLinenumber(cs),            \
+    vmCompilerAddError(                         \
+        cs,                                     \
         (x))
 
 #define CLEANUP_OUTER()                                             \
@@ -158,20 +156,20 @@ int32_t getPrecedence(enum TokenType t)
         deleteExpressionNode(valueNode);        \
     } while(0)
 
-#define EXPECT_AND_SKIP(x)                                          \
-    do {                                                            \
-        if(vmCompilerTokenType(cs) != (x)) {                        \
-            struct DynString *errStr =                              \
-                dynStrCreate("Unexpected token: ");                 \
-            dynStrAppend(                                           \
-                errStr,                                             \
-                *currentToken ? (*currentToken)->str : "<none>");   \
-            PARSE_ERROR(errStr->data);                              \
-            dynStrDelete(errStr);                                   \
-            CLEANUP_INLOOP();                                       \
-            return NULL;                                            \
-        }                                                           \
-        vmCompilerNextToken(cs);                                    \
+#define EXPECT_AND_SKIP(x)                          \
+    do {                                            \
+        if(vmCompilerTokenType(cs) != (x)) {        \
+            struct DynString *errStr =              \
+                dynStrCreate("Unexpected token: "); \
+            dynStrAppend(                           \
+                errStr,                             \
+                vmCompilerTokenString(cs));         \
+            PARSE_ERROR(errStr->data);              \
+            dynStrDelete(errStr);                   \
+            CLEANUP_INLOOP();                       \
+            return NULL;                            \
+        }                                           \
+        vmCompilerNextToken(cs);                    \
     } while(0)
 
 #define MAKE_OP(x)                                  \
@@ -218,7 +216,6 @@ bool reduce(
 
 struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 {
-    struct VM *vm = cs->vm;
     struct Token **currentToken = &cs->currentToken;
     struct ExpressionAstNode *opStack = NULL;
     struct ExpressionAstNode *valueStack = NULL;
