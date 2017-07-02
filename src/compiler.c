@@ -465,6 +465,7 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
     // cannot refer to itself before it's finished being fully
     // created.
     emitPushLiteralFunctionId(cs, functionId);
+    cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, functionName);
 
     // Add some instructions to skip around this function. This is
@@ -521,7 +522,7 @@ bool compileFunctionDefinition(struct CompilerState *cs, struct Token **currentT
 
             *currentToken = (*currentToken)->next;
 
-        } else {
+        } else if((*currentToken)->type != TOKENTYPE_PAREN_CLOSE) {
 
             errorStateAddError(
                 &cs->vm->errorState,

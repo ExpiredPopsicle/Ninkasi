@@ -130,7 +130,6 @@ void vmStackPopN(struct VM *vm, uint32_t count)
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
         errorStateAddError(&vm->errorState, -1, "Stack underflow in popN.");
-        return &stack->values[0];
     }
 
     stack->size -= count;

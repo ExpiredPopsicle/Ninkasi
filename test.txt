@@ -1,24 +1,48 @@
-var foo = 123;
-var bar;
-bar = foo + foo;
+// var foo = 123;
+// var bar;
+// bar = foo + foo;
 
+
+// {
+//     var shouldNotBeInFunction;
+
+//     function otherTest(a, b, c)
+//     {
+//         return a + b;
+//     }
+
+//     function test(a, b, c)
+//     {
+//         return "beep" + "boop" + b;
+//     }
+
+//     foo = 1;
+//     foo = 2;
+//     foo = 3;
+//     foo = 4;
+//     foo = 5;
+//     foo = test(123, 456, 789);
+//     bar = test(123, 456, 789);
+
+//     foo = otherTest(
+//         test(0, "FOOM", 0),
+//         test(0, "BUTTS", 0));
+
+//     // "foom";
+// }
+
+// bar = "asdf";
+
+
+function test1()
 {
-    var shouldNotBeInFunction;
-
-    function test(a, b, c)
-    {
-        return "beep" + "boop" + b;
-    }
-
-    foo = 1;
-    foo = 2;
-    foo = 3;
-    foo = 4;
-    foo = 5;
-    foo = test(123, 456, 789);
-    bar = test(123, 456, 789);
-
-    // "foom";
+    return "t1value";
 }
 
-bar = "asdf";
+function test2()
+{
+    return "t2value";
+}
+
+test1();
+test2();

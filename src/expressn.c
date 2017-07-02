@@ -556,12 +556,16 @@ bool emitFetchVariable(
         // position).
         emitPushLiteralInt(cs, var->stackPos);
 
+        printf("Looked up %s: Global at %d\n", name, var->stackPos);
+
     } else {
 
         // Negative values for local variables (stack position -
         // value).
         emitPushLiteralInt(cs,
             var->stackPos - cs->context->stackFrameOffset);
+
+        printf("Looked up %s: Local at %d\n", name, var->stackPos);
     }
 
     addInstructionSimple(cs, OP_STACKPEEK);
