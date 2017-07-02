@@ -31,6 +31,12 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
     }
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;
+
+  #if VM_DEBUG
+    cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
+        vmCompilerGetLinenumber(cs);
+  #endif
+
     cs->instructionWriteIndex++;
 }
 

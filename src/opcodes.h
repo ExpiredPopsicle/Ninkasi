@@ -16,6 +16,10 @@ struct Instruction
         uint32_t opData_string;
         uint32_t opData_functionId;
     };
+
+  #if VM_DEBUG
+    uint32_t lineNumber;
+  #endif
 };
 
 

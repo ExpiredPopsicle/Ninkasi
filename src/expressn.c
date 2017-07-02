@@ -133,7 +133,7 @@ int32_t getPrecedence(enum TokenType t)
 #define PARSE_ERROR(x)                          \
     errorStateAddError(                         \
         &vm->errorState,                        \
-        currentLineNumber,                      \
+        vmCompilerGetLinenumber(cs),            \
         (x))
 
 #define CLEANUP_OUTER()                                             \
@@ -158,17 +158,9 @@ int32_t getPrecedence(enum TokenType t)
         deleteExpressionNode(valueNode);        \
     } while(0)
 
-#define NEXT_TOKEN()                                            \
-    do {                                                        \
-        (*currentToken) = (*currentToken)->next;                \
-        if(*currentToken) {                                     \
-            currentLineNumber = (*currentToken)->lineNumber;    \
-        }                                                       \
-    } while(0)
-
 #define EXPECT_AND_SKIP(x)                                          \
     do {                                                            \
-        if(!(*currentToken) || (*currentToken)->type != (x)) {      \
+        if(vmCompilerTokenType(cs) != (x)) {                        \
             struct DynString *errStr =                              \
                 dynStrCreate("Unexpected token: ");                 \
             dynStrAppend(                                           \
@@ -179,7 +171,7 @@ int32_t getPrecedence(enum TokenType t)
             CLEANUP_INLOOP();                                       \
             return NULL;                                            \
         }                                                           \
-        NEXT_TOKEN();                                               \
+        vmCompilerNextToken(cs);                                    \
     } while(0)
 
 #define MAKE_OP(x)                                  \
@@ -224,14 +216,12 @@ bool reduce(
     return true;
 }
 
-struct ExpressionAstNode *parseExpression(
-    struct VM *vm,
-    struct Token **currentToken)
+struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 {
+    struct VM *vm = cs->vm;
+    struct Token **currentToken = &cs->currentToken;
     struct ExpressionAstNode *opStack = NULL;
     struct ExpressionAstNode *valueStack = NULL;
-    int32_t currentLineNumber =
-        (*currentToken) ? (*currentToken)->lineNumber : -1;
 
     while(!isExpressionEndingToken(*currentToken)) {
 
@@ -261,17 +251,17 @@ struct ExpressionAstNode *parseExpression(
 
             dbgWriteLine("Parse prefix operator: %s", (*currentToken)->str);
 
-            NEXT_TOKEN();
+            vmCompilerNextToken(cs);
         }
 
         // Parse a value or sub-expression.
-        if((*currentToken)->type == TOKENTYPE_PAREN_OPEN) {
+        if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
 
             // Parse sub-expression.
             dbgWriteLine("Parse sub-expression.");
             dbgPush();
-            NEXT_TOKEN();
-            valueNode = parseExpression(vm, currentToken);
+            vmCompilerNextToken(cs);
+            valueNode = parseExpression(cs);
             dbgPop();
 
             // Error check.
@@ -291,7 +281,7 @@ struct ExpressionAstNode *parseExpression(
             dbgWriteLine("Back from sub-expression. Current token: %s", (*currentToken)->str);
 
             // Skip expression-ending token.
-            NEXT_TOKEN();
+            vmCompilerNextToken(cs);
 
         } else {
 
@@ -303,7 +293,7 @@ struct ExpressionAstNode *parseExpression(
                 valueNode->opOrValue = *currentToken;
 
                 dbgWriteLine("Parse value: %s", (*currentToken)->str);
-                NEXT_TOKEN();
+                vmCompilerNextToken(cs);
 
             } else {
 
@@ -336,14 +326,14 @@ struct ExpressionAstNode *parseExpression(
 
             dbgWriteLine("Parse postfix operator: %s", (*currentToken)->str);
 
-            if((*currentToken)->type == TOKENTYPE_BRACKET_OPEN) {
+            if(vmCompilerTokenType(cs) == TOKENTYPE_BRACKET_OPEN) {
 
                 // Handle index-into operator.
 
                 dbgWriteLine("Handling index-into operator.");
                 dbgPush();
-                NEXT_TOKEN();
-                postfixNode->children[1] = parseExpression(vm, currentToken);
+                vmCompilerNextToken(cs);
+                postfixNode->children[1] = parseExpression(cs);
                 dbgPop();
 
                 // Error-check.
@@ -357,7 +347,7 @@ struct ExpressionAstNode *parseExpression(
 
                 dbgWriteLine("Index-into operator complete.");
 
-            } else if((*currentToken)->type == TOKENTYPE_PAREN_OPEN) {
+            } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
 
                 // Handle function call "operator".
                 dbgWriteLine("Handling function call operator.");
@@ -368,13 +358,15 @@ struct ExpressionAstNode *parseExpression(
                 postfixNode->isRootFunctionCallNode = true;
 
                 dbgPush();
-                NEXT_TOKEN();
+                vmCompilerNextToken(cs);
                 {
                     struct ExpressionAstNode *lastParamNode = postfixNode;
                     uint32_t argCount = 0;
 
-                    while(*currentToken && (*currentToken)->type != TOKENTYPE_PAREN_CLOSE) {
-
+                    while(
+                        vmCompilerTokenType(cs) != TOKENTYPE_INVALID &&
+                        vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE)
+                    {
                         // Make a new node for this parameter.
                         struct ExpressionAstNode *thisParamNode =
                             malloc(sizeof(struct ExpressionAstNode));
@@ -382,7 +374,7 @@ struct ExpressionAstNode *parseExpression(
                         thisParamNode->opOrValue = postfixNode->opOrValue;
 
                         // Parse the expression.
-                        thisParamNode->children[0] = parseExpression(vm, currentToken);
+                        thisParamNode->children[0] = parseExpression(cs);
 
                         // Add us to the end of the chain.
                         lastParamNode->children[1] = thisParamNode;
@@ -396,9 +388,9 @@ struct ExpressionAstNode *parseExpression(
                         }
 
                         // Skip commas.
-                        if(*currentToken && (*currentToken)->type == TOKENTYPE_COMMA) {
-                            *currentToken = (*currentToken)->next;
-                        } else if(*currentToken && (*currentToken)->type == TOKENTYPE_PAREN_CLOSE) {
+                        if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
+                            vmCompilerNextToken(cs);
+                        } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
                             // This is okay. It just means we're at the end.
                         } else {
                             // Anything else is bad.
@@ -420,7 +412,7 @@ struct ExpressionAstNode *parseExpression(
 
                 struct DynString *str =
                     dynStrCreate("Unknown postfix operator: ");
-                dynStrAppend(str, (*currentToken)->str);
+                dynStrAppend(str, vmCompilerTokenString(cs));
                 PARSE_ERROR(str->data);
                 dynStrDelete(str);
                 CLEANUP_INLOOP();
@@ -447,20 +439,19 @@ struct ExpressionAstNode *parseExpression(
         valueNode = NULL;
 
         // Check to see if we're just done or not.
-        if(isExpressionEndingToken(*currentToken)) {
+        if(isExpressionEndingToken(cs->currentToken)) {
             dbgWriteLine("Done parsing expression and maybe statement.");
             break;
-
         }
 
         // Not done yet. Parse the next operator.
-        dbgWriteLine("Parse operator: %s", (*currentToken)->str);
+        dbgWriteLine("Parse operator: %s", vmCompilerTokenString(cs));
 
         // Make sure this is even something valid.
         if(getPrecedence((*currentToken)->type) == -1) {
             struct DynString *str =
                 dynStrCreate("Unknown operator: ");
-            dynStrAppend(str, (*currentToken)->str);
+            dynStrAppend(str, vmCompilerTokenString(cs));
             PARSE_ERROR(str->data);
             dynStrDelete(str);
             CLEANUP_INLOOP();
@@ -470,7 +461,7 @@ struct ExpressionAstNode *parseExpression(
         // Attempt to reduce.
         if(opStack) {
 
-            if(getPrecedence((*currentToken)->type) >=
+            if(getPrecedence(vmCompilerTokenType(cs)) >=
                 getPrecedence(opStack->opOrValue->type))
             {
                 if(!reduce(&opStack, &valueStack)) {
@@ -482,13 +473,14 @@ struct ExpressionAstNode *parseExpression(
             } else {
                 dbgWriteLine(
                     "We should NOT reduce! %s <= %s",
-                    (*currentToken)->str, opStack->opOrValue->str);
+                    vmCompilerTokenString(cs),
+                    opStack->opOrValue->str);
             }
         }
 
-        PUSH_OP(*currentToken);
+        PUSH_OP(cs->currentToken);
 
-        NEXT_TOKEN();
+        vmCompilerNextToken(cs);
     }
 
     // Reduce all remaining operations.
@@ -792,7 +784,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 bool compileExpression(struct CompilerState *cs)
 {
     struct ExpressionAstNode *node =
-        parseExpression(cs->vm, &cs->currentToken);
+        parseExpression(cs);
 
     if(node) {
 

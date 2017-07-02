@@ -39,7 +39,7 @@ struct ExpressionAstNode *makeImmediateExpressionNode(
 void deleteExpressionNode(struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
-struct ExpressionAstNode *parseExpression(struct VM *vm, struct Token **currentToken);
+struct ExpressionAstNode *parseExpression(struct CompilerState *cs);
 
 
 bool compileExpression(struct CompilerState *cs);
