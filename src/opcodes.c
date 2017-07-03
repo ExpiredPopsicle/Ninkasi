@@ -418,7 +418,6 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
 
         printf("funcOb->argumentCount: %u\n", funcOb->argumentCount);
         printf("argumentCount:         %u\n", argumentCount);
-        assert(0);
 
         return;
     }
@@ -438,13 +437,43 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
-        data.arguments = &vm->stack.values[
-            vm->stack.indexMask & (vm->stack.size - argumentCount - 1)];
+        data.arguments = malloc(argumentCount * sizeof(struct Value));
 
+        // Note: We're not simply giving the function a stack pointer,
+        // because then the called function would have to worry about
+        // the stack index mask and all that crap.
+
+        // This is one of the few places where we do allocations based
+        // directly off of a value given to us from the program, so
+        // let's make sure that worked.
+        if(!data.arguments) {
+            errorStateAddError(
+                &vm->errorState,
+                -1,
+                "Failed to allocated arguments for function call.");
+            return;
+        }
+
+        // Copy arguments over.
+        {
+            uint32_t i;
+            for(i = 0; i < argumentCount; i++) {
+                data.arguments[i] =
+                    vm->stack.values[
+                        vm->stack.indexMask &
+                        ((vm->stack.size - argumentCount - 1) + i)];
+            }
+        }
+
+        // Actual function call.
         funcOb->CFunctionCallback(&data);
 
+        free(data.arguments);
+
+        // Pop all the arguments.
         vmStackPopN(vm, argumentCount + 2);
 
+        // Push return value.
         {
             struct Value *retVal = vmStackPush_internal(vm);
             *retVal = data.returnValue;
