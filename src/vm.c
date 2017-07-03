@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------
 // Static opcode table setup.
 
-typedef void (*VMOpcodeCall)(struct VM *vm, struct Instruction *instruction);
+typedef void (*VMOpcodeCall)(struct VM *vm);
 static VMOpcodeCall opcodeTable[OPCODE_PADDEDCOUNT];
 static const char *opcodeNameTable[OPCODE_PADDEDCOUNT];
 
@@ -117,7 +117,7 @@ void vmIterate(struct VM *vm)
 
     printf("Executing: %s\n", vmGetOpcodeName(opcodeId));
 
-    opcodeTable[opcodeId](vm, inst);
+    opcodeTable[opcodeId](vm);
     vm->instructionPointer++;
 
     // Handle periodic garbage collection.
@@ -388,7 +388,7 @@ void vmCallFunction(
 
         vm->instructionPointer = (~(uint32_t)0 - 1);
 
-        opcode_call(vm, NULL);
+        opcode_call(vm);
         vm->instructionPointer++;
 
         while(vm->instructionPointer != ~(uint32_t)0 &&

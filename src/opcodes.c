@@ -1,6 +1,6 @@
 #include "common.h"
 
-void opcode_add(struct VM *vm, struct Instruction *instruction)
+void opcode_add(struct VM *vm)
 {
     struct Value *in2  = vmStackPop(vm);
     struct Value *in1  = vmStackPop(vm);
@@ -62,7 +62,7 @@ void opcode_add(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction)
+void opcode_pushLiteral_int(struct VM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -72,7 +72,7 @@ void opcode_pushLiteral_int(struct VM *vm, struct Instruction *instruction)
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_int;
 }
 
-void opcode_pushLiteral_float(struct VM *vm, struct Instruction *instruction)
+void opcode_pushLiteral_float(struct VM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -82,7 +82,7 @@ void opcode_pushLiteral_float(struct VM *vm, struct Instruction *instruction)
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_float;
 }
 
-void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction)
+void opcode_pushLiteral_string(struct VM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -95,7 +95,7 @@ void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction)
 
 }
 
-void opcode_pushLiteral_functionId(struct VM *vm, struct Instruction *instruction)
+void opcode_pushLiteral_functionId(struct VM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -105,11 +105,11 @@ void opcode_pushLiteral_functionId(struct VM *vm, struct Instruction *instructio
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_functionId;
 }
 
-void opcode_nop(struct VM *vm, struct Instruction *instruction)
+void opcode_nop(struct VM *vm)
 {
 }
 
-void opcode_subtract(struct VM *vm, struct Instruction *instruction)
+void opcode_subtract(struct VM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -145,7 +145,7 @@ void opcode_subtract(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_multiply(struct VM *vm, struct Instruction *instruction)
+void opcode_multiply(struct VM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -181,7 +181,7 @@ void opcode_multiply(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_divide(struct VM *vm, struct Instruction *instruction)
+void opcode_divide(struct VM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -224,7 +224,7 @@ void opcode_divide(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_negate(struct VM *vm, struct Instruction *instruction)
+void opcode_negate(struct VM *vm)
 {
     struct Value *in1 = vmStackPop(vm);
 
@@ -257,18 +257,18 @@ void opcode_negate(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_pop(struct VM *vm, struct Instruction *instruction)
+void opcode_pop(struct VM *vm)
 {
     vmStackPop(vm);
 }
 
-void opcode_popN(struct VM *vm, struct Instruction *instruction)
+void opcode_popN(struct VM *vm)
 {
     struct Value *v = vmStackPop(vm);
     vmStackPopN(vm, valueToInt(vm, v));
 }
 
-void opcode_dump(struct VM *vm, struct Instruction *instruction)
+void opcode_dump(struct VM *vm)
 {
     struct Value *v = vmStackPop(vm);
     printf("Debug dump: ");
@@ -276,7 +276,7 @@ void opcode_dump(struct VM *vm, struct Instruction *instruction)
     printf("\n");
 }
 
-void opcode_stackPeek(struct VM *vm, struct Instruction *instruction)
+void opcode_stackPeek(struct VM *vm)
 {
     // Read index.
     struct Value *v = vmStackPop(vm);
@@ -317,7 +317,7 @@ void opcode_stackPeek(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_stackPoke(struct VM *vm, struct Instruction *instruction)
+void opcode_stackPoke(struct VM *vm)
 {
     // Read index.
     struct Value *stackAddrValue = vmStackPop(vm);
@@ -357,13 +357,13 @@ void opcode_stackPoke(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_jumpRelative(struct VM *vm, struct Instruction *instruction)
+void opcode_jumpRelative(struct VM *vm)
 {
     struct Value *offsetVal = vmStackPop(vm);
     vm->instructionPointer += valueToInt(vm, offsetVal);
 }
 
-void opcode_call(struct VM *vm, struct Instruction *instruction)
+void opcode_call(struct VM *vm)
 {
     // Expected stack state at start...
     //   _argumentCount
@@ -495,7 +495,7 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
     }
 }
 
-void opcode_return(struct VM *vm, struct Instruction *instruction)
+void opcode_return(struct VM *vm)
 {
     // Expected stack state at start...
     //   context amount to throw away (contextCount)
