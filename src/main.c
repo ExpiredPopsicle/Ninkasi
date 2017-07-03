@@ -173,6 +173,15 @@ int main(int argc, char *argv[])
 
         if(!vmGetErrorCount(&vm)) {
             vmExecuteProgram(&vm);
+
+            {
+                struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");
+                if(v) {
+                    printf("Value found: %s\n", valueToString(&vm, v));
+                } else {
+                    printf("Value NOT found.\n");
+                }
+            }
         }
 
         // while(vm.instructions[vm.instructionPointer].opcode != OP_END) {

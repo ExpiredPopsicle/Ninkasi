@@ -729,6 +729,50 @@ struct CompilerState *vmCompilerCreate(
 void vmCompilerFinalize(
     struct CompilerState *cs)
 {
+    // Pop everything up to the global context.
+    while(cs->context && cs->context->parent) {
+        popContext(cs);
+    }
+
+    // Create the global variable table.
+    {
+        // Run through the variable list once and count up how much
+        // memory we need.
+        uint32_t count = 0;
+        uint32_t nameStorageNeeded = 0;
+        struct CompilerStateContextVariable *var =
+            cs->context->variables;
+        while(var) {
+            count++;
+            nameStorageNeeded += strlen(var->name) + 1;
+            var = var->next;
+        }
+
+        // Allocate that.
+        cs->vm->globalVariableNameStorage = malloc(nameStorageNeeded);
+        cs->vm->globalVariables =
+            malloc(sizeof(struct GlobalVariableRecord) * count);
+        cs->vm->globalVariableCount = count;
+
+        // Now run through it all again and actually assign data.
+        var = cs->context->variables;
+        {
+            char *nameWritePtr = cs->vm->globalVariableNameStorage;
+            count = 0;
+
+            while(var) {
+
+                cs->vm->globalVariables[count].stackPosition = var->stackPos;
+                cs->vm->globalVariables[count].name = nameWritePtr;
+                strcpy(nameWritePtr, var->name);
+                nameWritePtr += strlen(var->name) + 1;
+
+                count++;
+                var = var->next;
+            }
+        }
+    }
+
     // Pop the global context.
     while(cs->context) {
         popContext(cs);

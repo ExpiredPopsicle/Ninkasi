@@ -61,6 +61,16 @@ void vmCreateCFunction(
     VMFunctionCallback func,
     struct Value *output);
 
+/// Look up a global variable. Do not use this before executing the
+/// program at least once, or only accessing global variables that
+/// were declared earlier in the program than whatever point it's at
+/// now. (Global variables are created when the program reaches the
+/// point where they are declared, and until that point, the stack
+/// area they occupy may be used by other things, or may not exist at
+/// all.)
+struct Value *vmFindGlobalVariable(
+    struct VM *vm, const char *name);
+
 // ----------------------------------------------------------------------
 // Internals
 
@@ -97,6 +107,13 @@ struct VM
 
     // TODO: Add a global variable table and global variable lookup,
     // so we don't have to keep the compiler around.
+    struct GlobalVariableRecord
+    {
+        uint32_t stackPosition;
+        const char *name;
+    } *globalVariables;
+    char *globalVariableNameStorage;
+    uint32_t globalVariableCount;
 };
 
 void vmInit(struct VM *vm);

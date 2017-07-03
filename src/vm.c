@@ -87,6 +87,9 @@ void vmDestroy(struct VM *vm)
     errorStateDestroy(&vm->errorState);
     free(vm->instructions);
     free(vm->functionTable);
+
+    free(vm->globalVariables);
+    free(vm->globalVariableNameStorage);
 }
 
 // ----------------------------------------------------------------------
@@ -370,3 +373,16 @@ void vmDelete(struct VM *vm)
     vmDestroy(vm);
     free(vm);
 }
+
+struct Value *vmFindGlobalVariable(
+    struct VM *vm, const char *name)
+{
+    uint32_t i;
+    for(i = 0; i < vm->globalVariableCount; i++) {
+        if(!strcmp(vm->globalVariables[i].name, name)) {
+            return &vm->stack.values[vm->stack.indexMask & vm->globalVariables[i].stackPosition];
+        }
+    }
+    return NULL;
+}
+

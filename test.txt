@@ -92,3 +92,8 @@ function callMeFromC()
     return "ASDFASDFASDFASDFASDF";
 }
 cfunc(callMeFromC);
+
+
+var readMeFromC = 1 + 2 + 3;
+
+
