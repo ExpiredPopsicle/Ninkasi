@@ -275,8 +275,34 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
     return &vm->functionTable[vm->functionCount - 1];
 }
 
-void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCallback func)
+void vmCreateCFunction(
+    struct VM *vm,
+    VMFunctionCallback func,
+    struct Value *output)
 {
+    // TODO: Lookup function first.
+
+    // TODO: Test this stupid thing.
+
+    uint32_t functionId = 0;
+    struct VMFunction *vmfunc =
+        vmCreateFunction(vm, &functionId);
+
+    vmfunc->argumentCount = ~(uint32_t)0;
+    vmfunc->isCFunction = true;
+    vmfunc->CFunctionCallback = func;
+
+    output->type = VALUETYPE_FUNCTIONID;
+    output->functionId = functionId;
+}
+
+void vmCreateCFunctionVariable(
+    struct CompilerState *cs,
+    const char *name,
+    VMFunctionCallback func)
+{
+    // TODO: Lookup function first.
+
     uint32_t functionId = 0;
     struct VMFunction *vmfunc =
         vmCreateFunction(cs->vm, &functionId);

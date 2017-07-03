@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
                 pushContext(&cs);
 
 
-                vmCreateCFunction(&cs, "cfunc", testVMFunc);
+                vmCreateCFunctionVariable(&cs, "cfunc", testVMFunc);
 
                 {
                     struct CompilerStateContext *ctx = cs.context;

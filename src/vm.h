@@ -37,6 +37,9 @@ struct VM
     //
     // Maybe just an external reference list? (Can store multiple
     // entries for multiple external references to the same object.)
+
+    // TODO: Global variable table and global variable lookup, so we
+    // don't have to keep the compiler around.
 };
 
 void vmInit(struct VM *vm);
@@ -58,9 +61,25 @@ const char *vmGetOpcodeName(enum Opcode op);
 
 
 
-void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCallback func);
+/// Create a C function and assign it a variable name at the current
+/// scope. Use this to make a globally defined C function at
+/// compile-time. Do this before script compilation, so the script
+/// itself can access it.
+void vmCreateCFunctionVariable(
+    struct CompilerState *cs,
+    const char *name,
+    VMFunctionCallback func);
 
+/// Create a C function and write it to some Value.
+void vmCreateCFunction(
+    struct VM *vm,
+    VMFunctionCallback func,
+    struct Value *output);
 
+/// Call a function inside the VM. This does not do any kind of
+/// iteration control, and will simply keep iterating until the
+/// instruction pointer points to the end of addressable program
+/// space, indicating that the function has returned.
 void vmCallFunction(
     struct VM *vm,
     struct Value *functionValue,
