@@ -18,12 +18,30 @@ int dbgWriteLine(const char *fmt, ...)
     return ret;
 }
 
-void dbgPush(void)
+void dbgPush_real(const char *func)
 {
     dbgIndentLevel++;
+
+    // {
+    //     uint32_t i;
+    //     for(i = 0; i < dbgIndentLevel; i++) {
+    //         printf("  ");
+    //     }
+    // }
+    // printf("dbgIndent PUSH: %d %s\n", dbgIndentLevel, func);
 }
 
-void dbgPop(void)
+void dbgPop_real(const char *func)
 {
+    assert(dbgIndentLevel > 0);
+
+    // {
+    //     uint32_t i;
+    //     for(i = 0; i < dbgIndentLevel; i++) {
+    //         printf("  ");
+    //     }
+    // }
+    // printf("dbgIndent POP:  %d %s\n", dbgIndentLevel, func);
+
     dbgIndentLevel--;
 }

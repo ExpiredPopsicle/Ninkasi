@@ -2,8 +2,11 @@
 #define VMDBG_H
 
 int dbgWriteLine(const char *fmt, ...);
-void dbgPush(void);
-void dbgPop(void);
+void dbgPush_real(const char *func);
+void dbgPop_real(const char *func);
+
+#define dbgPush() do { dbgPush_real(__FUNCTION__); } while(0)
+#define dbgPop() do { dbgPop_real(__FUNCTION__); } while(0)
 
 #endif
 

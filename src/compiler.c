@@ -481,8 +481,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     struct VMFunction *functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
-    printf("Context start: %p\n", cs->context);
-
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
 
     // Read the function name.
@@ -496,8 +494,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
             "Expected identifier for function name.");
         return false;
     }
-
-    printf("WTF context1\n");
 
     // At the parent scope, create a variable with the name of the
     // function and give it an immediate value for the function.
@@ -634,10 +630,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
         cs->instructionWriteIndex - skipOffset - 2;
 
     // Restore the "real" context back to the parent.
+    dbgPush(); // FIXME: To counter the push inside popContext.
     popContext(cs);
     cs->context = savedContext;
-
-    printf("Context end:   %p\n", cs->context);
 
     return ret;
 }

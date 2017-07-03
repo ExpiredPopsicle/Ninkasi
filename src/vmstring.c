@@ -112,7 +112,7 @@ uint32_t vmStringTableFindOrAddString(
             free(hole);
 
             // TODO: Remove.
-            printf("Filled a string table hole at index %d\n", index);
+            dbgWriteLine("Filled a string table hole at index %d", index);
 
         } else {
 
@@ -146,7 +146,7 @@ uint32_t vmStringTableFindOrAddString(
             index = oldCapacity;
 
             // TODO: Remove.
-            printf("Expanded string table to make room for index %d\n", index);
+            dbgWriteLine("Expanded string table to make room for index %d", index);
         }
 
         newString->stringTableIndex = index;
@@ -199,7 +199,7 @@ void vmStringTableCleanOldStrings(
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
                 // TODO: Remove this.
-                printf("Purging unused string: %s\n", str->str);
+                dbgWriteLine("Purging unused string: %s", str->str);
 
                 *lastPtr = str->nextInHashBucket;
                 table->stringTable[str->stringTableIndex] = NULL;

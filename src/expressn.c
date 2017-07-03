@@ -41,42 +41,52 @@ void deleteExpressionNode(struct ExpressionAstNode *node)
 void dumpExpressionAstNode(struct ExpressionAstNode *node)
 {
     if(!node) {
-        printf("<NULL>");
+        dbgWriteLine("<NULL>");
         return;
     }
 
     if(isPrefixOperator(node->opOrValue) && !node->children[1]) {
 
-        printf(node->opOrValue->str);
-        printf("(");
+        dbgWriteLine(node->opOrValue->str);
+        dbgWriteLine("(");
+        dbgPush();
         dumpExpressionAstNode(node->children[0]);
-        printf(")");
+        dbgPop();
+        dbgWriteLine(")");
 
     } else if(node->opOrValue->type == TOKENTYPE_BRACKET_OPEN) {
 
-        printf("(");
+        dbgWriteLine("(");
         dumpExpressionAstNode(node->children[0]);
-        printf(")[");
+        dbgWriteLine(")[");
         dumpExpressionAstNode(node->children[1]);
-        printf("]");
+        dbgWriteLine("]");
 
     } else {
 
-        printf("(");
+        dbgWriteLine("(");
+
         if(node->children[0]) {
-            printf("(");
+            dbgWriteLine("(");
+            dbgPush();
             dumpExpressionAstNode(node->children[0]);
-            printf(")");
+            dbgPop();
+            dbgWriteLine(")");
         }
 
-        printf("%s", node->opOrValue->str);
+        dbgPush();
+        dbgWriteLine("%s", node->opOrValue->str);
+        dbgPop();
 
         if(node->children[1]) {
-            printf("(");
+            dbgWriteLine("(");
+            dbgPush();
             dumpExpressionAstNode(node->children[1]);
-            printf(")");
+            dbgPop();
+            dbgWriteLine(")");
         }
-        printf(")");
+
+        dbgWriteLine(")");
 
     }
 }
@@ -381,6 +391,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                         if(!thisParamNode->children[0]) {
                             PARSE_ERROR("Function parameter subexpression parse failure.");
                             CLEANUP_INLOOP();
+                            dbgPop();
                             return NULL;
                         }
 
@@ -393,6 +404,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                             // Anything else is bad.
                             PARSE_ERROR("Expected ',' or ')' in function parameter parsing.");
                             CLEANUP_INLOOP();
+                            dbgPop();
                             return NULL;
                         }
 
@@ -503,23 +515,21 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         assert(0);
     }
 
-    printf("remaining values...\n");
+    dbgWriteLine("remaining values...");
     {
         struct ExpressionAstNode *n = valueStack;
         while(n) {
             dumpExpressionAstNode(n);
             n = n->stackNext;
-            printf("\n");
         }
     }
 
-    printf("remaining ops...\n");
+    dbgWriteLine("remaining ops...\n");
     {
         struct ExpressionAstNode *n = opStack;
         while(n) {
             dumpExpressionAstNode(n);
             n = n->stackNext;
-            printf("\n");
         }
     }
 
@@ -545,7 +555,7 @@ bool emitFetchVariable(
         // position).
         emitPushLiteralInt(cs, var->stackPos);
 
-        printf("Looked up %s: Global at %d\n", name, var->stackPos);
+        dbgWriteLine("Looked up %s: Global at %d", name, var->stackPos);
 
     } else {
 
@@ -554,13 +564,13 @@ bool emitFetchVariable(
         emitPushLiteralInt(cs,
             var->stackPos - cs->context->stackFrameOffset);
 
-        printf("Looked up %s: Local at %d\n", name, var->stackPos);
+        dbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
 
     addInstructionSimple(cs, OP_STACKPEEK);
     cs->context->stackFrameOffset++;
 
-    printf("GET VAR: %s\n", name);
+    dbgWriteLine("GET VAR: %s", name);
 
     return true;
 }
@@ -594,7 +604,7 @@ bool emitSetVariable(
 
     addInstructionSimple(cs, OP_STACKPOKE);
 
-    printf("SET VAR: %s\n", name);
+    dbgWriteLine("SET VAR: %s", name);
 
     return true;
 }
@@ -604,18 +614,14 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
 bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode *node)
 {
     if(!node->children[1]) {
-        errorStateAddError(
-            &cs->vm->errorState,
-            node->opOrValue->lineNumber,
-            "No RValue to assign in assignment.");
+        vmCompilerAddError(
+            cs, "No RValue to assign in assignment.");
         return false;
     }
 
     if(!node->children[0]) {
-        errorStateAddError(
-            &cs->vm->errorState,
-            node->opOrValue->lineNumber,
-            "No LValue to assign in assignment.");
+        vmCompilerAddError(
+            cs, "No LValue to assign in assignment.");
         return false;
     }
 
@@ -641,10 +647,8 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
             struct DynString *dynStr =
                 dynStrCreate("Operator or value cannot be used to generate an LValue: ");
             dynStrAppend(dynStr, node->opOrValue->str);
-            errorStateAddError(
-                &cs->vm->errorState,
-                node->opOrValue->lineNumber,
-                dynStr->data);
+            vmCompilerAddError(
+                cs, dynStr->data);
             dynStrDelete(dynStr);
             return false;
         } break;
@@ -682,7 +686,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             emitPushLiteralInt(cs, atoi(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
-            printf("PUSH INTEGER: %s\n", node->opOrValue->str);
+            dbgWriteLine("PUSH INTEGER: %s", node->opOrValue->str);
 
         } break;
 
@@ -690,7 +694,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             emitPushLiteralFloat(cs, atof(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
-            printf("PUSH FLOAT: %s\n", node->opOrValue->str);
+            dbgWriteLine("PUSH FLOAT: %s", node->opOrValue->str);
 
         } break;
 
@@ -698,7 +702,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             emitPushLiteralString(cs, node->opOrValue->str);
             cs->context->stackFrameOffset++;
 
-            printf("PUSH STRING: %s\n", node->opOrValue->str);
+            dbgWriteLine("PUSH STRING: %s", node->opOrValue->str);
 
         } break;
 
@@ -706,31 +710,31 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             addInstructionSimple(cs, OP_ADD);
             cs->context->stackFrameOffset--;
 
-            printf("ADD\n");
+            dbgWriteLine("ADD");
 
         } break;
 
         case TOKENTYPE_MINUS:
             if(!node->children[1]) {
                 addInstructionSimple(cs, OP_NEGATE);
-                printf("NEGATE\n");
+                dbgWriteLine("NEGATE");
             } else {
                 addInstructionSimple(cs, OP_SUBTRACT);
                 cs->context->stackFrameOffset--;
-                printf("SUBTRACT\n");
+                dbgWriteLine("SUBTRACT");
             }
             break;
 
         case TOKENTYPE_MULTIPLY:
             addInstructionSimple(cs, OP_MULTIPLY);
             cs->context->stackFrameOffset--;
-            printf("MULTIPLY\n");
+            dbgWriteLine("MULTIPLY");
             break;
 
         case TOKENTYPE_DIVIDE:
             addInstructionSimple(cs, OP_DIVIDE);
             cs->context->stackFrameOffset--;
-            printf("DIVIDE\n");
+            dbgWriteLine("DIVIDE");
             break;
 
         case TOKENTYPE_IDENTIFIER:
@@ -752,7 +756,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
                     argumentCount++;
                 }
 
-                printf("Emitting function call with arguments: %u\n", argumentCount);
+                dbgWriteLine("Emitting function call with arguments: %u", argumentCount);
                 emitPushLiteralInt(cs, argumentCount);
                 addInstructionSimple(cs, OP_CALL);
 
