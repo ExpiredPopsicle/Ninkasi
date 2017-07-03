@@ -70,6 +70,7 @@ bool compileReturnStatement(struct CompilerState *cs);
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);
 void emitPushLiteralString(struct CompilerState *cs, const char *str);
+void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId);
 
 struct Token *vmCompilerNextToken(struct CompilerState *cs);
 enum TokenType vmCompilerTokenType(struct CompilerState *cs);

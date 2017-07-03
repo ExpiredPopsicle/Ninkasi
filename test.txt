@@ -80,3 +80,19 @@ function blahtest(a, b, c)
     1;
 }
 
+
+var thing;
+thing = 2;
+cfunc();
+
+
+
+{
+    var foo;
+    var bar;
+    {
+        var dicks;
+        var butts;
+    }
+}
+// Expecting PUSHLITERAL_INT 4, POPN

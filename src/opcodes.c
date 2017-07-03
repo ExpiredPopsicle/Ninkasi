@@ -262,6 +262,12 @@ void opcode_pop(struct VM *vm, struct Instruction *instruction)
     vmStackPop(vm);
 }
 
+void opcode_popN(struct VM *vm, struct Instruction *instruction)
+{
+    struct Value *v = vmStackPop(vm);
+    vmStackPopN(vm, valueToInt(vm, v));
+}
+
 void opcode_dump(struct VM *vm, struct Instruction *instruction)
 {
     struct Value *v = vmStackPop(vm);
@@ -407,21 +413,42 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
             &vm->errorState,
             -1,
             "Incorrect argument count for function call.");
+
+        printf("funcOb->argumentCount: %u\n", funcOb->argumentCount);
+        printf("argumentCount:         %u\n", argumentCount);
+        assert(0);
+
         return;
     }
 
-    // Push the current instruction pointer (_returnPointer).
-    vmStackPushInt(vm, vm->instructionPointer);
 
-    // Set the instruction pointer to the saved function object's
-    // instruction pointer. Maybe minus one.
-    vm->instructionPointer = funcOb->firstInstructionIndex - 1;
+    // At this point the behavior changes depending on if it's a C
+    // function or script function.
+    if(funcOb->isCFunction) {
 
-    // Expected stack state at end...
-    //   _returnPointer
-    //   _argumentCount
-    //   <_argumentCount number of arguments>
-    //   function id
+        // In this case we just want to call the C function, pop all
+        // of our data off the stack, push the return value, and then
+        // return from this function.
+
+        vmStackPopN(vm, argumentCount + 2);
+
+        vmStackPushInt(vm, 55555);
+
+    } else {
+
+        // Push the current instruction pointer (_returnPointer).
+        vmStackPushInt(vm, vm->instructionPointer);
+
+        // Set the instruction pointer to the saved function object's
+        // instruction pointer. Maybe minus one.
+        vm->instructionPointer = funcOb->firstInstructionIndex - 1;
+
+        // Expected stack state at end...
+        //   _returnPointer
+        //   _argumentCount
+        //   <_argumentCount number of arguments>
+        //   function id
+    }
 }
 
 void opcode_return(struct VM *vm, struct Instruction *instruction)

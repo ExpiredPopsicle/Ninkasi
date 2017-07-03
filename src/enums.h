@@ -30,6 +30,7 @@ enum Opcode
     OP_PUSHLITERAL_FUNCTIONID,
 
     OP_POP,
+    OP_POPN,
 
     OP_DUMP,
 

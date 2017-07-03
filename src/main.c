@@ -51,6 +51,11 @@ char **splitLines(const char *str, uint32_t *lineCount)
     return lines;
 }
 
+void testVMFunc(struct VMFunctionCallbackData *data)
+{
+    printf("testVMFunc hit!\n");
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -130,6 +135,9 @@ int main(int argc, char *argv[])
 
                 // Global context.
                 pushContext(&cs);
+
+
+                vmCreateCFunction(&cs, "cfunc", testVMFunc);
 
                 {
                     struct CompilerStateContext *ctx = cs.context;

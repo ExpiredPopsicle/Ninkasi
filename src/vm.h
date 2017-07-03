@@ -5,6 +5,7 @@
 #include "vmstack.h"
 #include "opcodes.h"
 #include "vmstring.h"
+#include "function.h"
 
 struct VMFunction;
 
@@ -42,6 +43,13 @@ void vmRescanProgramStrings(struct VM *vm);
 
 const char *vmGetOpcodeName(enum Opcode op);
 
+
+
+void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCallback func);
+
+/// Compiler internal function creation. Don't use this outside. Not
+/// for that.
 struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId);
+
 
 #endif

@@ -24,6 +24,7 @@ static void vmInitOpcodeTable(void)
     opcodeTable[OP_PUSHLITERAL_FUNCTIONID] = opcode_pushLiteral_functionId;
     opcodeTable[OP_NOP]                = opcode_nop;
     opcodeTable[OP_POP]                = opcode_pop;
+    opcodeTable[OP_POPN]               = opcode_popN;
 
     opcodeTable[OP_DUMP]               = opcode_dump;
 
@@ -46,6 +47,7 @@ static void vmInitOpcodeTable(void)
     NAME_OPCODE(OP_PUSHLITERAL_FUNCTIONID);
     NAME_OPCODE(OP_NOP);
     NAME_OPCODE(OP_POP);
+    NAME_OPCODE(OP_POPN);
 
     NAME_OPCODE(OP_DUMP);
 
@@ -257,5 +259,23 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
         vm->functionTable,
         sizeof(struct VMFunction) * vm->functionCount);
 
+    memset(
+        &vm->functionTable[vm->functionCount - 1], 0,
+        sizeof(struct VMFunction));
+
     return &vm->functionTable[vm->functionCount - 1];
 }
+
+void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCallback func)
+{
+    uint32_t functionId = 0;
+    struct VMFunction *vmfunc =
+        vmCreateFunction(cs->vm, &functionId);
+    emitPushLiteralFunctionId(cs, functionId);
+    cs->context->stackFrameOffset++;
+    addVariableWithoutStackAllocation(cs, name);
+
+    vmfunc->isCFunction = true;
+    vmfunc->CFunctionCallback = func;
+}
+

@@ -78,15 +78,16 @@ void popContext(struct CompilerState *cs)
         struct CompilerStateContextVariable *var =
             oldContext->variables;
 
+        uint32_t popCount = 0;
+
         while(var) {
             struct CompilerStateContextVariable *next =
                 var->next;
 
-            // Add instructions to pop variables off the stack that
-            // are no longer in scope.
+            // Count up the amount of stuff in this stack frame to get
+            // rid of.
             if(!var->doNotPopWhenOutOfScope) {
-                addInstructionSimple(cs, OP_POP);
-                oldContext->stackFrameOffset--;
+                popCount++;
             }
 
             // Free it.
@@ -96,6 +97,35 @@ void popContext(struct CompilerState *cs)
 
             dbgWriteLine("Variable removed.");
         }
+
+        {
+            // Add instructions to pop variables off the stack that
+            // are no longer in scope. First attempt to add onto
+            // existing instructions that do this for the context.
+
+            uint32_t maybePushIntAddr =
+                (cs->instructionWriteIndex - 3) & cs->vm->instructionAddressMask;
+            uint32_t maybeIntAddr =
+                (cs->instructionWriteIndex - 2) & cs->vm->instructionAddressMask;
+            uint32_t maybePopNAddr =
+                (cs->instructionWriteIndex - 1) & cs->vm->instructionAddressMask;
+
+            if(cs->vm->instructions[maybePushIntAddr].opcode == OP_PUSHLITERAL_INT &&
+                cs->vm->instructions[maybePopNAddr].opcode == OP_POPN)
+            {
+                // Looks like we just came out of a context, so we can
+                // add onto that.
+                cs->vm->instructions[maybeIntAddr].opData_int += popCount;
+
+            } else {
+
+                // Last thing was not exiting a context, so we need a
+                // new set of instructions here.
+                emitPushLiteralInt(cs, popCount);
+                addInstructionSimple(cs, OP_POPN);
+            }
+        }
+
     }
 
     // Free the context itself.

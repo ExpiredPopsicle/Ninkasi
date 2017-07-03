@@ -36,6 +36,7 @@ void opcode_pushLiteral_string(struct VM *vm, struct Instruction *instruction);
 void opcode_pushLiteral_functionId(struct VM *vm, struct Instruction *instruction);
 
 void opcode_pop(struct VM *vm, struct Instruction *instruction);
+void opcode_popN(struct VM *vm, struct Instruction *instruction);
 
 void opcode_nop(struct VM *vm, struct Instruction *instruction);
 
