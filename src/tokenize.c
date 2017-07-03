@@ -343,6 +343,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 addToken(TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "return")) {
                 addToken(TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "if")) {
+                addToken(TOKENTYPE_IF, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "else")) {
+                addToken(TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
             } else {
                 addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }

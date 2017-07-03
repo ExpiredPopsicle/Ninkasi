@@ -435,11 +435,13 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             assert(firstPostfixOp->children[0] == NULL);
             firstPostfixOp->children[0] = valueNode;
             valueNode = lastPostfixOp;
+            lastPostfixOp = NULL;
         }
         if(lastPrefixOp) {
             assert(lastPrefixOp->children[0] == NULL);
             lastPrefixOp->children[0] = valueNode;
             valueNode = firstPrefixOp;
+            firstPrefixOp = NULL;
         }
 
         // Push this value.

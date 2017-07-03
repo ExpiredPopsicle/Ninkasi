@@ -42,6 +42,8 @@ static void vmInitOpcodeTable(void)
 
     SETUP_OP(OP_END,                    opcode_end);
 
+    SETUP_OP(OP_JUMP_IF_ZERO,           opcode_jz);
+
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
     // instead of branching to make sure they're valid.

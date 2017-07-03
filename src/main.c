@@ -73,6 +73,16 @@ void testVMFunc(struct VMFunctionCallbackData *data)
 }
 
 
+void vmFuncPrint(struct VMFunctionCallbackData *data)
+{
+    uint32_t i;
+
+    for(i = 0; i < data->argumentCount; i++) {
+        printf("\033[1m%s\033[0m", valueToString(data->vm, &data->arguments[i]));
+    }
+}
+
+
 int main(int argc, char *argv[])
 {
     struct VM vm;
@@ -87,6 +97,7 @@ int main(int argc, char *argv[])
     {
         struct CompilerState *cs = vmCompilerCreate(&vm);
         vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
         vmCompilerCompileScriptFile(cs, "test.txt");
         vmCompilerFinalize(cs);
 

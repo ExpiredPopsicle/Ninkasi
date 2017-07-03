@@ -11,7 +11,9 @@ int dbgWriteLine(const char *fmt, ...)
         for(i = 0; i < dbgIndentLevel; i++) {
             printf("  ");
         }
+        printf("\033[2m");
         ret = vprintf(fmt, args);
+        printf("\033[0m");
         printf("\n");
     }
     va_end(args);

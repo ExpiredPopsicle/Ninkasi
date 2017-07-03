@@ -60,4 +60,6 @@ void opcode_return(struct VM *vm);
 
 void opcode_end(struct VM *vm);
 
+void opcode_jz(struct VM *vm);
+
 #endif

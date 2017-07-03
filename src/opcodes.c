@@ -550,4 +550,20 @@ void opcode_return(struct VM *vm)
 
 void opcode_end(struct VM *vm)
 {
+    // This doesn't actually do anything. The iteration loops know to
+    // check for it and stop, though.
+}
+
+void opcode_jz(struct VM *vm)
+{
+    struct Value *relativeOffsetValue = vmStackPop(vm);
+    struct Value *testValue = vmStackPop(vm);
+
+    printf("Testing branch value %d. Address now: %u\n", valueToInt(vm, testValue), vm->instructionPointer);
+    if(valueToInt(vm, testValue) == 0) {
+        vm->instructionPointer += valueToInt(vm, relativeOffsetValue);
+        printf("Branch taken. Address now: %u\n", vm->instructionPointer);
+    } else {
+        printf("Branch NOT taken. Address now: %u\n", vm->instructionPointer);
+    }
 }

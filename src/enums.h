@@ -44,6 +44,8 @@ enum Opcode
 
     OP_END,
 
+    OP_JUMP_IF_ZERO,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
@@ -69,6 +71,8 @@ enum TokenType
     TOKENTYPE_IDENTIFIER,
     TOKENTYPE_SEMICOLON,
     TOKENTYPE_ASSIGNMENT,
+    TOKENTYPE_IF,
+    TOKENTYPE_ELSE,
 
     TOKENTYPE_COMMA,
 

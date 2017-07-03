@@ -104,6 +104,7 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext);
 bool compileVariableDeclaration(struct CompilerState *cs);
 bool compileFunctionDefinition(struct CompilerState *cs);
 bool compileReturnStatement(struct CompilerState *cs);
+bool compileIfStatement(struct CompilerState *cs);
 
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);

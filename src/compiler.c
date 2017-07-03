@@ -120,9 +120,12 @@ void popContext(struct CompilerState *cs)
             } else {
 
                 // Last thing was not exiting a context, so we need a
-                // new set of instructions here.
-                emitPushLiteralInt(cs, popCount);
-                addInstructionSimple(cs, OP_POPN);
+                // new set of instructions here. (Assuming there's
+                // anything to pop.)
+                if(popCount) {
+                    emitPushLiteralInt(cs, popCount);
+                    addInstructionSimple(cs, OP_POPN);
+                }
             }
         }
 
@@ -282,6 +285,10 @@ bool compileStatement(struct CompilerState *cs)
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
             return compileBlock(cs, false);
+
+        case TOKENTYPE_IF:
+            // Curly braces mean we need to parse a block.
+            return compileIfStatement(cs);
 
         default:
             // Fall back to just parsing an expression.
@@ -849,3 +856,63 @@ bool vmCompilerCompileScriptFile(
 
     return success;
 }
+
+bool compileIfStatement(struct CompilerState *cs)
+{
+    uint32_t skipAddressWritePtr = 0;
+
+    // Skip "if("
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IF);
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+
+    // Generate the expression code.
+    compileExpression(cs);
+
+    // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
+    // fill it in after we know how much we're going to have to skip.
+    emitPushLiteralInt(cs, 0);
+    skipAddressWritePtr = cs->instructionWriteIndex - 1;
+    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+
+    // Skip ")"
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+
+    // Generate code to execute if test passes.
+    compileStatement(cs);
+
+    // Fixup skip offset.
+    cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
+        (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+
+    if(vmCompilerTokenType(cs) == TOKENTYPE_ELSE) {
+
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ELSE);
+
+        // Increase our skip amount by enough to skip past the
+        // OP_PUSHLITERAL_INT and OP_JUMP_RELATIVE we're going to
+        // insert to skip past the "else" clause.
+        cs->vm->instructions[
+            skipAddressWritePtr &
+            cs->vm->instructionAddressMask].opData_int
+            += 3;
+
+        // Emit instructions to skip past the contents of the "else"
+        // block. Keep the index of the relative offset here so we can
+        // go back and modify it after the inner code is complete.
+        emitPushLiteralInt(cs, 0);
+        skipAddressWritePtr = cs->instructionWriteIndex - 1;
+        addInstructionSimple(cs, OP_JUMP_RELATIVE);
+
+        // Generate code to execute if test fails.
+        compileStatement(cs);
+
+        // Fixup "else" skip offset.
+        cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
+            (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+
+    }
+
+    return true;
+}
+
+
