@@ -59,17 +59,6 @@ void vmRescanProgramStrings(struct VM *vm);
 
 const char *vmGetOpcodeName(enum Opcode op);
 
-
-
-/// Create a C function and assign it a variable name at the current
-/// scope. Use this to make a globally defined C function at
-/// compile-time. Do this before script compilation, so the script
-/// itself can access it.
-void vmCreateCFunctionVariable(
-    struct CompilerState *cs,
-    const char *name,
-    VMFunctionCallback func);
-
 /// Create a C function and write it to some Value.
 void vmCreateCFunction(
     struct VM *vm,
@@ -86,13 +75,6 @@ void vmCallFunction(
     uint32_t argumentCount,
     struct Value *arguments,
     struct Value *returnValue);
-
-// void vmCallFunctionByName(
-//     struct CompilerState *cs,
-//     const char *name,
-//     uint32_t argumentCount,
-//     struct Value *arguments,
-//     struct Value *returnValue);
 
 // ----------------------------------------------------------------------
 

@@ -121,16 +121,16 @@ int main(int argc, char *argv[])
 
             // bool r = tokenize(&vm, "this - is + a / test * of + identifiers123", &tokenList);
 
-            {
-                struct Token *t = tokenList.first;
-                while(t) {
-                    printf("token(%d): %s\n", t->type, t->str);
-                    t = t->next;
-                }
-            }
+            // {
+            //     struct Token *t = tokenList.first;
+            //     while(t) {
+            //         printf("token(%d): %s\n", t->type, t->str);
+            //         t = t->next;
+            //     }
+            // }
 
             if(r) {
-                struct CompilerState cs;
+                struct CompilerState *cs = vmCompilerCreate(&vm);
                 struct Token *tokenPtr = tokenList.first;
 
                 // struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
@@ -143,47 +143,53 @@ int main(int argc, char *argv[])
 
                 tokenPtr = tokenList.first;
 
-                cs.instructionWriteIndex = 0;
-                cs.vm = &vm;
-                cs.context = NULL;
-                cs.currentToken = tokenList.first;
-                cs.currentLineNumber =
-                    cs.currentToken ? cs.currentToken->lineNumber : 0;
+                // cs.instructionWriteIndex = 0;
+                // cs.vm = &vm;
+                // cs.context = NULL;
+                cs->currentToken = tokenList.first;
+                cs->currentLineNumber =
+                    cs->currentToken ? cs->currentToken->lineNumber : 0;
 
-                // Global context.
-                pushContext(&cs);
+                // // Global context.
+                // pushContext(&cs);
 
 
-                vmCreateCFunctionVariable(&cs, "cfunc", testVMFunc);
+                vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
 
-                {
-                    struct CompilerStateContext *ctx = cs.context;
-                    printf("Context at VERY start: %p\n", cs.context);
+                // {
+                //     struct CompilerStateContext *ctx = cs->context;
+                //     printf("Context at VERY start: %p\n", cs->context);
 
-                    // addVariable(&cs, "cheese");
-                    // addVariable(&cs, "butts");
+                //     // addVariable(&cs, "cheese");
+                //     // addVariable(&cs, "butts");
 
-                    // pushContext(&cs);
+                //     // pushContext(&cs);
 
-                    // addVariable(&cs, "foo");
-                    // addVariable(&cs, "bar");
+                //     // addVariable(&cs, "foo");
+                //     // addVariable(&cs, "bar");
 
-                    // compileStatement(&cs, &tokenPtr);
-                    compileBlock(&cs, true);
+                //     // compileStatement(&cs, &tokenPtr);
+                //     compileBlock(cs, true);
 
-                    // while(tokenPtr) {
-                    //     printf("%s\n", tokenPtr->str);
-                    //     if(!compileStatement(&cs, &tokenPtr)) {
-                    //         break;
-                    //     }
-                    // }
+                //     // while(tokenPtr) {
+                //     //     printf("%s\n", tokenPtr->str);
+                //     //     if(!compileStatement(&cs, &tokenPtr)) {
+                //     //         break;
+                //     //     }
+                //     // }
 
-                    printf("Context at VERY end:   %p\n", cs.context);
+                //     printf("Context at VERY end:   %p\n", cs->context);
 
-                    assert(ctx == cs.context);
-                }
+                //     assert(ctx == cs->context);
+                // }
+
+                // // popContext(&cs);
                 // popContext(&cs);
-                popContext(&cs);
+
+                // vmCompilerCompileScript(cs, script);
+                vmCompilerCompileScriptFile(cs, "test.txt");
+
+                vmCompilerFinalize(cs);
 
                 // {
                 //     uint32_t i;

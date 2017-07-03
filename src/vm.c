@@ -280,7 +280,8 @@ void vmCreateCFunction(
     VMFunctionCallback func,
     struct Value *output)
 {
-    // TODO: Lookup function first.
+    // TODO: Lookup function first, to make sure we aren't making
+    // duplicate functions.
 
     // TODO: Test this stupid thing.
 
@@ -295,71 +296,6 @@ void vmCreateCFunction(
     output->type = VALUETYPE_FUNCTIONID;
     output->functionId = functionId;
 }
-
-void vmCreateCFunctionVariable(
-    struct CompilerState *cs,
-    const char *name,
-    VMFunctionCallback func)
-{
-    // TODO: Lookup function first.
-
-    uint32_t functionId = 0;
-    struct VMFunction *vmfunc =
-        vmCreateFunction(cs->vm, &functionId);
-    emitPushLiteralFunctionId(cs, functionId);
-    cs->context->stackFrameOffset++;
-    addVariableWithoutStackAllocation(cs, name);
-
-    vmfunc->argumentCount = ~(uint32_t)0;
-    vmfunc->isCFunction = true;
-    vmfunc->CFunctionCallback = func;
-}
-
-// void vmCallFunctionByName(
-//     struct CompilerState *cs,
-//     const char *name,
-//     uint32_t argumentCount,
-//     struct Value *arguments,
-//     struct Value *returnValue)
-// {
-//     struct CompilerStateContextVariable *contextVar =
-//         lookupVariable(cs, name);
-
-//     if(!contextVar) {
-//         struct DynString *str = dynStrCreate(
-//             "Failed to lookup function: ");
-//         dynStrAppend(str, name);
-//         errorStateAddError(
-//             &cs->vm->errorState,
-//             -1,
-//             str->data);
-//         dynStrDelete(str);
-//         return;
-//     }
-
-//     if(!contextVar->isGlobal) {
-//         errorStateAddError(
-//             &cs->vm->errorState,
-//             -1,
-//             "Can only call functions from the global scope with vmCallFunctionByName.");
-//         return;
-//     }
-
-//     {
-//         struct Value *funcVal =
-//             &cs->vm->stack.values[
-//                 cs->vm->stack.indexMask &
-//                 contextVar->stackPos];
-
-//         if(funcVal->type != VALUETYPE_FUNCTIONID) {
-//             errorStateAddError(
-//                 &cs->vm->errorState,
-//                 -1,
-//                 "Tried to call a non-function with vmCallFunctionByName.");
-//             return;
-//         }
-//     }
-// }
 
 void vmCallFunction(
     struct VM *vm,
@@ -389,6 +325,10 @@ void vmCallFunction(
         vm->instructionPointer = (~(uint32_t)0 - 1);
 
         opcode_call(vm);
+        if(vm->errorState.firstError) {
+            return;
+        }
+
         vm->instructionPointer++;
 
         while(vm->instructionPointer != ~(uint32_t)0 &&

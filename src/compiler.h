@@ -1,7 +1,46 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
+#include "function.h"
+
+// ----------------------------------------------------------------------
+// Public interface
+
+struct CompilerState;
 struct VM;
+
+/// Create a compiler.
+struct CompilerState *vmCompilerCreate(
+    struct VM *vm);
+
+/// Create a C function and assign it a variable name at the current
+/// scope. Use this to make a globally defined C function at
+/// compile-time. Do this before script compilation, so the script
+/// itself can access it.
+void vmCompilerCreateCFunctionVariable(
+    struct CompilerState *cs,
+    const char *name,
+    VMFunctionCallback func);
+
+/// This can be done multiple times. It'll just be the equivalent of
+/// appending each script onto the end, except for the line number
+/// counts.
+bool vmCompilerCompileScript(
+    struct CompilerState *cs,
+    const char *script);
+
+bool vmCompilerCompileScriptFile(
+    struct CompilerState *cs,
+    const char *scriptFilename);
+
+/// Destroy a compiler. This will also finish off any remaining tasks
+/// like setting up the global variable list in the VM.
+void vmCompilerFinalize(
+    struct CompilerState *cs);
+
+// ----------------------------------------------------------------------
+// Internals
+
 struct Instruction;
 struct Token;
 

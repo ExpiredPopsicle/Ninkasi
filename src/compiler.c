@@ -684,3 +684,121 @@ void vmCompilerAddError(struct CompilerState *cs, const char *error)
         vmCompilerGetLinenumber(cs),
         error);
 }
+
+void vmCompilerCreateCFunctionVariable(
+    struct CompilerState *cs,
+    const char *name,
+    VMFunctionCallback func)
+{
+    // TODO: Lookup function first, to make sure we aren't making
+    // duplicate functions.
+
+    uint32_t functionId = 0;
+    struct VMFunction *vmfunc =
+        vmCreateFunction(cs->vm, &functionId);
+    emitPushLiteralFunctionId(cs, functionId);
+    cs->context->stackFrameOffset++;
+    addVariableWithoutStackAllocation(cs, name);
+
+    vmfunc->argumentCount = ~(uint32_t)0;
+    vmfunc->isCFunction = true;
+    vmfunc->CFunctionCallback = func;
+}
+
+struct CompilerState *vmCompilerCreate(
+    struct VM *vm)
+{
+    struct CompilerState *cs;
+
+    cs = malloc(sizeof(struct CompilerState));
+    memset(cs, 0, sizeof(*cs));
+
+    cs->instructionWriteIndex = 0;
+    cs->vm = vm;
+    cs->context = NULL;
+
+    // cs->currentToken = tokenList.first;
+    // cs->currentLineNumber =
+    //     cs->currentToken ? cs->currentToken->lineNumber : 0;
+
+    pushContext(cs);
+
+    return cs;
+}
+
+void vmCompilerFinalize(
+    struct CompilerState *cs)
+{
+    while(cs->context) {
+        popContext(cs);
+    }
+    free(cs);
+}
+
+bool vmCompilerCompileScript(
+    struct CompilerState *cs,
+    const char *script)
+{
+    struct TokenList tokenList;
+    bool success;
+
+    // Tokenize.
+
+    memset(&tokenList, 0, sizeof(tokenList));
+    tokenList.first = NULL;
+    tokenList.last = NULL;
+
+    success = tokenize(cs->vm, script, &tokenList);
+    if(!success) {
+        destroyTokenList(&tokenList);
+        return false;
+    }
+
+    // Compile.
+
+    cs->currentToken = tokenList.first;
+    cs->currentLineNumber =
+        cs->currentToken ? cs->currentToken->lineNumber : 0;
+
+    success = compileBlock(cs, true);
+
+    cs->currentToken = NULL;
+    cs->currentLineNumber = 0;
+    destroyTokenList(&tokenList);
+    return success;
+}
+
+bool vmCompilerCompileScriptFile(
+    struct CompilerState *cs,
+    const char *scriptFilename)
+{
+    FILE *in = fopen(scriptFilename, "rb");
+    uint32_t len;
+    char *buf;
+    bool success;
+
+    if(!in) {
+        struct DynString *errStr =
+            dynStrCreate("Cannot open script file: ");
+        dynStrAppend(errStr, scriptFilename);
+        vmCompilerAddError(cs, errStr->data);
+        dynStrDelete(errStr);
+        return false;
+    }
+
+    fseek(in, 0, SEEK_END);
+    len = ftell(in);
+    fseek(in, 0, SEEK_SET);
+
+    buf = malloc(len + 1);
+    fread(buf, len, 1, in);
+    buf[len] = 0;
+
+    fclose(in);
+
+    success = vmCompilerCompileScript(cs, buf);
+
+    free(buf);
+
+    return success;
+}
