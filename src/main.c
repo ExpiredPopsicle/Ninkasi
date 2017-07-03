@@ -84,144 +84,19 @@ int main(int argc, char *argv[])
 
     vmInit(&vm);
 
-    printf("Tokenize test...\n");
     {
-        struct TokenList tokenList;
-        tokenList.first = NULL;
-        tokenList.last = NULL;
-        {
-            // bool r = tokenize(&vm, "(((123\n +\n 456)[1 +\n 2\n]\n[\n3\n])) * 789 - -100 / ------300", &tokenList);
-            // bool r = tokenize("123 + 456 * 789 - -100 / ------300", &tokenList);
-            // bool r = tokenize("123 + 456", &tokenList);
-            // bool r = tokenize("123 + 456 * 789", &tokenList);
-            // bool r = tokenize("(123 + 456 * 789) / 0", &tokenList);
-            // assert(r);
+        struct CompilerState *cs = vmCompilerCreate(&vm);
+        vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        vmCompilerCompileScriptFile(cs, "test.txt");
+        vmCompilerFinalize(cs);
 
-            bool r = tokenize(&vm,
-                // "{ var butts = 3; foo = 123 + 456 * (789 + foo * bar) - -100 / 3;\n"
-                // "bar = foo + 1 + 2 + 3; }",
-                // "{"
-                // "{ var butts = 3; var dicks = 4; butts = dicks; dicks = 3; }"
-                // // "((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((("
-                // // "999)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))));",
-                // "{ \"foo\" + \"bar\"; }"
-                // "}",
-                script,
-                &tokenList);
-
-            // bool r = tokenize(&vm,
-            //     "foo = 123;\n",
-            //     &tokenList);
-
-            // bool r = tokenize(&vm, "\"foo\" + 1 + \"\\\"bar\\\"\"", &tokenList);
-            // bool r = tokenize(&vm, "2.0 * 2.2 -100 ", &tokenList);
-            // bool r = tokenize(&vm, "1  + 2", &tokenList);
-
-            // bool r = tokenize(&vm, "\"foo\" \"bar\" \"blah\"", &tokenList);
-
-            // bool r = tokenize(&vm, "this - is + a / test * of + identifiers123", &tokenList);
-
-            // {
-            //     struct Token *t = tokenList.first;
-            //     while(t) {
-            //         printf("token(%d): %s\n", t->type, t->str);
-            //         t = t->next;
-            //     }
-            // }
-
-            if(r) {
-                struct CompilerState *cs = vmCompilerCreate(&vm);
-                struct Token *tokenPtr = tokenList.first;
-
-                // struct ExpressionAstNode *node = parseExpression(&vm, &tokenPtr);
-                // if(node) {
-                //     optimizeConstants(&node);
-                //     dumpExpressionAstNode(node);
-                //     printf("\n");
-                //     deleteExpressionNode(node);
-                // }
-
-                tokenPtr = tokenList.first;
-
-                // cs.instructionWriteIndex = 0;
-                // cs.vm = &vm;
-                // cs.context = NULL;
-                cs->currentToken = tokenList.first;
-                cs->currentLineNumber =
-                    cs->currentToken ? cs->currentToken->lineNumber : 0;
-
-                // // Global context.
-                // pushContext(&cs);
-
-
-                vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-
-                // {
-                //     struct CompilerStateContext *ctx = cs->context;
-                //     printf("Context at VERY start: %p\n", cs->context);
-
-                //     // addVariable(&cs, "cheese");
-                //     // addVariable(&cs, "butts");
-
-                //     // pushContext(&cs);
-
-                //     // addVariable(&cs, "foo");
-                //     // addVariable(&cs, "bar");
-
-                //     // compileStatement(&cs, &tokenPtr);
-                //     compileBlock(cs, true);
-
-                //     // while(tokenPtr) {
-                //     //     printf("%s\n", tokenPtr->str);
-                //     //     if(!compileStatement(&cs, &tokenPtr)) {
-                //     //         break;
-                //     //     }
-                //     // }
-
-                //     printf("Context at VERY end:   %p\n", cs->context);
-
-                //     assert(ctx == cs->context);
-                // }
-
-                // // popContext(&cs);
-                // popContext(&cs);
-
-                // vmCompilerCompileScript(cs, script);
-                vmCompilerCompileScriptFile(cs, "test.txt");
-
-                vmCompilerFinalize(cs);
-
-                // {
-                //     uint32_t i;
-                //     for(i = 0; i < 5; i++) {
-                //         printf("op: %d\n", vm.instructions[i].opcode);
-                //     }
-                // }
-
-                // Dump errors.
-                if(vm.errorState.firstError) {
-                    struct Error *err = vm.errorState.firstError;
-                    while(err) {
-                        printf("error: %s\n", err->errorText);
-                        err = err->next;
-                    }
-                }
-
-                // addInstructionSimple(&cs, OP_NOP);
-                // addInstructionSimple(&cs, OP_DUMP);
-
-            } else {
-                printf("tokenizer failed\n");
-                if(vm.errorState.firstError) {
-                    struct Error *err = vm.errorState.firstError;
-                    while(err) {
-                        printf("error: %s\n", err->errorText);
-                        err = err->next;
-                    }
-                }
+        // Dump errors.
+        if(vm.errorState.firstError) {
+            struct Error *err = vm.errorState.firstError;
+            while(err) {
+                printf("error: %s\n", err->errorText);
+                err = err->next;
             }
-
-            destroyTokenList(&tokenList);
         }
     }
 
@@ -296,7 +171,7 @@ int main(int argc, char *argv[])
         printf("  Execution\n");
         printf("----------------------------------------------------------------------\n");
 
-        while(vm.instructions[vm.instructionPointer].opcode != OP_NOP) {
+        while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
 
             // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
             // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);

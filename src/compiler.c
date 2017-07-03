@@ -729,9 +729,14 @@ struct CompilerState *vmCompilerCreate(
 void vmCompilerFinalize(
     struct CompilerState *cs)
 {
+    // Pop the global context.
     while(cs->context) {
         popContext(cs);
     }
+
+    // Add a single end instruction.
+    addInstructionSimple(cs, OP_END);
+
     free(cs);
 }
 

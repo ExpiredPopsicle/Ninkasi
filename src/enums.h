@@ -42,6 +42,8 @@ enum Opcode
     OP_CALL,
     OP_RETURN,
 
+    OP_END,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.

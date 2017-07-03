@@ -7,57 +7,40 @@ typedef void (*VMOpcodeCall)(struct VM *vm);
 static VMOpcodeCall opcodeTable[OPCODE_PADDEDCOUNT];
 static const char *opcodeNameTable[OPCODE_PADDEDCOUNT];
 
-#define NAME_OPCODE(x) do { opcodeNameTable[x] = #x; } while(0)
+#define SETUP_OP(x, y)                          \
+    do {                                        \
+        opcodeNameTable[(x)] = #x;              \
+        opcodeTable[(x)] = (y);                 \
+    } while(0);
 
 static void vmInitOpcodeTable(void)
 {
     assert(OPCODE_PADDEDCOUNT >= OPCODE_REALCOUNT);
 
-    opcodeTable[OP_ADD]                = opcode_add;
-    opcodeTable[OP_SUBTRACT]           = opcode_subtract;
-    opcodeTable[OP_MULTIPLY]           = opcode_multiply;
-    opcodeTable[OP_DIVIDE]             = opcode_divide;
-    opcodeTable[OP_NEGATE]             = opcode_negate;
-    opcodeTable[OP_PUSHLITERAL_INT]    = opcode_pushLiteral_int;
-    opcodeTable[OP_PUSHLITERAL_FLOAT]  = opcode_pushLiteral_float;
-    opcodeTable[OP_PUSHLITERAL_STRING] = opcode_pushLiteral_string;
-    opcodeTable[OP_PUSHLITERAL_FUNCTIONID] = opcode_pushLiteral_functionId;
-    opcodeTable[OP_NOP]                = opcode_nop;
-    opcodeTable[OP_POP]                = opcode_pop;
-    opcodeTable[OP_POPN]               = opcode_popN;
+    SETUP_OP(OP_ADD,                    opcode_add);
+    SETUP_OP(OP_SUBTRACT,               opcode_subtract);
+    SETUP_OP(OP_MULTIPLY,               opcode_multiply);
+    SETUP_OP(OP_DIVIDE,                 opcode_divide);
+    SETUP_OP(OP_NEGATE,                 opcode_negate);
+    SETUP_OP(OP_PUSHLITERAL_INT,        opcode_pushLiteral_int);
+    SETUP_OP(OP_PUSHLITERAL_FLOAT,      opcode_pushLiteral_float);
+    SETUP_OP(OP_PUSHLITERAL_STRING,     opcode_pushLiteral_string);
+    SETUP_OP(OP_PUSHLITERAL_FUNCTIONID, opcode_pushLiteral_functionId);
+    SETUP_OP(OP_NOP,                    opcode_nop);
+    SETUP_OP(OP_POP,                    opcode_pop);
+    SETUP_OP(OP_POPN,                   opcode_popN);
 
-    opcodeTable[OP_DUMP]               = opcode_dump;
+    SETUP_OP(OP_DUMP,                   opcode_dump);
 
-    opcodeTable[OP_STACKPEEK]          = opcode_stackPeek;
-    opcodeTable[OP_STACKPOKE]          = opcode_stackPoke;
+    SETUP_OP(OP_STACKPEEK,              opcode_stackPeek);
+    SETUP_OP(OP_STACKPOKE,              opcode_stackPoke);
 
-    opcodeTable[OP_JUMP_RELATIVE]      = opcode_jumpRelative;
+    SETUP_OP(OP_JUMP_RELATIVE,          opcode_jumpRelative);
 
-    opcodeTable[OP_CALL]               = opcode_call;
-    opcodeTable[OP_RETURN]             = opcode_return;
+    SETUP_OP(OP_CALL,                   opcode_call);
+    SETUP_OP(OP_RETURN,                 opcode_return);
 
-    NAME_OPCODE(OP_ADD);
-    NAME_OPCODE(OP_SUBTRACT);
-    NAME_OPCODE(OP_MULTIPLY);
-    NAME_OPCODE(OP_DIVIDE);
-    NAME_OPCODE(OP_NEGATE);
-    NAME_OPCODE(OP_PUSHLITERAL_INT);
-    NAME_OPCODE(OP_PUSHLITERAL_FLOAT);
-    NAME_OPCODE(OP_PUSHLITERAL_STRING);
-    NAME_OPCODE(OP_PUSHLITERAL_FUNCTIONID);
-    NAME_OPCODE(OP_NOP);
-    NAME_OPCODE(OP_POP);
-    NAME_OPCODE(OP_POPN);
-
-    NAME_OPCODE(OP_DUMP);
-
-    NAME_OPCODE(OP_STACKPEEK);
-    NAME_OPCODE(OP_STACKPOKE);
-
-    NAME_OPCODE(OP_JUMP_RELATIVE);
-
-    NAME_OPCODE(OP_CALL);
-    NAME_OPCODE(OP_RETURN);
+    SETUP_OP(OP_END,                    opcode_end);
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions

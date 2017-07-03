@@ -548,3 +548,6 @@ void opcode_return(struct VM *vm)
     //   _returnValue
 }
 
+void opcode_end(struct VM *vm)
+{
+}

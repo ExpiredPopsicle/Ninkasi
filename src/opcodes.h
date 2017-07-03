@@ -58,4 +58,6 @@ void opcode_jumpRelative(struct VM *vm);
 void opcode_call(struct VM *vm);
 void opcode_return(struct VM *vm);
 
+void opcode_end(struct VM *vm);
+
 #endif
