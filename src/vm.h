@@ -7,6 +7,63 @@
 #include "vmstring.h"
 #include "function.h"
 
+struct VM;
+
+// ----------------------------------------------------------------------
+// Public interface
+
+/// Create and initialize a VM object.
+struct VM *vmCreate(void);
+
+/// Run the compiled program.
+bool vmExecuteProgram(struct VM *vm);
+
+/// De-initialize and free a VM object.
+void vmDelete(struct VM *vm);
+
+/// Get the number of errors that have occurred. Compile errors and
+/// runtime errors are both stored here.
+uint32_t vmGetErrorCount(struct VM *vm);
+
+// TODO: Error string functions.
+
+/// Run a single instruction inside the VM and advance the program
+/// counter.
+void vmIterate(struct VM *vm);
+
+/// Force a garbage collection pass.
+void vmGarbageCollect(struct VM *vm);
+
+/// Call a function inside the VM. This does not do any kind of
+/// iteration control, and will simply keep iterating until the
+/// instruction pointer points to the end of addressable program
+/// space, indicating that the function has returned.
+///
+/// arguments is an input pointing to the first element in an array of
+///   argumentCount elements.
+///
+/// returnValue is an output pointing to the Value to fill with the
+///   return value from the function call.
+void vmCallFunction(
+    struct VM *vm,
+    struct Value *functionValue,
+    uint32_t argumentCount,
+    struct Value *arguments,
+    struct Value *returnValue);
+
+/// Create a C function and write it to some Value.
+///
+/// func is the C function pointer itself.
+///
+/// output is the Value to write the pointer to.
+void vmCreateCFunction(
+    struct VM *vm,
+    VMFunctionCallback func,
+    struct Value *output);
+
+// ----------------------------------------------------------------------
+// Internals
+
 struct VMFunction;
 
 struct VM
@@ -38,19 +95,12 @@ struct VM
     // Maybe just an external reference list? (Can store multiple
     // entries for multiple external references to the same object.)
 
-    // TODO: Global variable table and global variable lookup, so we
-    // don't have to keep the compiler around.
+    // TODO: Add a global variable table and global variable lookup,
+    // so we don't have to keep the compiler around.
 };
 
 void vmInit(struct VM *vm);
 void vmDestroy(struct VM *vm);
-
-/// Run a single instruction inside the VM and advance the program
-/// counter.
-void vmIterate(struct VM *vm);
-
-/// Force a garbage collection pass.
-void vmGarbageCollect(struct VM *vm);
 
 /// Re-check all strings in the string table to see if they're in-use
 /// by any program code. If program code has been removed that
@@ -58,23 +108,6 @@ void vmGarbageCollect(struct VM *vm);
 void vmRescanProgramStrings(struct VM *vm);
 
 const char *vmGetOpcodeName(enum Opcode op);
-
-/// Create a C function and write it to some Value.
-void vmCreateCFunction(
-    struct VM *vm,
-    VMFunctionCallback func,
-    struct Value *output);
-
-/// Call a function inside the VM. This does not do any kind of
-/// iteration control, and will simply keep iterating until the
-/// instruction pointer points to the end of addressable program
-/// space, indicating that the function has returned.
-void vmCallFunction(
-    struct VM *vm,
-    struct Value *functionValue,
-    uint32_t argumentCount,
-    struct Value *arguments,
-    struct Value *returnValue);
 
 // ----------------------------------------------------------------------
 

@@ -737,6 +737,9 @@ void vmCompilerFinalize(
     // Add a single end instruction.
     addInstructionSimple(cs, OP_END);
 
+    // TODO: Setup the global variable table in the VM, so we can
+    // access stuff by name later.
+
     free(cs);
 }
 

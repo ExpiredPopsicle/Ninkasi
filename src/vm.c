@@ -329,4 +329,44 @@ void vmCallFunction(
     }
 }
 
+bool vmExecuteProgram(struct VM *vm)
+{
+    while(vm->instructions[
+            vm->instructionPointer &
+            vm->instructionAddressMask].opcode != OP_END)
+    {
 
+        vmIterate(vm);
+
+        if(vm->errorState.firstError) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+uint32_t vmGetErrorCount(struct VM *vm)
+{
+    uint32_t count = 0;
+    struct Error *error = vm->errorState.firstError;
+    while(error) {
+        count++;
+        error = error->next;
+    }
+    return count;
+}
+
+struct VM *vmCreate(void)
+{
+    struct VM *vm = malloc(sizeof(struct VM));
+    memset(vm, 0, sizeof(*vm));
+    vmInit(vm);
+    return vm;
+}
+
+void vmDelete(struct VM *vm)
+{
+    vmDestroy(vm);
+    free(vm);
+}

@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
         vmCompilerFinalize(cs);
 
         // Dump errors.
-        if(vm.errorState.firstError) {
+        if(vmGetErrorCount(&vm)) {
             struct Error *err = vm.errorState.firstError;
             while(err) {
                 printf("error: %s\n", err->errorText);
@@ -171,31 +171,35 @@ int main(int argc, char *argv[])
         printf("  Execution\n");
         printf("----------------------------------------------------------------------\n");
 
-        while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
-
-            // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
-            // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
-            vmIterate(&vm);
-
-            if(vm.errorState.firstError) {
-                struct Error *err = vm.errorState.firstError;
-                while(err) {
-                    printf("error: %s\n", err->errorText);
-                    err = err->next;
-                }
-                break;
-            }
-
-            vmStackDump(&vm);
-            // vmGarbageCollect(&vm);
-
-            printf("next at %d\n",
-                vm.instructionPointer);
-            printf("next instruction %d: %d = %s\n",
-                vm.instructionPointer,
-                vm.instructions[vm.instructionPointer].opcode,
-                vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
+        if(!vmGetErrorCount(&vm)) {
+            vmExecuteProgram(&vm);
         }
+
+        // while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
+
+        //     // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
+        //     // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
+        //     vmIterate(&vm);
+
+        //     if(vm.errorState.firstError) {
+        //         struct Error *err = vm.errorState.firstError;
+        //         while(err) {
+        //             printf("error: %s\n", err->errorText);
+        //             err = err->next;
+        //         }
+        //         break;
+        //     }
+
+        //     vmStackDump(&vm);
+        //     // vmGarbageCollect(&vm);
+
+        //     printf("next at %d\n",
+        //         vm.instructionPointer);
+        //     printf("next instruction %d: %d = %s\n",
+        //         vm.instructionPointer,
+        //         vm.instructions[vm.instructionPointer].opcode,
+        //         vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
+        // }
 
         // // Function call test.
         // if(!vm.errorState.firstError) {
