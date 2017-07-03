@@ -53,7 +53,14 @@ char **splitLines(const char *str, uint32_t *lineCount)
 
 void testVMFunc(struct VMFunctionCallbackData *data)
 {
+    uint32_t i;
     printf("testVMFunc hit!\n");
+    for(i = 0; i < data->argumentCount; i++) {
+        printf("Argument %d: %s\n", i,
+            valueToString(data->vm, &data->arguments[i]));
+    }
+
+    data->returnValue.intData = 565656;
 }
 
 

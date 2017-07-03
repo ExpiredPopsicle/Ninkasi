@@ -275,6 +275,7 @@ void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCal
     cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, name);
 
+    vmfunc->argumentCount = ~(uint32_t)0;
     vmfunc->isCFunction = true;
     vmfunc->CFunctionCallback = func;
 }

@@ -408,7 +408,9 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
 
     // Compare _argumentCount to the stored function object's
     // _argumentCount. Throw an error if they mismatch.
-    if(funcOb->argumentCount != argumentCount) {
+    if(funcOb->argumentCount != ~(uint32_t)0 &&
+        funcOb->argumentCount != argumentCount)
+    {
         errorStateAddError(
             &vm->errorState,
             -1,
@@ -430,9 +432,23 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
         // of our data off the stack, push the return value, and then
         // return from this function.
 
+        struct VMFunctionCallbackData data;
+        memset(&data, 0, sizeof(data));
+
+        // Fill in important stuff here.
+        data.vm = vm;
+        data.argumentCount = argumentCount;
+        data.arguments = &vm->stack.values[
+            vm->stack.indexMask & (vm->stack.size - argumentCount - 1)];
+
+        funcOb->CFunctionCallback(&data);
+
         vmStackPopN(vm, argumentCount + 2);
 
-        vmStackPushInt(vm, 55555);
+        {
+            struct Value *retVal = vmStackPush_internal(vm);
+            *retVal = data.returnValue;
+        }
 
     } else {
 
