@@ -84,7 +84,11 @@ function blahtest(a, b, c)
 
 var thing;
 thing = 2;
-cfunc(1, 2, 3, 4, 5);
 
 blahtest(1, 2, 3);
 
+function callMeFromC()
+{
+    return "ASDFASDFASDFASDFASDF";
+}
+cfunc(callMeFromC);

@@ -21,9 +21,22 @@ struct VM
     struct VMStringTable stringTable;
 
     uint32_t lastGCPass;
+    uint32_t gcInterval;
+    uint32_t gcCountdown;
 
     uint32_t functionCount;
     struct VMFunction *functionTable;
+
+    // NOTE: When you add the object table, you will need to add
+    // external reference counts. We don't care about this for strings
+    // (external code can just strdup it) or functions (they are
+    // permanently part of the program and GC doesn't even exist for
+    // them), but we do care about this for objects. We'll also have
+    // to keep a list of all objects that are externally referenced
+    // anywhere, so that the GC can start on those and mark others.
+    //
+    // Maybe just an external reference list? (Can store multiple
+    // entries for multiple external references to the same object.)
 };
 
 void vmInit(struct VM *vm);
@@ -46,6 +59,23 @@ const char *vmGetOpcodeName(enum Opcode op);
 
 
 void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCallback func);
+
+
+void vmCallFunction(
+    struct VM *vm,
+    struct Value *functionValue,
+    uint32_t argumentCount,
+    struct Value *arguments,
+    struct Value *returnValue);
+
+// void vmCallFunctionByName(
+//     struct CompilerState *cs,
+//     const char *name,
+//     uint32_t argumentCount,
+//     struct Value *arguments,
+//     struct Value *returnValue);
+
+// ----------------------------------------------------------------------
 
 /// Compiler internal function creation. Don't use this outside. Not
 /// for that.

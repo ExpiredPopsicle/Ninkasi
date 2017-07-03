@@ -58,8 +58,7 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
 
 struct CompilerStateContextVariable *lookupVariable(
     struct CompilerState *cs,
-    const char *name,
-    uint32_t lineNumber);
+    const char *name);
 
 bool compileStatement(struct CompilerState *cs);
 bool compileBlock(struct CompilerState *cs, bool noBracesOrContext);

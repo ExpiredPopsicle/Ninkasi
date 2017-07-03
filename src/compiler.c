@@ -306,8 +306,7 @@ bool compileStatement(struct CompilerState *cs)
 
 struct CompilerStateContextVariable *lookupVariable(
     struct CompilerState *cs,
-    const char *name,
-    uint32_t lineNumber)
+    const char *name)
 {
     struct CompilerStateContext *ctx = cs->context;
     struct CompilerStateContextVariable *var = NULL;

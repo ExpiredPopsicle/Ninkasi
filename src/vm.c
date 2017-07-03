@@ -89,6 +89,8 @@ void vmInit(struct VM *vm)
     vmStringTableInit(&vm->stringTable);
 
     vm->lastGCPass = 0;
+    vm->gcInterval = 5;
+    vm->gcCountdown = vm->gcInterval;
 
     vm->functionCount = 0;
     vm->functionTable = NULL;
@@ -117,6 +119,13 @@ void vmIterate(struct VM *vm)
 
     opcodeTable[opcodeId](vm, inst);
     vm->instructionPointer++;
+
+    // Handle periodic garbage collection.
+    vm->gcCountdown--;
+    if(!vm->gcCountdown) {
+        vmGarbageCollect(vm);
+        vm->gcCountdown = vm->gcInterval;
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -279,4 +288,96 @@ void vmCreateCFunction(struct CompilerState *cs, const char *name, VMFunctionCal
     vmfunc->isCFunction = true;
     vmfunc->CFunctionCallback = func;
 }
+
+// void vmCallFunctionByName(
+//     struct CompilerState *cs,
+//     const char *name,
+//     uint32_t argumentCount,
+//     struct Value *arguments,
+//     struct Value *returnValue)
+// {
+//     struct CompilerStateContextVariable *contextVar =
+//         lookupVariable(cs, name);
+
+//     if(!contextVar) {
+//         struct DynString *str = dynStrCreate(
+//             "Failed to lookup function: ");
+//         dynStrAppend(str, name);
+//         errorStateAddError(
+//             &cs->vm->errorState,
+//             -1,
+//             str->data);
+//         dynStrDelete(str);
+//         return;
+//     }
+
+//     if(!contextVar->isGlobal) {
+//         errorStateAddError(
+//             &cs->vm->errorState,
+//             -1,
+//             "Can only call functions from the global scope with vmCallFunctionByName.");
+//         return;
+//     }
+
+//     {
+//         struct Value *funcVal =
+//             &cs->vm->stack.values[
+//                 cs->vm->stack.indexMask &
+//                 contextVar->stackPos];
+
+//         if(funcVal->type != VALUETYPE_FUNCTIONID) {
+//             errorStateAddError(
+//                 &cs->vm->errorState,
+//                 -1,
+//                 "Tried to call a non-function with vmCallFunctionByName.");
+//             return;
+//         }
+//     }
+// }
+
+void vmCallFunction(
+    struct VM *vm,
+    struct Value *functionValue,
+    uint32_t argumentCount,
+    struct Value *arguments,
+    struct Value *returnValue)
+{
+    if(functionValue->type != VALUETYPE_FUNCTIONID) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Tried to call a non-function with vmCallFunction.");
+        return;
+    }
+
+    {
+        uint32_t oldInstructionPtr = vm->instructionPointer;
+        uint32_t i;
+
+        *vmStackPush_internal(vm) = *functionValue;
+        for(i = 0; i < argumentCount; i++) {
+            *vmStackPush_internal(vm) = arguments[i];
+        }
+        vmStackPushInt(vm, argumentCount);
+
+        vm->instructionPointer = (~(uint32_t)0 - 1);
+
+        opcode_call(vm, NULL);
+        vm->instructionPointer++;
+
+        while(vm->instructionPointer != ~(uint32_t)0 &&
+            !vm->errorState.firstError)
+        {
+            printf("In vmCallFunction %u\n", vm->instructionPointer);
+            vmIterate(vm);
+        }
+
+        // Save return value.
+        *returnValue = *vmStackPop(vm);
+
+        // Restore old state.
+        vm->instructionPointer = oldInstructionPtr;
+    }
+}
+
 

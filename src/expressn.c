@@ -533,7 +533,7 @@ bool emitFetchVariable(
     struct ExpressionAstNode *node)
 {
     struct CompilerStateContextVariable *var =
-        lookupVariable(cs, name, node->opOrValue->lineNumber);
+        lookupVariable(cs, name);
 
     if(!var) {
         return false;
@@ -571,7 +571,7 @@ bool emitSetVariable(
     struct ExpressionAstNode *node)
 {
     struct CompilerStateContextVariable *var =
-        lookupVariable(cs, name, node->opOrValue->lineNumber);
+        lookupVariable(cs, name);
 
     if(!var) {
         return false;

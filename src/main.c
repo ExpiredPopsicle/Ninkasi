@@ -55,18 +55,28 @@ void testVMFunc(struct VMFunctionCallbackData *data)
 {
     uint32_t i;
     printf("testVMFunc hit!\n");
-    for(i = 0; i < data->argumentCount; i++) {
-        printf("Argument %d: %s\n", i,
-            valueToString(data->vm, &data->arguments[i]));
-    }
+    // for(i = 0; i < data->argumentCount; i++) {
+    //     printf("Argument %d: %s\n", i,
+    //         valueToString(data->vm, &data->arguments[i]));
+    // }
 
     data->returnValue.intData = 565656;
+
+    if(data->argumentCount != 1) {
+        errorStateAddError(&data->vm->errorState, -1, "Bad argument count in testVMFunc.");
+        return;
+    }
+
+    vmCallFunction(data->vm, &data->arguments[0], 0, NULL, &data->returnValue);
+
+    printf("Got data back from VM: %s\n", valueToString(data->vm, &data->returnValue));
 }
 
 
 int main(int argc, char *argv[])
 {
     struct VM vm;
+
     char *script = loadScript("test.txt");
     uint32_t lineCount = 0;
     char **lines = splitLines(script, &lineCount);
@@ -247,12 +257,12 @@ int main(int argc, char *argv[])
                 }
 
                 // Output opcode.
-                printf("%4u %.4x: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+                printf("%4u %.4u: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
 
               #else
 
                 // Output opcode.
-                printf("%.4x: %s", i, vmGetOpcodeName(opcode));
+                printf("%.4u: %s", i, vmGetOpcodeName(opcode));
 
               #endif
 
@@ -296,13 +306,22 @@ int main(int argc, char *argv[])
             }
 
             vmStackDump(&vm);
-            vmGarbageCollect(&vm);
+            // vmGarbageCollect(&vm);
 
+            printf("next at %d\n",
+                vm.instructionPointer);
             printf("next instruction %d: %d = %s\n",
                 vm.instructionPointer,
                 vm.instructions[vm.instructionPointer].opcode,
                 vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
         }
+
+        // // Function call test.
+        // if(!vm.errorState.firstError) {
+        //     struct Value retVal;
+        //     memset(&retVal, 0, sizeof(retVal));
+        //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
+        // }
     }
 
     printf("----------------------------------------------------------------------\n");

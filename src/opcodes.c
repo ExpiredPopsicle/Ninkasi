@@ -422,7 +422,6 @@ void opcode_call(struct VM *vm, struct Instruction *instruction)
         return;
     }
 
-
     // At this point the behavior changes depending on if it's a C
     // function or script function.
     if(funcOb->isCFunction) {
