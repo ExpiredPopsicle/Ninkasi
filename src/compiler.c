@@ -944,7 +944,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     compileStatement(cs);
 
     // Emit jump back to start.
-    emitPushLiteralInt(cs, startAddress - cs->instructionWriteIndex);
+    emitPushLiteralInt(cs, startAddress - cs->instructionWriteIndex - 2);
     addInstructionSimple(cs, OP_JUMP_RELATIVE);
 
     // Fixup skip offset.

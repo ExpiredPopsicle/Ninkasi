@@ -189,6 +189,9 @@ void vmStringTableCleanOldStrings(
 {
     uint32_t i;
 
+    dbgWriteLine("Purging unused strings...");
+    dbgPush();
+
     for(i = 0; i < vmStringTableHashTableSize; i++) {
 
         struct VMString **lastPtr = &table->stringsByHash[i];
@@ -198,6 +201,9 @@ void vmStringTableCleanOldStrings(
 
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
+                uint32_t index = str->stringTableIndex;
+                struct VMStringTableHole *hole = malloc(sizeof(struct VMStringTableHole));
+
                 // TODO: Remove this.
                 dbgWriteLine("Purging unused string: %s", str->str);
 
@@ -205,6 +211,17 @@ void vmStringTableCleanOldStrings(
                 table->stringTable[str->stringTableIndex] = NULL;
                 free(str);
                 str = *lastPtr;
+
+                // Create a table hole for our new gap.
+                memset(hole, 0, sizeof(*hole));
+                hole->index = index;
+                hole->next = table->tableHoles;
+                table->tableHoles = hole;
+            }
+
+            // FIXME: Remove this.
+            if(str) {
+                dbgWriteLine("NOT purging string: %s", str->str);
             }
 
             if(str) {
@@ -213,4 +230,6 @@ void vmStringTableCleanOldStrings(
             }
         }
     }
+
+    dbgPop();
 }
