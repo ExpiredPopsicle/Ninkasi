@@ -91,7 +91,7 @@ void opcode_pushLiteral_string(struct VM *vm)
     stackVal->stringTableEntry =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_string;
 
-    printf("Pushing literal string: %d = %d\n", vm->instructionPointer, stackVal->stringTableEntry);
+    dbgWriteLine("Pushing literal string: %d = %d", vm->instructionPointer, stackVal->stringTableEntry);
 
 }
 
@@ -295,24 +295,18 @@ void opcode_stackPeek(struct VM *vm)
         struct Value *vOut = vmStackPush_internal(vm);
         *vOut = *vIn;
 
-        printf("Fetched global value at stack position: %u\n", stackAddress);
+        dbgWriteLine("Fetched global value at stack position: %u", stackAddress);
 
     } else {
 
-        printf("Fetching local value...\n");
-        printf("  Stack size: %u\n", vm->stack.size);
-        printf("  v->intData: %d\n", v->intData);
+        // Negative stack address. Probably a local variable.
+        uint32_t stackAddress = vm->stack.size + v->intData;
+        struct Value *vIn = vmStackPeek(
+            vm, stackAddress);
+        struct Value *vOut = vmStackPush_internal(vm);
+        *vOut = *vIn;
 
-        {
-            // Negative stack address. Probably a local variable.
-            uint32_t stackAddress = vm->stack.size + v->intData;
-            struct Value *vIn = vmStackPeek(
-                vm, stackAddress);
-            struct Value *vOut = vmStackPush_internal(vm);
-            *vOut = *vIn;
-
-            printf("Fetched local value at stack position: %u\n", stackAddress);
-        }
+        dbgWriteLine("Fetched local value at stack position: %u", stackAddress);
 
     }
 }
