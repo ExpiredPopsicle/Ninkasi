@@ -1,8 +1,11 @@
 #include "common.h"
 
+#define DEBUG_SPAM 1
+
 static int32_t dbgIndentLevel = 0;
 int dbgWriteLine(const char *fmt, ...)
 {
+  #if DEBUG_SPAM
     va_list args;
     int ret;
     va_start(args, fmt);
@@ -18,32 +21,18 @@ int dbgWriteLine(const char *fmt, ...)
     }
     va_end(args);
     return ret;
+  #else
+    return 0;
+  #endif
 }
 
 void dbgPush_real(const char *func)
 {
     dbgIndentLevel++;
-
-    // {
-    //     uint32_t i;
-    //     for(i = 0; i < dbgIndentLevel; i++) {
-    //         printf("  ");
-    //     }
-    // }
-    // printf("dbgIndent PUSH: %d %s\n", dbgIndentLevel, func);
 }
 
 void dbgPop_real(const char *func)
 {
     assert(dbgIndentLevel > 0);
-
-    // {
-    //     uint32_t i;
-    //     for(i = 0; i < dbgIndentLevel; i++) {
-    //         printf("  ");
-    //     }
-    // }
-    // printf("dbgIndent POP:  %d %s\n", dbgIndentLevel, func);
-
     dbgIndentLevel--;
 }

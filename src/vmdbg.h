@@ -10,5 +10,7 @@ void dbgPop_real(const char *func);
 #define dbgPush() do { dbgPush_real(""); } while(0)
 #define dbgPop() do { dbgPop_real(""); } while(0)
 
+// #define dbgWriteLine(...) do { } while(0)
+
 #endif
 
