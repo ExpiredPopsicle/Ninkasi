@@ -330,24 +330,16 @@ void opcode_stackPoke(struct VM *vm)
         struct Value *vOut = vmStackPeek(vm, stackAddrValue->intData);
         *vOut = *vIn;
 
-        printf("Set global value at stack position: %u\n", stackAddress);
+        dbgWriteLine("Set global value at stack position: %u", stackAddress);
 
     } else {
+        // Negative stack address. Probably a local variable.
+        uint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
+        struct Value *vIn = vmStackPeek(vm, (vm->stack.size - 1));
+        struct Value *vOut = vmStackPeek(vm, stackAddress);
+        *vOut = *vIn;
 
-        printf("Setting local value...\n");
-        printf("  Stack size: %u\n", vm->stack.size);
-        printf("  v->intData: %d\n", stackAddrValue->intData);
-
-        {
-            // Negative stack address. Probably a local variable.
-            uint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
-            struct Value *vIn = vmStackPeek(vm, (vm->stack.size - 1));
-            struct Value *vOut = vmStackPeek(vm, stackAddress);
-            *vOut = *vIn;
-
-            printf("Set local value at stack position: %u\n", stackAddress);
-        }
-
+        dbgWriteLine("Set local value at stack position: %u", stackAddress);
     }
 }
 
@@ -371,7 +363,7 @@ void opcode_call(struct VM *vm)
     // PEEK at the top of the stack. That's _argumentCount.
     argumentCount = valueToInt(vm, vmStackPeek(vm, (vm->stack.size - 1)));
 
-    printf("Calling function with argument count: %u\n", argumentCount);
+    dbgWriteLine("Calling function with argument count: %u", argumentCount);
 
     // PEEK at the function id (stack top - _argumentCount). Save it.
     {
@@ -387,7 +379,7 @@ void opcode_call(struct VM *vm)
         }
 
         functionId = functionIdValue->functionId;
-        printf("Calling function with id: %u\n", functionId);
+        dbgWriteLine("Calling function with id: %u", functionId);
     }
 
     // Look up the function in our table of function objects.
@@ -410,8 +402,8 @@ void opcode_call(struct VM *vm)
             -1,
             "Incorrect argument count for function call.");
 
-        printf("funcOb->argumentCount: %u\n", funcOb->argumentCount);
-        printf("argumentCount:         %u\n", argumentCount);
+        dbgWriteLine("funcOb->argumentCount: %u", funcOb->argumentCount);
+        dbgWriteLine("argumentCount:         %u", argumentCount);
 
         return;
     }
@@ -553,11 +545,11 @@ void opcode_jz(struct VM *vm)
     struct Value *relativeOffsetValue = vmStackPop(vm);
     struct Value *testValue = vmStackPop(vm);
 
-    printf("Testing branch value %d. Address now: %u\n", valueToInt(vm, testValue), vm->instructionPointer);
+    dbgWriteLine("Testing branch value %d. Address now: %u", valueToInt(vm, testValue), vm->instructionPointer);
     if(valueToInt(vm, testValue) == 0) {
         vm->instructionPointer += valueToInt(vm, relativeOffsetValue);
-        printf("Branch taken. Address now: %u\n", vm->instructionPointer);
+        dbgWriteLine("Branch taken. Address now: %u", vm->instructionPointer);
     } else {
-        printf("Branch NOT taken. Address now: %u\n", vm->instructionPointer);
+        dbgWriteLine("Branch NOT taken. Address now: %u", vm->instructionPointer);
     }
 }

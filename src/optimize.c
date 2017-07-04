@@ -115,7 +115,7 @@ void optimizeConstants(struct ExpressionAstNode **node)
                     (*node)->children[0]->opOrValue->type,
                     (*node)->children[0]->opOrValue->lineNumber);
 
-            printf("Optimizing operator: %s\n", (*node)->opOrValue->str);
+            dbgWriteLine("Optimizing operator: %s", (*node)->opOrValue->str);
 
             switch((*node)->children[0]->opOrValue->type) {
 
@@ -171,15 +171,15 @@ void optimizeConstants(struct ExpressionAstNode **node)
 
         } else {
 
-            printf("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
+            dbgWriteLine("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
 
-            printf("  Child1: ");
+            dbgWriteLine("  Child1: ");
             dumpExpressionAstNode((*node)->children[0]);
-            printf("\n");
+            dbgWriteLine("\n");
 
-            printf("  Child2: ");
+            dbgWriteLine("  Child2: ");
             dumpExpressionAstNode((*node)->children[1]);
-            printf("\n");
+            dbgWriteLine("\n");
 
         }
     }

@@ -123,7 +123,7 @@ void vmStackPopN(struct VM *vm, uint32_t count)
 
     // TODO: Shrink the stack if we can?
 
-    printf("pop count: %u\n", count);
+    dbgWriteLine("pop count: %u", count);
 
     if(stack->size < count) {
         // Stack underflow. We'll return the bottom of the stack, just

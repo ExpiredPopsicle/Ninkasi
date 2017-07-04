@@ -103,7 +103,7 @@ void vmIterate(struct VM *vm)
         vm->instructionPointer & vm->instructionAddressMask];
     uint32_t opcodeId = inst->opcode & (OPCODE_PADDEDCOUNT - 1);
 
-    printf("Executing: %s\n", vmGetOpcodeName(opcodeId));
+    dbgWriteLine("Executing: %s", vmGetOpcodeName(opcodeId));
 
     opcodeTable[opcodeId](vm);
     vm->instructionPointer++;
@@ -179,7 +179,7 @@ void vmGarbageCollect(struct VM *vm)
     uint32_t currentGCPass = ++vm->lastGCPass;
 
     // TODO: Remove this.
-    printf("vmGarbageCollect\n");
+    dbgWriteLine("vmGarbageCollect");
 
     // Iterate through the current stack.
     {
@@ -230,7 +230,7 @@ void vmRescanProgramStrings(struct VM *vm)
                 if(entry) {
                     entry->dontGC = true;
 
-                    printf("Marked string as in-use by program: %s\n", entry->str);
+                    dbgWriteLine("Marked string as in-use by program: %s", entry->str);
                 }
             }
         } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
@@ -322,7 +322,7 @@ void vmCallFunction(
         while(vm->instructionPointer != ~(uint32_t)0 &&
             !vm->errorState.firstError)
         {
-            printf("In vmCallFunction %u\n", vm->instructionPointer);
+            dbgWriteLine("In vmCallFunction %u", vm->instructionPointer);
             vmIterate(vm);
         }
 

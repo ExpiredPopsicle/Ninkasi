@@ -53,8 +53,6 @@ void addToken(
     if(!tokenList->first) {
         tokenList->first = newToken;
     }
-
-    printf("Token (%d): %s\n", type, str);
 }
 
 char *tokenizerUnescapeString(const char *in)
