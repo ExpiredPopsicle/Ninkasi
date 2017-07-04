@@ -186,6 +186,11 @@ void vmGarbageCollect(struct VM *vm)
         uint32_t i;
         struct Value *values = vm->stack.values;
         for(i = 0; i < vm->stack.size; i++) {
+
+            // FIXME: Remove this.
+            assert(values == vm->stack.values);
+            printf("Stacksize: %u\n", vm->stack.size);
+
             vmGarbageCollect_markValue(
                 vm, &values[i], currentGCPass);
         }

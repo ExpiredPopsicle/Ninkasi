@@ -345,6 +345,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 addToken(TOKENTYPE_IF, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "else")) {
                 addToken(TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "while")) {
+                addToken(TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
             } else {
                 addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }

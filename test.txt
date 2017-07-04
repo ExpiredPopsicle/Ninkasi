@@ -116,3 +116,10 @@ if(0) {
 }
 
 
+var i = 0;
+while(1) {
+    i = i + 1;
+    print("THIS IS A THING ", i);
+}
+
+

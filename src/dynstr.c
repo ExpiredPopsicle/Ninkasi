@@ -3,7 +3,7 @@
 struct DynString *dynStrCreate(const char *str)
 {
     struct DynString *ret = malloc(sizeof(struct DynString) + 1);
-    ret->data = strdup(str);
+    ret->data = strdup(str ? str : "<null>");
     return ret;
 }
 

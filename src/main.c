@@ -201,14 +201,13 @@ int main(int argc, char *argv[])
         //     // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
         //     vmIterate(&vm);
 
-        //     if(vm.errorState.firstError) {
-        //         struct Error *err = vm.errorState.firstError;
-        //         while(err) {
-        //             printf("error: %s\n", err->errorText);
-        //             err = err->next;
-        //         }
-        //         break;
-        //     }
+        if(vm.errorState.firstError) {
+            struct Error *err = vm.errorState.firstError;
+            while(err) {
+                printf("error: %s\n", err->errorText);
+                err = err->next;
+            }
+        }
 
         //     vmStackDump(&vm);
         //     // vmGarbageCollect(&vm);

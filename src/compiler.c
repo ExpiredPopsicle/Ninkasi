@@ -287,8 +287,12 @@ bool compileStatement(struct CompilerState *cs)
             return compileBlock(cs, false);
 
         case TOKENTYPE_IF:
-            // Curly braces mean we need to parse a block.
+            // "if" statements.
             return compileIfStatement(cs);
+
+        case TOKENTYPE_WHILE:
+            // "while" statements.
+            return compileWhileStatement(cs);
 
         default:
             // Fall back to just parsing an expression.
@@ -915,4 +919,37 @@ bool compileIfStatement(struct CompilerState *cs)
     return true;
 }
 
+bool compileWhileStatement(struct CompilerState *cs)
+{
+    uint32_t skipAddressWritePtr = 0;
+    uint32_t startAddress = cs->instructionWriteIndex - 1;
 
+    // Skip "while("
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_WHILE);
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+
+    // Generate the expression code.
+    compileExpression(cs);
+
+    // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
+    // fill it in after we know how much we're going to have to skip.
+    emitPushLiteralInt(cs, 0);
+    skipAddressWritePtr = cs->instructionWriteIndex - 1;
+    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+
+    // Skip ")"
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+
+    // Generate code to execute if test passes.
+    compileStatement(cs);
+
+    // Emit jump back to start.
+    emitPushLiteralInt(cs, startAddress - cs->instructionWriteIndex);
+    addInstructionSimple(cs, OP_JUMP_RELATIVE);
+
+    // Fixup skip offset.
+    cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
+        (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+
+    return true;
+}
