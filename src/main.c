@@ -143,13 +143,20 @@ int main(int argc, char *argv[])
 
               #if VM_DEBUG
 
+                // while(lastLine < vm.instructions[i].lineNumber && lastLine < lineCount) {
+                //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
+                //     lastLine++;
+                // }
+
+                // // Output opcode.
+                // printf("%4u %.4u: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+
+                // Line-number-less version for diff.
                 while(lastLine < vm.instructions[i].lineNumber && lastLine < lineCount) {
-                    printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
+                    printf("                                         ; %s\n", lines[lastLine]);
                     lastLine++;
                 }
-
-                // Output opcode.
-                printf("%4u %.4u: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+                printf("%s", vmGetOpcodeName(opcode));
 
               #else
 

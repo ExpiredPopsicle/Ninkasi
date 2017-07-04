@@ -870,19 +870,24 @@ bool compileIfStatement(struct CompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
-    compileExpression(cs);
+    if(!compileExpression(cs)) {
+        return false;
+    }
 
     // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
     emitPushLiteralInt(cs, 0);
     skipAddressWritePtr = cs->instructionWriteIndex - 1;
     addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+    cs->context->stackFrameOffset--;
 
     // Skip ")"
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
 
     // Generate code to execute if test passes.
-    compileStatement(cs);
+    if(!compileStatement(cs)) {
+        return false;
+    }
 
     // Fixup skip offset.
     cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
@@ -908,7 +913,9 @@ bool compileIfStatement(struct CompilerState *cs)
         addInstructionSimple(cs, OP_JUMP_RELATIVE);
 
         // Generate code to execute if test fails.
-        compileStatement(cs);
+        if(!compileStatement(cs)) {
+            return false;
+        }
 
         // Fixup "else" skip offset.
         cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
@@ -936,6 +943,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     emitPushLiteralInt(cs, 0);
     skipAddressWritePtr = cs->instructionWriteIndex - 1;
     addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+    cs->context->stackFrameOffset--;
 
     // Skip ")"
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);

@@ -74,7 +74,7 @@ void vmInit(struct VM *vm)
     vmStringTableInit(&vm->stringTable);
 
     vm->lastGCPass = 0;
-    vm->gcInterval = 5;
+    vm->gcInterval = 100;
     vm->gcCountdown = vm->gcInterval;
 
     vm->functionCount = 0;
