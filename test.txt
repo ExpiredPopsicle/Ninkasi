@@ -62,159 +62,155 @@ testTrue(0);
 testFalse(1);
 print("\n");
 
-// var counter = 0;
-// for(var x = 100; x; --x) {
-//     for(var y = 100; y; --y) {
-//         // print("" + (x * y) + "\n");
-//         ++counter;
-//     }
-// }
-// print("Counter: " + counter);
+var counter = 0;
+for(var x = 100; x; --x) {
+    for(var y = 100; y; --y) {
+        // print("" + (x * y) + "\n");
+        ++counter;
+    }
+}
+print("Counter: " + counter);
 
-// // while(1)
-// // {
-// //     print("foo");
-// // }
-
-// // var k;
-// for(var k = 10; k; --k) {
-//     print("foo " + k);
+// while(1)
+// {
+//     print("foo");
 // }
 
 // var k;
-// for(k = 10; k; 3 * 4 + (--k))
+for(var k = 10; k; --k) {
+    print("foo " + k);
+}
+
+var k;
+for(k = 10; k; 3 * 4 + (--k))
+{
+    print("foo " + k);
+}
+
+var foo = 123;
+var bar;
+bar = foo + foo;
+
+function cheese()
+{
+    return "CHEESE";
+}
+
+function getFunctionId()
+{
+    return _functionId;
+}
+
+function getArgumentCount(a, b, c, d, e)
+{
+    return _argumentCount;
+}
+
+function getReturnPointer()
+{
+    return _returnPointer;
+}
+
+{
+    var shouldNotBeInFunction;
+
+    function otherTest(a, b)
+    {
+        var cheeseStr = cheese();
+        return a + b + cheeseStr;
+    }
+
+    function test(a, b, c)
+    {
+        return "beep" + "boop" + b;
+    }
+
+    foo = 1;
+    foo = 2;
+    foo = 3;
+    foo = 4;
+    foo = 5;
+    foo = test(123, 456, 789);
+    bar = test(123, 456, 789);
+
+    foo = otherTest(
+        test(0, "FOOM", 0),
+        test(0, "BUTTS", 0));
+
+    // "foom";
+}
+
+bar = "asdf";
+
+// function test1()
 // {
-//     print("foo " + k);
+//     return "t1value";
 // }
 
-// var foo = 123;
-// var bar;
-// bar = foo + foo;
-
-// function cheese()
+// function test2()
 // {
-//     return "CHEESE";
+//     return "t2value";
 // }
 
-// function getFunctionId()
-// {
-//     return _functionId;
-// }
+// test1() + test2();
 
-// function getArgumentCount(a, b, c, d, e)
-// {
-//     return _argumentCount;
-// }
+print("\n");
 
-// function getReturnPointer()
-// {
-//     return _returnPointer;
-// }
+// print("Function ID is" + getFunctionId() + "\n");
+print("Argument count is " + getArgumentCount(0, 0, 0, 0, 0) + "\n");
+print("Return pointer is " + getReturnPointer() + "\n");
 
-// {
-//     var shouldNotBeInFunction;
-
-//     function otherTest(a, b)
-//     {
-//         var cheeseStr = cheese();
-//         return a + b + cheeseStr;
-//     }
-
-//     function test(a, b, c)
-//     {
-//         return "beep" + "boop" + b;
-//     }
+function blahtest(a, b, c)
+{
+    1;
+    return 0;
+}
 
 
+var thing;
+thing = 2;
 
-//     foo = 1;
-//     foo = 2;
-//     foo = 3;
-//     foo = 4;
-//     foo = 5;
-//     foo = test(123, 456, 789);
-//     bar = test(123, 456, 789);
+blahtest(1, 2, 3);
 
-//     foo = otherTest(
-//         test(0, "FOOM", 0),
-//         test(0, "BUTTS", 0));
-
-//     // "foom";
-// }
-
-// bar = "asdf";
+function callMeFromC()
+{
+    return "ASDFASDFASDFASDFASDF";
+}
+cfunc(callMeFromC);
 
 
+var readMeFromC = 1 + 2 + 3;
 
 
-// // function test1()
-// // {
-// //     return "t1value";
-// // }
+print("Hello I am printing from the VM\n");
 
-// // function test2()
-// // {
-// //     return "t2value";
-// // }
-
-// // test1() + test2();
-
-// getFunctionId();
-
-// "Argument count is " + getArgumentCount(0, 0, 0, 0, 0);
-// "Return pointer is " + getReturnPointer();
-
-// function blahtest(a, b, c)
-// {
-//     1;
-//     return 0;
-// }
-
-
-// var thing;
-// thing = 2;
-
-// blahtest(1, 2, 3);
-
-// function callMeFromC()
-// {
-//     return "ASDFASDFASDFASDFASDF";
-// }
-// cfunc(callMeFromC);
-
-
-// var readMeFromC = 1 + 2 + 3;
-
-
-// print("Hello I am printing from the VM\n");
-
-// // if(0 + 1) {
-// //     print("This should happen.\n");
-// // }
-
-// if(1) {
+// if(0 + 1) {
 //     print("This should happen.\n");
+// }
+
+if(1) {
+    print("This should happen.\n");
+} else {
+    print("This shouldn't happen.\n");
+}
+
+// if(1 - 1) {
+//     print("This should NOT happen.\n");
+// }
+
+"ASDF";
+
+// if(0) {
+//     print("None of this.\n");
 // } else {
-//     print("This shouldn't happen.\n");
+//     print("Definitely this.\n");
 // }
 
-// // if(1 - 1) {
-// //     print("This should NOT happen.\n");
-// // }
 
-// "ASDF";
-
-// // if(0) {
-// //     print("None of this.\n");
-// // } else {
-// //     print("Definitely this.\n");
-// // }
-
-
-// var i;
-// i = 10000;
-// while(i) {
-//     i = i - 1;
-//     print("THIS IS A THING " + i + "\n");
-// }
+var i;
+i = 10000;
+while(i) {
+    i = i - 1;
+    print("THIS IS A THING " + i + "\n");
+}
 
