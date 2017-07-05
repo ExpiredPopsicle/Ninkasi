@@ -240,21 +240,33 @@ void addVariable(struct CompilerState *cs, const char *name)
     addVariableWithoutStackAllocation(cs, name);
 }
 
+bool vmCompilerExpectAndSkipToken(
+    struct CompilerState *cs, enum TokenType t)
+{
+    if(vmCompilerTokenType(cs) != t) {
+        struct DynString *errStr =
+            dynStrCreate("Unexpected token: ");
+        dynStrAppend(
+            errStr,
+            vmCompilerTokenString(cs));
+        vmCompilerAddError(cs, errStr->data);
+        dynStrDelete(errStr);
+        return false;
+    } else {
+        vmCompilerNextToken(cs);
+    }
+    return true;
+}
+
+// TODO: Remove instances of this and replace them with
+// vmCompilerExpectAndSkipToken().
 #define EXPECT_AND_SKIP_STATEMENT(x)                \
     do {                                            \
-        if(vmCompilerTokenType(cs) != (x)) {        \
-            struct DynString *errStr =              \
-                dynStrCreate("Unexpected token: "); \
-            dynStrAppend(                           \
-                errStr,                             \
-                vmCompilerTokenString(cs));         \
-            vmCompilerAddError(cs, errStr->data);   \
-            dynStrDelete(errStr);                   \
+        if(!vmCompilerExpectAndSkipToken(cs, x)) {  \
             return false;                           \
-        } else {                                    \
-            vmCompilerNextToken(cs);                \
         }                                           \
     } while(0)
+
 
 bool compileStatement(struct CompilerState *cs)
 {
@@ -998,27 +1010,35 @@ bool compileForStatement(struct CompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
     uint32_t loopStartAddress = 0;
-    // FIXME: !!! Make sure this is cleaned up when there's an error.
     struct ExpressionAstNode *incrementExpression = NULL;
+
+    // Just in case we want to declare a variable inline in the init
+    // code.
+    pushContext(cs);
 
     // Skip "while("
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FOR);
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
-    // Generate the init expression code.
-    if(!compileExpression(cs)) {
+    // Generate the init expression code. Technically the first thing
+    // can be a statement (so we can support variable declarations). I
+    // really hope I don't regret that, because it'll mean some stupid
+    // shit can go into that area.
+    if(!compileStatement(cs)) {
+        popContext(cs);
         return false;
     }
-    addInstructionSimple(cs, OP_POP);
-    cs->context->stackFrameOffset--;
-
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    // If we ever go back to using expressions for the init thing,
+    // we'll have to remember to pop the value it leaves behind,
+    // decrement the stack frame offset, and then
+    // EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON).
 
     // Save the address we want to jump back to for the loop.
     loopStartAddress = cs->instructionWriteIndex;
 
     // Generate test expression code.
     if(!compileExpression(cs)) {
+        popContext(cs);
         return false;
     }
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
@@ -1027,10 +1047,14 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Parse the increment expression, but don't emit yet (we'll do
     // this at the end, before the jump back).
-    incrementExpression = parseExpression(cs); // FIXME: Check return value.
+    incrementExpression = compileExpressionWithoutEmit(cs); // FIXME: Check return value.
 
     // Skip ")"
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+        deleteExpressionNode(incrementExpression);
+        popContext(cs);
+        return false;
+    }
 
     // Generate code to execute if test passes.
     compileStatement(cs); // FIXME: Check return value.
@@ -1045,10 +1069,9 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
-    // cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
-    //     (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
 
     deleteExpressionNode(incrementExpression);
 
+    popContext(cs);
     return true;
 }

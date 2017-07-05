@@ -3,11 +3,17 @@
 //     print("foo");
 // }
 
-var k;
-for(k = 10; k; k = k - 1)
+// var k;
+for(var k = 10; k; k = k - 1)
 {
     print("foo " + k);
 }
+
+// var k;
+// for(k = 10; k; 3 * 4 + (--k))
+// {
+//     print("foo " + k);
+// }
 
 // var foo = 123;
 // var bar;

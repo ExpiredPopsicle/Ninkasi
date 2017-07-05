@@ -210,7 +210,13 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         } else if(str[i] == '-') {
 
-            addToken(TOKENTYPE_MINUS, "-", lineNumber, tokenList);
+            // Check for "--".
+            if(str[i+1] == '-') {
+                addToken(TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
+                i++;
+            } else {
+                addToken(TOKENTYPE_MINUS, "-", lineNumber, tokenList);
+            }
 
         } else if(str[i] == '*') {
 

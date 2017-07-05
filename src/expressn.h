@@ -43,6 +43,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs);
 
 
 bool compileExpression(struct CompilerState *cs);
+struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs);
 bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
 
 #endif

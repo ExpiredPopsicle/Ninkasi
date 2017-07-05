@@ -118,5 +118,7 @@ enum TokenType vmCompilerTokenType(struct CompilerState *cs);
 uint32_t vmCompilerGetLinenumber(struct CompilerState *cs);
 const char *vmCompilerTokenString(struct CompilerState *cs);
 void vmCompilerAddError(struct CompilerState *cs, const char *error);
+bool vmCompilerExpectAndSkipToken(
+    struct CompilerState *cs, enum TokenType t);
 
 #endif

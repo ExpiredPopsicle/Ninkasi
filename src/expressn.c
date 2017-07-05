@@ -109,7 +109,9 @@ bool isExpressionEndingToken(struct Token *token)
 bool isPrefixOperator(struct Token *token)
 {
     return token && (
-        token->type == TOKENTYPE_MINUS);
+        token->type == TOKENTYPE_MINUS ||
+        token->type == TOKENTYPE_DECREMENT ||
+        token->type == TOKENTYPE_INCREMENT);
 }
 
 bool isPostfixOperator(struct Token *token)
@@ -784,22 +786,70 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
     return true;
 }
 
-bool compileExpression(struct CompilerState *cs)
+// struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
+// {
+//     struct ExpressionAstNode *newNode;
+
+//     if(!node) {
+//         return NULL;
+//     }
+
+//     newNode = malloc(sizeof(struct ExpressionAstNode));
+//     memset(newNode, 0, sizeof(*newNode));
+
+//     new
+// }
+
+void expandIncrementsAndDecrements(
+    struct CompilerState *cs,
+    struct ExpressionAstNode *node)
+{
+    if(!node) {
+        return;
+    }
+
+    if(node->opOrValue->type == TOKENTYPE_INCREMENT ||
+        node->opOrValue->type == TOKENTYPE_DECREMENT)
+    {
+        assert(node->children[0]);
+        assert(!node->children[1]);
+
+        
+
+    } else {
+
+        if(node->children[0]) {
+            expandIncrementsAndDecrements(cs, node->children[0]);
+        }
+
+        if(node->children[1]) {
+            expandIncrementsAndDecrements(cs, node->children[1]);
+        }
+    }
+}
+
+struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs)
 {
     struct ExpressionAstNode *node =
         parseExpression(cs);
 
     if(node) {
+        expandIncrementsAndDecrements(cs, node);
+        optimizeConstants(&node);
+    }
 
+    return node;
+}
+
+bool compileExpression(struct CompilerState *cs)
+{
+    struct ExpressionAstNode *node =
+        compileExpressionWithoutEmit(cs);
+
+    if(node) {
         bool ret;
-
-        // optimizeConstants(&node);
-
-        // dumpExpressionAstNode(node);
-
         ret = emitExpression(cs, node);
         deleteExpressionNode(node);
-
         return ret;
     }
 
