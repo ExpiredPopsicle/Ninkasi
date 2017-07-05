@@ -213,20 +213,18 @@ int main(int argc, char *argv[])
             {
                 vmIterate(&vm);
 
-                printf("\n\n\n\n");
-                printf("----------------------------------------------------------------------\n");
-                printf("PC: %u\n", vm.instructionPointer);
-                printf("Stack...\n");
-                printf("----------------------------------------------------------------------\n");
-                vmStackDump(&vm);
-                printf("\n");
-
-                dumpListing(&vm, script);
+                // printf("\n\n\n\n");
+                // printf("----------------------------------------------------------------------\n");
+                // printf("PC: %u\n", vm.instructionPointer);
+                // printf("Stack...\n");
+                // printf("----------------------------------------------------------------------\n");
+                // vmStackDump(&vm);
+                // printf("\n");
+                // dumpListing(&vm, script);
+                // getchar();
 
                 if(vm.errorState.firstError) {
                     break;
-                } else {
-                    getchar();
                 }
             }
 

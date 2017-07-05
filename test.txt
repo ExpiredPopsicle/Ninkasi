@@ -1,14 +1,77 @@
 
-// while(1)
-// {
-//     print("foo");
-// }
 
-// var k;
-for(var k = 10; k; --k)
+function testTrue(x)
 {
-    print("foo " + k);
+    if(x) {
+        print("SUCCESS\n");
+    } else {
+        print("FAIL\n");
+    }
 }
+
+function testFalse(x)
+{
+    if(x) {
+        print("FAIL\n");
+    } else {
+        print("SUCCESS\n");
+    }
+}
+
+function returnTest()
+{
+    return 2 > 1;
+}
+
+print("\nThese ones should succeed...\n");
+testTrue(2 > 1);
+testFalse(1 > 2);
+testTrue(1 >= 1);
+testFalse(1 >= 2);
+testFalse(1 > 1);
+testTrue(1 < 2);
+testFalse(2 < 1);
+testTrue(1 <= 1);
+testFalse(2 <= 1);
+testFalse(1 < 1);
+testTrue("foo" + "bar" == "foobar");
+testTrue(returnTest());
+testTrue(1 == "1");
+testTrue(1 === 1);
+testFalse(1 === "1");
+
+testTrue(1 != "2");
+testTrue(1 != 2);
+testFalse(1 != 1);
+
+testTrue(!!1);
+testFalse(!1);
+testTrue(!0);
+testFalse(!!0);
+
+print("\nThis ones should fail...\n");
+testTrue(0);
+testFalse(1);
+print("\n");
+
+// var counter = 0;
+// for(var x = 100; x; --x) {
+//     for(var y = 100; y; --y) {
+//         // print("" + (x * y) + "\n");
+//         ++counter;
+//     }
+// }
+// print("Counter: " + counter);
+
+// // while(1)
+// // {
+// //     print("foo");
+// // }
+
+// // var k;
+// for(var k = 10; k; --k) {
+//     print("foo " + k);
+// }
 
 // var k;
 // for(k = 10; k; 3 * 4 + (--k))

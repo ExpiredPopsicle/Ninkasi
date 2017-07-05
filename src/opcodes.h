@@ -62,4 +62,13 @@ void opcode_end(struct VM *vm);
 
 void opcode_jz(struct VM *vm);
 
+void opcode_gt(struct VM *vm);
+void opcode_lt(struct VM *vm);
+void opcode_ge(struct VM *vm);
+void opcode_le(struct VM *vm);
+void opcode_eq(struct VM *vm);
+void opcode_ne(struct VM *vm);
+void opcode_eqsametype(struct VM *vm);
+void opcode_not(struct VM *vm);
+
 #endif

@@ -111,7 +111,8 @@ bool isPrefixOperator(struct Token *token)
     return token && (
         token->type == TOKENTYPE_MINUS ||
         token->type == TOKENTYPE_DECREMENT ||
-        token->type == TOKENTYPE_INCREMENT);
+        token->type == TOKENTYPE_INCREMENT ||
+        token->type == TOKENTYPE_NOT);
 }
 
 bool isPostfixOperator(struct Token *token)
@@ -133,6 +134,15 @@ int32_t getPrecedence(enum TokenType t)
         case TOKENTYPE_PLUS:
         case TOKENTYPE_MINUS:
             return 6;
+        case TOKENTYPE_GREATERTHAN:
+        case TOKENTYPE_LESSTHAN:
+        case TOKENTYPE_GREATERTHANOREQUAL:
+        case TOKENTYPE_LESSTHANOREQUAL:
+            return 8;
+        case TOKENTYPE_EQUAL:
+        case TOKENTYPE_NOTEQUAL:
+        case TOKENTYPE_EQUALWITHSAMETYPE:
+            return 9;
         case TOKENTYPE_ASSIGNMENT:
             return 15;
         default:
@@ -739,6 +749,46 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             addInstructionSimple(cs, OP_DIVIDE);
             cs->context->stackFrameOffset--;
             dbgWriteLine("DIVIDE");
+            break;
+
+        case TOKENTYPE_GREATERTHAN:
+            addInstructionSimple(cs, OP_GREATERTHAN);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_LESSTHAN:
+            addInstructionSimple(cs, OP_LESSTHAN);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_GREATERTHANOREQUAL:
+            addInstructionSimple(cs, OP_GREATERTHANOREQUAL);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_LESSTHANOREQUAL:
+            addInstructionSimple(cs, OP_LESSTHANOREQUAL);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_EQUAL:
+            addInstructionSimple(cs, OP_EQUAL);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_NOTEQUAL:
+            addInstructionSimple(cs, OP_NOTEQUAL);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_EQUALWITHSAMETYPE:
+            addInstructionSimple(cs, OP_EQUALWITHSAMETYPE);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_NOT:
+            // No stack size change here.
+            addInstructionSimple(cs, OP_NOT);
             break;
 
         case TOKENTYPE_IDENTIFIER:

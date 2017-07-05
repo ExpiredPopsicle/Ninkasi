@@ -270,10 +270,11 @@ void opcode_popN(struct VM *vm)
 
 void opcode_dump(struct VM *vm)
 {
-    struct Value *v = vmStackPop(vm);
-    printf("Debug dump: ");
-    value_dump(vm, v);
-    printf("\n");
+    vmStackPop(vm);
+    // struct Value *v = vmStackPop(vm);
+    // printf("Debug dump: ");
+    // value_dump(vm, v);
+    // printf("\n");
 }
 
 void opcode_stackPeek(struct VM *vm)
@@ -553,3 +554,134 @@ void opcode_jz(struct VM *vm)
         dbgWriteLine("Branch NOT taken. Address now: %u", vm->instructionPointer);
     }
 }
+
+// This will return ~0 for invalid comparisons. Otherwise the return
+// value is like strcmp(). Invalid comparisons can be treated as a
+// "not equal", but should not be used for any greater/less than
+// comparisons (always false).
+int32_t opcode_internal_compare(struct VM *vm)
+{
+    struct Value *in2 = vmStackPop(vm);
+    struct Value *in1 = vmStackPop(vm);
+
+    enum ValueType type = in1->type;
+
+    switch(type) {
+
+        case VALUETYPE_INT: {
+            int32_t other = valueToInt(vm, in2);
+            if(in1->intData > other) {
+                return 1;
+            } else if(in1->intData == other) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } break;
+
+        case VALUETYPE_FLOAT: {
+            float other = valueToFloat(vm, in2);
+            if(in1->floatData > other) {
+                return 1;
+            } else if(in1->floatData == other) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } break;
+
+        case VALUETYPE_STRING: {
+            const char *other = valueToString(vm, in2);
+            const char *thisData = valueToString(vm, in1);
+
+            // Shortcut it if we ended up with two of the same entry
+            // in the string table.
+            if(other == thisData) {
+                return 0;
+            }
+
+            return strcmp(thisData, other);
+        } break;
+
+        case VALUETYPE_FUNCTIONID: {
+            if(in2->type == VALUETYPE_FUNCTIONID &&
+                in2->functionId == in1->functionId)
+            {
+                return 0;
+            } else {
+                return ~0;
+            }
+        }
+
+        default: {
+            struct DynString *ds =
+                dynStrCreate("Comparison unimplemented for type ");
+            dynStrAppend(ds, valueTypeGetName(type));
+            dynStrAppend(ds, ".");
+            errorStateAddError(
+                &vm->errorState, -1,
+                ds->data);
+            dynStrDelete(ds);
+        } break;
+    }
+
+    return ~0;
+}
+
+void opcode_gt(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison == 1);
+}
+
+void opcode_lt(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison == -1);
+}
+
+void opcode_ge(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison == 0 || comparison == 1);
+}
+
+void opcode_le(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison == 0 || comparison == -1);
+}
+
+void opcode_eq(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison == 0);
+}
+
+void opcode_ne(struct VM *vm)
+{
+    int32_t comparison = opcode_internal_compare(vm);
+    vmStackPushInt(vm, comparison != 0);
+}
+
+void opcode_eqsametype(struct VM *vm)
+{
+    uint32_t stackSize = vm->stack.size;
+    bool sameTypes =
+        vmStackPeek(vm, stackSize - 1)->type ==
+        vmStackPeek(vm, stackSize - 2)->type;
+
+    if(sameTypes) {
+        int32_t comparison = opcode_internal_compare(vm);
+        vmStackPushInt(vm, comparison == 0);
+    } else {
+        vmStackPopN(vm, 2);
+        vmStackPushInt(vm, 0);
+    }
+}
+
+void opcode_not(struct VM *vm)
+{
+    vmStackPushInt(vm, !valueToInt(vm, vmStackPop(vm)));
+}
+

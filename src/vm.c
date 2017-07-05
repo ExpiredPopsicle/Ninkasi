@@ -44,6 +44,16 @@ static void vmInitOpcodeTable(void)
 
     SETUP_OP(OP_JUMP_IF_ZERO,           opcode_jz);
 
+    SETUP_OP(OP_GREATERTHAN,            opcode_gt);
+    SETUP_OP(OP_LESSTHAN,               opcode_lt);
+    SETUP_OP(OP_GREATERTHANOREQUAL,     opcode_ge);
+    SETUP_OP(OP_LESSTHANOREQUAL,        opcode_le);
+    SETUP_OP(OP_EQUAL,                  opcode_eq);
+    SETUP_OP(OP_NOTEQUAL,               opcode_ne);
+    SETUP_OP(OP_EQUALWITHSAMETYPE,      opcode_eqsametype);
+    SETUP_OP(OP_NOT,                    opcode_not);
+
+
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
     // instead of branching to make sure they're valid.
@@ -74,7 +84,7 @@ void vmInit(struct VM *vm)
     vmStringTableInit(&vm->stringTable);
 
     vm->lastGCPass = 0;
-    vm->gcInterval = 100;
+    vm->gcInterval = 1000;
     vm->gcCountdown = vm->gcInterval;
 
     vm->functionCount = 0;

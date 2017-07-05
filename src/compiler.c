@@ -739,9 +739,8 @@ struct CompilerState *vmCompilerCreate(
     cs->vm = vm;
     cs->context = NULL;
 
-    // cs->currentToken = tokenList.first;
-    // cs->currentLineNumber =
-    //     cs->currentToken ? cs->currentToken->lineNumber : 0;
+    cs->currentToken = NULL;
+    cs->currentLineNumber = 0;
 
     pushContext(cs);
 

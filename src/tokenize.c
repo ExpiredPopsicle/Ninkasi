@@ -243,11 +243,48 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         } else if(str[i] == '=') {
 
-            addToken(TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
+            if(str[i+1] == '=') {
+                if(str[i+2] == '=') {
+                    addToken(TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
+                    i += 2;
+                } else {
+                    addToken(TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
+                    i++;
+                }
+            } else {
+                addToken(TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
+            }
 
         } else if(str[i] == ',') {
 
             addToken(TOKENTYPE_COMMA, ",", lineNumber, tokenList);
+
+        } else if(str[i] == '>') {
+
+            if(str[i+1] == '=') {
+                addToken(TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
+                i++;
+            } else {
+                addToken(TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
+            }
+
+        } else if(str[i] == '<') {
+
+            if(str[i+1] == '=') {
+                addToken(TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
+                i++;
+            } else {
+                addToken(TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
+            }
+
+        } else if(str[i] == '!') {
+
+            if(str[i+1] == '=') {
+                addToken(TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
+                i++;
+            } else {
+                addToken(TOKENTYPE_NOT, "!", lineNumber, tokenList);
+            }
 
         } else if(str[i] == '\"') {
 
