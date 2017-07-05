@@ -214,3 +214,6 @@ while(i) {
     print("THIS IS A THING " + i + "\n");
 }
 
+i = 1000;
+while(--i) var n;
+

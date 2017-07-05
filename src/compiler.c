@@ -939,9 +939,12 @@ bool compileIfStatement(struct CompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
 
     // Generate code to execute if test passes.
+    pushContext(cs);
     if(!compileStatement(cs)) {
+        popContext(cs);
         return false;
     }
+    popContext(cs);
 
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
@@ -963,9 +966,12 @@ bool compileIfStatement(struct CompilerState *cs)
         modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
         // Generate code to execute if test fails.
+        pushContext(cs);
         if(!compileStatement(cs)) {
+            popContext(cs);
             return false;
         }
+        popContext(cs);
 
         // Fixup "else" skip offset.
         modifyJump(cs, skipAddressWritePtrElse, cs->instructionWriteIndex);
@@ -984,7 +990,9 @@ bool compileWhileStatement(struct CompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
-    compileExpression(cs);
+    if(!compileExpression(cs)) {
+        return false;
+    }
 
     // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
@@ -994,7 +1002,12 @@ bool compileWhileStatement(struct CompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
 
     // Generate code to execute if test passes.
-    compileStatement(cs);
+    pushContext(cs);
+    if(!compileStatement(cs)) {
+        popContext(cs);
+        return false;
+    }
+    popContext(cs);
 
     // Emit jump back to start.
     emitJump(cs, startAddress);
@@ -1056,10 +1069,19 @@ bool compileForStatement(struct CompilerState *cs)
     }
 
     // Generate code to execute if test passes.
-    compileStatement(cs); // FIXME: Check return value.
+    pushContext(cs);
+    if(!compileStatement(cs)) {
+        popContext(cs);
+        popContext(cs);
+        return false;
+    }
+    popContext(cs);
 
     // Emit the increment expression.
-    emitExpression(cs, incrementExpression); // FIXME: Check return value.
+    if(!emitExpression(cs, incrementExpression)) {
+        popContext(cs);
+        return false;
+    }
     addInstructionSimple(cs, OP_POP);
     cs->context->stackFrameOffset--;
 
