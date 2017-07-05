@@ -650,7 +650,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
         default: {
             struct DynString *dynStr =
                 dynStrCreate("Operator or value cannot be used to generate an LValue: ");
-            dynStrAppend(dynStr, node->opOrValue->str);
+            dynStrAppend(dynStr, node->children[0]->opOrValue->str);
             vmCompilerAddError(
                 cs, dynStr->data);
             dynStrDelete(dynStr);
@@ -786,19 +786,35 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
     return true;
 }
 
-// struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
-// {
-//     struct ExpressionAstNode *newNode;
+struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
+{
+    struct ExpressionAstNode *newNode;
 
-//     if(!node) {
-//         return NULL;
-//     }
+    if(!node) {
+        return NULL;
+    }
 
-//     newNode = malloc(sizeof(struct ExpressionAstNode));
-//     memset(newNode, 0, sizeof(*newNode));
+    newNode = malloc(sizeof(struct ExpressionAstNode));
+    memset(newNode, 0, sizeof(*newNode));
 
-//     new
-// }
+    newNode->ownedToken = node->ownedToken;
+    if(node->ownedToken) {
+        newNode->opOrValue = malloc(sizeof(struct Token));
+        memset(newNode->opOrValue, 0, sizeof(struct Token));
+        newNode->opOrValue->type = node->opOrValue->type;
+        newNode->opOrValue->str = strdup(node->opOrValue->str);
+        newNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
+    } else {
+        newNode->opOrValue = node->opOrValue;
+    }
+
+    newNode->isRootFunctionCallNode = node->isRootFunctionCallNode;
+
+    newNode->children[0] = cloneExpressionTree(node->children[0]);
+    newNode->children[1] = cloneExpressionTree(node->children[1]);
+
+    return newNode;
+}
 
 void expandIncrementsAndDecrements(
     struct CompilerState *cs,
@@ -814,7 +830,58 @@ void expandIncrementsAndDecrements(
         assert(node->children[0]);
         assert(!node->children[1]);
 
-        
+        {
+            struct ExpressionAstNode *lvalueNode = node->children[0];
+            struct ExpressionAstNode *rvalueNode1 = cloneExpressionTree(node->children[0]);
+            struct ExpressionAstNode *additionNode = malloc(sizeof(struct ExpressionAstNode));
+            struct ExpressionAstNode *literalOneNode = malloc(sizeof(struct ExpressionAstNode));
+            struct Token *oldToken = node->opOrValue;
+            bool wasOwningToken = node->ownedToken;
+
+            // Generate a node for the number 1.
+            literalOneNode->opOrValue = malloc(sizeof(struct Token));
+            literalOneNode->opOrValue->type = TOKENTYPE_INTEGER;
+            literalOneNode->opOrValue->str = strdup("1");
+            literalOneNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
+            literalOneNode->opOrValue->next = NULL;
+            literalOneNode->children[0] = NULL;
+            literalOneNode->children[1] = NULL;
+            literalOneNode->stackNext = NULL;
+            literalOneNode->ownedToken = true;
+            literalOneNode->isRootFunctionCallNode = false;
+
+            // Generate a node that just adds 1 to the value.
+            additionNode->opOrValue = malloc(sizeof(struct Token));
+            additionNode->opOrValue->type =
+                oldToken->type == TOKENTYPE_INCREMENT ? TOKENTYPE_PLUS : TOKENTYPE_MINUS;
+            additionNode->opOrValue->str = strdup(
+                oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
+            additionNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
+            additionNode->opOrValue->next = NULL;
+            additionNode->children[0] = rvalueNode1;
+            additionNode->children[1] = literalOneNode;
+            additionNode->stackNext = NULL;
+            additionNode->ownedToken = true;
+            additionNode->isRootFunctionCallNode = false;
+
+            // Generate a node that assigns the added value back to
+            // the original value. This just turns this node into an
+            // assignment node.
+            node->opOrValue = malloc(sizeof(struct Token));
+            node->opOrValue->type = TOKENTYPE_ASSIGNMENT;
+            node->opOrValue->str = strdup("=");
+            node->opOrValue->lineNumber = oldToken->lineNumber;
+            node->opOrValue->next = NULL;
+            node->children[0] = lvalueNode;
+            node->children[1] = additionNode;
+            node->stackNext = NULL;
+            node->ownedToken = true;
+            node->isRootFunctionCallNode = false;
+
+            if(wasOwningToken) {
+                deleteToken(oldToken);
+            }
+        }
 
     } else {
 
