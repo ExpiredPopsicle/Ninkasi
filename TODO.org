@@ -1,0 +1,40 @@
+* DONE Strings
+** DONE String garbage collection
+* DONE Functions
+** DONE VM functions
+** DONE Native functions
+*** TODO Native function userdata
+*** TODO Check for duplicate native functions?
+** DONE Calling VM functions from native functions.
+* DONE For-loops
+* DONE Increment and decrement operators
+* DONE Comparison operators
+** DONE Greater than
+** DONE Less than
+** DONE Greater than or equal
+** DONE Less than or equal
+** DONE Equal
+** DONE Not equal
+** DONE Equal with same type (===)
+* DONE "Not" operator
+* TODO % operator
+* DONE && operator
+* DONE || operator
+* TODO Objects
+** TODO Object garbage collection
+* TODO Fuzz tester
+* TODO External data
+* TODO State serialization
+** TODO Something for recognizing the same native function between save and load
+Even if the address ends up different. (For serialized state
+compatibility between different architectures, for example.)
+** TODO Save
+** TODO Load
+* TODO Configurable limits
+** TODO Memory usage
+*** TODO Max strings
+*** TODO Max stack size
+*** TODO Max objects
+** TODO Compiler recursion limit
+* TODO Documentation
+
