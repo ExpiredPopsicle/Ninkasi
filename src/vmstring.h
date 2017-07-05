@@ -9,6 +9,11 @@ struct VMString
     uint32_t stringTableIndex;
     uint32_t lastGCPass;
     bool dontGC;
+
+    // Must be last. We're going to allocated VMStrings with enough
+    // extra space that we can treat this array as an
+    // arbitrarily-sized one, with the data extending off the end of
+    // the structure.
     char str[1];
 };
 
