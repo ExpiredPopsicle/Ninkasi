@@ -1,28 +1,5 @@
 #include "common.h"
 
-char *loadScript(const char *filename)
-{
-    FILE *in = fopen(filename, "rb");
-    uint32_t len;
-    char *buf;
-
-    if(!in) {
-        return NULL;
-    }
-
-    fseek(in, 0, SEEK_END);
-    len = ftell(in);
-    fseek(in, 0, SEEK_SET);
-
-    buf = malloc(len + 1);
-    fread(buf, len, 1, in);
-    buf[len] = 0;
-
-    fclose(in);
-
-    return buf;
-}
-
 char **splitLines(const char *str, uint32_t *lineCount)
 {
     char **lines = NULL;
@@ -51,9 +28,101 @@ char **splitLines(const char *str, uint32_t *lineCount)
     return lines;
 }
 
-void testVMFunc(struct VMFunctionCallbackData *data)
+void dumpListing(struct VM *vm, const char *script)
 {
     uint32_t i;
+
+  #if VM_DEBUG
+    uint32_t lastLine = 0;
+  #endif
+
+    uint32_t lineCount = 0;
+    char **lines = script ? splitLines(script, &lineCount) : NULL;
+
+    for(i = 0; i <= vm->instructionAddressMask; i++) {
+
+        enum Opcode opcode = vm->instructions[i].opcode;
+        struct Instruction *maybeParams =
+            &vm->instructions[(i+1) & vm->instructionAddressMask];
+
+      #if VM_DEBUG
+
+        // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+        //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
+        //     lastLine++;
+        // }
+
+        // // Output opcode.
+        // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+
+        // Line-number-less version for diff.
+        if(lines) {
+            while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+                printf("                                         ; %s\n", lines[lastLine]);
+                lastLine++;
+            }
+        }
+        printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, vmGetOpcodeName(opcode));
+
+      #else
+
+        // Output opcode.
+        printf("%.4u: %s", i, vmGetOpcodeName(opcode));
+
+      #endif
+
+        // Output parameters.
+        if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
+            i++;
+            printf(" %d", maybeParams->opData_int);
+        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
+            i++;
+            printf(" %f", maybeParams->opData_float);
+        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
+            i++;
+            printf(" %u", maybeParams->opData_functionId);
+        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
+            const char *str = vmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
+            i++;
+            // TODO: Escape string before showing here.
+            printf(" %d:\"%s\"", maybeParams->opData_string, str ? str : "<bad string>");
+        }
+
+        printf("\n");
+    }
+
+    if(lines) {
+        free(lines[0]);
+        free(lines);
+    }
+}
+
+char *loadScript(const char *filename)
+{
+    FILE *in = fopen(filename, "rb");
+    uint32_t len;
+    char *buf;
+
+    if(!in) {
+        return NULL;
+    }
+
+    fseek(in, 0, SEEK_END);
+    len = ftell(in);
+    fseek(in, 0, SEEK_SET);
+
+    buf = malloc(len + 1);
+    fread(buf, len, 1, in);
+    buf[len] = 0;
+
+    fclose(in);
+
+    return buf;
+}
+
+void testVMFunc(struct VMFunctionCallbackData *data)
+{
+    // uint32_t i;
     printf("testVMFunc hit!\n");
     // for(i = 0; i < data->argumentCount; i++) {
     //     printf("Argument %d: %s\n", i,
@@ -128,69 +197,40 @@ int main(int argc, char *argv[])
         printf("  Dump\n");
         printf("----------------------------------------------------------------------\n");
 
-        {
-            uint32_t i;
-
-          #if VM_DEBUG
-            uint32_t lastLine = 0;
-          #endif
-
-            for(i = 0; i <= vm.instructionAddressMask; i++) {
-
-                enum Opcode opcode = vm.instructions[i].opcode;
-                struct Instruction *maybeParams =
-                    &vm.instructions[(i+1) & vm.instructionAddressMask];
-
-              #if VM_DEBUG
-
-                // while(lastLine < vm.instructions[i].lineNumber && lastLine < lineCount) {
-                //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
-                //     lastLine++;
-                // }
-
-                // // Output opcode.
-                // printf("%4u %.4u: %s", vm.instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
-
-                // Line-number-less version for diff.
-                while(lastLine < vm.instructions[i].lineNumber && lastLine < lineCount) {
-                    printf("                                         ; %s\n", lines[lastLine]);
-                    lastLine++;
-                }
-                printf("%s", vmGetOpcodeName(opcode));
-
-              #else
-
-                // Output opcode.
-                printf("%.4u: %s", i, vmGetOpcodeName(opcode));
-
-              #endif
-
-                // Output parameters.
-                if(vm.instructions[i].opcode == OP_PUSHLITERAL_INT) {
-                    i++;
-                    printf(" %d", maybeParams->opData_int);
-                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
-                    i++;
-                    printf(" %f", maybeParams->opData_float);
-                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
-                    i++;
-                    printf(" %u", maybeParams->opData_functionId);
-                } else if(vm.instructions[i].opcode == OP_PUSHLITERAL_STRING) {
-                    const char *str = vmStringTableGetStringById(&vm.stringTable, maybeParams->opData_string);
-                    i++;
-                    printf(" %d:%s", maybeParams->opData_string, str ? str : "<bad string>");
-                }
-
-                printf("\n");
-            }
-        }
+        dumpListing(&vm, script);
 
         printf("----------------------------------------------------------------------\n");
         printf("  Execution\n");
         printf("----------------------------------------------------------------------\n");
 
         if(!vmGetErrorCount(&vm)) {
-            vmExecuteProgram(&vm);
+
+            // vmExecuteProgram(&vm);
+
+            while(vm.instructions[
+                    vm.instructionPointer &
+                    vm.instructionAddressMask].opcode != OP_END)
+            {
+                vmIterate(&vm);
+
+                printf("\n\n\n\n");
+                printf("----------------------------------------------------------------------\n");
+                printf("PC: %u\n", vm.instructionPointer);
+                printf("Stack...\n");
+                printf("----------------------------------------------------------------------\n");
+                vmStackDump(&vm);
+                printf("\n");
+
+                dumpListing(&vm, script);
+
+                if(vm.errorState.firstError) {
+                    break;
+                } else {
+                    getchar();
+                }
+            }
+
+
 
             {
                 struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");

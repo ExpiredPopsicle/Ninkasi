@@ -294,6 +294,10 @@ bool compileStatement(struct CompilerState *cs)
             // "while" statements.
             return compileWhileStatement(cs);
 
+        case TOKENTYPE_FOR:
+            // "for" statements.
+            return compileForStatement(cs);
+
         default:
             // Fall back to just parsing an expression.
             if(!compileExpression(cs)) {
@@ -861,6 +865,48 @@ bool vmCompilerCompileScriptFile(
     return success;
 }
 
+uint32_t emitJump(struct CompilerState *cs, uint32_t target)
+{
+    uint32_t instructionWriteIndex = cs->instructionWriteIndex;
+    emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
+    addInstructionSimple(cs, OP_JUMP_RELATIVE);
+    return instructionWriteIndex;
+}
+
+// Note: Pops +1 item off the stack.
+uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
+{
+    uint32_t instructionWriteIndex = cs->instructionWriteIndex;
+    emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
+    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+    cs->context->stackFrameOffset--;
+    return instructionWriteIndex;
+}
+
+struct Instruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
+{
+    return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
+}
+
+void modifyJump(
+    struct CompilerState *cs,
+    uint32_t pushLiteralBeforeJumpAddress,
+    uint32_t target)
+{
+    struct Instruction *pushLitInst =
+        vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
+    struct Instruction *jumpInst =
+        vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
+
+    assert(pushLitInst->opcode == OP_PUSHLITERAL_INT);
+    assert(
+        jumpInst->opcode == OP_JUMP_RELATIVE ||
+        jumpInst->opcode == OP_JUMP_IF_ZERO);
+
+    vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 1)->opData_int =
+        (target - pushLiteralBeforeJumpAddress) - 3;
+}
+
 bool compileIfStatement(struct CompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
@@ -876,10 +922,7 @@ bool compileIfStatement(struct CompilerState *cs)
 
     // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
-    emitPushLiteralInt(cs, 0);
-    skipAddressWritePtr = cs->instructionWriteIndex - 1;
-    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
-    cs->context->stackFrameOffset--;
+    skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
@@ -890,27 +933,23 @@ bool compileIfStatement(struct CompilerState *cs)
     }
 
     // Fixup skip offset.
-    cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
-        (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
     if(vmCompilerTokenType(cs) == TOKENTYPE_ELSE) {
 
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ELSE);
+        uint32_t skipAddressWritePtrElse = 0;
 
-        // Increase our skip amount by enough to skip past the
-        // OP_PUSHLITERAL_INT and OP_JUMP_RELATIVE we're going to
-        // insert to skip past the "else" clause.
-        cs->vm->instructions[
-            skipAddressWritePtr &
-            cs->vm->instructionAddressMask].opData_int
-            += 3;
+        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ELSE);
 
         // Emit instructions to skip past the contents of the "else"
         // block. Keep the index of the relative offset here so we can
         // go back and modify it after the inner code is complete.
-        emitPushLiteralInt(cs, 0);
-        skipAddressWritePtr = cs->instructionWriteIndex - 1;
-        addInstructionSimple(cs, OP_JUMP_RELATIVE);
+        skipAddressWritePtrElse = emitJump(cs, 0);
+
+        // Increase our skip amount to account for the
+        // OP_PUSHLITERAL_INT and OP_JUMP_RELATIVE we added to skip
+        // past the "else" clause.
+        modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
         // Generate code to execute if test fails.
         if(!compileStatement(cs)) {
@@ -918,9 +957,7 @@ bool compileIfStatement(struct CompilerState *cs)
         }
 
         // Fixup "else" skip offset.
-        cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
-            (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
-
+        modifyJump(cs, skipAddressWritePtrElse, cs->instructionWriteIndex);
     }
 
     return true;
@@ -929,7 +966,7 @@ bool compileIfStatement(struct CompilerState *cs)
 bool compileWhileStatement(struct CompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
-    uint32_t startAddress = cs->instructionWriteIndex - 1;
+    uint32_t startAddress = cs->instructionWriteIndex;
 
     // Skip "while("
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_WHILE);
@@ -940,10 +977,7 @@ bool compileWhileStatement(struct CompilerState *cs)
 
     // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
-    emitPushLiteralInt(cs, 0);
-    skipAddressWritePtr = cs->instructionWriteIndex - 1;
-    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
-    cs->context->stackFrameOffset--;
+    skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
@@ -952,12 +986,69 @@ bool compileWhileStatement(struct CompilerState *cs)
     compileStatement(cs);
 
     // Emit jump back to start.
-    emitPushLiteralInt(cs, startAddress - cs->instructionWriteIndex - 2);
-    addInstructionSimple(cs, OP_JUMP_RELATIVE);
+    emitJump(cs, startAddress);
 
     // Fixup skip offset.
-    cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
-        (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+
+    return true;
+}
+
+bool compileForStatement(struct CompilerState *cs)
+{
+    uint32_t skipAddressWritePtr = 0;
+    uint32_t loopStartAddress = 0;
+    // FIXME: !!! Make sure this is cleaned up when there's an error.
+    struct ExpressionAstNode *incrementExpression = NULL;
+
+    // Skip "while("
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FOR);
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+
+    // Generate the init expression code.
+    if(!compileExpression(cs)) {
+        return false;
+    }
+    addInstructionSimple(cs, OP_POP);
+    cs->context->stackFrameOffset--;
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    // Save the address we want to jump back to for the loop.
+    loopStartAddress = cs->instructionWriteIndex;
+
+    // Generate test expression code.
+    if(!compileExpression(cs)) {
+        return false;
+    }
+    skipAddressWritePtr = emitJumpIfZero(cs, 0);
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    // Parse the increment expression, but don't emit yet (we'll do
+    // this at the end, before the jump back).
+    incrementExpression = parseExpression(cs); // FIXME: Check return value.
+
+    // Skip ")"
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+
+    // Generate code to execute if test passes.
+    compileStatement(cs); // FIXME: Check return value.
+
+    // Emit the increment expression.
+    emitExpression(cs, incrementExpression); // FIXME: Check return value.
+    addInstructionSimple(cs, OP_POP);
+    cs->context->stackFrameOffset--;
+
+    // Emit jump back to start.
+    emitJump(cs, loopStartAddress);
+
+    // Fixup skip offset.
+    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+    // cs->vm->instructions[skipAddressWritePtr & cs->vm->instructionAddressMask].opData_int =
+    //     (cs->instructionWriteIndex - skipAddressWritePtr) - 2;
+
+    deleteExpressionNode(incrementExpression);
 
     return true;
 }
