@@ -106,6 +106,10 @@ void optimizeConstants(struct ExpressionAstNode **node)
             canOptimize = false;
         }
 
+        if(!(*node)->children[0]) {
+            canOptimize = false;
+        }
+
         if(canOptimize) {
 
             // Make a new literal value node with the same type as

@@ -57,7 +57,9 @@ void addToken(
 
 char *tokenizerUnescapeString(const char *in)
 {
-    char *out = malloc(strlen(in) + 1);
+    // +2 for weird backslash-before null-terminator, and the regular
+    // null terminator.
+    char *out = malloc(strlen(in) + 2);
     uint32_t len = strlen(in);
     uint32_t readIndex;
     uint32_t writeIndex = 0;

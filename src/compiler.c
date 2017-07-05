@@ -385,6 +385,9 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
             // FIXME: Remove this.
             dbgPop();
 
+            if(!noBracesOrContext) {
+                popContext(cs);
+            }
             return false;
         }
     }
@@ -637,7 +640,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     }
 
     // Parse and emit actual function code.
-    ret = ret && compileStatement(cs);
+    if(!compileStatement(cs)) {
+        ret = false;
+    }
 
     // functionObject pointer may have been invalidated in the
     // recursive code because of a reallocation (from a function added
@@ -658,6 +663,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
 
     // Restore the "real" context back to the parent.
     dbgPush(); // FIXME: To counter the push inside popContext.
+
+    assert(cs->context == functionLocalContext);
+
     popContext(cs);
     cs->context = savedContext;
 
@@ -1071,6 +1079,7 @@ bool compileForStatement(struct CompilerState *cs)
     // Generate code to execute if test passes.
     pushContext(cs);
     if(!compileStatement(cs)) {
+        deleteExpressionNode(incrementExpression);
         popContext(cs);
         popContext(cs);
         return false;
@@ -1079,6 +1088,7 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Emit the increment expression.
     if(!emitExpression(cs, incrementExpression)) {
+        deleteExpressionNode(incrementExpression);
         popContext(cs);
         return false;
     }

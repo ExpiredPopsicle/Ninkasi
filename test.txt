@@ -63,8 +63,8 @@ testFalse(1);
 print("\n");
 
 var counter = 0;
-for(var x = 100; x; --x) {
-    for(var y = 100; y; --y) {
+for(var x = 10; x; --x) {
+    for(var y = 10; y; --y) {
         // print("" + (x * y) + "\n");
         ++counter;
     }
@@ -208,12 +208,12 @@ if(1) {
 
 
 var i;
-i = 10000;
+i = 10;
 while(i) {
     i = i - 1;
     print("THIS IS A THING " + i + "\n");
 }
 
-i = 1000;
+i = 10;
 while(--i) var n;
 

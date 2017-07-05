@@ -154,187 +154,200 @@ void vmFuncPrint(struct VMFunctionCallbackData *data)
 
 int main(int argc, char *argv[])
 {
-    struct VM vm;
-
     char *script = loadScript("test.txt");
-    uint32_t lineCount = 0;
-    char **lines = splitLines(script, &lineCount);
-    assert(script);
 
-    vmInit(&vm);
+    while(strlen(script)) {
 
-    {
-        struct CompilerState *cs = vmCompilerCreate(&vm);
-        vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-        vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
-        vmCompilerCompileScriptFile(cs, "test.txt");
-        vmCompilerFinalize(cs);
+        struct VM vm;
 
-        // Dump errors.
-        if(vmGetErrorCount(&vm)) {
-            struct Error *err = vm.errorState.firstError;
-            while(err) {
-                printf("error: %s\n", err->errorText);
-                err = err->next;
-            }
-        }
-    }
+        uint32_t lineCount = 0;
+        char **lines = splitLines(script, &lineCount);
+        assert(script);
 
-    if(!vm.errorState.firstError) {
-
-        printf("----------------------------------------------------------------------\n");
-        printf("  Original script\n");
-        printf("----------------------------------------------------------------------\n");
+        vmInit(&vm);
 
         {
-            uint32_t i;
-            for(i = 0; i < lineCount; i++) {
-                printf("%4u : %s\n", i, lines[i]);
-            }
-        }
+            struct CompilerState *cs = vmCompilerCreate(&vm);
+            vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+            vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
+            vmCompilerCompileScript(cs, script);
+            vmCompilerFinalize(cs);
 
-        printf("----------------------------------------------------------------------\n");
-        printf("  Dump\n");
-        printf("----------------------------------------------------------------------\n");
-
-        dumpListing(&vm, script);
-
-        printf("----------------------------------------------------------------------\n");
-        printf("  Execution\n");
-        printf("----------------------------------------------------------------------\n");
-
-        if(!vmGetErrorCount(&vm)) {
-
-            // vmExecuteProgram(&vm);
-
-            while(vm.instructions[
-                    vm.instructionPointer &
-                    vm.instructionAddressMask].opcode != OP_END)
-            {
-                vmIterate(&vm);
-
-                // printf("\n\n\n\n");
-                // printf("----------------------------------------------------------------------\n");
-                // printf("PC: %u\n", vm.instructionPointer);
-                // printf("Stack...\n");
-                // printf("----------------------------------------------------------------------\n");
-                // vmStackDump(&vm);
-                // printf("\n");
-                // dumpListing(&vm, script);
-                // getchar();
-
-                if(vm.errorState.firstError) {
-                    break;
-                }
-            }
-
-
-
-            {
-                struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");
-                if(v) {
-                    printf("Value found: %s\n", valueToString(&vm, v));
-                } else {
-                    printf("Value NOT found.\n");
+            // Dump errors.
+            if(vmGetErrorCount(&vm)) {
+                struct Error *err = vm.errorState.firstError;
+                while(err) {
+                    printf("error: %s\n", err->errorText);
+                    err = err->next;
                 }
             }
         }
 
-        // while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
+        if(!vm.errorState.firstError) {
 
-        //     // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
-        //     // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
-        //     vmIterate(&vm);
+            printf("----------------------------------------------------------------------\n");
+            printf("  Original script\n");
+            printf("----------------------------------------------------------------------\n");
 
-        if(vm.errorState.firstError) {
-            struct Error *err = vm.errorState.firstError;
-            while(err) {
-                printf("error: %s\n", err->errorText);
-                err = err->next;
+            {
+                uint32_t i;
+                for(i = 0; i < lineCount; i++) {
+                    printf("%4u : %s\n", i, lines[i]);
+                }
             }
+
+            printf("----------------------------------------------------------------------\n");
+            printf("  Dump\n");
+            printf("----------------------------------------------------------------------\n");
+
+            dumpListing(&vm, script);
+
+            printf("----------------------------------------------------------------------\n");
+            printf("  Execution\n");
+            printf("----------------------------------------------------------------------\n");
+
+            if(!vmGetErrorCount(&vm)) {
+
+                // vmExecuteProgram(&vm);
+
+                uint32_t maxIterationCount = 1000000;
+
+                while(maxIterationCount-- &&
+                    vm.instructions[
+                        vm.instructionPointer &
+                        vm.instructionAddressMask].opcode != OP_END)
+                {
+                    vmIterate(&vm);
+
+                    // printf("\n\n\n\n");
+                    // printf("----------------------------------------------------------------------\n");
+                    // printf("PC: %u\n", vm.instructionPointer);
+                    // printf("Stack...\n");
+                    // printf("----------------------------------------------------------------------\n");
+                    // vmStackDump(&vm);
+                    // printf("\n");
+                    // dumpListing(&vm, script);
+                    // getchar();
+
+                    if(vm.errorState.firstError) {
+                        break;
+                    }
+                }
+
+
+
+                {
+                    struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");
+                    if(v) {
+                        printf("Value found: %s\n", valueToString(&vm, v));
+                    } else {
+                        printf("Value NOT found.\n");
+                    }
+                }
+            }
+
+            // while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
+
+            //     // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
+            //     // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
+            //     vmIterate(&vm);
+
+            if(vm.errorState.firstError) {
+                struct Error *err = vm.errorState.firstError;
+                while(err) {
+                    printf("error: %s\n", err->errorText);
+                    err = err->next;
+                }
+            }
+
+            //     vmStackDump(&vm);
+            //     // vmGarbageCollect(&vm);
+
+            //     printf("next at %d\n",
+            //         vm.instructionPointer);
+            //     printf("next instruction %d: %d = %s\n",
+            //         vm.instructionPointer,
+            //         vm.instructions[vm.instructionPointer].opcode,
+            //         vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
+            // }
+
+            // // Function call test.
+            // if(!vm.errorState.firstError) {
+            //     struct Value retVal;
+            //     memset(&retVal, 0, sizeof(retVal));
+            //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
+            // }
         }
 
-        //     vmStackDump(&vm);
-        //     // vmGarbageCollect(&vm);
-
-        //     printf("next at %d\n",
-        //         vm.instructionPointer);
-        //     printf("next instruction %d: %d = %s\n",
-        //         vm.instructionPointer,
-        //         vm.instructions[vm.instructionPointer].opcode,
-        //         vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
-        // }
-
-        // // Function call test.
-        // if(!vm.errorState.firstError) {
-        //     struct Value retVal;
-        //     memset(&retVal, 0, sizeof(retVal));
-        //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
-        // }
-    }
-
-    printf("----------------------------------------------------------------------\n");
-    printf("  Finish\n");
-    printf("----------------------------------------------------------------------\n");
-
-    printf("Final stack...\n");
-    vmStackDump(&vm);
-    vmGarbageCollect(&vm);
-    printf("Final stack again...\n");
-    vmStackDump(&vm);
-
-    if(0) {
-
         printf("----------------------------------------------------------------------\n");
-        printf("  String table crap\n");
+        printf("  Finish\n");
         printf("----------------------------------------------------------------------\n");
 
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "bladgh");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "foom");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "dicks");
-        vmStringTableFindOrAddString(
-            &vm.stringTable, "sadf");
-
-        vmStringTableDump(&vm.stringTable);
-
-        vmStringTableGetEntryById(
-            &vm.stringTable,
-            vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
-
-        vmStringTableCleanOldStrings(&vm.stringTable, 1234);
-
-        vmStringTableDump(&vm.stringTable);
-
-        vmRescanProgramStrings(&vm);
-
-
-        // vmIterate(&vm);
-        // vmIterate(&vm);
-        // vmIterate(&vm);
-        // vmIterate(&vm);
-        printf("Final stack dump...\n");
+        printf("Final stack...\n");
         vmStackDump(&vm);
-    }
+        vmGarbageCollect(&vm);
+        printf("Final stack again...\n");
+        vmStackDump(&vm);
 
-    vmDestroy(&vm);
+        if(0) {
+
+            printf("----------------------------------------------------------------------\n");
+            printf("  String table crap\n");
+            printf("----------------------------------------------------------------------\n");
+
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "bladgh");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "foom");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "dicks");
+            vmStringTableFindOrAddString(
+                &vm.stringTable, "sadf");
+
+            vmStringTableDump(&vm.stringTable);
+
+            vmStringTableGetEntryById(
+                &vm.stringTable,
+                vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
+
+            vmStringTableCleanOldStrings(&vm.stringTable, 1234);
+
+            vmStringTableDump(&vm.stringTable);
+
+            vmRescanProgramStrings(&vm);
+
+
+            // vmIterate(&vm);
+            // vmIterate(&vm);
+            // vmIterate(&vm);
+            // vmIterate(&vm);
+            printf("Final stack dump...\n");
+            vmStackDump(&vm);
+        }
+
+        vmDestroy(&vm);
+
+        free(lines[0]);
+        free(lines);
+
+
+
+        script[strlen(script) - 1] = 0;
+        fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
+    }
 
     free(script);
-    free(lines[0]);
-    free(lines);
 
     return 0;
 }
