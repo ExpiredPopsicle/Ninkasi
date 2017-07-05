@@ -71,4 +71,7 @@ void opcode_ne(struct VM *vm);
 void opcode_eqsametype(struct VM *vm);
 void opcode_not(struct VM *vm);
 
+void opcode_and(struct VM *vm);
+void opcode_or(struct VM *vm);
+
 #endif

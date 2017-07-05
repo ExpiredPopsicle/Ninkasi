@@ -1,5 +1,3 @@
-
-
 function testTrue(x)
 {
     if(x) {
@@ -48,6 +46,16 @@ testTrue(!!1);
 testFalse(!1);
 testTrue(!0);
 testFalse(!!0);
+
+testTrue(1 && 1);
+testFalse(1 && 0);
+testFalse(0 && 1);
+testFalse(0 && 0);
+
+testTrue(1 || 1);
+testTrue(1 || 0);
+testTrue(0 || 1);
+testFalse(0 || 0);
 
 print("\nThis ones should fail...\n");
 testTrue(0);
@@ -209,5 +217,4 @@ print("\n");
 //     i = i - 1;
 //     print("THIS IS A THING " + i + "\n");
 // }
-
 

@@ -685,3 +685,21 @@ void opcode_not(struct VM *vm)
     vmStackPushInt(vm, !valueToInt(vm, vmStackPop(vm)));
 }
 
+void opcode_and(struct VM *vm)
+{
+    // Do NOT try to inline these function calls in this expression. C
+    // shortcutting will ruin your day.
+    bool in1 = valueToInt(vm, vmStackPop(vm));
+    bool in2 = valueToInt(vm, vmStackPop(vm));
+    vmStackPushInt(vm, in1 && in2);
+}
+
+void opcode_or(struct VM *vm)
+{
+    // Do NOT try to inline these function calls in this expression. C
+    // shortcutting will ruin your day.
+    bool in1 = valueToInt(vm, vmStackPop(vm));
+    bool in2 = valueToInt(vm, vmStackPop(vm));
+    vmStackPushInt(vm, in1 || in2);
+}
+

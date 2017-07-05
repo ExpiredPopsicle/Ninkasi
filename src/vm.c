@@ -53,6 +53,8 @@ static void vmInitOpcodeTable(void)
     SETUP_OP(OP_EQUALWITHSAMETYPE,      opcode_eqsametype);
     SETUP_OP(OP_NOT,                    opcode_not);
 
+    SETUP_OP(OP_AND,                    opcode_and);
+    SETUP_OP(OP_OR,                     opcode_or);
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions

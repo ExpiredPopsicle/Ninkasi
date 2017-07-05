@@ -286,6 +286,16 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 addToken(TOKENTYPE_NOT, "!", lineNumber, tokenList);
             }
 
+        } else if(str[i] == '&' && str[i+1] == '&') {
+
+            i++;
+            addToken(TOKENTYPE_AND, "&&", lineNumber, tokenList);
+
+        } else if(str[i] == '|' && str[i+1] == '|') {
+
+            i++;
+            addToken(TOKENTYPE_OR, "||", lineNumber, tokenList);
+
         } else if(str[i] == '\"') {
 
             const char *strStart = &str[i+1];

@@ -55,6 +55,9 @@ enum Opcode
     OP_EQUALWITHSAMETYPE,
     OP_NOT,
 
+    OP_AND,
+    OP_OR,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
@@ -85,6 +88,8 @@ enum TokenType
     TOKENTYPE_ELSE,
     TOKENTYPE_WHILE,
     TOKENTYPE_FOR,
+    TOKENTYPE_AND,
+    TOKENTYPE_OR,
 
     TOKENTYPE_GREATERTHAN,
     TOKENTYPE_LESSTHAN,

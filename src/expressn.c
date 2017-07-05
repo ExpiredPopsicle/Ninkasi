@@ -1,22 +1,5 @@
 #include "common.h"
 
-
-// void *wrapMalloc(uint32_t size)
-// {
-//     void *v = malloc(size);
-//     printf("Malloc: %p\n", v);
-//     return v;
-// }
-// void wrapFree(void *v)
-// {
-//     printf("Free:   %p\n", v);
-//     free(v);
-// }
-// #define malloc(x) wrapMalloc(x)
-// #define free(x) wrapFree(x)
-
-
-
 void deleteExpressionNode(struct ExpressionAstNode *node)
 {
     if(!node) {
@@ -143,6 +126,10 @@ int32_t getPrecedence(enum TokenType t)
         case TOKENTYPE_NOTEQUAL:
         case TOKENTYPE_EQUALWITHSAMETYPE:
             return 9;
+        case TOKENTYPE_AND:
+            return 13;
+        case TOKENTYPE_OR:
+            return 14;
         case TOKENTYPE_ASSIGNMENT:
             return 15;
         default:
@@ -793,6 +780,16 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
         case TOKENTYPE_IDENTIFIER:
             emitFetchVariable(cs, node->opOrValue->str, node);
+            break;
+
+        case TOKENTYPE_AND:
+            addInstructionSimple(cs, OP_AND);
+            cs->context->stackFrameOffset--;
+            break;
+
+        case TOKENTYPE_OR:
+            addInstructionSimple(cs, OP_OR);
+            cs->context->stackFrameOffset--;
             break;
 
             // TODO: Array index.
