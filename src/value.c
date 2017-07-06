@@ -79,6 +79,11 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
         case VALUETYPE_STRING:
             return atoi(valueToString(vm, value));
 
+        case VALUETYPE_OBJECTID:
+            // This is just for detection of the presence of objects
+            // (like a null pointer check).
+            return 1;
+
         default: {
             struct DynString *ds = dynStrCreate("Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));

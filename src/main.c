@@ -45,6 +45,10 @@ void dumpListing(struct VM *vm, const char *script)
         struct Instruction *maybeParams =
             &vm->instructions[(i+1) & vm->instructionAddressMask];
 
+        if(opcode == OP_END) {
+            break;
+        }
+
       #if VM_DEBUG
 
         // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
@@ -212,9 +216,7 @@ int main(int argc, char *argv[])
 
                 // vmExecuteProgram(&vm);
 
-                uint32_t maxIterationCount = 1000000;
-
-                while(maxIterationCount-- &&
+                while(
                     vm.instructions[
                         vm.instructionPointer &
                         vm.instructionAddressMask].opcode != OP_END)

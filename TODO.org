@@ -20,8 +20,8 @@
 * DONE % operator
 * DONE && operator
 * DONE || operator
-* TODO Objects
-** TODO Object garbage collection
+* DONE Objects
+** DONE Object garbage collection
 * TODO Fuzz tester
 * TODO External data
 * TODO State serialization

@@ -132,10 +132,8 @@ void vmIterate(struct VM *vm)
 
     // Handle periodic garbage collection.
 
-    // TODO: Re-enable this...
-    // vm->gcCountdown--;
-    // if(!vm->gcCountdown)
-    {
+    vm->gcCountdown--;
+    if(!vm->gcCountdown) {
         vmGarbageCollect(vm);
         vm->gcCountdown = vm->gcInterval;
     }
@@ -150,11 +148,13 @@ struct VMValueGCEntry
     struct VMValueGCEntry *next;
 };
 
+// FIXME: Find a way to do this without tons of allocations.
 void vmGarbageCollect_markValue(
     struct VM *vm, struct Value *v,
     uint32_t currentGCPass)
 {
     struct VMValueGCEntry *openList;
+    struct VMValueGCEntry *closedList = NULL; // We'll keep this just for re-using allocations.
 
     if(v->lastGCPass == currentGCPass) {
         return;
@@ -201,7 +201,6 @@ void vmGarbageCollect_markValue(
                         struct VMObjectElement *el = ob->data;
 
                         ob->lastGCPass = currentGCPass;
-                        printf("MARKED: %p %u\n", ob, currentGCPass);
 
                         while(el) {
 
@@ -212,8 +211,13 @@ void vmGarbageCollect_markValue(
                                 if(v->type == VALUETYPE_STRING ||
                                     v->type == VALUETYPE_OBJECTID)
                                 {
-                                    struct VMValueGCEntry *newEntry =
-                                        malloc(sizeof(struct VMValueGCEntry));
+                                    struct VMValueGCEntry *newEntry = closedList;
+                                    if(!newEntry) {
+                                        newEntry = malloc(sizeof(struct VMValueGCEntry));
+                                    } else {
+                                        closedList = newEntry->next;
+                                    }
+
                                     newEntry->value = v;
                                     newEntry->next = openList;
                                     openList = newEntry;
@@ -235,7 +239,20 @@ void vmGarbageCollect_markValue(
             }
         }
 
-        free(currentEntry);
+        currentEntry->next = closedList;
+        closedList = currentEntry;
+    }
+
+    // Clean up.
+    {
+        uint32_t count = 0;
+        while(closedList) {
+            struct VMValueGCEntry *next = closedList->next;
+            free(closedList);
+            closedList = next;
+            count++;
+        }
+        dbgWriteLine("Closed list grew to: %u\n", count);
     }
 }
 

@@ -99,25 +99,35 @@ void popContext(struct CompilerState *cs)
         }
 
         {
+
+            // FIXME !!!!!!!! This idea of consolidating the POPN
+            // instructions failed because of one very important
+            // thing! Sometimes we need two adjacent blocks of
+            // PUSHLITERAL/POPNs, because a JUMP might target the
+            // second one. This manifested in an "if" statement's
+            // "else" block at the end of a "for" loop incorrectly
+            // getting consolidated with the "for" loop context.
+            // Yikes!
+
             // Add instructions to pop variables off the stack that
             // are no longer in scope. First attempt to add onto
             // existing instructions that do this for the context.
 
-            uint32_t maybePushIntAddr =
-                (cs->instructionWriteIndex - 3) & cs->vm->instructionAddressMask;
-            uint32_t maybeIntAddr =
-                (cs->instructionWriteIndex - 2) & cs->vm->instructionAddressMask;
-            uint32_t maybePopNAddr =
-                (cs->instructionWriteIndex - 1) & cs->vm->instructionAddressMask;
+            // uint32_t maybePushIntAddr =
+            //     (cs->instructionWriteIndex - 3) & cs->vm->instructionAddressMask;
+            // uint32_t maybeIntAddr =
+            //     (cs->instructionWriteIndex - 2) & cs->vm->instructionAddressMask;
+            // uint32_t maybePopNAddr =
+            //     (cs->instructionWriteIndex - 1) & cs->vm->instructionAddressMask;
 
-            if(cs->vm->instructions[maybePushIntAddr].opcode == OP_PUSHLITERAL_INT &&
-                cs->vm->instructions[maybePopNAddr].opcode == OP_POPN)
-            {
-                // Looks like we just came out of a context, so we can
-                // add onto that.
-                cs->vm->instructions[maybeIntAddr].opData_int += popCount;
+            // if(cs->vm->instructions[maybePushIntAddr].opcode == OP_PUSHLITERAL_INT &&
+            //     cs->vm->instructions[maybePopNAddr].opcode == OP_POPN)
+            // {
+            //     // Looks like we just came out of a context, so we can
+            //     // add onto that.
+            //     cs->vm->instructions[maybeIntAddr].opData_int += popCount;
 
-            } else {
+            // } else {
 
                 // Last thing was not exiting a context, so we need a
                 // new set of instructions here. (Assuming there's
@@ -126,7 +136,8 @@ void popContext(struct CompilerState *cs)
                     emitPushLiteralInt(cs, popCount);
                     addInstructionSimple(cs, OP_POPN);
                 }
-            }
+
+            // }
         }
 
     }
@@ -758,6 +769,11 @@ struct CompilerState *vmCompilerCreate(
 void vmCompilerFinalize(
     struct CompilerState *cs)
 {
+    // We MUST end up on the global context at the end.
+    if(!cs->context || cs->context->parent) {
+        vmCompilerAddError(cs, "Context mismatch at compilation end!");
+    }
+
     // Pop everything up to the global context.
     while(cs->context && cs->context->parent) {
         popContext(cs);
@@ -1036,7 +1052,7 @@ bool compileForStatement(struct CompilerState *cs)
     // code.
     pushContext(cs);
 
-    // Skip "while("
+    // Skip "for("
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FOR);
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
