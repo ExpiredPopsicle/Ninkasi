@@ -57,6 +57,10 @@ testTrue(1 || 0);
 testTrue(0 || 1);
 testFalse(0 || 0);
 
+
+testTrue(5 % 3 == 2);
+
+
 print("\nThis ones should fail...\n");
 testTrue(0);
 testFalse(1);

@@ -224,6 +224,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             addToken(TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
 
+        } else if(str[i] == '%') {
+
+            addToken(TOKENTYPE_MODULO, "%", lineNumber, tokenList);
+
         } else if(str[i] == '/') {
 
             if(str[i+1] == '/') {

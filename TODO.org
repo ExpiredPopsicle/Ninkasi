@@ -38,3 +38,42 @@ compatibility between different architectures, for example.)
 ** TODO Compiler recursion limit
 * TODO Documentation
 
+* TODO Index-into for external data
+* TODO Operator overloading for external data
+* TODO Can we double-buffer the GC list?
+- May not be possible when we have to count external references.
+* TODO foo.bar syntactic sugar.
+'.' operator must be treated as postfix, I think. It's got the same
+precedence level as other postfix operators, and it acts like [],
+which is also postfix.
+
+Look into the [] implementation to see how to do postfix operators
+with secondary values.
+
+a[b] is...
++ index into operator
+  + a
+  + b
+
+a.b is...
++ index into operator
+  + a
+  + "b"
+
+* TODO foo.bar() syntactic sugar.
+We'll copy Lua here and insert a "self" parameter as the first
+parameter here.
+
+x.a(b, c) is...
++ function call (root)
+  + index into operator
+    + x
+    + "a"
+  + function call (param)
+    + x
+    + function call (param)
+      + b
+      + function call (param)
+        + c
+        + NULL
+

@@ -28,6 +28,7 @@ void opcode_add(struct VM *vm);
 void opcode_subtract(struct VM *vm);
 void opcode_multiply(struct VM *vm);
 void opcode_divide(struct VM *vm);
+void opcode_modulo(struct VM *vm);
 void opcode_negate(struct VM *vm);
 
 void opcode_pushLiteral_int(struct VM *vm);

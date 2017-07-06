@@ -21,6 +21,7 @@ static void vmInitOpcodeTable(void)
     SETUP_OP(OP_SUBTRACT,               opcode_subtract);
     SETUP_OP(OP_MULTIPLY,               opcode_multiply);
     SETUP_OP(OP_DIVIDE,                 opcode_divide);
+    SETUP_OP(OP_MODULO,                 opcode_modulo);
     SETUP_OP(OP_NEGATE,                 opcode_negate);
     SETUP_OP(OP_PUSHLITERAL_INT,        opcode_pushLiteral_int);
     SETUP_OP(OP_PUSHLITERAL_FLOAT,      opcode_pushLiteral_float);

@@ -224,6 +224,42 @@ void opcode_divide(struct VM *vm)
     }
 }
 
+void opcode_modulo(struct VM *vm)
+{
+    struct Value *in2 = vmStackPop(vm);
+    struct Value *in1 = vmStackPop(vm);
+
+    enum ValueType type = in1->type;
+
+    switch(type) {
+
+        case VALUETYPE_INT: {
+            int32_t val2 = valueToInt(vm, in2);
+            if(val2 == 0) {
+                errorStateAddError(
+                    &vm->errorState, -1,
+                    "Integer divide-by-zero.");
+            } else {
+                vmStackPushInt(
+                    vm,
+                    in1->intData %
+                    val2);
+            }
+        } break;
+
+        default: {
+            struct DynString *ds =
+                dynStrCreate("Modulo unimplemented for type ");
+            dynStrAppend(ds, valueTypeGetName(type));
+            dynStrAppend(ds, ".");
+            errorStateAddError(
+                &vm->errorState, -1,
+                ds->data);
+            dynStrDelete(ds);
+        } break;
+    }
+}
+
 void opcode_negate(struct VM *vm)
 {
     struct Value *in1 = vmStackPop(vm);

@@ -113,6 +113,7 @@ int32_t getPrecedence(enum TokenType t)
     switch(t) {
         case TOKENTYPE_MULTIPLY:
         case TOKENTYPE_DIVIDE:
+        case TOKENTYPE_MODULO:
             return 5;
         case TOKENTYPE_PLUS:
         case TOKENTYPE_MINUS:
@@ -736,6 +737,11 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             addInstructionSimple(cs, OP_DIVIDE);
             cs->context->stackFrameOffset--;
             dbgWriteLine("DIVIDE");
+            break;
+
+        case TOKENTYPE_MODULO:
+            addInstructionSimple(cs, OP_MODULO);
+            cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_GREATERTHAN:
