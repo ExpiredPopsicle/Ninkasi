@@ -78,3 +78,11 @@ x.a(b, c) is...
         + NULL
 
 * TODO Deal with code duplication between string and object tables.
+* TODO Maybe increment break.
+- We'll have to keep track of what the most recent loop context is.
+- Then add code to pop all of that out and jump to the end.
+- Meaning we'll have to keep a list of jump points to update once the loop is over.
+- Can store that all on the context object, I guess.
+- Make sure we don't go outside the function while moving up the context stack!
+
+

@@ -242,7 +242,7 @@ int32_t value_compare(
             {
                 return 0;
             } else {
-                return ~0;
+                return in1->functionId < in2->functionId ? -1 : 1;
             }
         }
 
@@ -252,7 +252,7 @@ int32_t value_compare(
             {
                 return 0;
             } else {
-                return ~0;
+                return in1->objectId < in2->objectId ? -1 : 1;
             }
         }
 

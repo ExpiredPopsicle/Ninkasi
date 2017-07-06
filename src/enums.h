@@ -62,10 +62,13 @@ enum Opcode
 
     OP_CREATEOBJECT,
 
+    OP_OBJECTFIELDGET,
+    OP_OBJECTFIELDSET,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
-    OPCODE_PADDEDCOUNT = 32
+    OPCODE_PADDEDCOUNT = 64
 };
 
 enum TokenType

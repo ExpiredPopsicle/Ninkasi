@@ -680,3 +680,75 @@ void opcode_createObject(struct VM *vm)
     v->type = VALUETYPE_OBJECTID;
     v->objectId = vmObjectTableCreateObject(&vm->objectTable);
 }
+
+void opcode_objectFieldGet(struct VM *vm)
+{
+    struct Value *indexToGet = vmStackPop(vm);
+    struct Value *objectToGet = vmStackPop(vm);
+    struct Value *output;
+    struct Value *objectValue;
+    struct VMObject *ob;
+
+    if(objectToGet->type != VALUETYPE_OBJECTID) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Attempted to get a field on a value that is not an object.");
+        return;
+    }
+
+    ob = vmObjectTableGetEntryById(&vm->objectTable, objectToGet->objectId);
+
+    if(!ob) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Bad object id in opcode_objectFieldGet.");
+        return;
+    }
+
+    output = vmStackPush_internal(vm);
+
+    objectValue =
+        vmObjectFindOrAddEntry(vm, ob, indexToGet);
+
+    *output = *objectValue;
+}
+
+void opcode_objectFieldSet(struct VM *vm)
+{
+    struct Value *indexToSet  = vmStackPop(vm);
+    struct Value *objectToSet = vmStackPop(vm);
+    struct Value *valueToSet  = vmStackPop(vm);
+
+    // TODO: Actually assign the value.
+    struct Value *objectValue;
+    struct VMObject *ob;
+
+    if(objectToSet->type != VALUETYPE_OBJECTID) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Attempted to set a field on a value that is not an object.");
+        return;
+    }
+
+    ob = vmObjectTableGetEntryById(&vm->objectTable, objectToSet->objectId);
+
+    if(!ob) {
+        errorStateAddError(
+            &vm->errorState,
+            -1,
+            "Bad object id in opcode_objectFieldSet.");
+        return;
+    }
+
+    objectValue =
+        vmObjectFindOrAddEntry(vm, ob, indexToSet);
+
+    *objectValue = *valueToSet;
+
+    // Leave the assigned value on the stack.
+    *vmStackPush_internal(vm) = *valueToSet;
+}
+

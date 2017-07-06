@@ -643,7 +643,16 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
                 node);
         } break;
 
-        // TODO: Array index.
+        // Object index.
+        case TOKENTYPE_BRACKET_OPEN: {
+
+            // Emit the thing we're going to assign to.
+            emitExpression(cs, node->children[0]->children[0]); // Object id
+            emitExpression(cs, node->children[0]->children[1]); // Index
+
+            addInstructionSimple(cs, OP_OBJECTFIELDSET);
+            cs->context->stackFrameOffset -= 2;
+        } break;
 
         default: {
             struct DynString *dynStr =
@@ -803,7 +812,10 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             cs->context->stackFrameOffset--;
             break;
 
-            // TODO: Array index.
+        case TOKENTYPE_BRACKET_OPEN:
+            addInstructionSimple(cs, OP_OBJECTFIELDGET);
+            cs->context->stackFrameOffset--;
+            break;
 
         case TOKENTYPE_PAREN_OPEN: {
             // Function calls.

@@ -57,6 +57,9 @@ static void vmInitOpcodeTable(void)
     SETUP_OP(OP_AND,                    opcode_and);
     SETUP_OP(OP_OR,                     opcode_or);
 
+    SETUP_OP(OP_OBJECTFIELDGET,         opcode_objectFieldGet);
+    SETUP_OP(OP_OBJECTFIELDSET,         opcode_objectFieldSet);
+
     SETUP_OP(OP_CREATEOBJECT,           opcode_createObject);
 
     // Fill in the rest of the opcode table with no-ops. We just want
@@ -163,6 +166,7 @@ void vmGarbageCollect_markValue(
 
     while(openList) {
 
+        // Remove the value from the list.
         struct VMValueGCEntry *currentEntry = openList;
         openList = openList->next;
 
@@ -175,8 +179,10 @@ void vmGarbageCollect_markValue(
             switch(value->type) {
 
                 case VALUETYPE_STRING: {
+
                     struct VMString *str = vmStringTableGetEntryById(
                         &vm->stringTable, value->stringTableEntry);
+
                     if(str) {
                         str->lastGCPass = currentGCPass;
                     } else {
@@ -187,14 +193,35 @@ void vmGarbageCollect_markValue(
                 } break;
 
                 case VALUETYPE_OBJECTID: {
+
                     struct VMObject *ob = vmObjectTableGetEntryById(
                         &vm->objectTable, value->objectId);
-                    if(ob) {
-                        ob->lastGCPass = currentGCPass;
 
-                        // TODO: Add all referenced objects that don't
-                        // have lastGCPass == currentGCPass to the
-                        // openList.
+                    if(ob) {
+                        struct VMObjectElement *el = ob->data;
+
+                        ob->lastGCPass = currentGCPass;
+                        printf("MARKED: %p %u\n", ob, currentGCPass);
+
+                        while(el) {
+
+                            uint32_t k;
+                            for(k = 0; k < 2; k++) {
+                                struct Value *v = k ? &el->value : &el->key;
+
+                                if(v->type == VALUETYPE_STRING ||
+                                    v->type == VALUETYPE_OBJECTID)
+                                {
+                                    struct VMValueGCEntry *newEntry =
+                                        malloc(sizeof(struct VMValueGCEntry));
+                                    newEntry->value = v;
+                                    newEntry->next = openList;
+                                    openList = newEntry;
+                                }
+                            }
+
+                            el = el->next;
+                        }
 
                     } else {
                         errorStateAddError(

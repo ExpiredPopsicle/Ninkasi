@@ -76,5 +76,7 @@ void opcode_and(struct VM *vm);
 void opcode_or(struct VM *vm);
 
 void opcode_createObject(struct VM *vm);
+void opcode_objectFieldGet(struct VM *vm);
+void opcode_objectFieldSet(struct VM *vm);
 
 #endif
