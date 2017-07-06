@@ -221,3 +221,18 @@ while(i) {
 i = 10;
 while(--i) var n;
 
+// print("This is an object... ");
+// print(newobject);
+// print("\n");
+
+for(i = 0; i < 10; ++i) {
+    var asdf = newobject;
+    var asdf2 = newobject;
+    var asdf3 = newobject;
+    var asdf4 = newobject;
+    var asdf5 = newobject;
+    var asdf6 = newobject;
+}
+
+
+var gtest = "asdf";

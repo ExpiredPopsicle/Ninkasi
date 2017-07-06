@@ -26,5 +26,6 @@
 #include "compiler.h"
 #include "vmstring.h"
 #include "function.h"
+#include "objects.h"
 
 #endif

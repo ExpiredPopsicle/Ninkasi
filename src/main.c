@@ -156,7 +156,9 @@ int main(int argc, char *argv[])
 {
     char *script = loadScript("test.txt");
 
-    while(strlen(script)) {
+    // while(strlen(script))
+
+    {
 
         struct VM vm;
 

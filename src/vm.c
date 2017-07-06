@@ -57,6 +57,8 @@ static void vmInitOpcodeTable(void)
     SETUP_OP(OP_AND,                    opcode_and);
     SETUP_OP(OP_OR,                     opcode_or);
 
+    SETUP_OP(OP_CREATEOBJECT,           opcode_createObject);
+
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
     // instead of branching to make sure they're valid.
@@ -92,6 +94,8 @@ void vmInit(struct VM *vm)
 
     vm->functionCount = 0;
     vm->functionTable = NULL;
+
+    vmObjectTableInit(&vm->objectTable);
 }
 
 void vmDestroy(struct VM *vm)
@@ -105,6 +109,8 @@ void vmDestroy(struct VM *vm)
 
     free(vm->globalVariables);
     free(vm->globalVariableNameStorage);
+
+    vmObjectTableDestroy(&vm->objectTable);
 }
 
 // ----------------------------------------------------------------------
@@ -122,8 +128,11 @@ void vmIterate(struct VM *vm)
     vm->instructionPointer++;
 
     // Handle periodic garbage collection.
-    vm->gcCountdown--;
-    if(!vm->gcCountdown) {
+
+    // TODO: Re-enable this...
+    // vm->gcCountdown--;
+    // if(!vm->gcCountdown)
+    {
         vmGarbageCollect(vm);
         vm->gcCountdown = vm->gcInterval;
     }
@@ -165,7 +174,6 @@ void vmGarbageCollect_markValue(
 
             switch(value->type) {
 
-                // Mark strings in the string table.
                 case VALUETYPE_STRING: {
                     struct VMString *str = vmStringTableGetEntryById(
                         &vm->stringTable, value->stringTableEntry);
@@ -175,6 +183,23 @@ void vmGarbageCollect_markValue(
                         errorStateAddError(
                             &vm->errorState, -1,
                             "GC error: Bad string table index.");
+                    }
+                } break;
+
+                case VALUETYPE_OBJECTID: {
+                    struct VMObject *ob = vmObjectTableGetEntryById(
+                        &vm->objectTable, value->objectId);
+                    if(ob) {
+                        ob->lastGCPass = currentGCPass;
+
+                        // TODO: Add all referenced objects that don't
+                        // have lastGCPass == currentGCPass to the
+                        // openList.
+
+                    } else {
+                        errorStateAddError(
+                            &vm->errorState, -1,
+                            "GC error: Bad object table index.");
                     }
                 } break;
 
@@ -211,6 +236,11 @@ void vmGarbageCollect(struct VM *vm)
     // Delete unmarked strings.
     vmStringTableCleanOldStrings(
         &vm->stringTable,
+        currentGCPass);
+
+    // Delete unmarked (and not externally-referenced) objects.
+    vmObjectTableCleanOldObjects(
+        &vm->objectTable,
         currentGCPass);
 }
 

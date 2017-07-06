@@ -708,6 +708,11 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
         } break;
 
+        case TOKENTYPE_NEWOBJECT: {
+            addInstructionSimple(cs, OP_CREATEOBJECT);
+            cs->context->stackFrameOffset++;
+        } break;
+
         case TOKENTYPE_PLUS: {
             addInstructionSimple(cs, OP_ADD);
             cs->context->stackFrameOffset--;

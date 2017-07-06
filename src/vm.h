@@ -6,6 +6,7 @@
 #include "opcodes.h"
 #include "vmstring.h"
 #include "function.h"
+#include "objects.h"
 
 struct VM;
 
@@ -86,6 +87,8 @@ struct VM
     uint32_t instructionPointer;
 
     struct VMStringTable stringTable;
+    struct VMObjectTable objectTable;
+    // TODO: External data table.
 
     uint32_t lastGCPass;
     uint32_t gcInterval;

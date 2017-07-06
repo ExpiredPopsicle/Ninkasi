@@ -17,7 +17,7 @@
 ** DONE Not equal
 ** DONE Equal with same type (===)
 * DONE "Not" operator
-* TODO % operator
+* DONE % operator
 * DONE && operator
 * DONE || operator
 * TODO Objects
@@ -77,3 +77,4 @@ x.a(b, c) is...
         + c
         + NULL
 
+* TODO Deal with code duplication between string and object tables.

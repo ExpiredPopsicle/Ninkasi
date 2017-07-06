@@ -25,6 +25,10 @@ bool value_dump(
             printf("<function:%u>", value->functionId);
             break;
 
+        case VALUETYPE_OBJECTID:
+            printf("<object:%u>", value->objectId);
+            break;
+
         default:
             printf(
                 "value_dump unimplemented for type %s",
@@ -49,6 +53,9 @@ const char *valueTypeGetName(enum ValueType type)
 
         case VALUETYPE_FUNCTIONID:
             return "function";
+
+        case VALUETYPE_OBJECTID:
+            return "object";
 
         default:
             // If you hit this case, then something isn't implemented
@@ -163,4 +170,103 @@ const char *valueToString(struct VM *vm, struct Value *value)
             return 0;
         }
     }
+}
+
+int32_t value_compareType(
+    struct Value *in1,
+    struct Value *in2)
+{
+    if(in1->type < in2->type) {
+        return -1;
+    } else if(in1->type > in2->type) {
+        return 1;
+    }
+    return 0;
+}
+
+int32_t value_compare(
+    struct VM *vm,
+    struct Value *in1,
+    struct Value *in2,
+    bool strictType)
+{
+    enum ValueType type = in1->type;
+
+    if(strictType) {
+        int32_t typeDiff = value_compareType(in1, in2);
+        if(typeDiff) {
+            return typeDiff;
+        }
+    }
+
+    switch(type) {
+
+        case VALUETYPE_INT: {
+            int32_t other = valueToInt(vm, in2);
+            if(in1->intData > other) {
+                return 1;
+            } else if(in1->intData == other) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } break;
+
+        case VALUETYPE_FLOAT: {
+            float other = valueToFloat(vm, in2);
+            if(in1->floatData > other) {
+                return 1;
+            } else if(in1->floatData == other) {
+                return 0;
+            } else {
+                return -1;
+            }
+        } break;
+
+        case VALUETYPE_STRING: {
+            const char *other = valueToString(vm, in2);
+            const char *thisData = valueToString(vm, in1);
+
+            // Shortcut it if we ended up with two of the same entry
+            // in the string table.
+            if(other == thisData) {
+                return 0;
+            }
+
+            return strcmp(thisData, other);
+        } break;
+
+        case VALUETYPE_FUNCTIONID: {
+            if(in2->type == VALUETYPE_FUNCTIONID &&
+                in2->functionId == in1->functionId)
+            {
+                return 0;
+            } else {
+                return ~0;
+            }
+        }
+
+        case VALUETYPE_OBJECTID: {
+            if(in2->type == VALUETYPE_OBJECTID &&
+                in2->objectId == in1->objectId)
+            {
+                return 0;
+            } else {
+                return ~0;
+            }
+        }
+
+        default: {
+            struct DynString *ds =
+                dynStrCreate("Comparison unimplemented for type ");
+            dynStrAppend(ds, valueTypeGetName(type));
+            dynStrAppend(ds, ".");
+            errorStateAddError(
+                &vm->errorState, -1,
+                ds->data);
+            dynStrDelete(ds);
+        } break;
+    }
+
+    return ~0;
 }

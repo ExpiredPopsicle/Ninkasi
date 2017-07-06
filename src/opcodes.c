@@ -591,77 +591,12 @@ void opcode_jz(struct VM *vm)
     }
 }
 
-// This will return ~0 for invalid comparisons. Otherwise the return
-// value is like strcmp(). Invalid comparisons can be treated as a
-// "not equal", but should not be used for any greater/less than
-// comparisons (always false).
 int32_t opcode_internal_compare(struct VM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
-
-    switch(type) {
-
-        case VALUETYPE_INT: {
-            int32_t other = valueToInt(vm, in2);
-            if(in1->intData > other) {
-                return 1;
-            } else if(in1->intData == other) {
-                return 0;
-            } else {
-                return -1;
-            }
-        } break;
-
-        case VALUETYPE_FLOAT: {
-            float other = valueToFloat(vm, in2);
-            if(in1->floatData > other) {
-                return 1;
-            } else if(in1->floatData == other) {
-                return 0;
-            } else {
-                return -1;
-            }
-        } break;
-
-        case VALUETYPE_STRING: {
-            const char *other = valueToString(vm, in2);
-            const char *thisData = valueToString(vm, in1);
-
-            // Shortcut it if we ended up with two of the same entry
-            // in the string table.
-            if(other == thisData) {
-                return 0;
-            }
-
-            return strcmp(thisData, other);
-        } break;
-
-        case VALUETYPE_FUNCTIONID: {
-            if(in2->type == VALUETYPE_FUNCTIONID &&
-                in2->functionId == in1->functionId)
-            {
-                return 0;
-            } else {
-                return ~0;
-            }
-        }
-
-        default: {
-            struct DynString *ds =
-                dynStrCreate("Comparison unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
-                ds->data);
-            dynStrDelete(ds);
-        } break;
-    }
-
-    return ~0;
+    return value_compare(vm, in1, in2, false);
 }
 
 void opcode_gt(struct VM *vm)
@@ -739,3 +674,9 @@ void opcode_or(struct VM *vm)
     vmStackPushInt(vm, in1 || in2);
 }
 
+void opcode_createObject(struct VM *vm)
+{
+    struct Value *v = vmStackPush_internal(vm);
+    v->type = VALUETYPE_OBJECTID;
+    v->objectId = vmObjectTableCreateObject(&vm->objectTable);
+}
