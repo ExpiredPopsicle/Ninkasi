@@ -681,13 +681,19 @@ void opcode_createObject(struct VM *vm)
     v->objectId = vmObjectTableCreateObject(&vm->objectTable);
 }
 
-void opcode_objectFieldGet(struct VM *vm)
+void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
 {
     struct Value *indexToGet = vmStackPop(vm);
-    struct Value *objectToGet = vmStackPop(vm);
+    struct Value *objectToGet;
     struct Value *output;
     struct Value *objectValue;
     struct VMObject *ob;
+
+    if(popObject) {
+        objectToGet = vmStackPop(vm);
+    } else {
+        objectToGet = vmStackPeek(vm, vm->stack.size - 1);
+    }
 
     if(objectToGet->type != VALUETYPE_OBJECTID) {
         errorStateAddError(
@@ -713,6 +719,16 @@ void opcode_objectFieldGet(struct VM *vm)
         vmObjectFindOrAddEntry(vm, ob, indexToGet);
 
     *output = *objectValue;
+}
+
+void opcode_objectFieldGet(struct VM *vm)
+{
+    opcode_objectFieldGet_internal(vm, true);
+}
+
+void opcode_objectFieldGet_noPop(struct VM *vm)
+{
+    opcode_objectFieldGet_internal(vm, false);
 }
 
 void opcode_objectFieldSet(struct VM *vm)
@@ -752,3 +768,18 @@ void opcode_objectFieldSet(struct VM *vm)
     *vmStackPush_internal(vm) = *valueToSet;
 }
 
+void opcode_prepareSelfCall(struct VM *vm)
+{
+    struct Value *argumentCount = vmStackPeek(vm, vm->stack.size - 1);
+    uint32_t stackOffset = valueToInt(vm, argumentCount);
+    struct Value *function = vmStackPeek(vm, vm->stack.size - (stackOffset + 3));
+    struct Value *object = vmStackPeek(vm, vm->stack.size - (stackOffset + 2));
+    struct Value tmp;
+    tmp = *function;
+    *function = *object;
+    *object = tmp;
+
+    // Fixup argument count.
+    argumentCount->type = VALUETYPE_INT;
+    argumentCount->intData = stackOffset + 1;
+}

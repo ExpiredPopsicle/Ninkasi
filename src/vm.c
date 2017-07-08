@@ -62,6 +62,9 @@ static void vmInitOpcodeTable(void)
 
     SETUP_OP(OP_CREATEOBJECT,           opcode_createObject);
 
+    SETUP_OP(OP_PREPARESELFCALL,        opcode_prepareSelfCall);
+    SETUP_OP(OP_OBJECTFIELDGET_NOPOP,   opcode_objectFieldGet_noPop);
+
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
     // instead of branching to make sure they're valid.

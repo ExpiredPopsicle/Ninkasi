@@ -433,6 +433,48 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
                     EXPECT_AND_SKIP(TOKENTYPE_IDENTIFIER);
 
+                    // Now see if this is a function call.
+                    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+
+                        struct ExpressionAstNode *functionCallNode =
+                            malloc(sizeof(struct ExpressionAstNode));
+                        functionCallNode->opOrValue = malloc(sizeof(struct Token));
+                        functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
+                        functionCallNode->opOrValue->str = strdup("(");
+                        functionCallNode->opOrValue->next = NULL;
+                        functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
+                        functionCallNode->ownedToken = true;
+                        functionCallNode->children[0] = indexIntoNode;
+                        functionCallNode->children[1] = NULL;
+
+                        if(!parseFunctioncall(functionCallNode, cs)) {
+                            CLEANUP_INLOOP();
+                            return NULL;
+                        }
+
+                        // Make sure the "self" value stays on the stack.
+                        indexIntoNode->opOrValue->type =
+                            TOKENTYPE_INDEXINTO_NOPOP;
+
+                        // And switch to a version of the function
+                        // call that knows that the "self" parameter
+                        // is going to be before the function itself
+                        // in the stack.
+                        functionCallNode->opOrValue->type =
+                            TOKENTYPE_FUNCTIONCALL_WITHSELF;
+
+                        if(firstPostfixOp == postfixNode) {
+                            firstPostfixOp = indexIntoNode;
+                        }
+                        if(lastPostfixOp == postfixNode) {
+                            lastPostfixOp = functionCallNode;
+                        }
+                        postfixNode = functionCallNode;
+
+                        // assert(postfixNode->children[0]);
+                        // assert(firstPostfixOp->children[0]);
+                    }
+
                 } else {
                     PARSE_ERROR("Expected identifier after '.'.");
                     CLEANUP_INLOOP();
@@ -867,7 +909,9 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_PAREN_OPEN: {
+        case TOKENTYPE_PAREN_OPEN:
+        case TOKENTYPE_FUNCTIONCALL_WITHSELF:
+        {
             // Function calls.
 
             if(node->isRootFunctionCallNode) {
@@ -882,12 +926,22 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
                 dbgWriteLine("Emitting function call with arguments: %u", argumentCount);
                 emitPushLiteralInt(cs, argumentCount);
+
+                if(node->opOrValue->type == TOKENTYPE_FUNCTIONCALL_WITHSELF) {
+                    addInstructionSimple(cs, OP_PREPARESELFCALL);
+                    argumentCount++;
+                }
+
                 addInstructionSimple(cs, OP_CALL);
 
                 cs->context->stackFrameOffset -= argumentCount;
             }
 
         } break;
+
+        case TOKENTYPE_INDEXINTO_NOPOP:
+            addInstructionSimple(cs, OP_OBJECTFIELDGET_NOPOP);
+            break;
 
         default: {
             struct DynString *dynStr =

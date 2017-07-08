@@ -65,6 +65,10 @@ enum Opcode
     OP_OBJECTFIELDGET,
     OP_OBJECTFIELDSET,
 
+    // Stuff specific to foo.bar() syntax.
+    OP_OBJECTFIELDGET_NOPOP,
+    OP_PREPARESELFCALL,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
@@ -116,6 +120,10 @@ enum TokenType
     TOKENTYPE_RETURN,
 
     TOKENTYPE_NEWOBJECT,
+
+    // These are for the foo.bar() syntax, specfically.
+    TOKENTYPE_INDEXINTO_NOPOP,
+    TOKENTYPE_FUNCTIONCALL_WITHSELF,
 
     TOKENTYPE_INVALID,
 };

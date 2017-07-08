@@ -1,6 +1,20 @@
+// var foo = newobject;
+// foo.bar;
+// foo["bar"];
+
 var foo = newobject;
-foo.bar;
-foo["bar"];
+function foo_bar(self, x, y, z)
+{
+    self.cheese = x + y + z;
+}
+
+
+foo.bar = foo_bar;
+
+foo.bar(1, 2, 3);
+
+print(foo.cheese, "\n");
+
 
 // var ob = newobject;
 // ob[555] = 666;
