@@ -1,3 +1,7 @@
+var foo = newobject;
+foo.bar;
+foo["bar"];
+
 // var ob = newobject;
 // ob[555] = 666;
 // print(ob[555]);
@@ -265,28 +269,28 @@
 
 
 
-function anotherObTest()
-{
-    print("OBTEST!\n");
-}
+// function anotherObTest()
+// {
+//     print("OBTEST!\n");
+// }
 
-var i;
-var butts = newobject;
-butts["asdf"] = anotherObTest;
-butts["asdf"]();
-for(i = 0; i < 2000; ++i) {
-    print("GC abuse iteration: ");
-    print(i);
-    print("\n");
-    var n = i % 5;
-    var c = butts[n];
-    if(!butts[n]) {
-        butts[n] = newobject;
-    } else {
-        var d = newobject;
-        d[n] = butts[n];
-        butts[n] = d;
-    }
-}
+// var i;
+// var butts = newobject;
+// butts["asdf"] = anotherObTest;
+// butts["asdf"]();
+// for(i = 0; i < 2000; ++i) {
+//     print("GC abuse iteration: ");
+//     print(i);
+//     print("\n");
+//     var n = i % 5;
+//     var c = butts[n];
+//     if(!butts[n]) {
+//         butts[n] = newobject;
+//     } else {
+//         var d = newobject;
+//         d[n] = butts[n];
+//         butts[n] = d;
+//     }
+// }
 
-print("DONE\n");
+// print("DONE\n");

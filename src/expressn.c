@@ -102,7 +102,8 @@ bool isPostfixOperator(struct Token *token)
 {
     return token && (
         token->type == TOKENTYPE_BRACKET_OPEN ||
-        token->type == TOKENTYPE_PAREN_OPEN);
+        token->type == TOKENTYPE_PAREN_OPEN ||
+        token->type == TOKENTYPE_DOT);
 }
 
 int32_t getPrecedence(enum TokenType t)
@@ -224,6 +225,74 @@ bool reduce(
     return true;
 }
 
+bool parseFunctioncall(
+    struct ExpressionAstNode *postfixNode,
+    struct CompilerState *cs)
+{
+    // Handle function call "operator".
+    dbgWriteLine("Handling function call operator.");
+
+    // TODO: Keep handling expressions as long as we end
+    // up on a comma.
+
+    postfixNode->isRootFunctionCallNode = true;
+
+    dbgPush();
+    vmCompilerNextToken(cs);
+    {
+        struct ExpressionAstNode *lastParamNode = postfixNode;
+        uint32_t argCount = 0;
+
+        while(
+            vmCompilerTokenType(cs) != TOKENTYPE_INVALID &&
+            vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE)
+        {
+            // Make a new node for this parameter.
+            struct ExpressionAstNode *thisParamNode =
+                malloc(sizeof(struct ExpressionAstNode));
+            memset(thisParamNode, 0, sizeof(*thisParamNode));
+            thisParamNode->opOrValue = postfixNode->opOrValue;
+
+            // Parse the expression.
+            thisParamNode->children[0] = parseExpression(cs);
+
+            // Add us to the end of the chain.
+            lastParamNode->children[1] = thisParamNode;
+            lastParamNode = thisParamNode;
+
+            // Error-check.
+            if(!thisParamNode->children[0]) {
+                PARSE_ERROR("Function parameter subexpression parse failure.");
+                dbgPop();
+                return false;
+            }
+
+            // Skip commas.
+            if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
+                vmCompilerNextToken(cs);
+            } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
+                // This is okay. It just means we're at the end.
+            } else {
+                // Anything else is bad.
+                PARSE_ERROR("Expected ',' or ')' in function parameter parsing.");
+                dbgPop();
+                return false;
+            }
+
+            argCount++;
+        }
+    }
+    dbgPop();
+
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+        return false;
+    }
+
+    dbgWriteLine("Function call operator complete.");
+
+    return true;
+}
+
 struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 {
     struct Token **currentToken = &cs->currentToken;
@@ -333,7 +402,44 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
             dbgWriteLine("Parse postfix operator: %s", (*currentToken)->str);
 
-            if(vmCompilerTokenType(cs) == TOKENTYPE_BRACKET_OPEN) {
+            if(vmCompilerTokenType(cs) == TOKENTYPE_DOT) {
+
+                // Handle index-into, or function call with "self" param.
+
+                EXPECT_AND_SKIP(TOKENTYPE_DOT);
+
+                if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
+
+                    struct ExpressionAstNode *identifierStringNode =
+                        malloc(sizeof(struct ExpressionAstNode));
+
+                    struct ExpressionAstNode *indexIntoNode = postfixNode;
+
+                    memset(identifierStringNode, 0, sizeof(*identifierStringNode));
+                    identifierStringNode->opOrValue = malloc(sizeof(struct Token));
+                    identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
+                    identifierStringNode->opOrValue->str = strdup(cs->currentToken->str);
+                    identifierStringNode->opOrValue->next = NULL;
+                    identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
+                    identifierStringNode->ownedToken = true;
+
+                    indexIntoNode->opOrValue = malloc(sizeof(struct Token));
+                    indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
+                    indexIntoNode->opOrValue->str = strdup("[");
+                    indexIntoNode->opOrValue->next = NULL;
+                    indexIntoNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
+                    indexIntoNode->ownedToken = true;
+                    indexIntoNode->children[1] = identifierStringNode;
+
+                    EXPECT_AND_SKIP(TOKENTYPE_IDENTIFIER);
+
+                } else {
+                    PARSE_ERROR("Expected identifier after '.'.");
+                    CLEANUP_INLOOP();
+                    return NULL;
+                }
+
+            } else if(vmCompilerTokenType(cs) == TOKENTYPE_BRACKET_OPEN) {
 
                 // Handle index-into operator.
 
@@ -357,65 +463,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
 
                 // Handle function call "operator".
-                dbgWriteLine("Handling function call operator.");
-
-                // TODO: Keep handling expressions as long as we end
-                // up on a comma.
-
-                postfixNode->isRootFunctionCallNode = true;
-
-                dbgPush();
-                vmCompilerNextToken(cs);
-                {
-                    struct ExpressionAstNode *lastParamNode = postfixNode;
-                    uint32_t argCount = 0;
-
-                    while(
-                        vmCompilerTokenType(cs) != TOKENTYPE_INVALID &&
-                        vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE)
-                    {
-                        // Make a new node for this parameter.
-                        struct ExpressionAstNode *thisParamNode =
-                            malloc(sizeof(struct ExpressionAstNode));
-                        memset(thisParamNode, 0, sizeof(*thisParamNode));
-                        thisParamNode->opOrValue = postfixNode->opOrValue;
-
-                        // Parse the expression.
-                        thisParamNode->children[0] = parseExpression(cs);
-
-                        // Add us to the end of the chain.
-                        lastParamNode->children[1] = thisParamNode;
-                        lastParamNode = thisParamNode;
-
-                        // Error-check.
-                        if(!thisParamNode->children[0]) {
-                            PARSE_ERROR("Function parameter subexpression parse failure.");
-                            CLEANUP_INLOOP();
-                            dbgPop();
-                            return NULL;
-                        }
-
-                        // Skip commas.
-                        if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
-                            vmCompilerNextToken(cs);
-                        } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
-                            // This is okay. It just means we're at the end.
-                        } else {
-                            // Anything else is bad.
-                            PARSE_ERROR("Expected ',' or ')' in function parameter parsing.");
-                            CLEANUP_INLOOP();
-                            dbgPop();
-                            return NULL;
-                        }
-
-                        argCount++;
-                    }
+                if(!parseFunctioncall(postfixNode, cs)) {
+                    CLEANUP_INLOOP();
+                    return NULL;
                 }
-                dbgPop();
-
-                EXPECT_AND_SKIP(TOKENTYPE_PAREN_CLOSE);
-
-                dbgWriteLine("Function call operator complete.");
 
             } else {
 
@@ -426,7 +477,6 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                 dynStrDelete(str);
                 CLEANUP_INLOOP();
                 return NULL;
-
             }
         }
 
