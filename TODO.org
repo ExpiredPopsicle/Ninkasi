@@ -22,6 +22,10 @@
 * DONE || operator
 * DONE Objects
 ** DONE Object garbage collection
+** DONE Refactor objects to use hash tables.
+** DONE Ability to clear values from an object.
+** DONE External object handles.
+* DONE Add generic hash function for Values.
 * TODO Fuzz tester
 * TODO External data
 ** TODO Index-into for external data
@@ -43,6 +47,7 @@ compatibility between different architectures, for example.)
 Remember to search for all the malloc, reallocs, and strdups.
 ** TODO Compiler recursion limit
 * TODO Documentation
+Pfffffft
 
 * TODO Can we double-buffer the GC list?
 - May not be possible when we have to count external references.
@@ -90,6 +95,3 @@ x.a(b, c) is...
 - Make sure we don't go outside the function while moving up the context stack!
 
 
-* TODO Refactor objects to use hash tables.
-* TODO Add generic hash function for Values.
-* TODO Ability to clear values from an object.

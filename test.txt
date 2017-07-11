@@ -336,3 +336,13 @@ dumpHash(cfunc);
 nil;
 print(nil, "\n");
 
+{
+    var obTest = newobject;
+    obTest.foo = newobject;
+    obTest.foo.bar = "TEST";
+    obTest.asdf = "hhjbjhbjhb";
+    testHandle1(obTest);
+    testHandle2(obTest);
+}
+
+

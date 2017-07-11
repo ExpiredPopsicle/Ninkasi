@@ -153,31 +153,93 @@ struct VMValueGCEntry
     struct VMValueGCEntry *next;
 };
 
-// FIXME: Find a way to do this without tons of allocations.
-void vmGarbageCollect_markValue(
-    struct VM *vm, struct Value *v,
-    uint32_t currentGCPass)
+struct VMGCState
 {
+    struct VM *vm;
+    uint32_t currentGCPass;
     struct VMValueGCEntry *openList;
-    struct VMValueGCEntry *closedList = NULL; // We'll keep this just for re-using allocations.
+    struct VMValueGCEntry *closedList; // We'll keep this just for re-using allocations.
+};
 
-    if(v->lastGCPass == currentGCPass) {
+struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
+{
+    struct VMValueGCEntry *ret = NULL;
+
+    if(state->closedList) {
+        ret = state->closedList;
+        state->closedList = ret->next;
+    } else {
+        ret = malloc(sizeof(struct VMValueGCEntry));
+    }
+
+    ret->next = state->openList;
+    state->openList = ret;
+    return ret;
+}
+
+void vmGarbageCollect_markObject(
+    struct VMGCState *gcState,
+    struct VMObject *ob)
+{
+    uint32_t bucket;
+
+    if(ob->lastGCPass == gcState->currentGCPass) {
         return;
     }
 
-    openList = malloc(sizeof(struct VMValueGCEntry));
-    openList->value = v;
-    openList->next = NULL;
+    ob->lastGCPass = gcState->currentGCPass;
 
-    while(openList) {
+    for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
+
+        struct VMObjectElement *el = ob->hashBuckets[bucket];
+
+        while(el) {
+
+            uint32_t k;
+            for(k = 0; k < 2; k++) {
+                struct Value *v = k ? &el->value : &el->key;
+
+                if(v->type == VALUETYPE_STRING ||
+                    v->type == VALUETYPE_OBJECTID)
+                {
+                    struct VMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
+                    newEntry->value = v;
+                }
+            }
+
+            el = el->next;
+        }
+    }
+
+}
+
+// FIXME: Find a way to do this without tons of allocations.
+void vmGarbageCollect_markValue(
+    struct VMGCState *gcState,
+    struct Value *v)
+{
+    if(v->lastGCPass == gcState->currentGCPass) {
+        return;
+    }
+
+    {
+        struct VMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
+        entry->value = v;
+    }
+}
+
+void vmGarbageCollect_markReferenced(
+    struct VMGCState *gcState)
+{
+    while(gcState->openList) {
 
         // Remove the value from the list.
-        struct VMValueGCEntry *currentEntry = openList;
-        openList = openList->next;
+        struct VMValueGCEntry *currentEntry = gcState->openList;
+        gcState->openList = gcState->openList->next;
 
-        if(currentEntry->value->lastGCPass != currentGCPass) {
+        if(currentEntry->value->lastGCPass != gcState->currentGCPass) {
             struct Value *value = currentEntry->value;
-            value->lastGCPass = currentGCPass;
+            value->lastGCPass = gcState->currentGCPass;
 
             // Add all references from this value to openList.
 
@@ -186,13 +248,14 @@ void vmGarbageCollect_markValue(
                 case VALUETYPE_STRING: {
 
                     struct VMString *str = vmStringTableGetEntryById(
-                        &vm->stringTable, value->stringTableEntry);
+                        &gcState->vm->stringTable,
+                        value->stringTableEntry);
 
                     if(str) {
-                        str->lastGCPass = currentGCPass;
+                        str->lastGCPass = gcState->currentGCPass;
                     } else {
                         errorStateAddError(
-                            &vm->errorState, -1,
+                            &gcState->vm->errorState, -1,
                             "GC error: Bad string table index.");
                     }
                 } break;
@@ -200,47 +263,16 @@ void vmGarbageCollect_markValue(
                 case VALUETYPE_OBJECTID: {
 
                     struct VMObject *ob = vmObjectTableGetEntryById(
-                        &vm->objectTable, value->objectId);
+                        &gcState->vm->objectTable,
+                        value->objectId);
 
                     if(ob) {
 
-                        uint32_t bucket;
-
-                        ob->lastGCPass = currentGCPass;
-
-                        for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
-
-                            struct VMObjectElement *el = ob->hashBuckets[bucket];
-
-                            while(el) {
-
-                                uint32_t k;
-                                for(k = 0; k < 2; k++) {
-                                    struct Value *v = k ? &el->value : &el->key;
-
-                                    if(v->type == VALUETYPE_STRING ||
-                                        v->type == VALUETYPE_OBJECTID)
-                                    {
-                                        struct VMValueGCEntry *newEntry = closedList;
-                                        if(!newEntry) {
-                                            newEntry = malloc(sizeof(struct VMValueGCEntry));
-                                        } else {
-                                            closedList = newEntry->next;
-                                        }
-
-                                        newEntry->value = v;
-                                        newEntry->next = openList;
-                                        openList = newEntry;
-                                    }
-                                }
-
-                                el = el->next;
-                            }
-                        }
+                        vmGarbageCollect_markObject(gcState, ob);
 
                     } else {
                         errorStateAddError(
-                            &vm->errorState, -1,
+                            &gcState->vm->errorState, -1,
                             "GC error: Bad object table index.");
                     }
                 } break;
@@ -250,29 +282,30 @@ void vmGarbageCollect_markValue(
             }
         }
 
-        currentEntry->next = closedList;
-        closedList = currentEntry;
-    }
-
-    // Clean up.
-    {
-        uint32_t count = 0;
-        while(closedList) {
-            struct VMValueGCEntry *next = closedList->next;
-            free(closedList);
-            closedList = next;
-            count++;
-        }
-        dbgWriteLine("Closed list grew to: %u\n", count);
+        currentEntry->next = gcState->closedList;
+        gcState->closedList = currentEntry;
     }
 }
 
 void vmGarbageCollect(struct VM *vm)
 {
-    uint32_t currentGCPass = ++vm->lastGCPass;
+    struct VMGCState gcState;
+    memset(&gcState, 0, sizeof(gcState));
+    gcState.currentGCPass = ++vm->lastGCPass;
+    gcState.vm = vm;
 
     // TODO: Remove this.
     dbgWriteLine("vmGarbageCollect");
+
+    // Iterate through objects with external handles.
+    {
+        struct VMObject *ob;
+        for(ob = vm->objectTable.objectsWithExternalHandles; ob;
+            ob = ob->nextObjectWithExternalHandles)
+        {
+            vmGarbageCollect_markObject(&gcState, ob);
+        }
+    }
 
     // Iterate through the current stack.
     {
@@ -280,23 +313,41 @@ void vmGarbageCollect(struct VM *vm)
         struct Value *values = vm->stack.values;
         for(i = 0; i < vm->stack.size; i++) {
             vmGarbageCollect_markValue(
-                vm, &values[i], currentGCPass);
+                &gcState, &values[i]);
         }
     }
 
-    // TODO: Iterate through current variables.
+    // TODO: Iterate through external data with external handles.
 
-    // TODO: Delete unmarked stuff from the heap.
+    // Now go and mark everything that the things in the open list
+    // reference.
+    vmGarbageCollect_markReferenced(&gcState);
 
     // Delete unmarked strings.
     vmStringTableCleanOldStrings(
         &vm->stringTable,
-        currentGCPass);
+        gcState.currentGCPass);
 
     // Delete unmarked (and not externally-referenced) objects.
     vmObjectTableCleanOldObjects(
         &vm->objectTable,
-        currentGCPass);
+        gcState.currentGCPass);
+
+    // TODO: Delete unmarked external data. Also run the GC callback
+    // for them.
+
+    // Clean up.
+    assert(!gcState.openList);
+    {
+        uint32_t count = 0;
+        while(gcState.closedList) {
+            struct VMValueGCEntry *next = gcState.closedList->next;
+            free(gcState.closedList);
+            gcState.closedList = next;
+            count++;
+        }
+        dbgWriteLine("Closed list grew to: %u\n", count);
+    }
 }
 
 void vmRescanProgramStrings(struct VM *vm)

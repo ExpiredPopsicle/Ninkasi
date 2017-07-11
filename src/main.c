@@ -155,6 +155,20 @@ void getHash(struct VMFunctionCallbackData *data)
         valueHash(data->vm, &data->arguments[0]));
 }
 
+void testHandle1(struct VMFunctionCallbackData *data)
+{
+    if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle1")) return;
+
+    vmObjectAcquireHandle(data->vm, &data->arguments[0]);
+}
+
+void testHandle2(struct VMFunctionCallbackData *data)
+{
+    if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle2")) return;
+
+    vmObjectReleaseHandle(data->vm, &data->arguments[0]);
+}
+
 
 void vmFuncPrint(struct VMFunctionCallbackData *data)
 {
@@ -187,6 +201,8 @@ int main(int argc, char *argv[])
             vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
             vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
             vmCompilerCreateCFunctionVariable(cs, "hash", getHash);
+            vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
+            vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
             vmCompilerCompileScript(cs, script);
             vmCompilerFinalize(cs);
 
@@ -349,7 +365,12 @@ int main(int argc, char *argv[])
             // vmIterate(&vm);
             printf("Final stack dump...\n");
             vmStackDump(&vm);
+
         }
+
+        vmGarbageCollect(&vm);
+        printf("Final object table dump...\n");
+        vmObjectTableDump(&vm);
 
         vmDestroy(&vm);
 

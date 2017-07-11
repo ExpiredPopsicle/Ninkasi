@@ -13,6 +13,8 @@ void vmObjectTableInit(struct VMObjectTable *table)
     table->tableHoles = malloc(sizeof(struct VMObjectTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
+
+    table->objectsWithExternalHandles = NULL;
 }
 
 void vmObjectDelete(struct VMObject *ob)
@@ -219,12 +221,12 @@ void vmObjectTableDump(struct VM *vm)
     uint32_t index;
     printf("Object table dump...\n");
     for(index = 0; index < vm->objectTable.objectTableCapacity; index++) {
-        printf("%4u ", index);
         if(vm->objectTable.objectTable[index]) {
 
             struct VMObject *ob = vm->objectTable.objectTable[index];
             uint32_t bucket;
 
+            printf("%4u ", index);
             printf("Object\n");
 
             for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
@@ -239,10 +241,96 @@ void vmObjectTableDump(struct VM *vm)
                     el = el->next;
                 }
             }
-        } else {
-            printf("No object");
+            printf("\n");
         }
-        printf("\n");
+    }
+}
+
+void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
+{
+    if(value->type == VALUETYPE_OBJECTID) {
+
+        struct VMObject *ob = vmObjectTableGetEntryById(
+            &vm->objectTable, value->objectId);
+
+        // Make sure we actually got an object.
+        if(!ob) {
+            errorStateAddError(
+                &vm->errorState,
+                -1, "Bad object ID in vmObjectAcquireHandle.");
+            return;
+        }
+
+        // FIXME: Check for integer overflow.
+        ob->externalHandleCount++;
+
+        // If we already have a handle count, it means the object is
+        // in the linked list of handles, so we'll just increment the
+        // counter and return.
+        if(ob->externalHandleCount > 1) {
+            return;
+        }
+
+        assert(!ob->nextObjectWithExternalHandles);
+        assert(!ob->previousExternalHandleListPtr);
+
+        // Add us to the linked list.
+        ob->nextObjectWithExternalHandles =
+            vm->objectTable.objectsWithExternalHandles;
+        ob->previousExternalHandleListPtr =
+            &vm->objectTable.objectsWithExternalHandles;
+        if(vm->objectTable.objectsWithExternalHandles) {
+            vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
+                &ob->nextObjectWithExternalHandles;
+        }
+        vm->objectTable.objectsWithExternalHandles = ob;
+
+    } else {
+
+        errorStateAddError(
+            &vm->errorState,
+            -1, "Tried to acquire handle for non-object.");
+    }
+}
+
+void vmObjectReleaseHandle(struct VM *vm, struct Value *value)
+{
+    if(value->type == VALUETYPE_OBJECTID) {
+
+        struct VMObject *ob = vmObjectTableGetEntryById(
+            &vm->objectTable, value->objectId);
+
+        // Make sure we actually got an object.
+        if(!ob) {
+            errorStateAddError(
+                &vm->errorState,
+                -1, "Bad object ID in vmObjectAcquireHandle.");
+            return;
+        }
+
+        if(ob->externalHandleCount == 0) {
+            errorStateAddError(
+                &vm->errorState,
+                -1, "Tried to release handle for object with no external handles.");
+        }
+
+        ob->externalHandleCount--;
+
+        // If there are handles left, then we're done.
+        if(ob->externalHandleCount > 0) {
+            return;
+        }
+
+        // Cut us out of the linked list.
+        *ob->previousExternalHandleListPtr = ob->nextObjectWithExternalHandles;
+        ob->previousExternalHandleListPtr = NULL;
+        ob->nextObjectWithExternalHandles = NULL;
+
+    } else {
+
+        errorStateAddError(
+            &vm->errorState,
+            -1, "Tried to release handle for non-object.");
     }
 }
 
