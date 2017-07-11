@@ -21,6 +21,10 @@ bool value_dump(
             printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
         } break;
 
+        case VALUETYPE_NIL:
+            printf("<nil>");
+            break;
+
         case VALUETYPE_FUNCTIONID:
             printf("<function:%u>", value->functionId);
             break;
@@ -57,6 +61,9 @@ const char *valueTypeGetName(enum ValueType type)
         case VALUETYPE_OBJECTID:
             return "object";
 
+        case VALUETYPE_NIL:
+            return "nil";
+
         default:
             // If you hit this case, then something isn't implemented
             // yet!
@@ -83,6 +90,9 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
             // This is just for detection of the presence of objects
             // (like a null pointer check).
             return 1;
+
+        case VALUETYPE_NIL:
+            return 0;
 
         default: {
             struct DynString *ds = dynStrCreate("Cannot convert type ");
@@ -111,6 +121,9 @@ float valueToFloat(struct VM *vm, struct Value *value)
 
         case VALUETYPE_STRING:
             return atoi(valueToString(vm, value));
+
+        case VALUETYPE_NIL:
+            return 0.0f;
 
         default: {
             struct DynString *ds = dynStrCreate("Cannot convert type ");
@@ -165,14 +178,20 @@ const char *valueToString(struct VM *vm, struct Value *value)
         }
 
         default: {
-            struct DynString *ds = dynStrCreate("Cannot convert type ");
-            dynStrAppend(ds, valueTypeGetName(value->type));
-            dynStrAppend(ds, " to a string.");
-            errorStateAddError(
-                &vm->errorState, -1,
-                ds->data);
-            dynStrDelete(ds);
-            return 0;
+            struct DynString *dynStr = dynStrCreate("<");
+            uint32_t id;
+
+            dynStrAppend(dynStr, valueTypeGetName(value->type));
+            dynStrAppend(dynStr, ":");
+            dynStrAppendInt32(dynStr, valueHash(vm, value));
+            dynStrAppend(dynStr, ">");
+
+            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            dynStrDelete(dynStr);
+
+            return vmStringTableGetStringById(
+                &vm->stringTable,
+                id);
         }
     }
 }
@@ -275,3 +294,59 @@ int32_t value_compare(
 
     return ~0;
 }
+
+uint32_t valueHash(struct VM *vm, struct Value *value)
+{
+    uint32_t ret = 0;
+
+    switch(value->type) {
+
+        case VALUETYPE_INT:
+        case VALUETYPE_FLOAT:
+        case VALUETYPE_FUNCTIONID:
+        case VALUETYPE_OBJECTID:
+            ret = value->basicHashValue;
+            break;
+
+        case VALUETYPE_STRING: {
+
+            struct VMString *vmStr = vmStringTableGetEntryById(
+                &vm->stringTable,
+                value->stringTableEntry);
+
+            if(vmStr) {
+                ret = vmStr->hash;
+            } else {
+                ret = 0;
+            }
+
+        } break;
+
+        default:
+            // Zero, I guess?
+            break;
+    }
+
+    return ret;
+}
+
+void vmValueSetInt(struct VM *vm, struct Value *value, int32_t intData)
+{
+    value->type = VALUETYPE_INT;
+    value->intData = intData;
+}
+
+void vmValueSetFloat(struct VM *vm, struct Value *value, float floatData)
+{
+    value->type = VALUETYPE_FLOAT;
+    value->floatData = floatData;
+}
+
+void vmValueSetString(struct VM *vm, struct Value *value, const char *str)
+{
+    value->type = VALUETYPE_STRING;
+    value->stringTableEntry =
+        vmStringTableFindOrAddString(
+            &vm->stringTable, str);
+}
+

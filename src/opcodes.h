@@ -82,4 +82,6 @@ void opcode_objectFieldSet(struct VM *vm);
 void opcode_prepareSelfCall(struct VM *vm);
 void opcode_objectFieldGet_noPop(struct VM *vm);
 
+void opcode_pushNil(struct VM *vm);
+
 #endif

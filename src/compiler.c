@@ -222,6 +222,11 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str)
     }
 }
 
+void emitPushNil(struct CompilerState *cs)
+{
+    addInstructionSimple(cs, OP_PUSHNIL);
+}
+
 struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
     struct CompilerState *cs, const char *name)
 {
@@ -1122,3 +1127,4 @@ bool compileForStatement(struct CompilerState *cs)
     popContext(cs);
     return true;
 }
+

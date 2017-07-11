@@ -11,7 +11,8 @@ enum ValueType
     VALUETYPE_FLOAT,
     VALUETYPE_STRING,
     VALUETYPE_FUNCTIONID,
-    VALUETYPE_OBJECTID
+    VALUETYPE_OBJECTID,
+    VALUETYPE_NIL
 };
 
 enum Opcode
@@ -69,6 +70,8 @@ enum Opcode
     OP_OBJECTFIELDGET_NOPOP,
     OP_PREPARESELFCALL,
 
+    OP_PUSHNIL,
+
     OPCODE_REALCOUNT,
 
     // This must be a power of two.
@@ -124,6 +127,8 @@ enum TokenType
     // These are for the foo.bar() syntax, specfically.
     TOKENTYPE_INDEXINTO_NOPOP,
     TOKENTYPE_FUNCTIONCALL_WITHSELF,
+
+    TOKENTYPE_NIL,
 
     TOKENTYPE_INVALID,
 };

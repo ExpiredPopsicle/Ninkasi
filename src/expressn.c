@@ -814,6 +814,11 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             cs->context->stackFrameOffset++;
         } break;
 
+        case TOKENTYPE_NIL: {
+            addInstructionSimple(cs, OP_PUSHNIL);
+            cs->context->stackFrameOffset++;
+        } break;
+
         case TOKENTYPE_PLUS: {
             addInstructionSimple(cs, OP_ADD);
             cs->context->stackFrameOffset--;

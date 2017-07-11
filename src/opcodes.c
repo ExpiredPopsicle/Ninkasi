@@ -783,3 +783,10 @@ void opcode_prepareSelfCall(struct VM *vm)
     argumentCount->type = VALUETYPE_INT;
     argumentCount->intData = stackOffset + 1;
 }
+
+void opcode_pushNil(struct VM *vm)
+{
+    struct Value *v = vmStackPush_internal(vm);
+    v->type = VALUETYPE_NIL;
+    v->objectId = vmObjectTableCreateObject(&vm->objectTable);
+}

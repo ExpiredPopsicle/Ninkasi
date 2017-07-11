@@ -145,6 +145,16 @@ void testVMFunc(struct VMFunctionCallbackData *data)
     printf("Got data back from VM: %s\n", valueToString(data->vm, &data->returnValue));
 }
 
+void getHash(struct VMFunctionCallbackData *data)
+{
+    if(!vmFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
+
+    vmValueSetInt(
+        data->vm,
+        &data->returnValue,
+        valueHash(data->vm, &data->arguments[0]));
+}
+
 
 void vmFuncPrint(struct VMFunctionCallbackData *data)
 {
@@ -176,6 +186,7 @@ int main(int argc, char *argv[])
             struct CompilerState *cs = vmCompilerCreate(&vm);
             vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
             vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
+            vmCompilerCreateCFunctionVariable(cs, "hash", getHash);
             vmCompilerCompileScript(cs, script);
             vmCompilerFinalize(cs);
 

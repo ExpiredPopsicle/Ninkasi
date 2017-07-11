@@ -90,3 +90,6 @@ x.a(b, c) is...
 - Make sure we don't go outside the function while moving up the context stack!
 
 
+* TODO Refactor objects to use hash tables.
+* TODO Add generic hash function for Values.
+* TODO Ability to clear values from an object.

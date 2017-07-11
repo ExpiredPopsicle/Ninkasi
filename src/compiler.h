@@ -112,6 +112,7 @@ void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);
 void emitPushLiteralString(struct CompilerState *cs, const char *str);
 void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId);
+void emitPushNil(struct CompilerState *cs);
 
 struct Token *vmCompilerNextToken(struct CompilerState *cs);
 enum TokenType vmCompilerTokenType(struct CompilerState *cs);

@@ -25,4 +25,13 @@ struct VMFunction
     VMFunctionCallback CFunctionCallback;
 };
 
+/// Convenience function for C function callbacks. Check the argument
+/// count that a function was called with. If it does not match, an
+/// error will be added and this function will return false. Otherwise
+/// it will return true.
+bool vmFunctionCallbackCheckArgCount(
+    struct VMFunctionCallbackData *data,
+    uint32_t argCount,
+    const char *functionName);
+
 #endif

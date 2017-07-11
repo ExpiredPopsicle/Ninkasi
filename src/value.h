@@ -17,6 +17,9 @@ struct Value
         uint32_t stringTableEntry;
         uint32_t functionId;
         uint32_t objectId;
+
+        // Used for ints, floats, functionIds, and objectIds.
+        uint32_t basicHashValue;
     };
 };
 
@@ -42,5 +45,11 @@ int32_t value_compare(
     struct Value *in1,
     struct Value *in2,
     bool strictType);
+
+uint32_t valueHash(struct VM *vm, struct Value *value);
+
+void vmValueSetInt(struct VM *vm, struct Value *value, int32_t intData);
+void vmValueSetFloat(struct VM *vm, struct Value *value, float floatData);
+void vmValueSetString(struct VM *vm, struct Value *value, const char *str);
 
 #endif

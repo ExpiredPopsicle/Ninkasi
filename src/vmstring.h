@@ -9,6 +9,7 @@ struct VMString
     uint32_t stringTableIndex;
     uint32_t lastGCPass;
     bool dontGC;
+    uint32_t hash;
 
     // Must be last. We're going to allocated VMStrings with enough
     // extra space that we can treat this array as an

@@ -152,6 +152,7 @@ uint32_t vmStringTableFindOrAddString(
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
         newString->dontGC = false;
+        newString->hash = stringHash(str);
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
         table->stringsByHash[hash & (vmStringTableHashTableSize - 1)] = newString;
