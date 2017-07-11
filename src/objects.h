@@ -9,14 +9,20 @@ struct VMObjectElement
     struct VMObjectElement *next;
 };
 
+#define VMObjectHashBucketCount 16
+
 struct VMObject
 {
     uint32_t objectTableIndex;
     uint32_t lastGCPass;
 
+    // Cached count of number of entries.
+    uint32_t size;
+
     // TODO: External handle count.
 
-    struct VMObjectElement *data;
+    // struct VMObjectElement *data;
+    struct VMObjectElement *hashBuckets[VMObjectHashBucketCount];
 };
 
 struct VMObjectTableHole
@@ -46,6 +52,11 @@ void vmObjectTableCleanOldObjects(
     struct VMObjectTable *table, uint32_t lastGCPass);
 
 struct Value *vmObjectFindOrAddEntry(
+    struct VM *vm,
+    struct VMObject *ob,
+    struct Value *key);
+
+void vmObjectClearEntry(
     struct VM *vm,
     struct VMObject *ob,
     struct Value *key);

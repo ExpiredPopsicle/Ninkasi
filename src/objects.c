@@ -17,11 +17,14 @@ void vmObjectTableInit(struct VMObjectTable *table)
 
 void vmObjectDelete(struct VMObject *ob)
 {
-    struct VMObjectElement *el = ob->data;
-    while(el) {
-        struct VMObjectElement *next = el->next;
-        free(el);
-        el = next;
+    uint32_t i;
+    for(i = 0; i < VMObjectHashBucketCount; i++) {
+        struct VMObjectElement *el = ob->hashBuckets[i];
+        while(el) {
+            struct VMObjectElement *next = el->next;
+            free(el);
+            el = next;
+        }
     }
     free(ob);
 }
@@ -152,12 +155,41 @@ void vmObjectTableCleanOldObjects(
     dbgPop();
 }
 
+void vmObjectClearEntry(
+    struct VM *vm,
+    struct VMObject *ob,
+    struct Value *key)
+{
+    struct VMObjectElement **obList =
+        &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
+
+    struct VMObjectElement **elPtr = obList;
+    while(*elPtr) {
+        if(value_compare(vm, key, &(*elPtr)->key, true) == 0) {
+            break;
+        }
+        elPtr = &(*elPtr)->next;
+    }
+
+    if(*elPtr) {
+        struct VMObjectElement *el = *elPtr;
+        *elPtr = (*elPtr)->next;
+        free(el);
+
+        assert(ob->size);
+        ob->size--;
+    }
+}
+
 struct Value *vmObjectFindOrAddEntry(
     struct VM *vm,
     struct VMObject *ob,
     struct Value *key)
 {
-    struct VMObjectElement *el = ob->data;
+    struct VMObjectElement **obList =
+        &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
+
+    struct VMObjectElement *el = *obList;
     while(el) {
         if(value_compare(vm, key, &el->key, true) == 0) {
             break;
@@ -169,9 +201,12 @@ struct Value *vmObjectFindOrAddEntry(
     if(!el) {
         el = malloc(sizeof(struct VMObjectElement));
         memset(el, 0, sizeof(struct VMObjectElement));
-        el->next = ob->data;
+        el->next = *obList;
         el->key = *key;
-        ob->data = el;
+        *obList = el;
+        ob->size++;
+        // FIXME: Check integer overflow on size.
+        // FIXME: Check for size > object size limit.
     }
 
     return &el->value;
@@ -186,18 +221,24 @@ void vmObjectTableDump(struct VM *vm)
     for(index = 0; index < vm->objectTable.objectTableCapacity; index++) {
         printf("%4u ", index);
         if(vm->objectTable.objectTable[index]) {
-            struct VMObject *ob = vm->objectTable.objectTable[index];
-            struct VMObjectElement *el = ob->data;
-            printf("Object\n");
-            while(el) {
-                printf("      ");
-                value_dump(vm, &el->key);
-                printf(" = ");
-                value_dump(vm, &el->value);
-                printf("\n");
-                el = el->next;
-            }
 
+            struct VMObject *ob = vm->objectTable.objectTable[index];
+            uint32_t bucket;
+
+            printf("Object\n");
+
+            for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
+                printf("      Hash bucket %u\n", bucket);
+                struct VMObjectElement *el = ob->hashBuckets[bucket];
+                while(el) {
+                    printf("        ");
+                    value_dump(vm, &el->key);
+                    printf(" = ");
+                    value_dump(vm, &el->value);
+                    printf("\n");
+                    el = el->next;
+                }
+            }
         } else {
             printf("No object");
         }

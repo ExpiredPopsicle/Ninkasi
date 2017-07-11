@@ -307,6 +307,11 @@ for(i = 0; i < 2000; ++i) {
     }
 }
 
+for(i = 0; i < 2000; ++i) {
+    butts[i] = nil;
+}
+
+
 print("DONE\n");
 
 function dumpHash(x)

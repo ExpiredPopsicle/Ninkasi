@@ -759,10 +759,21 @@ void opcode_objectFieldSet(struct VM *vm)
         return;
     }
 
-    objectValue =
-        vmObjectFindOrAddEntry(vm, ob, indexToSet);
+    if(valueToSet->type == VALUETYPE_NIL) {
 
-    *objectValue = *valueToSet;
+        // For nil, we actually want to remove a field.
+
+        vmObjectClearEntry(vm, ob, indexToSet);
+
+    } else {
+
+        // For non-nil values, set or create the field.
+
+        objectValue =
+            vmObjectFindOrAddEntry(vm, ob, indexToSet);
+
+        *objectValue = *valueToSet;
+    }
 
     // Leave the assigned value on the stack.
     *vmStackPush_internal(vm) = *valueToSet;

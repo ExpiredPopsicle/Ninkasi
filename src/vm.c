@@ -203,33 +203,39 @@ void vmGarbageCollect_markValue(
                         &vm->objectTable, value->objectId);
 
                     if(ob) {
-                        struct VMObjectElement *el = ob->data;
+
+                        uint32_t bucket;
 
                         ob->lastGCPass = currentGCPass;
 
-                        while(el) {
+                        for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
 
-                            uint32_t k;
-                            for(k = 0; k < 2; k++) {
-                                struct Value *v = k ? &el->value : &el->key;
+                            struct VMObjectElement *el = ob->hashBuckets[bucket];
 
-                                if(v->type == VALUETYPE_STRING ||
-                                    v->type == VALUETYPE_OBJECTID)
-                                {
-                                    struct VMValueGCEntry *newEntry = closedList;
-                                    if(!newEntry) {
-                                        newEntry = malloc(sizeof(struct VMValueGCEntry));
-                                    } else {
-                                        closedList = newEntry->next;
+                            while(el) {
+
+                                uint32_t k;
+                                for(k = 0; k < 2; k++) {
+                                    struct Value *v = k ? &el->value : &el->key;
+
+                                    if(v->type == VALUETYPE_STRING ||
+                                        v->type == VALUETYPE_OBJECTID)
+                                    {
+                                        struct VMValueGCEntry *newEntry = closedList;
+                                        if(!newEntry) {
+                                            newEntry = malloc(sizeof(struct VMValueGCEntry));
+                                        } else {
+                                            closedList = newEntry->next;
+                                        }
+
+                                        newEntry->value = v;
+                                        newEntry->next = openList;
+                                        openList = newEntry;
                                     }
-
-                                    newEntry->value = v;
-                                    newEntry->next = openList;
-                                    openList = newEntry;
                                 }
-                            }
 
-                            el = el->next;
+                                el = el->next;
+                            }
                         }
 
                     } else {
