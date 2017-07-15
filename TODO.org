@@ -3,8 +3,8 @@
 * DONE Functions
 ** DONE VM functions
 ** DONE Native functions
-*** TODO Native function userdata
-*** TODO Check for duplicate native functions?
+*** DONE Native function userdata
+*** DONE Check for duplicate native functions?
 ** DONE Calling VM functions from native functions.
 * DONE For-loops
 * DONE Increment and decrement operators

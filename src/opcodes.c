@@ -460,6 +460,7 @@ void opcode_call(struct VM *vm)
         data.vm = vm;
         data.argumentCount = argumentCount;
         data.arguments = malloc(argumentCount * sizeof(struct Value));
+        data.userData = funcOb->CFunctionCallbackUserdata;
 
         // Note: We're not simply giving the function a stack pointer,
         // because then the called function would have to worry about

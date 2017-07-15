@@ -177,12 +177,15 @@ void vmFuncPrint(struct VMFunctionCallbackData *data)
     for(i = 0; i < data->argumentCount; i++) {
         printf("\033[1m%s\033[0m", valueToString(data->vm, &data->arguments[i]));
     }
+
+    (*(int*)data->userData)++;
 }
 
 
 int main(int argc, char *argv[])
 {
     char *script = loadScript("test.txt");
+    int shitCounter = 0;
 
     // while(strlen(script))
 
@@ -198,12 +201,12 @@ int main(int argc, char *argv[])
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
-            vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-            vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
-            vmCompilerCreateCFunctionVariable(cs, "hash", getHash);
-            vmCompilerCreateCFunctionVariable(cs, "hash2", getHash);
-            vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
-            vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
+            vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
+            vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
+            vmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
+            vmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
+            vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
+            vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
             vmCompilerCompileScript(cs, script);
             vmCompilerFinalize(cs);
 
@@ -385,6 +388,8 @@ int main(int argc, char *argv[])
     }
 
     free(script);
+
+    printf("Shitcounter: %d\n", shitCounter);
 
     return 0;
 }

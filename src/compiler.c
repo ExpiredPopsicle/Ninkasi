@@ -741,13 +741,16 @@ void vmCompilerAddError(struct CompilerState *cs, const char *error)
 void vmCompilerCreateCFunctionVariable(
     struct CompilerState *cs,
     const char *name,
-    VMFunctionCallback func)
+    VMFunctionCallback func,
+    void *userData)
 {
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
     uint32_t functionId = 0;
     for(functionId = 0; functionId < cs->vm->functionCount; functionId++) {
-        if(cs->vm->functionTable[functionId].CFunctionCallback == func) {
+        if(cs->vm->functionTable[functionId].CFunctionCallback == func &&
+            cs->vm->functionTable[functionId].CFunctionCallbackUserdata == userData)
+        {
             break;
         }
     }
@@ -759,6 +762,7 @@ void vmCompilerCreateCFunctionVariable(
         vmfunc->argumentCount = ~(uint32_t)0;
         vmfunc->isCFunction = true;
         vmfunc->CFunctionCallback = func;
+        vmfunc->CFunctionCallbackUserdata = userData;
     }
 
     // Add the variable.

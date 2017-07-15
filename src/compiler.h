@@ -20,7 +20,8 @@ struct CompilerState *vmCompilerCreate(
 void vmCompilerCreateCFunctionVariable(
     struct CompilerState *cs,
     const char *name,
-    VMFunctionCallback func);
+    VMFunctionCallback func,
+    void *userData);
 
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number

@@ -12,6 +12,8 @@ struct VMFunctionCallbackData
 
     // Set this to something to return a value.
     struct Value returnValue;
+
+    void *userData;
 };
 
 typedef void (*VMFunctionCallback)(struct VMFunctionCallbackData *data);
@@ -23,6 +25,7 @@ struct VMFunction
 
     bool isCFunction;
     VMFunctionCallback CFunctionCallback;
+    void *CFunctionCallbackUserdata;
 };
 
 /// Convenience function for C function callbacks. Check the argument
