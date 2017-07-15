@@ -743,19 +743,28 @@ void vmCompilerCreateCFunctionVariable(
     const char *name,
     VMFunctionCallback func)
 {
-    // TODO: Lookup function first, to make sure we aren't making
-    // duplicate functions.
-
+    // Lookup function first, to make sure we aren't making duplicate
+    // functions.
     uint32_t functionId = 0;
-    struct VMFunction *vmfunc =
-        vmCreateFunction(cs->vm, &functionId);
+    for(functionId = 0; functionId < cs->vm->functionCount; functionId++) {
+        if(cs->vm->functionTable[functionId].CFunctionCallback == func) {
+            break;
+        }
+    }
+
+    // Add a new one if we haven't found an existing one.
+    if(functionId == cs->vm->functionCount) {
+        struct VMFunction *vmfunc =
+            vmCreateFunction(cs->vm, &functionId);
+        vmfunc->argumentCount = ~(uint32_t)0;
+        vmfunc->isCFunction = true;
+        vmfunc->CFunctionCallback = func;
+    }
+
+    // Add the variable.
     emitPushLiteralFunctionId(cs, functionId);
     cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, name);
-
-    vmfunc->argumentCount = ~(uint32_t)0;
-    vmfunc->isCFunction = true;
-    vmfunc->CFunctionCallback = func;
 }
 
 struct CompilerState *vmCompilerCreate(

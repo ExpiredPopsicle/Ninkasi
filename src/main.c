@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
             vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
             vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
             vmCompilerCreateCFunctionVariable(cs, "hash", getHash);
+            vmCompilerCreateCFunctionVariable(cs, "hash2", getHash);
             vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
             vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
             vmCompilerCompileScript(cs, script);

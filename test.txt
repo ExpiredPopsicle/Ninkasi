@@ -1,8 +1,10 @@
 for(var n = 0; n < 10; ++n) {
+
     var k = 0;
 
     function stuff(asdf) {
-        while(1) {
+        var asdf = 1234;
+        while(asdf) {
             break;
         }
     }
@@ -11,6 +13,7 @@ for(var n = 0; n < 10; ++n) {
         print("derp", n, "\n");
         break;
     }
+
     stuff(1);
 }
 
