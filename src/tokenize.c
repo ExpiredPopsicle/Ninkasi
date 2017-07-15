@@ -416,6 +416,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 addToken(TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "nil")) {
                 addToken(TOKENTYPE_NIL, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "break")) {
+                addToken(TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
             } else {
                 addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }

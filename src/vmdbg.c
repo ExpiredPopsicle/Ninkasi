@@ -1,6 +1,6 @@
 #include "common.h"
 
-#define DEBUG_SPAM 1
+#define DEBUG_SPAM 0
 
 static int32_t dbgIndentLevel = 0;
 int dbgWriteLine(const char *fmt, ...)

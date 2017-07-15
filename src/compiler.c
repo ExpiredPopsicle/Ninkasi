@@ -142,6 +142,9 @@ void popContext(struct CompilerState *cs)
 
     }
 
+    // Free loop context jump fixups for break statements.
+    free(oldContext->loopContextFixups);
+
     // Free the context itself.
     free(oldContext);
 
@@ -325,6 +328,10 @@ bool compileStatement(struct CompilerState *cs)
         case TOKENTYPE_FOR:
             // "for" statements.
             return compileForStatement(cs);
+
+        case TOKENTYPE_BREAK:
+            // "break" statements.
+            return compileBreakStatement(cs);
 
         default:
             // Fall back to just parsing an expression.
@@ -1009,10 +1016,25 @@ bool compileIfStatement(struct CompilerState *cs)
     return true;
 }
 
+void fixupBreakJumpForContext(struct CompilerState *cs)
+{
+    while(cs->context->loopContextFixupCount) {
+        uint32_t fixupLocation =
+            cs->context->loopContextFixups[--cs->context->loopContextFixupCount];
+        modifyJump(cs, fixupLocation, cs->instructionWriteIndex);
+    }
+    free(cs->context->loopContextFixups);
+    cs->context->loopContextFixups = NULL;
+}
+
 bool compileWhileStatement(struct CompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
     uint32_t startAddress = cs->instructionWriteIndex;
+
+    pushContext(cs);
+    cs->context->isLoopContext = true;
+    pushContext(cs);
 
     // Skip "while("
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_WHILE);
@@ -1020,6 +1042,8 @@ bool compileWhileStatement(struct CompilerState *cs)
 
     // Generate the expression code.
     if(!compileExpression(cs)) {
+        popContext(cs);
+        popContext(cs);
         return false;
     }
 
@@ -1034,6 +1058,8 @@ bool compileWhileStatement(struct CompilerState *cs)
     pushContext(cs);
     if(!compileStatement(cs)) {
         popContext(cs);
+        popContext(cs);
+        popContext(cs);
         return false;
     }
     popContext(cs);
@@ -1044,6 +1070,10 @@ bool compileWhileStatement(struct CompilerState *cs)
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
+    popContext(cs);
+    fixupBreakJumpForContext(cs);
+    popContext(cs);
+
     return true;
 }
 
@@ -1052,6 +1082,9 @@ bool compileForStatement(struct CompilerState *cs)
     uint32_t skipAddressWritePtr = 0;
     uint32_t loopStartAddress = 0;
     struct ExpressionAstNode *incrementExpression = NULL;
+
+    pushContext(cs);
+    cs->context->isLoopContext = true;
 
     // Just in case we want to declare a variable inline in the init
     // code.
@@ -1067,6 +1100,7 @@ bool compileForStatement(struct CompilerState *cs)
     // shit can go into that area.
     if(!compileStatement(cs)) {
         popContext(cs);
+        popContext(cs);
         return false;
     }
     // If we ever go back to using expressions for the init thing,
@@ -1079,6 +1113,7 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Generate test expression code.
     if(!compileExpression(cs)) {
+        popContext(cs);
         popContext(cs);
         return false;
     }
@@ -1094,6 +1129,7 @@ bool compileForStatement(struct CompilerState *cs)
     if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
         deleteExpressionNode(incrementExpression);
         popContext(cs);
+        popContext(cs);
         return false;
     }
 
@@ -1103,6 +1139,7 @@ bool compileForStatement(struct CompilerState *cs)
         deleteExpressionNode(incrementExpression);
         popContext(cs);
         popContext(cs);
+        popContext(cs);
         return false;
     }
     popContext(cs);
@@ -1110,6 +1147,7 @@ bool compileForStatement(struct CompilerState *cs)
     // Emit the increment expression.
     if(!emitExpression(cs, incrementExpression)) {
         deleteExpressionNode(incrementExpression);
+        popContext(cs);
         popContext(cs);
         return false;
     }
@@ -1125,6 +1163,55 @@ bool compileForStatement(struct CompilerState *cs)
     deleteExpressionNode(incrementExpression);
 
     popContext(cs);
+    fixupBreakJumpForContext(cs);
+    popContext(cs);
     return true;
 }
 
+bool compileBreakStatement(struct CompilerState *cs)
+{
+    uint32_t contextLevel = cs->context->stackFrameOffset;
+    uint32_t loopContextLevel = 0;
+
+    // Find a loop context we can break out of.
+    struct CompilerStateContext *searchContext = cs->context;
+    while(searchContext) {
+        if(searchContext->isLoopContext) {
+            break;
+        }
+        searchContext = searchContext->parent;
+    }
+
+    if(!searchContext) {
+        vmCompilerAddError(cs, "Cannot break outside of a loop.");
+        return false;
+    }
+
+    if(!searchContext->parent) {
+        vmCompilerAddError(cs, "Cannot break out of the root context.");
+        return false;
+    }
+
+    loopContextLevel = searchContext->stackFrameOffset;
+
+    printf("Stack frame difference: %u\n", contextLevel - loopContextLevel);
+    // assert(0);
+
+    emitPushLiteralInt(cs, contextLevel - loopContextLevel);
+    addInstructionSimple(cs, OP_POPN);
+    {
+        uint32_t jumpFixup = emitJump(cs, 0);
+        searchContext->loopContextFixupCount++;
+        searchContext->loopContextFixups =
+            realloc(searchContext->loopContextFixups,
+                sizeof(*searchContext->loopContextFixups) *
+                searchContext->loopContextFixupCount);
+        searchContext->loopContextFixups[
+            searchContext->loopContextFixupCount - 1] =
+            jumpFixup;
+    }
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_BREAK);
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    return true;
+}

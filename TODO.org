@@ -95,3 +95,4 @@ x.a(b, c) is...
 - Make sure we don't go outside the function while moving up the context stack!
 
 
+* TODO Get rid of dump opcode.

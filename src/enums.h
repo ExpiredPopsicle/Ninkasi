@@ -130,6 +130,8 @@ enum TokenType
 
     TOKENTYPE_NIL,
 
+    TOKENTYPE_BREAK,
+
     TOKENTYPE_INVALID,
 };
 

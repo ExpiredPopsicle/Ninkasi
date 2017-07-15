@@ -71,6 +71,9 @@ struct CompilerStateContext
     uint32_t stackFrameOffset;
 
     uint32_t currentFunctionId;
+    bool isLoopContext;
+    uint32_t *loopContextFixups;
+    uint32_t loopContextFixupCount;
 };
 
 struct CompilerState
@@ -107,6 +110,7 @@ bool compileReturnStatement(struct CompilerState *cs);
 bool compileIfStatement(struct CompilerState *cs);
 bool compileWhileStatement(struct CompilerState *cs);
 bool compileForStatement(struct CompilerState *cs);
+bool compileBreakStatement(struct CompilerState *cs);
 
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct CompilerState *cs, float value);
