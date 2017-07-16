@@ -41,7 +41,7 @@ compatibility between different architectures, for example.)
 ** TODO Memory usage
 *** DONE Max strings
 *** DONE Max string length
-*** TODO Max stack size
+*** DONE Max stack size
 *** TODO Max objects
 *** TODO Max fields per object
 *** TODO Max allocated memory

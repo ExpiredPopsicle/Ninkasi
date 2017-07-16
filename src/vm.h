@@ -79,6 +79,10 @@ struct VMFunction;
 
 struct VMLimits
 {
+    // Many of these values are only checked when a section needs to
+    // expand (double) its memory usage. So only powers of two are
+    // meaningful numbers for string count, stack size, and object
+    // count.
     uint32_t maxStrings;
     uint32_t maxStringLength;
     uint32_t maxStacksize;

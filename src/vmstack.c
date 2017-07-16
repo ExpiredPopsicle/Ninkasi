@@ -38,11 +38,16 @@ struct Value *vmStackPush_internal(struct VM *vm)
         // TODO: Make this a normal error. (Return NULL?)
         assert(stack->capacity);
         if(!stack->capacity) {
-
             errorStateAddError(
                 &vm->errorState, -1,
                 "Stack ran out of address space.");
+            return &stack->values[0];
+        }
 
+        if(stack->capacity > vm->limits.maxStacksize) {
+            errorStateAddError(
+                &vm->errorState, -1,
+                "Reached stack capacity limit.");
             return &stack->values[0];
         }
 

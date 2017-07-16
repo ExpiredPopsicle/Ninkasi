@@ -200,6 +200,7 @@ int main(int argc, char *argv[])
         vmInit(&vm);
         // vm.limits.maxStrings = 256;
         // vm.limits.maxStringLength = 10;
+        // vm.limits.maxStacksize = 5;
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
