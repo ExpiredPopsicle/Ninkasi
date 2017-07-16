@@ -211,7 +211,7 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str)
     memset(&inst, 0, sizeof(inst));
     inst.opData_string =
         vmStringTableFindOrAddString(
-            &cs->vm->stringTable,
+            cs->vm,
             str);
     addInstruction(cs, &inst);
 

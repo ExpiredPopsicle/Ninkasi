@@ -77,9 +77,10 @@ const char *vmStringTableGetStringById(
 }
 
 uint32_t vmStringTableFindOrAddString(
-    struct VMStringTable *table,
+    struct VM *vm,
     const char *str)
 {
+    struct VMStringTable *table = &vm->stringTable;
     uint32_t hash = stringHash(str);
 
     // See if we have this string already.
@@ -94,10 +95,30 @@ uint32_t vmStringTableFindOrAddString(
         cur = cur->nextInHashBucket;
     }
 
+    // Check our length.
+    uint32_t len = strlen(str);
+    if(len > vm->limits.maxStringLength) {
+        errorStateAddError(
+            &vm->errorState,
+            -1, "Reached string length limit.");
+        return ~(uint32_t)0;
+    }
+
+    // If we're going to have to allocate more space in our table, we
+    // need to check against our VM's string limit.
+    if(!table->tableHoles &&
+        ((table->stringTableCapacity << 1) > vm->limits.maxStrings ||
+            !(table->stringTableCapacity << 1)))
+    {
+        errorStateAddError(
+            &vm->errorState,
+            -1, "Reached string table capacity limit.");
+        return ~(uint32_t)0;
+    }
+
     // If we've reach this point, then we don't have the string yet,
     // so we'll go ahead and make a new entry.
     {
-        uint32_t len = strlen(str);
         struct VMString *newString =
             malloc(sizeof(struct VMString) + len + 1);
         uint32_t index = 0;

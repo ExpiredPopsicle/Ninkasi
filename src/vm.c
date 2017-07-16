@@ -104,6 +104,13 @@ void vmInit(struct VM *vm)
     vm->functionTable = NULL;
 
     vmObjectTableInit(&vm->objectTable);
+
+    vm->limits.maxStrings = ~(uint32_t)0;
+    vm->limits.maxStringLength = ~(uint32_t)0;
+    vm->limits.maxStacksize = ~(uint32_t)0;
+    vm->limits.maxObjects = ~(uint32_t)0;
+    vm->limits.maxFieldsPerObject = ~(uint32_t)0;
+    vm->limits.maxAllocatedMemory = ~(uint32_t)0;
 }
 
 void vmDestroy(struct VM *vm)

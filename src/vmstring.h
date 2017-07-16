@@ -48,7 +48,7 @@ const char *vmStringTableGetStringById(
     uint32_t index);
 
 uint32_t vmStringTableFindOrAddString(
-    struct VMStringTable *table,
+    struct VM *vm,
     const char *str);
 
 void vmStringTableDump(struct VMStringTable *table);

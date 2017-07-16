@@ -39,7 +39,8 @@ compatibility between different architectures, for example.)
 ** TODO Load
 * TODO Configurable limits
 ** TODO Memory usage
-*** TODO Max strings
+*** DONE Max strings
+*** DONE Max string length
 *** TODO Max stack size
 *** TODO Max objects
 *** TODO Max fields per object

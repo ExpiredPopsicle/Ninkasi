@@ -198,6 +198,8 @@ int main(int argc, char *argv[])
         assert(script);
 
         vmInit(&vm);
+        // vm.limits.maxStrings = 256;
+        // vm.limits.maxStringLength = 10;
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
@@ -326,41 +328,41 @@ int main(int argc, char *argv[])
 
         if(0) {
 
-            printf("----------------------------------------------------------------------\n");
-            printf("  String table crap\n");
-            printf("----------------------------------------------------------------------\n");
+            // printf("----------------------------------------------------------------------\n");
+            // printf("  String table crap\n");
+            // printf("----------------------------------------------------------------------\n");
 
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
 
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "bladgh");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "foom");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "dicks");
-            vmStringTableFindOrAddString(
-                &vm.stringTable, "sadf");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "bladgh");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "foom");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "dicks");
+            // vmStringTableFindOrAddString(
+            //     &vm.stringTable, "sadf");
 
-            vmStringTableDump(&vm.stringTable);
+            // vmStringTableDump(&vm.stringTable);
 
-            vmStringTableGetEntryById(
-                &vm.stringTable,
-                vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
+            // vmStringTableGetEntryById(
+            //     &vm.stringTable,
+            //     vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
 
-            vmStringTableCleanOldStrings(&vm.stringTable, 1234);
+            // vmStringTableCleanOldStrings(&vm.stringTable, 1234);
 
-            vmStringTableDump(&vm.stringTable);
+            // vmStringTableDump(&vm.stringTable);
 
-            vmRescanProgramStrings(&vm);
+            // vmRescanProgramStrings(&vm);
 
 
             // vmIterate(&vm);

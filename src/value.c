@@ -155,7 +155,8 @@ const char *valueToString(struct VM *vm, struct Value *value)
 
             dynStrAppendInt32(dynStr, value->intData);
 
-            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            id = vmStringTableFindOrAddString(
+                vm, dynStr->data);
             dynStrDelete(dynStr);
 
             return vmStringTableGetStringById(
@@ -169,7 +170,8 @@ const char *valueToString(struct VM *vm, struct Value *value)
 
             dynStrAppendFloat(dynStr, value->floatData);
 
-            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            id = vmStringTableFindOrAddString(
+                vm, dynStr->data);
             dynStrDelete(dynStr);
 
             return vmStringTableGetStringById(
@@ -186,7 +188,8 @@ const char *valueToString(struct VM *vm, struct Value *value)
             dynStrAppendInt32(dynStr, valueHash(vm, value));
             dynStrAppend(dynStr, ">");
 
-            id = vmStringTableFindOrAddString(&vm->stringTable, dynStr->data);
+            id = vmStringTableFindOrAddString(
+                vm, dynStr->data);
             dynStrDelete(dynStr);
 
             return vmStringTableGetStringById(
@@ -347,6 +350,6 @@ void vmValueSetString(struct VM *vm, struct Value *value, const char *str)
     value->type = VALUETYPE_STRING;
     value->stringTableEntry =
         vmStringTableFindOrAddString(
-            &vm->stringTable, str);
+            vm, str);
 }
 

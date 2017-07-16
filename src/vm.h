@@ -77,6 +77,16 @@ struct Value *vmFindGlobalVariable(
 
 struct VMFunction;
 
+struct VMLimits
+{
+    uint32_t maxStrings;
+    uint32_t maxStringLength;
+    uint32_t maxStacksize;
+    uint32_t maxObjects;
+    uint32_t maxFieldsPerObject;
+    uint32_t maxAllocatedMemory;
+};
+
 struct VM
 {
     struct ErrorState errorState;
@@ -117,6 +127,8 @@ struct VM
     } *globalVariables;
     char *globalVariableNameStorage;
     uint32_t globalVariableCount;
+
+    struct VMLimits limits;
 };
 
 void vmInit(struct VM *vm);

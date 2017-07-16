@@ -93,7 +93,7 @@ bool vmStackPushString(struct VM *vm, const char *str)
         data->type = VALUETYPE_STRING;
         data->stringTableEntry =
             vmStringTableFindOrAddString(
-                &vm->stringTable, str);
+                vm, str);
         return true;
     }
     return false;
