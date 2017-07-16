@@ -773,7 +773,9 @@ void opcode_objectFieldSet(struct VM *vm)
         objectValue =
             vmObjectFindOrAddEntry(vm, ob, indexToSet);
 
-        *objectValue = *valueToSet;
+        if(objectValue) {
+            *objectValue = *valueToSet;
+        }
     }
 
     // Leave the assigned value on the stack.

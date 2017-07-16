@@ -211,14 +211,21 @@ struct Value *vmObjectFindOrAddEntry(
 
     // If we can't find the entry, make a new one.
     if(!el) {
+
+        ob->size++;
+        if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
+            ob->size--;
+            errorStateAddError(
+                &vm->errorState, -1,
+                "Reached object field count limit.");
+            return NULL;
+        }
+
         el = malloc(sizeof(struct VMObjectElement));
         memset(el, 0, sizeof(struct VMObjectElement));
         el->next = *obList;
         el->key = *key;
         *obList = el;
-        ob->size++;
-        // FIXME: Check integer overflow on size.
-        // FIXME: Check for size > object size limit.
     }
 
     return &el->value;
