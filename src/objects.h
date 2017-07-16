@@ -68,7 +68,7 @@ struct VMObject *vmObjectTableGetEntryById(
     uint32_t index);
 
 uint32_t vmObjectTableCreateObject(
-    struct VMObjectTable *table);
+    struct VM *vm);
 
 void vmObjectTableCleanOldObjects(
     struct VMObjectTable *table, uint32_t lastGCPass);

@@ -42,7 +42,7 @@ compatibility between different architectures, for example.)
 *** DONE Max strings
 *** DONE Max string length
 *** DONE Max stack size
-*** TODO Max objects
+*** DONE Max objects
 *** TODO Max fields per object
 *** TODO Max allocated memory
 Remember to search for all the malloc, reallocs, and strdups.

@@ -68,8 +68,9 @@ struct VMObject *vmObjectTableGetEntryById(
 }
 
 uint32_t vmObjectTableCreateObject(
-    struct VMObjectTable *table)
+    struct VM *vm)
 {
+    struct VMObjectTable *table = &vm->objectTable;
     uint32_t index = ~0;
     struct VMObject *newObject = malloc(sizeof(struct VMObject));
     memset(newObject, 0, sizeof(*newObject));
@@ -92,6 +93,15 @@ uint32_t vmObjectTableCreateObject(
         uint32_t oldCapacity = table->objectTableCapacity;
         uint32_t newCapacity = oldCapacity << 1;
         uint32_t i;
+
+        // If we're going to have to allocate more space in our table, we
+        // need to check against our VM's string limit.
+        if((newCapacity > vm->limits.maxObjects || !newCapacity)) {
+            errorStateAddError(
+                &vm->errorState,
+                -1, "Reached object table capacity limit.");
+            return ~(uint32_t)0;
+        }
 
         table->objectTable = realloc(
             table->objectTable,

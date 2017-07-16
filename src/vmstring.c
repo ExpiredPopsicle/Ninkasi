@@ -104,18 +104,6 @@ uint32_t vmStringTableFindOrAddString(
         return ~(uint32_t)0;
     }
 
-    // If we're going to have to allocate more space in our table, we
-    // need to check against our VM's string limit.
-    if(!table->tableHoles &&
-        ((table->stringTableCapacity << 1) > vm->limits.maxStrings ||
-            !(table->stringTableCapacity << 1)))
-    {
-        errorStateAddError(
-            &vm->errorState,
-            -1, "Reached string table capacity limit.");
-        return ~(uint32_t)0;
-    }
-
     // If we've reach this point, then we don't have the string yet,
     // so we'll go ahead and make a new entry.
     {
@@ -137,13 +125,20 @@ uint32_t vmStringTableFindOrAddString(
 
         } else {
 
-            // FIXME: Limit string table size?
-
             // Looks like we have to re-size the string table.
 
             uint32_t oldCapacity = table->stringTableCapacity;
             uint32_t newCapacity = oldCapacity << 1;
             uint32_t i;
+
+            // If we're going to have to allocate more space in our table, we
+            // need to check against our VM's string limit.
+            if((newCapacity > vm->limits.maxStrings || !newCapacity)) {
+                errorStateAddError(
+                    &vm->errorState,
+                    -1, "Reached string table capacity limit.");
+                return ~(uint32_t)0;
+            }
 
             table->stringTable = realloc(
                 table->stringTable,

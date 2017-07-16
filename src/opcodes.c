@@ -679,7 +679,7 @@ void opcode_createObject(struct VM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
     v->type = VALUETYPE_OBJECTID;
-    v->objectId = vmObjectTableCreateObject(&vm->objectTable);
+    v->objectId = vmObjectTableCreateObject(vm);
 }
 
 void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
@@ -800,5 +800,4 @@ void opcode_pushNil(struct VM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
     v->type = VALUETYPE_NIL;
-    v->objectId = vmObjectTableCreateObject(&vm->objectTable);
 }
