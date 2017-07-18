@@ -189,10 +189,14 @@ int main(int argc, char *argv[])
     char *script = loadScript("test.txt");
     int shitCounter = 0;
     uint32_t maxRam = 19880;
+    uint32_t maxMaxRam = 1024*1024;
     maxRam = 60522;
     maxRam = 61818;
+    maxRam = 89049;
+    maxRam = 90490;
+    maxRam = 115200;
 
-    while(strlen(script) && maxRam < 1024*1024) // && maxRam < 512)
+    while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         uint32_t instructionCountMax = 1024*1024*1024;
         struct VM vm;
@@ -234,16 +238,16 @@ int main(int argc, char *argv[])
 
         if(!vm.errorState.firstError) {
 
-            printf("----------------------------------------------------------------------\n");
-            printf("  Original script\n");
-            printf("----------------------------------------------------------------------\n");
+            // printf("----------------------------------------------------------------------\n");
+            // printf("  Original script\n");
+            // printf("----------------------------------------------------------------------\n");
 
-            {
-                uint32_t i;
-                for(i = 0; i < lineCount; i++) {
-                    printf("%4u : %s\n", i, lines[i]);
-                }
-            }
+            // {
+            //     uint32_t i;
+            //     for(i = 0; i < lineCount; i++) {
+            //         printf("%4u : %s\n", i, lines[i]);
+            //     }
+            // }
 
             printf("----------------------------------------------------------------------\n");
             printf("  Dump\n");

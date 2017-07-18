@@ -599,6 +599,10 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     struct VMFunction *functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
+    if(!functionObject) {
+        return false;
+    }
+
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
 
     // Read the function name.
@@ -636,6 +640,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // set it and parent it directly.
     functionLocalContext = nkMalloc(
         cs->vm, sizeof(struct CompilerStateContext));
+    if(!functionLocalContext) {
+        return false;
+    }
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
     // Find the global context and set it as our parent.
@@ -668,6 +675,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
             // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
             varTmp = addVariableWithoutStackAllocation(cs, argumentName);
+            if(!varTmp) {
+                return false;
+            }
 
             varTmp->doNotPopWhenOutOfScope = true;
 
@@ -706,6 +716,9 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
     varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
+    if(!varTmp) {
+        return false;
+    }
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
@@ -713,12 +726,18 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
     varTmp = addVariableWithoutStackAllocation(cs, "_argumentCount");
+    if(!varTmp) {
+        return false;
+    }
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
     varTmp = addVariableWithoutStackAllocation(cs, "_returnPointer");
+    if(!varTmp) {
+        return false;
+    }
     varTmp->doNotPopWhenOutOfScope = true;
 
     // Skip ')'.
@@ -742,18 +761,22 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // end without returning.
     emitPushLiteralInt(cs, 0); // Return value (zero is probably fine
                                // as a default).
-    cs->context->stackFrameOffset++;
+    if(cs->context) {
+        cs->context->stackFrameOffset++;
+    }
     emitReturn(cs);
 
     // Go back and fix up our relative jump that skips this
     // function now that we know how long it is.
-    cs->vm->instructions[skipOffset].opData_int =
-        cs->instructionWriteIndex - skipOffset - 2;
+    if(cs->vm->instructions) {
+        cs->vm->instructions[skipOffset].opData_int =
+            cs->instructionWriteIndex - skipOffset - 2;
+    }
 
     // Restore the "real" context back to the parent.
     dbgPush(); // FIXME: To counter the push inside popContext.
 
-    assert(cs->context == functionLocalContext);
+    // assert(cs->context == functionLocalContext);
 
     popContext(cs);
     cs->context = savedContext;
@@ -1032,6 +1055,9 @@ uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
 
 struct Instruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
 {
+    if(!cs->vm->instructions) {
+        return NULL;
+    }
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
 
@@ -1044,6 +1070,10 @@ void modifyJump(
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
     struct Instruction *jumpInst =
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
+
+    if(!pushLitInst || !jumpInst) {
+        return;
+    }
 
     assert(pushLitInst->opcode == OP_PUSHLITERAL_INT);
     assert(
@@ -1324,6 +1354,9 @@ bool compileBreakStatement(struct CompilerState *cs)
             nkRealloc(cs->vm, searchContext->loopContextFixups,
                 sizeof(*searchContext->loopContextFixups) *
                 searchContext->loopContextFixupCount);
+        if(!searchContext->loopContextFixups) {
+            return false;
+        }
         searchContext->loopContextFixups[
             searchContext->loopContextFixupCount - 1] =
             jumpFixup;
