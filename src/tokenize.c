@@ -43,6 +43,10 @@ void addToken(
 {
     struct Token *newToken =
         nkMalloc(vm, sizeof(struct Token));
+    if(!newToken) {
+        return;
+    }
+
     newToken->next = NULL;
     newToken->str = nkStrdup(vm, str);
     newToken->type = type;
@@ -70,6 +74,10 @@ char *tokenizerUnescapeString(
     uint32_t len = strlen(in);
     uint32_t readIndex;
     uint32_t writeIndex = 0;
+
+    if(!out) {
+        return NULL;
+    }
 
     for(readIndex = 0; readIndex < len; readIndex++) {
 
@@ -347,6 +355,9 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
             // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
             strTmp = nkMalloc(vm, len + 1);
+            if(!strTmp) {
+                return false;
+            }
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
@@ -403,6 +414,10 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
             }
 
             tmp = nkMalloc(vm, (i - startIndex) + 1);
+            if(!tmp) {
+                return false;
+            }
+
             memcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 

@@ -75,12 +75,14 @@ void *nkRealloc(struct VM *vm, void *data, uint32_t size)
 
 char *nkStrdup(struct VM *vm, const char *str)
 {
-    uint32_t len = strlen(str) + 1;
-    if(len) {
-        char *copyData = nkMalloc(vm, len);
-        if(copyData) {
-            strcpy(copyData, str);
-            return copyData;
+    if(str) {
+        uint32_t len = strlen(str) + 1;
+        if(len) {
+            char *copyData = nkMalloc(vm, len);
+            if(copyData) {
+                strcpy(copyData, str);
+                return copyData;
+            }
         }
     }
     return NULL;

@@ -114,6 +114,10 @@ void vmInit(struct VM *vm)
     vm->functionCount = 0;
     vm->functionTable = NULL;
 
+    vm->globalVariableCount = 0;
+    vm->globalVariables = NULL;
+    vm->globalVariableNameStorage = NULL;
+
     vmObjectTableInit(vm);
 }
 
@@ -410,10 +414,23 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
         *functionId = vm->functionCount++;
     }
 
-    vm->functionTable = nkRealloc(
-        vm,
-        vm->functionTable,
-        sizeof(struct VMFunction) * vm->functionCount);
+    {
+        struct VMFunction *newFunctionTable =
+            nkMalloc(vm, sizeof(struct VMFunction) * vm->functionCount);
+
+        if(!newFunctionTable) {
+            vm->functionCount--;
+            return NULL;
+        }
+
+        if(vm->functionTable) {
+            memcpy(
+                newFunctionTable, vm->functionTable,
+                sizeof(struct VMFunction) * (vm->functionCount - 1));
+            nkFree(vm, vm->functionTable);
+        }
+        vm->functionTable = newFunctionTable;
+    }
 
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
@@ -513,10 +530,16 @@ uint32_t vmGetErrorCount(struct VM *vm)
 {
     uint32_t count = 0;
     struct Error *error = vm->errorState.firstError;
+
     while(error) {
         count++;
         error = error->next;
     }
+
+    if(vm->errorState.allocationFailure) {
+        count++;
+    }
+
     return count;
 }
 

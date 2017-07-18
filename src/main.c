@@ -39,60 +39,62 @@ void dumpListing(struct VM *vm, const char *script)
     uint32_t lineCount = 0;
     char **lines = script ? splitLines(script, &lineCount) : NULL;
 
-    for(i = 0; i <= vm->instructionAddressMask; i++) {
+    if(vm->instructions) {
+        for(i = 0; i <= vm->instructionAddressMask; i++) {
 
-        enum Opcode opcode = vm->instructions[i].opcode;
-        struct Instruction *maybeParams =
-            &vm->instructions[(i+1) & vm->instructionAddressMask];
+            enum Opcode opcode = vm->instructions[i].opcode;
+            struct Instruction *maybeParams =
+                &vm->instructions[(i+1) & vm->instructionAddressMask];
 
-        if(opcode == OP_END) {
-            break;
-        }
-
-      #if VM_DEBUG
-
-        // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
-        //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
-        //     lastLine++;
-        // }
-
-        // // Output opcode.
-        // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
-
-        // Line-number-less version for diff.
-        if(lines) {
-            while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
-                printf("                                         ; %s\n", lines[lastLine]);
-                lastLine++;
+            if(opcode == OP_END) {
+                break;
             }
+
+          #if VM_DEBUG
+
+            // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+            //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
+            //     lastLine++;
+            // }
+
+            // // Output opcode.
+            // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+
+            // Line-number-less version for diff.
+            if(lines) {
+                while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+                    printf("                                         ; %s\n", lines[lastLine]);
+                    lastLine++;
+                }
+            }
+            printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, vmGetOpcodeName(opcode));
+
+          #else
+
+            // Output opcode.
+            printf("%.4u: %s", i, vmGetOpcodeName(opcode));
+
+          #endif
+
+            // Output parameters.
+            if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
+                i++;
+                printf(" %d", maybeParams->opData_int);
+            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
+                i++;
+                printf(" %f", maybeParams->opData_float);
+            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
+                i++;
+                printf(" %u", maybeParams->opData_functionId);
+            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
+                const char *str = vmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
+                i++;
+                // TODO: Escape string before showing here.
+                printf(" %d:\"%s\"", maybeParams->opData_string, str ? str : "<bad string>");
+            }
+
+            printf("\n");
         }
-        printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, vmGetOpcodeName(opcode));
-
-      #else
-
-        // Output opcode.
-        printf("%.4u: %s", i, vmGetOpcodeName(opcode));
-
-      #endif
-
-        // Output parameters.
-        if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
-            i++;
-            printf(" %d", maybeParams->opData_int);
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
-            i++;
-            printf(" %f", maybeParams->opData_float);
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
-            i++;
-            printf(" %u", maybeParams->opData_functionId);
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
-            const char *str = vmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
-            i++;
-            // TODO: Escape string before showing here.
-            printf(" %d:\"%s\"", maybeParams->opData_string, str ? str : "<bad string>");
-        }
-
-        printf("\n");
     }
 
     if(lines) {
@@ -186,9 +188,11 @@ int main(int argc, char *argv[])
 {
     char *script = loadScript("test.txt");
     int shitCounter = 0;
-    uint32_t maxRam = 1;
+    uint32_t maxRam = 19880;
+    maxRam = 60522;
+    maxRam = 61818;
 
-    // while(strlen(script) && maxRam < 1024*1024)
+    while(strlen(script) && maxRam < 1024*1024) // && maxRam < 512)
     {
         uint32_t instructionCountMax = 1024*1024*1024;
         struct VM vm;
@@ -203,18 +207,20 @@ int main(int argc, char *argv[])
         // vm.limits.maxStacksize = 5;
         // vm.limits.maxObjects = 1;
         // vm.limits.maxFieldsPerObject = 2;
-        // vm.limits.maxAllocatedMemory = 1024*1024;
+        vm.limits.maxAllocatedMemory = maxRam;
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
-            vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
-            vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
-            vmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
-            vmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
-            vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
-            vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
-            vmCompilerCompileScript(cs, script);
-            vmCompilerFinalize(cs);
+            if(cs) {
+                vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
+                vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
+                vmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
+                vmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
+                vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
+                vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
+                vmCompilerCompileScript(cs, script);
+                vmCompilerFinalize(cs);
+            }
 
             // Dump errors.
             if(vmGetErrorCount(&vm)) {
@@ -257,6 +263,9 @@ int main(int argc, char *argv[])
                     vm.instructions[
                         vm.instructionPointer &
                         vm.instructionAddressMask].opcode != OP_END &&
+                    vm.instructions[
+                        vm.instructionPointer &
+                        vm.instructionAddressMask].opcode != OP_NOP &&
                     instructionCountMax)
                 {
                     vmIterate(&vm);
@@ -399,6 +408,7 @@ int main(int argc, char *argv[])
 
         // script[strlen(script) - 1] = 0;
         maxRam++;
+        printf("maxRam: %u\n", maxRam);
 
         fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
     }

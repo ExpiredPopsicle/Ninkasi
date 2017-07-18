@@ -99,3 +99,12 @@ x.a(b, c) is...
 
 
 * TODO Get rid of dump opcode.
+
+* TODO Get rid of all the asserts that were ensuring contexts line up.
+* TODO Make sure the error system has a standard way of reporting errors.
+Looking at the structure won't work.
+* TODO Make sure the standard error reporting recognizes the out-of-memory special case.
+* TODO Check every single direct access to a context and add NULL pointer protection.
+Ugghhhh
+* TODO Find every nkMalloc, nkRealloc, and nkStrdup, and make sure they all have error handling.
+Blaaaaaaaaaaaaaaaagh
