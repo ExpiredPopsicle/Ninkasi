@@ -203,6 +203,7 @@ int main(int argc, char *argv[])
         // vm.limits.maxStacksize = 5;
         // vm.limits.maxObjects = 1;
         // vm.limits.maxFieldsPerObject = 2;
+        vm.limits.maxAllocatedMemory = 2;
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
@@ -381,7 +382,12 @@ int main(int argc, char *argv[])
         printf("Final object table dump...\n");
         vmObjectTableDump(&vm);
 
+        printf("Peak memory usage:    %u\n", vm.peakMemoryUsage);
+        printf("Current memory usage: %u\n", vm.currentMemoryUsage);
+
         vmDestroy(&vm);
+
+        printf("Post-cleanup memory usage: %u\n", vm.currentMemoryUsage);
 
         free(lines[0]);
         free(lines);

@@ -28,10 +28,17 @@ void errorStateAddError(
     }
 }
 
+void errorStateSetAllocationFailFlag(
+    struct ErrorState *es)
+{
+    es->allocationFailure = true;
+}
+
 void errorStateInit(struct ErrorState *es)
 {
     es->firstError = NULL;
     es->lastError = NULL;
+    es->allocationFailure = false;
 }
 
 void errorStateDestroy(struct ErrorState *es)
@@ -47,5 +54,5 @@ void errorStateDestroy(struct ErrorState *es)
 
 bool errorStateHasErrors(const struct ErrorState *es)
 {
-    return !!(es->firstError);
+    return (es->firstError || es->allocationFailure);
 }

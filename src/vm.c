@@ -83,7 +83,9 @@ static void vmInitOpcodeTable(void)
 
 void vmInit(struct VM *vm)
 {
-    // TODO: Init memory management before anything else.
+    // Init memory management before anything else.
+    vm->currentMemoryUsage = 0;
+    vm->peakMemoryUsage = 0;
 
     vmInitOpcodeTable();
 

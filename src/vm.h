@@ -133,6 +133,8 @@ struct VM
     uint32_t globalVariableCount;
 
     struct VMLimits limits;
+    uint32_t currentMemoryUsage;
+    uint32_t peakMemoryUsage;
 };
 
 void vmInit(struct VM *vm);
