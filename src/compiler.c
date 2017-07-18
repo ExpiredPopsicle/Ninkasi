@@ -314,6 +314,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         case TOKENTYPE_RETURN:
             // "return" = Return statement.
@@ -325,6 +326,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         case TOKENTYPE_IF:
             // "if" statements.
@@ -332,6 +334,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         case TOKENTYPE_WHILE:
             // "while" statements.
@@ -339,6 +342,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         case TOKENTYPE_FOR:
             // "for" statements.
@@ -346,6 +350,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         case TOKENTYPE_BREAK:
             // "break" statements.
@@ -353,6 +358,7 @@ bool compileStatement(struct CompilerState *cs)
                 assert(cs->context == startContext);
                 return false;
             }
+            break;
 
         default:
             // Fall back to just parsing an expression.
