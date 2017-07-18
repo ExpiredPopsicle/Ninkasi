@@ -15,8 +15,10 @@ static bool isNumber(char c)
 
 void deleteToken(struct VM *vm, struct Token *token)
 {
-    nkFree(vm, token->str);
-    nkFree(vm, token);
+    if(token) {
+        nkFree(vm, token->str);
+        nkFree(vm, token);
+    }
 }
 
 void destroyTokenList(

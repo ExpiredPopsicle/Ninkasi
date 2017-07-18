@@ -187,10 +187,11 @@ int main(int argc, char *argv[])
     char *script = loadScript("test.txt");
     int shitCounter = 0;
 
-    // while(strlen(script))
+    while(strlen(script))
 
     {
 
+        uint32_t instructionCountMax = 1024*1024*1024;
         struct VM vm;
 
         uint32_t lineCount = 0;
@@ -203,7 +204,7 @@ int main(int argc, char *argv[])
         // vm.limits.maxStacksize = 5;
         // vm.limits.maxObjects = 1;
         // vm.limits.maxFieldsPerObject = 2;
-        vm.limits.maxAllocatedMemory = 2;
+        vm.limits.maxAllocatedMemory = 1024*1024;
 
         {
             struct CompilerState *cs = vmCompilerCreate(&vm);
@@ -256,7 +257,8 @@ int main(int argc, char *argv[])
                 while(
                     vm.instructions[
                         vm.instructionPointer &
-                        vm.instructionAddressMask].opcode != OP_END)
+                        vm.instructionAddressMask].opcode != OP_END &&
+                    instructionCountMax)
                 {
                     vmIterate(&vm);
 
@@ -273,6 +275,8 @@ int main(int argc, char *argv[])
                     if(vm.errorState.firstError) {
                         break;
                     }
+
+                    instructionCountMax--;
                 }
 
 

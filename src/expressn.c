@@ -183,19 +183,6 @@ int32_t getPrecedence(enum TokenType t)
         vmCompilerNextToken(cs);                    \
     } while(0)
 
-#define MAKE_OP(x)                                          \
-    struct ExpressionAstNode *astNode =                     \
-        nkMalloc(cs->vm, sizeof(struct ExpressionAstNode)); \
-    memset(astNode, 0, sizeof(*astNode));                   \
-    astNode->stackNext = opStack;                           \
-    astNode->opOrValue = x;
-
-#define PUSH_OP(x)                              \
-    do {                                        \
-        MAKE_OP(x);                             \
-        opStack = astNode;                      \
-    } while(0)
-
 bool reduce(
     struct ExpressionAstNode **opStack,
     struct ExpressionAstNode **valueStack)
@@ -250,6 +237,10 @@ bool parseFunctioncall(
             // Make a new node for this parameter.
             struct ExpressionAstNode *thisParamNode =
                 nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            if(!thisParamNode) {
+                dbgPop();
+                return false;
+            }
             memset(thisParamNode, 0, sizeof(*thisParamNode));
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
@@ -312,6 +303,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
             struct ExpressionAstNode *prefixNode =
                 nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            if(!prefixNode) {
+                CLEANUP_INLOOP();
+                return NULL;
+            }
             memset(prefixNode, 0, sizeof(*prefixNode));
 
             // Add it to the end of our list of prefix operations.
@@ -366,6 +361,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             if(!isExpressionEndingToken(*currentToken)) {
 
                 valueNode = nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+                if(!valueNode) {
+                    CLEANUP_INLOOP();
+                    return NULL;
+                }
                 memset(valueNode, 0, sizeof(*valueNode));
                 valueNode->opOrValue = *currentToken;
 
@@ -387,6 +386,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
             struct ExpressionAstNode *postfixNode =
                 nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            if(!postfixNode) {
+                CLEANUP_INLOOP();
+                return NULL;
+            }
             memset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
@@ -416,8 +419,18 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
                     struct ExpressionAstNode *indexIntoNode = postfixNode;
 
+                    if(!identifierStringNode) {
+                        CLEANUP_INLOOP();
+                        return NULL;
+                    }
+
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+                    if(!identifierStringNode->opOrValue) {
+                        deleteExpressionNode(cs->vm, identifierStringNode);
+                        CLEANUP_INLOOP();
+                        return NULL;
+                    }
                     identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
                     identifierStringNode->opOrValue->str = nkStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
@@ -425,6 +438,11 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                     identifierStringNode->ownedToken = true;
 
                     indexIntoNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+                    if(!indexIntoNode->opOrValue) {
+                        deleteExpressionNode(cs->vm, identifierStringNode);
+                        CLEANUP_INLOOP();
+                        return NULL;
+                    }
                     indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
                     indexIntoNode->opOrValue->str = nkStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
@@ -439,7 +457,21 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
                         struct ExpressionAstNode *functionCallNode =
                             nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+
+                        if(!functionCallNode) {
+                            deleteExpressionNode(cs->vm, identifierStringNode);
+                            CLEANUP_INLOOP();
+                            return NULL;
+                        }
+
                         functionCallNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+
+                        if(!functionCallNode->opOrValue) {
+                            nkFree(cs->vm, functionCallNode);
+                            CLEANUP_INLOOP();
+                            return NULL;
+                        }
+
                         functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
                         functionCallNode->opOrValue->str = nkStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
@@ -448,7 +480,11 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                         functionCallNode->children[0] = indexIntoNode;
                         functionCallNode->children[1] = NULL;
 
-                        if(!parseFunctioncall(functionCallNode, cs)) {
+                        if(!functionCallNode->opOrValue->str ||
+                            !parseFunctioncall(functionCallNode, cs))
+                        {
+                            nkFree(cs->vm, functionCallNode->opOrValue->str);
+                            nkFree(cs->vm, functionCallNode);
                             CLEANUP_INLOOP();
                             return NULL;
                         }
@@ -582,7 +618,20 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             }
         }
 
-        PUSH_OP(cs->currentToken);
+        // Push this operation onto the stack now that we've cleared
+        // out everthing of a lower precedence.
+        {
+            struct ExpressionAstNode *astNode =
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            if(!astNode) {
+                CLEANUP_INLOOP();
+                return NULL;
+            }
+            memset(astNode, 0, sizeof(*astNode));
+            astNode->stackNext = opStack;
+            astNode->opOrValue = cs->currentToken;
+            opStack = astNode;
+        }
 
         vmCompilerNextToken(cs);
     }
@@ -977,11 +1026,20 @@ struct ExpressionAstNode *cloneExpressionTree(
     }
 
     newNode = nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+    if(!newNode) {
+        return NULL;
+    }
     memset(newNode, 0, sizeof(*newNode));
 
     newNode->ownedToken = node->ownedToken;
     if(node->ownedToken) {
+
         newNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+        if(!newNode->opOrValue) {
+            nkFree(cs->vm, newNode);
+            return NULL;
+        }
+
         memset(newNode->opOrValue, 0, sizeof(struct Token));
         newNode->opOrValue->type = node->opOrValue->type;
         newNode->opOrValue->str = nkStrdup(cs->vm, node->opOrValue->str);
@@ -1023,10 +1081,36 @@ void expandIncrementsAndDecrements(
             struct Token *oldToken = node->opOrValue;
             bool wasOwningToken = node->ownedToken;
 
+            struct Token *literalOneToken = nkMalloc(cs->vm, sizeof(struct Token));
+            struct Token *additionToken = nkMalloc(cs->vm, sizeof(struct Token));
+            struct Token *assignmentToken = nkMalloc(cs->vm, sizeof(struct Token));
+            char *oneTokenStr = nkStrdup(cs->vm, "1");
+            char *addTokenStr = nkStrdup(cs->vm, oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
+            char *assignTokenStr = nkStrdup(cs->vm, "=");
+
+            // If anything fails to allocate, clean up before we get
+            // to the really complicated stuff.
+            if(!additionNode || !literalOneNode ||
+                !rvalueNode1 || !additionToken ||
+                !literalOneToken || !oneTokenStr ||
+                !addTokenStr || !assignTokenStr)
+            {
+                nkFree(cs->vm, additionNode);
+                nkFree(cs->vm, literalOneNode);
+                nkFree(cs->vm, additionToken);
+                nkFree(cs->vm, literalOneToken);
+                nkFree(cs->vm, assignmentToken);
+                nkFree(cs->vm, oneTokenStr);
+                nkFree(cs->vm, addTokenStr);
+                nkFree(cs->vm, assignTokenStr);
+                deleteExpressionNode(cs->vm, rvalueNode1);
+                return;
+            }
+
             // Generate a node for the number 1.
-            literalOneNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+            literalOneNode->opOrValue = literalOneToken;
             literalOneNode->opOrValue->type = TOKENTYPE_INTEGER;
-            literalOneNode->opOrValue->str = nkStrdup(cs->vm, "1");
+            literalOneNode->opOrValue->str = oneTokenStr;
             literalOneNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             literalOneNode->opOrValue->next = NULL;
             literalOneNode->children[0] = NULL;
@@ -1036,11 +1120,10 @@ void expandIncrementsAndDecrements(
             literalOneNode->isRootFunctionCallNode = false;
 
             // Generate a node that just adds 1 to the value.
-            additionNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+            additionNode->opOrValue = additionToken;
             additionNode->opOrValue->type =
                 oldToken->type == TOKENTYPE_INCREMENT ? TOKENTYPE_PLUS : TOKENTYPE_MINUS;
-            additionNode->opOrValue->str = nkStrdup(cs->vm,
-                oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
+            additionNode->opOrValue->str = addTokenStr;
             additionNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             additionNode->opOrValue->next = NULL;
             additionNode->children[0] = rvalueNode1;
@@ -1052,9 +1135,9 @@ void expandIncrementsAndDecrements(
             // Generate a node that assigns the added value back to
             // the original value. This just turns this node into an
             // assignment node.
-            node->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
+            node->opOrValue = assignmentToken;
             node->opOrValue->type = TOKENTYPE_ASSIGNMENT;
-            node->opOrValue->str = nkStrdup(cs->vm, "=");
+            node->opOrValue->str = assignTokenStr;
             node->opOrValue->lineNumber = oldToken->lineNumber;
             node->opOrValue->next = NULL;
             node->children[0] = lvalueNode;
@@ -1088,6 +1171,11 @@ struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs)
     if(node) {
         expandIncrementsAndDecrements(cs, node);
         optimizeConstants(cs->vm, &node);
+    }
+
+    if(vmGetErrorCount(cs->vm)) {
+        deleteExpressionNode(cs->vm, node);
+        return NULL;
     }
 
     return node;

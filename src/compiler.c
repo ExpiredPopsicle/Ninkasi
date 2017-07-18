@@ -290,6 +290,8 @@ bool vmCompilerExpectAndSkipToken(
 
 bool compileStatement(struct CompilerState *cs)
 {
+    struct CompilerStateContext *startContext = cs->context;
+
     // FIXME: Remove this.
     dbgWriteLine(
         "Entering compileStatement with stackFrameOffset: %u",
@@ -308,7 +310,10 @@ bool compileStatement(struct CompilerState *cs)
 
         case TOKENTYPE_FUNCTION:
             // "function" = Function definition.
-            return compileFunctionDefinition(cs);
+            if(!compileFunctionDefinition(cs)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         case TOKENTYPE_RETURN:
             // "return" = Return statement.
@@ -316,27 +321,43 @@ bool compileStatement(struct CompilerState *cs)
 
         case TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
-            return compileBlock(cs, false);
+            if(!compileBlock(cs, false)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         case TOKENTYPE_IF:
             // "if" statements.
-            return compileIfStatement(cs);
+            if(!compileIfStatement(cs)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         case TOKENTYPE_WHILE:
             // "while" statements.
-            return compileWhileStatement(cs);
+            if(!compileWhileStatement(cs)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         case TOKENTYPE_FOR:
             // "for" statements.
-            return compileForStatement(cs);
+            if(!compileForStatement(cs)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         case TOKENTYPE_BREAK:
             // "break" statements.
-            return compileBreakStatement(cs);
+            if(!compileBreakStatement(cs)) {
+                assert(cs->context == startContext);
+                return false;
+            }
 
         default:
             // Fall back to just parsing an expression.
             if(!compileExpression(cs)) {
+                assert(cs->context == startContext);
                 return false;
             }
 
@@ -352,6 +373,7 @@ bool compileStatement(struct CompilerState *cs)
             break;
     }
 
+    assert(cs->context == startContext);
     return true;
 }
 
@@ -391,6 +413,8 @@ struct CompilerStateContextVariable *lookupVariable(
 
 bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
 {
+    struct CompilerStateContext *startContext = cs->context;
+
     if(!noBracesOrContext) {
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
         pushContext(cs);
@@ -412,6 +436,8 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
             if(!noBracesOrContext) {
                 popContext(cs);
             }
+
+            assert(startContext == cs->context);
             return false;
         }
     }
@@ -424,6 +450,7 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_CLOSE);
     }
 
+    assert(startContext == cs->context);
     return true;
 }
 
@@ -825,23 +852,32 @@ void vmCompilerFinalize(
             cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
             nkMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
-        cs->vm->globalVariableCount = count;
 
-        // Now run through it all again and actually assign data.
-        var = cs->context->variables;
-        {
-            char *nameWritePtr = cs->vm->globalVariableNameStorage;
-            count = 0;
+        if(!cs->vm->globalVariables || !cs->vm->globalVariableNameStorage) {
 
-            while(var) {
+            nkFree(cs->vm, cs->vm->globalVariables);
+            nkFree(cs->vm, cs->vm->globalVariableNameStorage);
 
-                cs->vm->globalVariables[count].stackPosition = var->stackPos;
-                cs->vm->globalVariables[count].name = nameWritePtr;
-                strcpy(nameWritePtr, var->name);
-                nameWritePtr += strlen(var->name) + 1;
+        } else {
 
-                count++;
-                var = var->next;
+            cs->vm->globalVariableCount = count;
+
+            // Now run through it all again and actually assign data.
+            var = cs->context->variables;
+            {
+                char *nameWritePtr = cs->vm->globalVariableNameStorage;
+                count = 0;
+
+                while(var) {
+
+                    cs->vm->globalVariables[count].stackPosition = var->stackPos;
+                    cs->vm->globalVariables[count].name = nameWritePtr;
+                    strcpy(nameWritePtr, var->name);
+                    nameWritePtr += strlen(var->name) + 1;
+
+                    count++;
+                    var = var->next;
+                }
             }
         }
     }
@@ -853,9 +889,6 @@ void vmCompilerFinalize(
 
     // Add a single end instruction.
     addInstructionSimple(cs, OP_END);
-
-    // TODO: Setup the global variable table in the VM, so we can
-    // access stuff by name later.
 
     nkFree(cs->vm, cs);
 }
@@ -1053,8 +1086,13 @@ bool compileWhileStatement(struct CompilerState *cs)
     pushContext(cs);
 
     // Skip "while("
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_WHILE);
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_WHILE) ||
+        !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_OPEN))
+    {
+        popContext(cs);
+        popContext(cs);
+        return false;
+    }
 
     // Generate the expression code.
     if(!compileExpression(cs)) {
@@ -1068,7 +1106,11 @@ bool compileWhileStatement(struct CompilerState *cs)
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+        popContext(cs);
+        popContext(cs);
+        return false;
+    }
 
     // Generate code to execute if test passes.
     pushContext(cs);
@@ -1107,8 +1149,13 @@ bool compileForStatement(struct CompilerState *cs)
     pushContext(cs);
 
     // Skip "for("
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FOR);
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_FOR) ||
+        !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_OPEN))
+    {
+        popContext(cs);
+        popContext(cs);
+        return false;
+    }
 
     // Generate the init expression code. Technically the first thing
     // can be a statement (so we can support variable declarations). I
@@ -1135,14 +1182,18 @@ bool compileForStatement(struct CompilerState *cs)
     }
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_SEMICOLON)) {
+        popContext(cs);
+        popContext(cs);
+        return false;
+    }
 
     // Parse the increment expression, but don't emit yet (we'll do
     // this at the end, before the jump back).
     incrementExpression = compileExpressionWithoutEmit(cs); // FIXME: Check return value.
 
     // Skip ")"
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+    if(!incrementExpression || !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
         deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
