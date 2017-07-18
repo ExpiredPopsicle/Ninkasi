@@ -1,0 +1,9 @@
+#ifndef NINKASI_MEM_H
+#define NINKASI_MEM_H
+
+void *nkMalloc(struct VM *vm, uint32_t size);
+void nkFree(struct VM *vm, void *data);
+void *nkRealloc(struct VM *vm, void *data, uint32_t size);
+char *nkStrdup(struct VM *vm, const char *str);
+
+#endif
