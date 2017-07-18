@@ -18,7 +18,8 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 
             cs->vm->instructionAddressMask <<= 1;
             cs->vm->instructionAddressMask |= 1;
-            cs->vm->instructions = realloc(
+            cs->vm->instructions = nkRealloc(
+                cs->vm,
                 cs->vm->instructions,
                 sizeof(struct Instruction) *
                 newSize);
@@ -51,7 +52,7 @@ void addInstructionSimple(struct CompilerState *cs, enum Opcode opcode)
 void pushContext(struct CompilerState *cs)
 {
     struct CompilerStateContext *newContext =
-        malloc(sizeof(struct CompilerStateContext));
+        nkMalloc(cs->vm, sizeof(struct CompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId = ~(uint32_t)0;
     newContext->parent = cs->context;
@@ -91,8 +92,8 @@ void popContext(struct CompilerState *cs)
             }
 
             // Free it.
-            free(var->name);
-            free(var);
+            nkFree(cs->vm, var->name);
+            nkFree(cs->vm, var);
             var = next;
 
             dbgWriteLine("Variable removed.");
@@ -143,10 +144,10 @@ void popContext(struct CompilerState *cs)
     }
 
     // Free loop context jump fixups for break statements.
-    free(oldContext->loopContextFixups);
+    nkFree(cs->vm, oldContext->loopContextFixups);
 
     // Free the context itself.
-    free(oldContext);
+    nkFree(cs->vm, oldContext);
 
     dbgPop();
     dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
@@ -234,12 +235,12 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
     struct CompilerState *cs, const char *name)
 {
     struct CompilerStateContextVariable *var =
-        malloc(sizeof(struct CompilerStateContextVariable));
+        nkMalloc(cs->vm, sizeof(struct CompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
     var->next = cs->context->variables;
     var->isGlobal = !cs->context->parent;
-    var->name = strdup(name);
+    var->name = nkStrdup(cs->vm, name);
     var->stackPos = cs->context->stackFrameOffset - 1;
 
     cs->context->variables = var;
@@ -569,7 +570,8 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
     // set it and parent it directly.
-    functionLocalContext = malloc(sizeof(struct CompilerStateContext));
+    functionLocalContext = nkMalloc(
+        cs->vm, sizeof(struct CompilerStateContext));
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
     // Find the global context and set it as our parent.
@@ -776,7 +778,7 @@ struct CompilerState *vmCompilerCreate(
 {
     struct CompilerState *cs;
 
-    cs = malloc(sizeof(struct CompilerState));
+    cs = nkMalloc(vm, sizeof(struct CompilerState));
     memset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
@@ -819,9 +821,10 @@ void vmCompilerFinalize(
         }
 
         // Allocate that.
-        cs->vm->globalVariableNameStorage = malloc(nameStorageNeeded);
+        cs->vm->globalVariableNameStorage = nkMalloc(
+            cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
-            malloc(sizeof(struct GlobalVariableRecord) * count);
+            nkMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
         cs->vm->globalVariableCount = count;
 
         // Now run through it all again and actually assign data.
@@ -854,7 +857,7 @@ void vmCompilerFinalize(
     // TODO: Setup the global variable table in the VM, so we can
     // access stuff by name later.
 
-    free(cs);
+    nkFree(cs->vm, cs);
 }
 
 bool vmCompilerCompileScript(
@@ -872,7 +875,7 @@ bool vmCompilerCompileScript(
 
     success = tokenize(cs->vm, script, &tokenList);
     if(!success) {
-        destroyTokenList(&tokenList);
+        destroyTokenList(cs->vm, &tokenList);
         return false;
     }
 
@@ -886,7 +889,7 @@ bool vmCompilerCompileScript(
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
-    destroyTokenList(&tokenList);
+    destroyTokenList(cs->vm, &tokenList);
     return success;
 }
 
@@ -912,7 +915,7 @@ bool vmCompilerCompileScriptFile(
     len = ftell(in);
     fseek(in, 0, SEEK_SET);
 
-    buf = malloc(len + 1);
+    buf = nkMalloc(cs->vm, len + 1);
     fread(buf, len, 1, in);
     buf[len] = 0;
 
@@ -920,7 +923,7 @@ bool vmCompilerCompileScriptFile(
 
     success = vmCompilerCompileScript(cs, buf);
 
-    free(buf);
+    nkFree(cs->vm, buf);
 
     return success;
 }
@@ -1036,7 +1039,7 @@ void fixupBreakJumpForContext(struct CompilerState *cs)
             cs->context->loopContextFixups[--cs->context->loopContextFixupCount];
         modifyJump(cs, fixupLocation, cs->instructionWriteIndex);
     }
-    free(cs->context->loopContextFixups);
+    nkFree(cs->vm, cs->context->loopContextFixups);
     cs->context->loopContextFixups = NULL;
 }
 
@@ -1140,7 +1143,7 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Skip ")"
     if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
-        deleteExpressionNode(incrementExpression);
+        deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
         return false;
@@ -1149,7 +1152,7 @@ bool compileForStatement(struct CompilerState *cs)
     // Generate code to execute if test passes.
     pushContext(cs);
     if(!compileStatement(cs)) {
-        deleteExpressionNode(incrementExpression);
+        deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
         popContext(cs);
@@ -1159,7 +1162,7 @@ bool compileForStatement(struct CompilerState *cs)
 
     // Emit the increment expression.
     if(!emitExpression(cs, incrementExpression)) {
-        deleteExpressionNode(incrementExpression);
+        deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
         return false;
@@ -1173,7 +1176,7 @@ bool compileForStatement(struct CompilerState *cs)
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
-    deleteExpressionNode(incrementExpression);
+    deleteExpressionNode(cs->vm, incrementExpression);
 
     popContext(cs);
     fixupBreakJumpForContext(cs);
@@ -1216,7 +1219,7 @@ bool compileBreakStatement(struct CompilerState *cs)
         uint32_t jumpFixup = emitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
-            realloc(searchContext->loopContextFixups,
+            nkRealloc(cs->vm, searchContext->loopContextFixups,
                 sizeof(*searchContext->loopContextFixups) *
                 searchContext->loopContextFixupCount);
         searchContext->loopContextFixups[

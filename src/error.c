@@ -6,7 +6,8 @@ void errorStateAddError(
     const char *str)
 {
     struct DynString *fixedStr = dynStrCreate("");
-    struct Error *newError = malloc(sizeof(struct Error));
+    struct Error *newError = malloc(
+        sizeof(struct Error));
 
     dynStrAppendInt32(fixedStr, lineNumber);
     dynStrAppend(fixedStr, ": ");

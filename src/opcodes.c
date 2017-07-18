@@ -459,7 +459,7 @@ void opcode_call(struct VM *vm)
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
-        data.arguments = malloc(argumentCount * sizeof(struct Value));
+        data.arguments = nkMalloc(vm, argumentCount * sizeof(struct Value));
         data.userData = funcOb->CFunctionCallbackUserdata;
 
         // Note: We're not simply giving the function a stack pointer,
@@ -491,7 +491,7 @@ void opcode_call(struct VM *vm)
         // Actual function call.
         funcOb->CFunctionCallback(&data);
 
-        free(data.arguments);
+        nkFree(vm, data.arguments);
 
         // Pop all the arguments.
         vmStackPopN(vm, argumentCount + 2);

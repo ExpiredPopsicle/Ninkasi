@@ -23,11 +23,14 @@ bool isImmediateValue(struct ExpressionAstNode *node)
 }
 
 struct ExpressionAstNode *makeImmediateExpressionNode(
+    struct VM *vm,
     enum TokenType type,
     uint32_t lineNumber)
 {
-    struct ExpressionAstNode *newNode = malloc(sizeof(struct ExpressionAstNode));
-    struct Token *newToken = malloc(sizeof(struct Token));
+    struct ExpressionAstNode *newNode =
+        nkMalloc(vm, sizeof(struct ExpressionAstNode));
+    struct Token *newToken =
+        nkMalloc(vm, sizeof(struct Token));
     memset(newNode, 0, sizeof(*newNode));
     memset(newToken, 0, sizeof(*newToken));
     newNode->ownedToken = true;
@@ -37,49 +40,49 @@ struct ExpressionAstNode *makeImmediateExpressionNode(
     return newNode;
 }
 
-#define APPLY_MATH()                                        \
-    do {                                                    \
-        switch((*node)->opOrValue->type) {                  \
-                                                            \
-            case TOKENTYPE_PLUS:                            \
-                /* Addition. */                             \
-                val = c0Val + c1Val;                        \
-                break;                                      \
-                                                            \
-            case TOKENTYPE_MINUS:                           \
-                if(!(*node)->children[1]) {                 \
-                    /* Unary negation. */                   \
-                    val = -c0Val;                           \
-                } else {                                    \
-                    /* Subtraction. */                      \
-                    val = c0Val - c1Val;                    \
-                }                                           \
-                break;                                      \
-                                                            \
-            case TOKENTYPE_MULTIPLY:                        \
-                /* Multiplication. */                       \
-                val = c0Val * c1Val;                        \
-                break;                                      \
-                                                            \
-            case TOKENTYPE_DIVIDE:                          \
-                /* Division. */                             \
-                if(c1Val == 0) {                            \
-                    deleteExpressionNode(newNode);          \
-                    /* TODO: Raise error. */                \
-                    return;                                 \
-                }                                           \
-                val = c0Val / c1Val;                        \
-                break;                                      \
-                                                            \
-            default:                                        \
-                /* If you hit this, you forgot to */        \
-                /* implement something. */                  \
-                assert(0);                                  \
-                break;                                      \
-        }                                                   \
+#define APPLY_MATH()                                    \
+    do {                                                \
+        switch((*node)->opOrValue->type) {              \
+                                                        \
+            case TOKENTYPE_PLUS:                        \
+                /* Addition. */                         \
+                val = c0Val + c1Val;                    \
+                break;                                  \
+                                                        \
+            case TOKENTYPE_MINUS:                       \
+                if(!(*node)->children[1]) {             \
+                    /* Unary negation. */               \
+                    val = -c0Val;                       \
+                } else {                                \
+                    /* Subtraction. */                  \
+                    val = c0Val - c1Val;                \
+                }                                       \
+                break;                                  \
+                                                        \
+            case TOKENTYPE_MULTIPLY:                    \
+                /* Multiplication. */                   \
+                val = c0Val * c1Val;                    \
+                break;                                  \
+                                                        \
+            case TOKENTYPE_DIVIDE:                      \
+                /* Division. */                         \
+                if(c1Val == 0) {                        \
+                    deleteExpressionNode(vm, newNode);  \
+                    /* TODO: Raise error. */            \
+                    return;                             \
+                }                                       \
+                val = c0Val / c1Val;                    \
+                break;                                  \
+                                                        \
+            default:                                    \
+                /* If you hit this, you forgot to */    \
+                /* implement something. */              \
+                assert(0);                              \
+                break;                                  \
+        }                                               \
     } while(0)
 
-void optimizeConstants(struct ExpressionAstNode **node)
+void optimizeConstants(struct VM *vm, struct ExpressionAstNode **node)
 {
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't
@@ -90,10 +93,10 @@ void optimizeConstants(struct ExpressionAstNode **node)
     // First recurse into children and optimize them. Maybe they'll
     // become immediate values we can work with.
     if((*node)->children[0]) {
-        optimizeConstants(&(*node)->children[0]);
+        optimizeConstants(vm, &(*node)->children[0]);
     }
     if((*node)->children[1]) {
-        optimizeConstants(&(*node)->children[1]);
+        optimizeConstants(vm, &(*node)->children[1]);
     }
 
     if(canOptimizeOperationWithConstants((*node))) {
@@ -116,6 +119,7 @@ void optimizeConstants(struct ExpressionAstNode **node)
             // whatever we have on the left.
             struct ExpressionAstNode *newNode =
                 makeImmediateExpressionNode(
+                    vm,
                     (*node)->children[0]->opOrValue->type,
                     (*node)->children[0]->opOrValue->lineNumber);
 
@@ -138,10 +142,10 @@ void optimizeConstants(struct ExpressionAstNode **node)
 
                     // Set the string for the result.
                     sprintf(tmp, "%d", val);
-                    newNode->opOrValue->str = strdup(tmp);
+                    newNode->opOrValue->str = nkStrdup(vm, tmp);
 
                     // Replace the original node.
-                    deleteExpressionNode(*node);
+                    deleteExpressionNode(vm, *node);
                     *node = newNode;
 
                 } break;
@@ -161,10 +165,10 @@ void optimizeConstants(struct ExpressionAstNode **node)
 
                     // Set the string for the result.
                     sprintf(tmp, "%f", val);
-                    newNode->opOrValue->str = strdup(tmp);
+                    newNode->opOrValue->str = nkStrdup(vm, tmp);
 
                     // Replace the original node.
-                    deleteExpressionNode(*node);
+                    deleteExpressionNode(vm, *node);
                     *node = newNode;
 
                 } break;

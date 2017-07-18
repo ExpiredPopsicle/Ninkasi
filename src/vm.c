@@ -83,18 +83,20 @@ static void vmInitOpcodeTable(void)
 
 void vmInit(struct VM *vm)
 {
+    // TODO: Init memory management before anything else.
+
     vmInitOpcodeTable();
 
     errorStateInit(&vm->errorState);
-    vmStackInit(&vm->stack);
+    vmStackInit(vm);
     vm->instructionPointer = 0;
 
     vm->instructions =
-        malloc(sizeof(struct Instruction) * 4);
+        nkMalloc(vm, sizeof(struct Instruction) * 4);
     vm->instructionAddressMask = 0x3;
     memset(vm->instructions, 0, sizeof(struct Instruction) * 4);
 
-    vmStringTableInit(&vm->stringTable);
+    vmStringTableInit(vm);
 
     vm->lastGCPass = 0;
     vm->gcInterval = 1000;
@@ -103,7 +105,7 @@ void vmInit(struct VM *vm)
     vm->functionCount = 0;
     vm->functionTable = NULL;
 
-    vmObjectTableInit(&vm->objectTable);
+    vmObjectTableInit(vm);
 
     vm->limits.maxStrings = ~(uint32_t)0;
     vm->limits.maxStringLength = ~(uint32_t)0;
@@ -115,17 +117,17 @@ void vmInit(struct VM *vm)
 
 void vmDestroy(struct VM *vm)
 {
-    vmStringTableDestroy(&vm->stringTable);
+    vmStringTableDestroy(vm);
 
-    vmStackDestroy(&vm->stack);
+    vmStackDestroy(vm);
     errorStateDestroy(&vm->errorState);
-    free(vm->instructions);
-    free(vm->functionTable);
+    nkFree(vm, vm->instructions);
+    nkFree(vm, vm->functionTable);
 
-    free(vm->globalVariables);
-    free(vm->globalVariableNameStorage);
+    nkFree(vm, vm->globalVariables);
+    nkFree(vm, vm->globalVariableNameStorage);
 
-    vmObjectTableDestroy(&vm->objectTable);
+    vmObjectTableDestroy(vm);
 }
 
 // ----------------------------------------------------------------------
@@ -176,7 +178,7 @@ struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
         ret = state->closedList;
         state->closedList = ret->next;
     } else {
-        ret = malloc(sizeof(struct VMValueGCEntry));
+        ret = nkMalloc(state->vm, sizeof(struct VMValueGCEntry));
     }
 
     ret->next = state->openList;
@@ -332,13 +334,11 @@ void vmGarbageCollect(struct VM *vm)
 
     // Delete unmarked strings.
     vmStringTableCleanOldStrings(
-        &vm->stringTable,
-        gcState.currentGCPass);
+        vm, gcState.currentGCPass);
 
     // Delete unmarked (and not externally-referenced) objects.
     vmObjectTableCleanOldObjects(
-        &vm->objectTable,
-        gcState.currentGCPass);
+        vm, gcState.currentGCPass);
 
     // TODO: Delete unmarked external data. Also run the GC callback
     // for them.
@@ -349,7 +349,7 @@ void vmGarbageCollect(struct VM *vm)
         uint32_t count = 0;
         while(gcState.closedList) {
             struct VMValueGCEntry *next = gcState.closedList->next;
-            free(gcState.closedList);
+            nkFree(vm, gcState.closedList);
             gcState.closedList = next;
             count++;
         }
@@ -408,7 +408,8 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
         *functionId = vm->functionCount++;
     }
 
-    vm->functionTable = realloc(
+    vm->functionTable = nkRealloc(
+        vm,
         vm->functionTable,
         sizeof(struct VMFunction) * vm->functionCount);
 

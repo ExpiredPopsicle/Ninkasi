@@ -3,6 +3,8 @@
 
 #include "enums.h"
 
+struct VM;
+
 struct Token
 {
     enum TokenType type;
@@ -17,9 +19,11 @@ struct TokenList
     struct Token *last;
 };
 
-void deleteToken(struct Token *token);
-void destroyTokenList(struct TokenList *tokenList);
+void deleteToken(
+    struct VM *vm, struct Token *token);
+void destroyTokenList(struct VM *vm, struct TokenList *tokenList);
 void addToken(
+    struct VM *vm,
     enum TokenType type,
     const char *str,
     int32_t lineNumber,

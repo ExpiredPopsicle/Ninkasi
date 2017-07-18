@@ -15,32 +15,36 @@ static uint32_t stringHash(const char *in)
     return (b << 16) | a;
 }
 
-void vmStringTableInit(struct VMStringTable *table)
+void vmStringTableInit(struct VM *vm)
 {
+    struct VMStringTable *table = &vm->stringTable;
+
     memset(&table->stringsByHash, 0, sizeof(table->stringsByHash));
     table->tableHoles = NULL;
 
     // Create a table with a capacity of a single string.
-    table->stringTable = malloc(sizeof(struct VMString*));
+    table->stringTable = nkMalloc(vm, sizeof(struct VMString*));
     table->stringTableCapacity = 1;
     table->stringTable[0] = NULL;
 
     // Create a "hole" object indicating that we have space in the
     // table.
-    table->tableHoles = malloc(sizeof(struct VMStringTableHole));
+    table->tableHoles = nkMalloc(vm, sizeof(struct VMStringTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 }
 
-void vmStringTableDestroy(struct VMStringTable *table)
+void vmStringTableDestroy(struct VM *vm)
 {
+    struct VMStringTable *table = &vm->stringTable;
+
     // Clear out the main table.
     uint32_t i;
     for(i = 0; i < table->stringTableCapacity; i++) {
-        free(table->stringTable[i]);
+        nkFree(vm, table->stringTable[i]);
         table->stringTable[i] = NULL;
     }
-    free(table->stringTable);
+    nkFree(vm, table->stringTable);
     table->stringTableCapacity = 0;
 
     // Clear out the holes list.
@@ -48,7 +52,7 @@ void vmStringTableDestroy(struct VMStringTable *table)
         struct VMStringTableHole *th = table->tableHoles;
         while(th) {
             struct VMStringTableHole *next = th->next;
-            free(th);
+            nkFree(vm, th);
             th = next;
         }
         table->tableHoles = NULL;
@@ -108,7 +112,7 @@ uint32_t vmStringTableFindOrAddString(
     // so we'll go ahead and make a new entry.
     {
         struct VMString *newString =
-            malloc(sizeof(struct VMString) + len + 1);
+            nkMalloc(vm, sizeof(struct VMString) + len + 1);
         uint32_t index = 0;
 
         if(table->tableHoles) {
@@ -118,7 +122,7 @@ uint32_t vmStringTableFindOrAddString(
             struct VMStringTableHole *hole = table->tableHoles;
             table->tableHoles = hole->next;
             index = hole->index;
-            free(hole);
+            nkFree(vm, hole);
 
             // TODO: Remove.
             dbgWriteLine("Filled a string table hole at index %d", index);
@@ -140,7 +144,8 @@ uint32_t vmStringTableFindOrAddString(
                 return ~(uint32_t)0;
             }
 
-            table->stringTable = realloc(
+            table->stringTable = nkRealloc(
+                vm,
                 table->stringTable,
                 sizeof(struct VMString *) * newCapacity);
 
@@ -150,7 +155,7 @@ uint32_t vmStringTableFindOrAddString(
             // be going.
             for(i = oldCapacity + 1; i < newCapacity; i++) {
                 struct VMStringTableHole *hole =
-                    malloc(sizeof(struct VMStringTableHole));
+                    nkMalloc(vm, sizeof(struct VMStringTableHole));
                 hole->index = i;
                 hole->next = table->tableHoles;
                 table->tableHoles = hole;
@@ -202,8 +207,10 @@ void vmStringTableDump(struct VMStringTable *table)
 }
 
 void vmStringTableCleanOldStrings(
-    struct VMStringTable *table, uint32_t lastGCPass)
+    struct VM *vm,
+    uint32_t lastGCPass)
 {
+    struct VMStringTable *table = &vm->stringTable;
     uint32_t i;
 
     dbgWriteLine("Purging unused strings...");
@@ -219,14 +226,15 @@ void vmStringTableCleanOldStrings(
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
                 uint32_t index = str->stringTableIndex;
-                struct VMStringTableHole *hole = malloc(sizeof(struct VMStringTableHole));
+                struct VMStringTableHole *hole =
+                    nkMalloc(vm, sizeof(struct VMStringTableHole));
 
                 // TODO: Remove this.
                 dbgWriteLine("Purging unused string: %s", str->str);
 
                 *lastPtr = str->nextInHashBucket;
                 table->stringTable[str->stringTableIndex] = NULL;
-                free(str);
+                nkFree(vm, str);
                 str = *lastPtr;
 
                 // Create a table hole for our new gap.

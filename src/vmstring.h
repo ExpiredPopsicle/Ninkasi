@@ -36,8 +36,8 @@ struct VMStringTable
     uint32_t stringTableCapacity;
 };
 
-void vmStringTableInit(struct VMStringTable *table);
-void vmStringTableDestroy(struct VMStringTable *table);
+void vmStringTableInit(struct VM *vm);
+void vmStringTableDestroy(struct VM *vm);
 
 struct VMString *vmStringTableGetEntryById(
     struct VMStringTable *table,
@@ -54,6 +54,7 @@ uint32_t vmStringTableFindOrAddString(
 void vmStringTableDump(struct VMStringTable *table);
 
 void vmStringTableCleanOldStrings(
-    struct VMStringTable *table, uint32_t lastGCPass);
+    struct VM *vm,
+    uint32_t lastGCPass);
 
 #endif

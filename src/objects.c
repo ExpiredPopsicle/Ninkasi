@@ -1,47 +1,51 @@
 #include "common.h"
 
-void vmObjectTableInit(struct VMObjectTable *table)
+void vmObjectTableInit(struct VM *vm)
 {
+    struct VMObjectTable *table = &vm->objectTable;
+
     table->tableHoles = NULL;
 
     // Create a table of one empty entry.
-    table->objectTable = malloc(sizeof(struct VMObject*));
+    table->objectTable = nkMalloc(vm, sizeof(struct VMObject*));
     table->objectTableCapacity = 1;
     table->objectTable[0] = NULL;
 
     // Create the hole object that goes with the empty space.
-    table->tableHoles = malloc(sizeof(struct VMObjectTableHole));
+    table->tableHoles = nkMalloc(vm, sizeof(struct VMObjectTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 
     table->objectsWithExternalHandles = NULL;
 }
 
-void vmObjectDelete(struct VMObject *ob)
+void vmObjectDelete(struct VM *vm, struct VMObject *ob)
 {
     uint32_t i;
     for(i = 0; i < VMObjectHashBucketCount; i++) {
         struct VMObjectElement *el = ob->hashBuckets[i];
         while(el) {
             struct VMObjectElement *next = el->next;
-            free(el);
+            nkFree(vm, el);
             el = next;
         }
     }
-    free(ob);
+    nkFree(vm, ob);
 }
 
-void vmObjectTableDestroy(struct VMObjectTable *table)
+void vmObjectTableDestroy(struct VM *vm)
 {
+    struct VMObjectTable *table = &vm->objectTable;
+
     // Clear out the main table.
     uint32_t i;
     for(i = 0; i < table->objectTableCapacity; i++) {
         if(table->objectTable[i]) {
-            vmObjectDelete(table->objectTable[i]);
+            vmObjectDelete(vm, table->objectTable[i]);
         }
         table->objectTable[i] = NULL;
     }
-    free(table->objectTable);
+    nkFree(vm, table->objectTable);
     table->objectTableCapacity = 0;
 
     // Clear out the holes list.
@@ -49,7 +53,7 @@ void vmObjectTableDestroy(struct VMObjectTable *table)
         struct VMObjectTableHole *th = table->tableHoles;
         while(th) {
             struct VMObjectTableHole *next = th->next;
-            free(th);
+            nkFree(vm, th);
             th = next;
         }
         table->tableHoles = NULL;
@@ -72,7 +76,7 @@ uint32_t vmObjectTableCreateObject(
 {
     struct VMObjectTable *table = &vm->objectTable;
     uint32_t index = ~0;
-    struct VMObject *newObject = malloc(sizeof(struct VMObject));
+    struct VMObject *newObject = nkMalloc(vm, sizeof(struct VMObject));
     memset(newObject, 0, sizeof(*newObject));
 
     if(table->tableHoles) {
@@ -82,7 +86,7 @@ uint32_t vmObjectTableCreateObject(
         struct VMObjectTableHole *hole = table->tableHoles;
         table->tableHoles = hole->next;
         index = hole->index;
-        free(hole);
+        nkFree(vm, hole);
 
     } else {
 
@@ -103,7 +107,8 @@ uint32_t vmObjectTableCreateObject(
             return ~(uint32_t)0;
         }
 
-        table->objectTable = realloc(
+        table->objectTable = nkRealloc(
+            vm,
             table->objectTable,
             sizeof(struct VMObject *) * newCapacity);
 
@@ -113,7 +118,7 @@ uint32_t vmObjectTableCreateObject(
         // be going.
         for(i = oldCapacity + 1; i < newCapacity; i++) {
             struct VMObjectTableHole *hole =
-                malloc(sizeof(struct VMObjectTableHole));
+                nkMalloc(vm, sizeof(struct VMObjectTableHole));
             hole->index = i;
             hole->next = table->tableHoles;
             table->tableHoles = hole;
@@ -132,8 +137,10 @@ uint32_t vmObjectTableCreateObject(
 }
 
 void vmObjectTableCleanOldObjects(
-    struct VMObjectTable *table, uint32_t lastGCPass)
+    struct VM *vm,
+    uint32_t lastGCPass)
 {
+    struct VMObjectTable *table = &vm->objectTable;
     uint32_t i;
 
     dbgWriteLine("Purging unused objects...");
@@ -148,12 +155,12 @@ void vmObjectTableCleanOldObjects(
             if(lastGCPass != ob->lastGCPass) {
 
                 struct VMObjectTableHole *hole =
-                    malloc(sizeof(struct VMObjectTableHole));
+                    nkMalloc(vm, sizeof(struct VMObjectTableHole));
 
                 dbgWriteLine("Purging object at index %u", i);
 
                 table->objectTable[i] = NULL;
-                vmObjectDelete(ob);
+                vmObjectDelete(vm, ob);
 
                 // Create a table hole for our new gap.
                 memset(hole, 0, sizeof(*hole));
@@ -186,7 +193,7 @@ void vmObjectClearEntry(
     if(*elPtr) {
         struct VMObjectElement *el = *elPtr;
         *elPtr = (*elPtr)->next;
-        free(el);
+        nkFree(vm, el);
 
         assert(ob->size);
         ob->size--;
@@ -221,7 +228,7 @@ struct Value *vmObjectFindOrAddEntry(
             return NULL;
         }
 
-        el = malloc(sizeof(struct VMObjectElement));
+        el = nkMalloc(vm, sizeof(struct VMObjectElement));
         memset(el, 0, sizeof(struct VMObjectElement));
         el->next = *obList;
         el->key = *key;

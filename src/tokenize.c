@@ -13,18 +13,19 @@ static bool isNumber(char c)
     return (c >= '0' && c <= '9');
 }
 
-void deleteToken(struct Token *token)
+void deleteToken(struct VM *vm, struct Token *token)
 {
-    free(token->str);
-    free(token);
+    nkFree(vm, token->str);
+    nkFree(vm, token);
 }
 
-void destroyTokenList(struct TokenList *tokenList)
+void destroyTokenList(
+    struct VM *vm, struct TokenList *tokenList)
 {
     struct Token *t = tokenList->first;
     while(t) {
         struct Token *next = t->next;
-        deleteToken(t);
+        deleteToken(vm, t);
         t = next;
     }
     tokenList->first = NULL;
@@ -32,14 +33,16 @@ void destroyTokenList(struct TokenList *tokenList)
 }
 
 void addToken(
+    struct VM *vm,
     enum TokenType type,
     const char *str,
     int32_t lineNumber,
     struct TokenList *tokenList)
 {
-    struct Token *newToken = malloc(sizeof(struct Token));
+    struct Token *newToken =
+        nkMalloc(vm, sizeof(struct Token));
     newToken->next = NULL;
-    newToken->str = strdup(str);
+    newToken->str = nkStrdup(vm, str);
     newToken->type = type;
     newToken->lineNumber = lineNumber;
 
@@ -55,11 +58,13 @@ void addToken(
     }
 }
 
-char *tokenizerUnescapeString(const char *in)
+char *tokenizerUnescapeString(
+    struct VM *vm,
+    const char *in)
 {
     // +2 for weird backslash-before null-terminator, and the regular
     // null terminator.
-    char *out = malloc(strlen(in) + 2);
+    char *out = nkMalloc(vm, strlen(in) + 2);
     uint32_t len = strlen(in);
     uint32_t readIndex;
     uint32_t writeIndex = 0;
@@ -116,17 +121,17 @@ void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
             struct Token *next = tok->next;
 
             // Make a concatenated string.
-            char *newStr = malloc(strlen(tok->str) + strlen(tok->next->str) + 1);
+            char *newStr = nkMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
             strcpy(newStr, tok->str);
             strcat(newStr, tok->next->str);
 
             // Replace this token's string with it.
-            free(tok->str);
+            nkFree(vm, tok->str);
             tok->str = newStr;
 
             // Snip the next token out of the list.
             tok->next = next->next;
-            deleteToken(next);
+            deleteToken(vm, next);
 
             // Fixup "last" pointer in the TokenList.
             if(tok->next == NULL) {
@@ -178,59 +183,59 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         if(str[i] == '(') {
 
-            addToken(TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
 
         } else if(str[i] == ')') {
 
-            addToken(TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
 
         } else if(str[i] == '[') {
 
-            addToken(TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
 
         } else if(str[i] == ']') {
 
-            addToken(TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
 
         } else if(str[i] == '{') {
 
-            addToken(TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
 
         } else if(str[i] == '}') {
 
-            addToken(TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
 
         } else if(str[i] == '+') {
 
             // Check for "++".
             if(str[i+1] == '+') {
-                addToken(TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_PLUS, "+", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_PLUS, "+", lineNumber, tokenList);
             }
 
         } else if(str[i] == '-') {
 
             // Check for "--".
             if(str[i+1] == '-') {
-                addToken(TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_MINUS, "-", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_MINUS, "-", lineNumber, tokenList);
             }
 
         } else if(str[i] == '*') {
 
-            addToken(TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
 
         } else if(str[i] == '%') {
 
-            addToken(TOKENTYPE_MODULO, "%", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_MODULO, "%", lineNumber, tokenList);
 
         } else if(str[i] == '.') {
 
-            addToken(TOKENTYPE_DOT, ".", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_DOT, ".", lineNumber, tokenList);
 
         } else if(str[i] == '/') {
 
@@ -244,67 +249,67 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 i--;
 
             } else {
-                addToken(TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
             }
 
         } else if(str[i] == ';') {
 
-            addToken(TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
 
         } else if(str[i] == '=') {
 
             if(str[i+1] == '=') {
                 if(str[i+2] == '=') {
-                    addToken(TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
+                    addToken(vm, TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
                     i += 2;
                 } else {
-                    addToken(TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
+                    addToken(vm, TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
                     i++;
                 }
             } else {
-                addToken(TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
             }
 
         } else if(str[i] == ',') {
 
-            addToken(TOKENTYPE_COMMA, ",", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_COMMA, ",", lineNumber, tokenList);
 
         } else if(str[i] == '>') {
 
             if(str[i+1] == '=') {
-                addToken(TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
             }
 
         } else if(str[i] == '<') {
 
             if(str[i+1] == '=') {
-                addToken(TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
             }
 
         } else if(str[i] == '!') {
 
             if(str[i+1] == '=') {
-                addToken(TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(TOKENTYPE_NOT, "!", lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_NOT, "!", lineNumber, tokenList);
             }
 
         } else if(str[i] == '&' && str[i+1] == '&') {
 
             i++;
-            addToken(TOKENTYPE_AND, "&&", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_AND, "&&", lineNumber, tokenList);
 
         } else if(str[i] == '|' && str[i+1] == '|') {
 
             i++;
-            addToken(TOKENTYPE_OR, "||", lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_OR, "||", lineNumber, tokenList);
 
         } else if(str[i] == '\"') {
 
@@ -339,16 +344,16 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
-            strTmp = malloc(len + 1);
+            strTmp = nkMalloc(vm, len + 1);
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
-            strUnescaped = tokenizerUnescapeString(strTmp);
+            strUnescaped = tokenizerUnescapeString(vm, strTmp);
 
-            addToken(TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
+            addToken(vm, TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
 
-            free(strTmp);
-            free(strUnescaped);
+            nkFree(vm, strTmp);
+            nkFree(vm, strUnescaped);
 
             // Skip the whole string and end quote.
             i += len + 1;
@@ -379,6 +384,7 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
             i--;
 
             addToken(
+                vm,
                 isFloat ? TOKENTYPE_FLOAT : TOKENTYPE_INTEGER,
                 tmp,
                 lineNumber,
@@ -394,35 +400,35 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 i++;
             }
 
-            tmp = malloc((i - startIndex) + 1);
+            tmp = nkMalloc(vm, (i - startIndex) + 1);
             memcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 
             if(!strcmp(tmp, "var")) {
-                addToken(TOKENTYPE_VAR, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_VAR, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "function")) {
-                addToken(TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "return")) {
-                addToken(TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "if")) {
-                addToken(TOKENTYPE_IF, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_IF, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "else")) {
-                addToken(TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "while")) {
-                addToken(TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "for")) {
-                addToken(TOKENTYPE_FOR, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_FOR, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "newobject")) {
-                addToken(TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "nil")) {
-                addToken(TOKENTYPE_NIL, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_NIL, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "break")) {
-                addToken(TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
             } else {
-                addToken(TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+                addToken(vm, TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }
 
-            free(tmp);
+            nkFree(vm, tmp);
 
             i--;
 

@@ -33,10 +33,11 @@ bool isSubexpressionEndingToken(struct Token *token);
 int32_t getPrecedence(enum TokenType t);
 
 struct ExpressionAstNode *makeImmediateExpressionNode(
+    struct VM *vm,
     enum TokenType type,
     uint32_t lineNumber);
 
-void deleteExpressionNode(struct ExpressionAstNode *node);
+void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
 struct ExpressionAstNode *parseExpression(struct CompilerState *cs);

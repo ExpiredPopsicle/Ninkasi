@@ -1,16 +1,19 @@
 #include "common.h"
 
-void vmStackInit(struct VMStack *stack)
+void vmStackInit(struct VM *vm)
 {
-    stack->values = calloc(1, sizeof(struct Value));
+    struct VMStack *stack = &vm->stack;
+    stack->values = nkMalloc(vm, sizeof(struct Value));
+    memset(stack->values, 0, sizeof(struct Value));
     stack->size = 0;
     stack->capacity = 1;
     stack->indexMask = 0;
 }
 
-void vmStackDestroy(struct VMStack *stack)
+void vmStackDestroy(struct VM *vm)
 {
-    free(stack->values);
+    struct VMStack *stack = &vm->stack;
+    nkFree(vm, stack->values);
     memset(stack, 0, sizeof(struct VMStack));
 }
 
@@ -53,7 +56,8 @@ struct Value *vmStackPush_internal(struct VM *vm)
 
         stack->indexMask <<= 1;
         stack->indexMask |= 1;
-        stack->values = realloc(
+        stack->values = nkRealloc(
+            vm,
             stack->values,
             stack->capacity * sizeof(struct Value));
 

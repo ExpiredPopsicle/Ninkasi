@@ -60,8 +60,8 @@ struct VMObjectTable
     struct VMObject *objectsWithExternalHandles;
 };
 
-void vmObjectTableInit(struct VMObjectTable *table);
-void vmObjectTableDestroy(struct VMObjectTable *table);
+void vmObjectTableInit(struct VM *vm);
+void vmObjectTableDestroy(struct VM *vm);
 
 struct VMObject *vmObjectTableGetEntryById(
     struct VMObjectTable *table,
@@ -71,7 +71,8 @@ uint32_t vmObjectTableCreateObject(
     struct VM *vm);
 
 void vmObjectTableCleanOldObjects(
-    struct VMObjectTable *table, uint32_t lastGCPass);
+    struct VM *vm,
+    uint32_t lastGCPass);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.

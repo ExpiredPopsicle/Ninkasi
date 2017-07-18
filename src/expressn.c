@@ -1,24 +1,24 @@
 #include "common.h"
 
-void deleteExpressionNode(struct ExpressionAstNode *node)
+void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node)
 {
     if(!node) {
         return;
     }
 
     if(node->ownedToken) {
-        deleteToken(node->opOrValue);
+        deleteToken(vm, node->opOrValue);
         node->opOrValue = NULL;
     }
 
     if(node->children[0]) {
-        deleteExpressionNode(node->children[0]);
+        deleteExpressionNode(vm, node->children[0]);
     }
     if(node->children[1]) {
-        deleteExpressionNode(node->children[1]);
+        deleteExpressionNode(vm, node->children[1]);
     }
 
-    free(node);
+    nkFree(vm, node);
 }
 
 void dumpExpressionAstNode(struct ExpressionAstNode *node)
@@ -149,22 +149,22 @@ int32_t getPrecedence(enum TokenType t)
     do {                                                            \
         while(opStack) {                                            \
             struct ExpressionAstNode *next = opStack->stackNext;    \
-            deleteExpressionNode(opStack);                          \
+            deleteExpressionNode(cs->vm, opStack);                  \
             opStack = next;                                         \
         }                                                           \
         while(valueStack) {                                         \
             struct ExpressionAstNode *next = valueStack->stackNext; \
-            deleteExpressionNode(valueStack);                       \
+            deleteExpressionNode(cs->vm, valueStack);               \
             valueStack = next;                                      \
         }                                                           \
     } while(0)
 
-#define CLEANUP_INLOOP()                        \
-    do {                                        \
-        CLEANUP_OUTER();                        \
-        deleteExpressionNode(firstPrefixOp);    \
-        deleteExpressionNode(lastPostfixOp);    \
-        deleteExpressionNode(valueNode);        \
+#define CLEANUP_INLOOP()                                \
+    do {                                                \
+        CLEANUP_OUTER();                                \
+        deleteExpressionNode(cs->vm, firstPrefixOp);    \
+        deleteExpressionNode(cs->vm, lastPostfixOp);    \
+        deleteExpressionNode(cs->vm, valueNode);        \
     } while(0)
 
 #define EXPECT_AND_SKIP(x)                          \
@@ -183,11 +183,11 @@ int32_t getPrecedence(enum TokenType t)
         vmCompilerNextToken(cs);                    \
     } while(0)
 
-#define MAKE_OP(x)                                  \
-    struct ExpressionAstNode *astNode =             \
-        malloc(sizeof(struct ExpressionAstNode));   \
-    memset(astNode, 0, sizeof(*astNode));           \
-    astNode->stackNext = opStack;                   \
+#define MAKE_OP(x)                                          \
+    struct ExpressionAstNode *astNode =                     \
+        nkMalloc(cs->vm, sizeof(struct ExpressionAstNode)); \
+    memset(astNode, 0, sizeof(*astNode));                   \
+    astNode->stackNext = opStack;                           \
     astNode->opOrValue = x;
 
 #define PUSH_OP(x)                              \
@@ -249,7 +249,7 @@ bool parseFunctioncall(
         {
             // Make a new node for this parameter.
             struct ExpressionAstNode *thisParamNode =
-                malloc(sizeof(struct ExpressionAstNode));
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
             memset(thisParamNode, 0, sizeof(*thisParamNode));
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
@@ -310,7 +310,8 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         // Deal with prefix operators. Build up a list of them.
         while(isPrefixOperator(*currentToken)) {
 
-            struct ExpressionAstNode *prefixNode = malloc(sizeof(struct ExpressionAstNode));
+            struct ExpressionAstNode *prefixNode =
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
             memset(prefixNode, 0, sizeof(*prefixNode));
 
             // Add it to the end of our list of prefix operations.
@@ -364,7 +365,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             // Parse the actual value.
             if(!isExpressionEndingToken(*currentToken)) {
 
-                valueNode = malloc(sizeof(struct ExpressionAstNode));
+                valueNode = nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
                 memset(valueNode, 0, sizeof(*valueNode));
                 valueNode->opOrValue = *currentToken;
 
@@ -385,7 +386,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         while(isPostfixOperator(*currentToken)) {
 
             struct ExpressionAstNode *postfixNode =
-                malloc(sizeof(struct ExpressionAstNode));
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
             memset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
@@ -411,21 +412,21 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                 if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
 
                     struct ExpressionAstNode *identifierStringNode =
-                        malloc(sizeof(struct ExpressionAstNode));
+                        nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
 
                     struct ExpressionAstNode *indexIntoNode = postfixNode;
 
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
-                    identifierStringNode->opOrValue = malloc(sizeof(struct Token));
+                    identifierStringNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
                     identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
-                    identifierStringNode->opOrValue->str = strdup(cs->currentToken->str);
+                    identifierStringNode->opOrValue->str = nkStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = true;
 
-                    indexIntoNode->opOrValue = malloc(sizeof(struct Token));
+                    indexIntoNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
                     indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
-                    indexIntoNode->opOrValue->str = strdup("[");
+                    indexIntoNode->opOrValue->str = nkStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
                     indexIntoNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     indexIntoNode->ownedToken = true;
@@ -437,10 +438,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                     if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
 
                         struct ExpressionAstNode *functionCallNode =
-                            malloc(sizeof(struct ExpressionAstNode));
-                        functionCallNode->opOrValue = malloc(sizeof(struct Token));
+                            nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+                        functionCallNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
                         functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
-                        functionCallNode->opOrValue->str = strdup("(");
+                        functionCallNode->opOrValue->str = nkStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
                         functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                         functionCallNode->ownedToken = true;
@@ -965,7 +966,9 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
     return true;
 }
 
-struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
+struct ExpressionAstNode *cloneExpressionTree(
+    struct CompilerState *cs,
+    struct ExpressionAstNode *node)
 {
     struct ExpressionAstNode *newNode;
 
@@ -973,15 +976,15 @@ struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
         return NULL;
     }
 
-    newNode = malloc(sizeof(struct ExpressionAstNode));
+    newNode = nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
     memset(newNode, 0, sizeof(*newNode));
 
     newNode->ownedToken = node->ownedToken;
     if(node->ownedToken) {
-        newNode->opOrValue = malloc(sizeof(struct Token));
+        newNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
         memset(newNode->opOrValue, 0, sizeof(struct Token));
         newNode->opOrValue->type = node->opOrValue->type;
-        newNode->opOrValue->str = strdup(node->opOrValue->str);
+        newNode->opOrValue->str = nkStrdup(cs->vm, node->opOrValue->str);
         newNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
     } else {
         newNode->opOrValue = node->opOrValue;
@@ -989,8 +992,8 @@ struct ExpressionAstNode *cloneExpressionTree(struct ExpressionAstNode *node)
 
     newNode->isRootFunctionCallNode = node->isRootFunctionCallNode;
 
-    newNode->children[0] = cloneExpressionTree(node->children[0]);
-    newNode->children[1] = cloneExpressionTree(node->children[1]);
+    newNode->children[0] = cloneExpressionTree(cs, node->children[0]);
+    newNode->children[1] = cloneExpressionTree(cs, node->children[1]);
 
     return newNode;
 }
@@ -1011,16 +1014,19 @@ void expandIncrementsAndDecrements(
 
         {
             struct ExpressionAstNode *lvalueNode = node->children[0];
-            struct ExpressionAstNode *rvalueNode1 = cloneExpressionTree(node->children[0]);
-            struct ExpressionAstNode *additionNode = malloc(sizeof(struct ExpressionAstNode));
-            struct ExpressionAstNode *literalOneNode = malloc(sizeof(struct ExpressionAstNode));
+            struct ExpressionAstNode *rvalueNode1 =
+                cloneExpressionTree(cs, node->children[0]);
+            struct ExpressionAstNode *additionNode =
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct ExpressionAstNode *literalOneNode =
+                nkMalloc(cs->vm, sizeof(struct ExpressionAstNode));
             struct Token *oldToken = node->opOrValue;
             bool wasOwningToken = node->ownedToken;
 
             // Generate a node for the number 1.
-            literalOneNode->opOrValue = malloc(sizeof(struct Token));
+            literalOneNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
             literalOneNode->opOrValue->type = TOKENTYPE_INTEGER;
-            literalOneNode->opOrValue->str = strdup("1");
+            literalOneNode->opOrValue->str = nkStrdup(cs->vm, "1");
             literalOneNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             literalOneNode->opOrValue->next = NULL;
             literalOneNode->children[0] = NULL;
@@ -1030,10 +1036,10 @@ void expandIncrementsAndDecrements(
             literalOneNode->isRootFunctionCallNode = false;
 
             // Generate a node that just adds 1 to the value.
-            additionNode->opOrValue = malloc(sizeof(struct Token));
+            additionNode->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
             additionNode->opOrValue->type =
                 oldToken->type == TOKENTYPE_INCREMENT ? TOKENTYPE_PLUS : TOKENTYPE_MINUS;
-            additionNode->opOrValue->str = strdup(
+            additionNode->opOrValue->str = nkStrdup(cs->vm,
                 oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
             additionNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             additionNode->opOrValue->next = NULL;
@@ -1046,9 +1052,9 @@ void expandIncrementsAndDecrements(
             // Generate a node that assigns the added value back to
             // the original value. This just turns this node into an
             // assignment node.
-            node->opOrValue = malloc(sizeof(struct Token));
+            node->opOrValue = nkMalloc(cs->vm, sizeof(struct Token));
             node->opOrValue->type = TOKENTYPE_ASSIGNMENT;
-            node->opOrValue->str = strdup("=");
+            node->opOrValue->str = nkStrdup(cs->vm, "=");
             node->opOrValue->lineNumber = oldToken->lineNumber;
             node->opOrValue->next = NULL;
             node->children[0] = lvalueNode;
@@ -1058,7 +1064,7 @@ void expandIncrementsAndDecrements(
             node->isRootFunctionCallNode = false;
 
             if(wasOwningToken) {
-                deleteToken(oldToken);
+                deleteToken(cs->vm, oldToken);
             }
         }
 
@@ -1081,7 +1087,7 @@ struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs)
 
     if(node) {
         expandIncrementsAndDecrements(cs, node);
-        optimizeConstants(&node);
+        optimizeConstants(cs->vm, &node);
     }
 
     return node;
@@ -1095,7 +1101,7 @@ bool compileExpression(struct CompilerState *cs)
     if(node) {
         bool ret;
         ret = emitExpression(cs, node);
-        deleteExpressionNode(node);
+        deleteExpressionNode(cs->vm, node);
         return ret;
     }
 

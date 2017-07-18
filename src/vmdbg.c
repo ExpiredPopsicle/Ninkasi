@@ -37,17 +37,3 @@ void dbgPop_real(const char *func)
     dbgIndentLevel--;
 }
 
-// void *wrapMalloc(uint32_t size)
-// {
-//     void *v = malloc(size);
-//     printf("Malloc: %p\n", v);
-//     return v;
-// }
-// void wrapFree(void *v)
-// {
-//     printf("Free:   %p\n", v);
-//     free(v);
-// }
-// #define malloc(x) wrapMalloc(x)
-// #define free(x) wrapFree(x)
-

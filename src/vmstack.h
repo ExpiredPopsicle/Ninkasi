@@ -35,8 +35,8 @@ struct VMStack
     uint32_t indexMask;
 };
 
-void vmStackInit(struct VMStack *stack);
-void vmStackDestroy(struct VMStack *stack);
+void vmStackInit(struct VM *vm);
+void vmStackDestroy(struct VM *vm);
 
 /// Pushes a new value and returns a pointer to it (so the caller may
 /// fill it in).
