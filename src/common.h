@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <setjmp.h>
+
+#include "public.h"
 
 #include "config.h"
 
@@ -28,5 +31,6 @@
 #include "function.h"
 #include "objects.h"
 #include "nkmem.h"
+#include "failure.h"
 
 #endif

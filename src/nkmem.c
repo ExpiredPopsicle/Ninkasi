@@ -4,11 +4,14 @@ struct NKMemoryHeader
 {
     uint32_t size;
     struct VM *vm;
+
+    struct NKMemoryHeader *nextAllocation;
+    struct NKMemoryHeader **prevAllocationPtr;
 };
 
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
-    if(rand() % 128 == 0) return NULL;
+    // if(rand() % 128 == 0) return NULL;
 
     if(size != 0) {
 
@@ -36,6 +39,15 @@ void *nkMalloc(struct VM *vm, uint32_t size)
                 vm->peakMemoryUsage = vm->currentMemoryUsage;
             }
 
+            // Add us to the allocation list.
+            header->prevAllocationPtr = &vm->allocations;
+            header->nextAllocation = vm->allocations;
+            if(vm->allocations) {
+                vm->allocations->prevAllocationPtr =
+                    &header->nextAllocation;
+            }
+            vm->allocations = header;
+
             return header + 1;
 
         } else {
@@ -44,8 +56,10 @@ void *nkMalloc(struct VM *vm, uint32_t size)
             // exhaustion).
             errorStateSetAllocationFailFlag(&vm->errorState);
 
+            NK_CATASTROPHY();
         }
     }
+
     return NULL;
 }
 
@@ -54,6 +68,14 @@ void nkFree(struct VM *vm, void *data)
     if(data) {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
         vm->currentMemoryUsage -= header->size + sizeof(struct NKMemoryHeader);
+
+        // Snip us out of the allocations list.
+        if(header->nextAllocation) {
+            header->nextAllocation->prevAllocationPtr =
+                header->prevAllocationPtr;
+        }
+        *header->prevAllocationPtr = header->nextAllocation;
+
         free(header);
     }
 }

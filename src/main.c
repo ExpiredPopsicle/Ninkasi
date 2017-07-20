@@ -1,4 +1,8 @@
-#include "common.h"
+#include "public.h"
+
+#include <assert.h>
+#include <malloc.h>
+#include <string.h>
 
 char **splitLines(const char *str, uint32_t *lineCount)
 {

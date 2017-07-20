@@ -83,9 +83,14 @@ static void vmInitOpcodeTable(void)
 
 void vmInit(struct VM *vm)
 {
-    // Init memory management before anything else.
+    memset(
+        &vm->catastrophicFailureJmpBuf,
+        0, sizeof(vm->catastrophicFailureJmpBuf));
+
+    // Init memory management before almost anything else.
     vm->currentMemoryUsage = 0;
     vm->peakMemoryUsage = 0;
+    vm->allocations = NULL;
 
     vm->limits.maxStrings = ~(uint32_t)0;
     vm->limits.maxStringLength = ~(uint32_t)0;
@@ -123,6 +128,10 @@ void vmInit(struct VM *vm)
 
 void vmDestroy(struct VM *vm)
 {
+    NK_FAILURE_RECOVERY_DECL();
+
+    NK_SET_FAILURE_RECOVERY_VOID();
+
     vmStringTableDestroy(vm);
 
     vmStackDestroy(vm);
@@ -134,6 +143,8 @@ void vmDestroy(struct VM *vm)
     nkFree(vm, vm->globalVariableNameStorage);
 
     vmObjectTableDestroy(vm);
+
+    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 // ----------------------------------------------------------------------
@@ -553,14 +564,18 @@ uint32_t vmGetErrorCount(struct VM *vm)
 struct VM *vmCreate(void)
 {
     struct VM *vm = malloc(sizeof(struct VM));
-    memset(vm, 0, sizeof(*vm));
-    vmInit(vm);
+    if(vm) {
+        memset(vm, 0, sizeof(*vm));
+        vmInit(vm);
+    }
     return vm;
 }
 
 void vmDelete(struct VM *vm)
 {
-    vmDestroy(vm);
+    if(vm) {
+        vmDestroy(vm);
+    }
     free(vm);
 }
 
