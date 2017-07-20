@@ -257,10 +257,12 @@ void vmStringTableCleanOldStrings(
                 str = *lastPtr;
 
                 // Create a table hole for our new gap.
-                memset(hole, 0, sizeof(*hole));
-                hole->index = index;
-                hole->next = table->tableHoles;
-                table->tableHoles = hole;
+                if(hole) {
+                    memset(hole, 0, sizeof(*hole));
+                    hole->index = index;
+                    hole->next = table->tableHoles;
+                    table->tableHoles = hole;
+                }
             }
 
             // FIXME: Remove this.

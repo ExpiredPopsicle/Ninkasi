@@ -2,7 +2,8 @@
 
 #define DEBUG_SPAM 0
 
-static int32_t dbgIndentLevel = 0;
+// static int32_t dbgIndentLevel = 0;
+
 int dbgWriteLine(const char *fmt, ...)
 {
   #if DEBUG_SPAM
@@ -28,12 +29,12 @@ int dbgWriteLine(const char *fmt, ...)
 
 void dbgPush_real(const char *func)
 {
-    dbgIndentLevel++;
+    // dbgIndentLevel++;
 }
 
 void dbgPop_real(const char *func)
 {
-    assert(dbgIndentLevel > 0);
-    dbgIndentLevel--;
+    // assert(dbgIndentLevel > 0);
+    // dbgIndentLevel--;
 }
 

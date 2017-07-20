@@ -8,6 +8,8 @@ struct NKMemoryHeader
 
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
+    if(rand() % 128 == 0) return NULL;
+
     if(size != 0) {
 
         struct NKMemoryHeader *header = NULL;

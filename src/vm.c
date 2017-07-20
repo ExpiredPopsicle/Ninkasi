@@ -187,8 +187,11 @@ struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
         ret = nkMalloc(state->vm, sizeof(struct VMValueGCEntry));
     }
 
-    ret->next = state->openList;
-    state->openList = ret;
+    if(ret) {
+        ret->next = state->openList;
+        state->openList = ret;
+    }
+
     return ret;
 }
 
@@ -218,7 +221,9 @@ void vmGarbageCollect_markObject(
                     v->type == VALUETYPE_OBJECTID)
                 {
                     struct VMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
-                    newEntry->value = v;
+                    if(newEntry) {
+                        newEntry->value = v;
+                    }
                 }
             }
 
@@ -239,7 +244,9 @@ void vmGarbageCollect_markValue(
 
     {
         struct VMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
-        entry->value = v;
+        if(entry) {
+            entry->value = v;
+        }
     }
 }
 

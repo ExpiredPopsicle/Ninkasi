@@ -414,7 +414,8 @@ int main(int argc, char *argv[])
         maxRam++;
         printf("maxRam: %u\n", maxRam);
 
-        fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
+        // fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
+        fprintf(stderr, "maxRam: %u\n", (uint32_t)maxRam);
     }
 
     free(script);
