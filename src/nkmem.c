@@ -1,14 +1,5 @@
 #include "common.h"
 
-struct NKMemoryHeader
-{
-    uint32_t size;
-    struct VM *vm;
-
-    struct NKMemoryHeader *nextAllocation;
-    struct NKMemoryHeader **prevAllocationPtr;
-};
-
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
     // if(rand() % 128 == 0) return NULL;
@@ -24,6 +15,7 @@ void *nkMalloc(struct VM *vm, uint32_t size)
         {
             // VM allocation failure (hit user-set limit).
             errorStateSetAllocationFailFlag(&vm->errorState);
+            NK_CATASTROPHY();
             return NULL;
         }
 
@@ -55,7 +47,6 @@ void *nkMalloc(struct VM *vm, uint32_t size)
             // System allocation failure (possible address space
             // exhaustion).
             errorStateSetAllocationFailFlag(&vm->errorState);
-
             NK_CATASTROPHY();
         }
     }

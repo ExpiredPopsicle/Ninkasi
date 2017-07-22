@@ -783,12 +783,17 @@ void vmCompilerCreateCFunctionVariable(
     VMFunctionCallback func,
     void *userData)
 {
+    NK_FAILURE_RECOVERY_DECL();
+    uint32_t functionId = 0;
+    struct VM *vm = cs->vm;
+
+    NK_SET_FAILURE_RECOVERY_VOID();
+
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
-    uint32_t functionId = 0;
-    for(functionId = 0; functionId < cs->vm->functionCount; functionId++) {
-        if(cs->vm->functionTable[functionId].CFunctionCallback == func &&
-            cs->vm->functionTable[functionId].CFunctionCallbackUserdata == userData)
+    for(functionId = 0; functionId < vm->functionCount; functionId++) {
+        if(vm->functionTable[functionId].CFunctionCallback == func &&
+           vm->functionTable[functionId].CFunctionCallbackUserdata == userData)
         {
             break;
         }
@@ -808,12 +813,18 @@ void vmCompilerCreateCFunctionVariable(
     emitPushLiteralFunctionId(cs, functionId);
     cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, name);
+
+    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 struct CompilerState *vmCompilerCreate(
     struct VM *vm)
 {
+    NK_FAILURE_RECOVERY_DECL();
+
     struct CompilerState *cs;
+
+    NK_SET_FAILURE_RECOVERY(NULL);
 
     cs = nkMalloc(vm, sizeof(struct CompilerState));
     memset(cs, 0, sizeof(*cs));
@@ -827,12 +838,18 @@ struct CompilerState *vmCompilerCreate(
 
     pushContext(cs);
 
+    NK_CLEAR_FAILURE_RECOVERY();
+
     return cs;
 }
 
 void vmCompilerFinalize(
     struct CompilerState *cs)
 {
+    NK_FAILURE_RECOVERY_DECL();
+    struct VM *vm = cs->vm;
+    NK_SET_FAILURE_RECOVERY_VOID();
+
     // We MUST end up on the global context at the end.
     if(!cs->context || cs->context->parent) {
         vmCompilerAddError(cs, "Context mismatch at compilation end!");
@@ -892,14 +909,20 @@ void vmCompilerFinalize(
     addInstructionSimple(cs, OP_END);
 
     nkFree(cs->vm, cs);
+
+    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 bool vmCompilerCompileScript(
     struct CompilerState *cs,
     const char *script)
 {
+    NK_FAILURE_RECOVERY_DECL();
     struct TokenList tokenList;
     bool success;
+    struct VM *vm = cs->vm;
+
+    NK_SET_FAILURE_RECOVERY(false);
 
     // Tokenize.
 
@@ -910,6 +933,7 @@ bool vmCompilerCompileScript(
     success = tokenize(cs->vm, script, &tokenList);
     if(!success) {
         destroyTokenList(cs->vm, &tokenList);
+        NK_CLEAR_FAILURE_RECOVERY();
         return false;
     }
 
@@ -924,6 +948,8 @@ bool vmCompilerCompileScript(
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
     destroyTokenList(cs->vm, &tokenList);
+
+    NK_CLEAR_FAILURE_RECOVERY();
     return success;
 }
 
@@ -931,10 +957,14 @@ bool vmCompilerCompileScriptFile(
     struct CompilerState *cs,
     const char *scriptFilename)
 {
+    NK_FAILURE_RECOVERY_DECL();
+    struct VM *vm = cs->vm;
     FILE *in = fopen(scriptFilename, "rb");
     uint32_t len;
     char *buf;
     bool success;
+
+    NK_SET_FAILURE_RECOVERY(false);
 
     if(!in) {
         struct DynString *errStr =
@@ -949,7 +979,13 @@ bool vmCompilerCompileScriptFile(
     len = ftell(in);
     fseek(in, 0, SEEK_SET);
 
-    buf = nkMalloc(cs->vm, len + 1);
+    buf = malloc(len + 1);
+    if(!buf) {
+        fclose(in);
+        errorStateSetAllocationFailFlag(&vm->errorState);
+        NK_CLEAR_FAILURE_RECOVERY();
+        return false;
+    }
     fread(buf, len, 1, in);
     buf[len] = 0;
 
@@ -957,7 +993,9 @@ bool vmCompilerCompileScriptFile(
 
     success = vmCompilerCompileScript(cs, buf);
 
-    nkFree(cs->vm, buf);
+    free(buf);
+
+    NK_CLEAR_FAILURE_RECOVERY();
 
     return success;
 }

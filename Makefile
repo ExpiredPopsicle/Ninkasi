@@ -1,6 +1,6 @@
 
-CFLAGS := -g -Wall
-LDFLAGS := -g -Wall
+CFLAGS := -g -Wall -rdynamic
+LDFLAGS := -g -Wall -rdynamic
 
 SOURCES := $(shell find src -iname "*.c")
 HEADERS := $(shell find src -iname "*.h")

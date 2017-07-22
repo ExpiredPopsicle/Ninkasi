@@ -3,7 +3,7 @@
 
 /// Stick this at the top of public API functions.
 #define NK_FAILURE_RECOVERY_DECL()              \
-    jmp_buf catastrophicFailureJmpBuf_backup;
+    jmp_buf catastrophicFailureJmpBuf_backup
 
 #define NK_SET_FAILURE_RECOVERY_BASE()              \
     do {                                            \
@@ -50,7 +50,10 @@
 #define NK_CATASTROPHY()                                    \
     do {                                                    \
         errorStateSetAllocationFailFlag(&vm->errorState);   \
+        printf("Catastrophic failure!\n");                  \
         longjmp(vm->catastrophicFailureJmpBuf, 1);          \
     } while(0)
+
+void stackdump(void);
 
 #endif

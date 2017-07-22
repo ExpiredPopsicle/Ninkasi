@@ -14,7 +14,7 @@ struct Value;
 // Public VM interface
 
 /// Create and initialize a VM object.
-struct VM *vmCreate(void);
+struct VM *nkVmCreate(void);
 
 void vmInit(struct VM *vm);
 
@@ -24,7 +24,7 @@ void vmDestroy(struct VM *vm);
 bool vmExecuteProgram(struct VM *vm);
 
 /// De-initialize and free a VM object.
-void vmDelete(struct VM *vm);
+void nkVmDelete(struct VM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.

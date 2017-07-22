@@ -128,23 +128,38 @@ void vmInit(struct VM *vm)
 
 void vmDestroy(struct VM *vm)
 {
-    NK_FAILURE_RECOVERY_DECL();
+    if(vm->errorState.allocationFailure) {
 
-    NK_SET_FAILURE_RECOVERY_VOID();
+        // Catastrophic failure cleanup mode. Do not trust most
+        // internal pointers and use the allocation tracker directly.
+        while(vm->allocations) {
+            struct NKMemoryHeader *next = vm->allocations->nextAllocation;
+            free(vm->allocations);
+            vm->allocations = next;
+        }
 
-    vmStringTableDestroy(vm);
+    } else {
 
-    vmStackDestroy(vm);
-    errorStateDestroy(&vm->errorState);
-    nkFree(vm, vm->instructions);
-    nkFree(vm, vm->functionTable);
+        // Standard cleanup mode.
 
-    nkFree(vm, vm->globalVariables);
-    nkFree(vm, vm->globalVariableNameStorage);
+        NK_FAILURE_RECOVERY_DECL();
 
-    vmObjectTableDestroy(vm);
+        NK_SET_FAILURE_RECOVERY_VOID();
 
-    NK_CLEAR_FAILURE_RECOVERY();
+        vmStringTableDestroy(vm);
+
+        vmStackDestroy(vm);
+        errorStateDestroy(&vm->errorState);
+        nkFree(vm, vm->instructions);
+        nkFree(vm, vm->functionTable);
+
+        nkFree(vm, vm->globalVariables);
+        nkFree(vm, vm->globalVariableNameStorage);
+
+        vmObjectTableDestroy(vm);
+
+        NK_CLEAR_FAILURE_RECOVERY();
+    }
 }
 
 // ----------------------------------------------------------------------
@@ -542,17 +557,25 @@ uint32_t vmGetErrorCount(struct VM *vm)
     return count;
 }
 
-struct VM *vmCreate(void)
+struct VM *nkVmCreate(void)
 {
+    NK_FAILURE_RECOVERY_DECL();
+
     struct VM *vm = malloc(sizeof(struct VM));
+
+    NK_SET_FAILURE_RECOVERY(vm);
+
     if(vm) {
         memset(vm, 0, sizeof(*vm));
         vmInit(vm);
     }
+
+    NK_CLEAR_FAILURE_RECOVERY();
+
     return vm;
 }
 
-void vmDelete(struct VM *vm)
+void nkVmDelete(struct VM *vm)
 {
     if(vm) {
         vmDestroy(vm);
