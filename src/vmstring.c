@@ -40,11 +40,9 @@ void vmStringTableDestroy(struct VM *vm)
 
     // Clear out the main table.
     uint32_t i;
-    if(table->stringTable) {
-        for(i = 0; i < table->stringTableCapacity; i++) {
-            nkFree(vm, table->stringTable[i]);
-            table->stringTable[i] = NULL;
-        }
+    for(i = 0; i < table->stringTableCapacity; i++) {
+        nkFree(vm, table->stringTable[i]);
+        table->stringTable[i] = NULL;
     }
     nkFree(vm, table->stringTable);
     table->stringTableCapacity = 0;
@@ -67,10 +65,6 @@ void vmStringTableDestroy(struct VM *vm)
 struct VMString *vmStringTableGetEntryById(
     struct VMStringTable *table, uint32_t index)
 {
-    if(!table->stringTable) {
-        return NULL;
-    }
-
     if(index >= table->stringTableCapacity) {
         return NULL;
     }
@@ -98,11 +92,6 @@ uint32_t vmStringTableFindOrAddString(
         table->stringsByHash[hash & (vmStringTableHashTableSize - 1)];
     struct VMString *cur = hashBucket;
 
-    // Out-of-memory previously?
-    if(!table->stringTable) {
-        return ~(uint32_t)0;
-    }
-
     while(cur) {
         if(!strcmp(cur->str, str)) {
             return cur->stringTableIndex;
@@ -125,10 +114,6 @@ uint32_t vmStringTableFindOrAddString(
         struct VMString *newString =
             nkMalloc(vm, sizeof(struct VMString) + len + 1);
         uint32_t index = 0;
-
-        if(!newString) {
-            return ~(uint32_t)0;
-        }
 
         if(table->tableHoles) {
 
@@ -163,10 +148,6 @@ uint32_t vmStringTableFindOrAddString(
                 vm,
                 table->stringTable,
                 sizeof(struct VMString *) * newCapacity);
-
-            if(!table->stringTable) {
-                return ~(uint32_t)0;
-            }
 
             // Create hole objects for all our empty new space. Not
             // that we don't create one on the border between the old
@@ -257,12 +238,10 @@ void vmStringTableCleanOldStrings(
                 str = *lastPtr;
 
                 // Create a table hole for our new gap.
-                if(hole) {
-                    memset(hole, 0, sizeof(*hole));
-                    hole->index = index;
-                    hole->next = table->tableHoles;
-                    table->tableHoles = hole;
-                }
+                memset(hole, 0, sizeof(*hole));
+                hole->index = index;
+                hole->next = table->tableHoles;
+                table->tableHoles = hole;
             }
 
             // FIXME: Remove this.

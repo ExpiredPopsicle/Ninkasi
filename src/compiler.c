@@ -2,11 +2,6 @@
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 {
-    // Check for runaway out-of-memory situation first.
-    if(!cs->vm->instructions) {
-        return;
-    }
-
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
         // TODO: Remove this.
@@ -28,10 +23,6 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
                 cs->vm->instructions,
                 sizeof(struct Instruction) *
                 newSize);
-
-            if(!cs->vm->instructions) {
-                return;
-            }
 
             // Clear the new area to NOPs.
             memset(
@@ -62,11 +53,6 @@ void pushContext(struct CompilerState *cs)
 {
     struct CompilerStateContext *newContext =
         nkMalloc(cs->vm, sizeof(struct CompilerStateContext));
-
-    if(!newContext) {
-        return;
-    }
-
     memset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId = ~(uint32_t)0;
     newContext->parent = cs->context;
@@ -86,12 +72,6 @@ void popContext(struct CompilerState *cs)
 {
     struct CompilerStateContext *oldContext =
         cs->context;
-
-    // Out-of-memory?
-    if(!cs->context) {
-        return;
-    }
-
     cs->context = cs->context->parent;
 
     // Free variable data.
@@ -256,22 +236,11 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
 {
     struct CompilerStateContextVariable *var =
         nkMalloc(cs->vm, sizeof(struct CompilerStateContextVariable));
-
-    if(!var) {
-        return NULL;
-    }
-
     memset(var, 0, sizeof(*var));
 
     var->next = cs->context->variables;
     var->isGlobal = !cs->context->parent;
-
     var->name = nkStrdup(cs->vm, name);
-    if(!var->name) {
-        nkFree(cs->vm, var);
-        return NULL;
-    }
-
     var->stackPos = cs->context->stackFrameOffset - 1;
 
     cs->context->variables = var;
@@ -599,10 +568,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     struct VMFunction *functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
-    if(!functionObject) {
-        return false;
-    }
-
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
 
     // Read the function name.
@@ -640,9 +605,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // set it and parent it directly.
     functionLocalContext = nkMalloc(
         cs->vm, sizeof(struct CompilerStateContext));
-    if(!functionLocalContext) {
-        return false;
-    }
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
     // Find the global context and set it as our parent.
@@ -675,9 +637,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
             // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
             varTmp = addVariableWithoutStackAllocation(cs, argumentName);
-            if(!varTmp) {
-                return false;
-            }
 
             varTmp->doNotPopWhenOutOfScope = true;
 
@@ -716,9 +675,6 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
     varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
-    if(!varTmp) {
-        return false;
-    }
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
@@ -726,18 +682,12 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
     varTmp = addVariableWithoutStackAllocation(cs, "_argumentCount");
-    if(!varTmp) {
-        return false;
-    }
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
     varTmp = addVariableWithoutStackAllocation(cs, "_returnPointer");
-    if(!varTmp) {
-        return false;
-    }
     varTmp->doNotPopWhenOutOfScope = true;
 
     // Skip ')'.
@@ -846,13 +796,8 @@ void vmCompilerCreateCFunctionVariable(
 
     // Add a new one if we haven't found an existing one.
     if(functionId == cs->vm->functionCount) {
-
         struct VMFunction *vmfunc =
             vmCreateFunction(cs->vm, &functionId);
-        if(!vmfunc) {
-            return;
-        }
-
         vmfunc->argumentCount = ~(uint32_t)0;
         vmfunc->isCFunction = true;
         vmfunc->CFunctionCallback = func;
@@ -861,9 +806,7 @@ void vmCompilerCreateCFunctionVariable(
 
     // Add the variable.
     emitPushLiteralFunctionId(cs, functionId);
-    if(cs->context) {
-        cs->context->stackFrameOffset++;
-    }
+    cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, name);
 }
 
@@ -873,10 +816,6 @@ struct CompilerState *vmCompilerCreate(
     struct CompilerState *cs;
 
     cs = nkMalloc(vm, sizeof(struct CompilerState));
-    if(!cs) {
-        return NULL;
-    }
-
     memset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
@@ -905,8 +844,7 @@ void vmCompilerFinalize(
     }
 
     // Create the global variable table.
-    if(cs->context) {
-
+    {
         // Run through the variable list once and count up how much
         // memory we need.
         uint32_t count = 0;
@@ -924,34 +862,23 @@ void vmCompilerFinalize(
             cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
             nkMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
+        cs->vm->globalVariableCount = count;
 
-        if(!cs->vm->globalVariables || !cs->vm->globalVariableNameStorage) {
+        // Now run through it all again and actually assign data.
+        var = cs->context->variables;
+        {
+            char *nameWritePtr = cs->vm->globalVariableNameStorage;
+            count = 0;
 
-            nkFree(cs->vm, cs->vm->globalVariables);
-            nkFree(cs->vm, cs->vm->globalVariableNameStorage);
-            cs->vm->globalVariables = NULL;
-            cs->vm->globalVariableNameStorage = NULL;
+            while(var) {
 
-        } else {
+                cs->vm->globalVariables[count].stackPosition = var->stackPos;
+                cs->vm->globalVariables[count].name = nameWritePtr;
+                strcpy(nameWritePtr, var->name);
+                nameWritePtr += strlen(var->name) + 1;
 
-            cs->vm->globalVariableCount = count;
-
-            // Now run through it all again and actually assign data.
-            var = cs->context->variables;
-            {
-                char *nameWritePtr = cs->vm->globalVariableNameStorage;
-                count = 0;
-
-                while(var) {
-
-                    cs->vm->globalVariables[count].stackPosition = var->stackPos;
-                    cs->vm->globalVariables[count].name = nameWritePtr;
-                    strcpy(nameWritePtr, var->name);
-                    nameWritePtr += strlen(var->name) + 1;
-
-                    count++;
-                    var = var->next;
-                }
+                count++;
+                var = var->next;
             }
         }
     }
@@ -1055,9 +982,6 @@ uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
 
 struct Instruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
 {
-    if(!cs->vm->instructions) {
-        return NULL;
-    }
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
 
@@ -1070,10 +994,6 @@ void modifyJump(
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
     struct Instruction *jumpInst =
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
-
-    if(!pushLitInst || !jumpInst) {
-        return;
-    }
 
     assert(pushLitInst->opcode == OP_PUSHLITERAL_INT);
     assert(
@@ -1354,9 +1274,6 @@ bool compileBreakStatement(struct CompilerState *cs)
             nkRealloc(cs->vm, searchContext->loopContextFixups,
                 sizeof(*searchContext->loopContextFixups) *
                 searchContext->loopContextFixupCount);
-        if(!searchContext->loopContextFixups) {
-            return false;
-        }
         searchContext->loopContextFixups[
             searchContext->loopContextFixupCount - 1] =
             jumpFixup;

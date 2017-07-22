@@ -8,17 +8,13 @@ void vmObjectTableInit(struct VM *vm)
 
     // Create a table of one empty entry.
     table->objectTable = nkMalloc(vm, sizeof(struct VMObject*));
-    if(table->objectTable) {
-        table->objectTableCapacity = 1;
-        table->objectTable[0] = NULL;
-    }
+    table->objectTableCapacity = 1;
+    table->objectTable[0] = NULL;
 
     // Create the hole object that goes with the empty space.
     table->tableHoles = nkMalloc(vm, sizeof(struct VMObjectTableHole));
-    if(table->tableHoles) {
-        table->tableHoles->index = 0;
-        table->tableHoles->next = NULL;
-    }
+    table->tableHoles->index = 0;
+    table->tableHoles->next = NULL;
 
     table->objectsWithExternalHandles = NULL;
 }
@@ -81,11 +77,6 @@ uint32_t vmObjectTableCreateObject(
     struct VMObjectTable *table = &vm->objectTable;
     uint32_t index = ~0;
     struct VMObject *newObject = nkMalloc(vm, sizeof(struct VMObject));
-
-    if(!newObject) {
-        return index;
-    }
-
     memset(newObject, 0, sizeof(*newObject));
 
     if(table->tableHoles) {
@@ -121,25 +112,13 @@ uint32_t vmObjectTableCreateObject(
             table->objectTable,
             sizeof(struct VMObject *) * newCapacity);
 
-        if(!table->objectTable) {
-            free(newObject);
-            return ~0;
-        }
-
         // Create hole objects for all our empty new space. Not
         // that we don't create one on the border between the old
         // and new space because that's where our new entry will
         // be going.
         for(i = oldCapacity + 1; i < newCapacity; i++) {
-
             struct VMObjectTableHole *hole =
                 nkMalloc(vm, sizeof(struct VMObjectTableHole));
-
-            if(!hole) {
-                free(newObject);
-                return ~0;
-            }
-
             hole->index = i;
             hole->next = table->tableHoles;
             table->tableHoles = hole;
@@ -237,6 +216,9 @@ struct Value *vmObjectFindOrAddEntry(
         el = el->next;
     }
 
+    // FIXME!!! We want non-existant things to return nil, and not be
+    // added to the list if we're just reading!
+
     // If we can't find the entry, make a new one.
     if(!el) {
 
@@ -250,9 +232,6 @@ struct Value *vmObjectFindOrAddEntry(
         }
 
         el = nkMalloc(vm, sizeof(struct VMObjectElement));
-        if(!el) {
-            return NULL;
-        }
         memset(el, 0, sizeof(struct VMObjectElement));
         el->next = *obList;
         el->key = *key;

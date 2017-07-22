@@ -108,3 +108,4 @@ Looking at the structure won't work.
 Ugghhhh
 * TODO Find every nkMalloc, nkRealloc, and nkStrdup, and make sure they all have error handling.
 Blaaaaaaaaaaaaaaaagh
+* TODO Looking up a nonexistant entry in an object should return nil and not create anything.

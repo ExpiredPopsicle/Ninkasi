@@ -1,33 +1,56 @@
 #ifndef NINKASI_FAILURE_H
 #define NINKASI_FAILURE_H
 
+/// Stick this at the top of public API functions.
 #define NK_FAILURE_RECOVERY_DECL()              \
     jmp_buf catastrophicFailureJmpBuf_backup;
 
-#define NK_SET_FAILURE_RECOVERY_BASE()          \
-    memcpy(&catastrophicFailureJmpBuf_backup,   \
-        vm->catastrophicFailureJmpBuf,          \
-        sizeof(vm->catastrophicFailureJmpBuf));
+#define NK_SET_FAILURE_RECOVERY_BASE()              \
+    do {                                            \
+        memcpy(&catastrophicFailureJmpBuf_backup,   \
+            vm->catastrophicFailureJmpBuf,          \
+            sizeof(vm->catastrophicFailureJmpBuf)); \
+    } while(0)
 
-#define NK_SET_FAILURE_RECOVERY(x)              \
-    NK_SET_FAILURE_RECOVERY_BASE();             \
-    if(setjmp(vm->catastrophicFailureJmpBuf)) { \
-        return x;                               \
-    }
+#define NK_CLEAR_FAILURE_RECOVERY()                 \
+    do {                                            \
+        memcpy(vm->catastrophicFailureJmpBuf,       \
+            &catastrophicFailureJmpBuf_backup,      \
+            sizeof(vm->catastrophicFailureJmpBuf)); \
+    } while(0)
 
-#define NK_SET_FAILURE_RECOVERY_VOID()          \
-    NK_SET_FAILURE_RECOVERY_BASE();             \
-    if(setjmp(vm->catastrophicFailureJmpBuf)) { \
-        return;                                 \
-    }
+/// Stick this before you do anything important in a function that
+/// returns something. x is the value that will be returned on error.
+#define NK_SET_FAILURE_RECOVERY(x)                  \
+    do {                                            \
+        NK_SET_FAILURE_RECOVERY_BASE();             \
+        if(vm->errorState.allocationFailure ||      \
+            setjmp(vm->catastrophicFailureJmpBuf))  \
+        {                                           \
+            NK_CLEAR_FAILURE_RECOVERY();            \
+            return (x);                             \
+        }                                           \
+    } while(0)
 
-#define NK_CLEAR_FAILURE_RECOVERY()             \
-    memcpy(vm->catastrophicFailureJmpBuf,       \
-        &catastrophicFailureJmpBuf_backup,      \
-        sizeof(vm->catastrophicFailureJmpBuf));
+/// Stick this before you do anything important in a function that
+/// returns nothing.
+#define NK_SET_FAILURE_RECOVERY_VOID()              \
+    do {                                            \
+        NK_SET_FAILURE_RECOVERY_BASE();             \
+        if(vm->errorState.allocationFailure ||      \
+            setjmp(vm->catastrophicFailureJmpBuf))  \
+        {                                           \
+            NK_CLEAR_FAILURE_RECOVERY();            \
+            return;                                 \
+        }                                           \
+    } while(0)
 
-#define NK_CATASTROPHY()                        \
-    vm->errorState.allocationFailure = true;    \
-    longjmp(vm->catastrophicFailureJmpBuf, 1);
+/// Catastrophic failure handler trigger. Used by the allocator to
+/// handle out-of-memory situations.
+#define NK_CATASTROPHY()                                    \
+    do {                                                    \
+        errorStateSetAllocationFailFlag(&vm->errorState);   \
+        longjmp(vm->catastrophicFailureJmpBuf, 1);          \
+    } while(0)
 
 #endif

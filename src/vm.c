@@ -198,11 +198,8 @@ struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
         ret = nkMalloc(state->vm, sizeof(struct VMValueGCEntry));
     }
 
-    if(ret) {
-        ret->next = state->openList;
-        state->openList = ret;
-    }
-
+    ret->next = state->openList;
+    state->openList = ret;
     return ret;
 }
 
@@ -232,9 +229,7 @@ void vmGarbageCollect_markObject(
                     v->type == VALUETYPE_OBJECTID)
                 {
                     struct VMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
-                    if(newEntry) {
-                        newEntry->value = v;
-                    }
+                    newEntry->value = v;
                 }
             }
 
@@ -255,9 +250,7 @@ void vmGarbageCollect_markValue(
 
     {
         struct VMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
-        if(entry) {
-            entry->value = v;
-        }
+        entry->value = v;
     }
 }
 
@@ -432,23 +425,11 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
         *functionId = vm->functionCount++;
     }
 
-    {
-        struct VMFunction *newFunctionTable =
-            nkMalloc(vm, sizeof(struct VMFunction) * vm->functionCount);
 
-        if(!newFunctionTable) {
-            vm->functionCount--;
-            return NULL;
-        }
-
-        if(vm->functionTable) {
-            memcpy(
-                newFunctionTable, vm->functionTable,
-                sizeof(struct VMFunction) * (vm->functionCount - 1));
-            nkFree(vm, vm->functionTable);
-        }
-        vm->functionTable = newFunctionTable;
-    }
+    vm->functionTable = nkRealloc(
+        vm,
+        vm->functionTable,
+        sizeof(struct VMFunction) * vm->functionCount);
 
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
