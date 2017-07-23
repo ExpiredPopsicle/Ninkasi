@@ -15,7 +15,7 @@ void *nkMalloc(struct VM *vm, uint32_t size)
         {
             // VM allocation failure (hit user-set limit).
             errorStateSetAllocationFailFlag(&vm->errorState);
-            NK_CATASTROPHY();
+            NK_CATASTROPHE();
             return NULL;
         }
 
@@ -47,7 +47,7 @@ void *nkMalloc(struct VM *vm, uint32_t size)
             // System allocation failure (possible address space
             // exhaustion).
             errorStateSetAllocationFailFlag(&vm->errorState);
-            NK_CATASTROPHY();
+            NK_CATASTROPHE();
         }
     }
 

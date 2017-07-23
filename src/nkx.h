@@ -1,49 +1,62 @@
-#ifndef NINKASI_PUBLIC_H
-#define NINKASI_PUBLIC_H
+// ----------------------------------------------------------------------
+// Ninkasi external interface (NKX).
+// ----------------------------------------------------------------------
+//
+// These are the only functions that should ever be called by a
+// hosting application. Every call in here wraps to an internal call
+// after setting up an error handler with setjmp.
+//
+// Internally, the VM should NEVER call any of these wrapper
+// functions, or it'll end up with the catastrophic error handler set
+// up twice, and won't return to the hosting application correctly.
+
+#ifndef NINKASI_NKX
+#define NINKASI_NKX
+
+#include "basetype.h"
+#include "value.h"
 
 struct VM;
 struct VMFunctionCallbackData;
 typedef void (*VMFunctionCallback)(struct VMFunctionCallbackData *data);
 struct Value;
 
-#include "basetype.h"
-#include "value.h"
-#include "vm.h" // FIXME: Get rid of this
-
 // ----------------------------------------------------------------------
 // Public VM interface
 
-void vmInit(struct VM *vm);
+/// Create and initialize a VM object.
+struct VM *nkxVmCreate(void);
 
-void vmDestroy(struct VM *vm);
+/// De-initialize and free a VM object.
+void nkxVmDelete(struct VM *vm);
 
 /// Run the compiled program.
-bool vmExecuteProgram(struct VM *vm);
+bool nkxVmExecuteProgram(struct VM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-uint32_t vmGetErrorCount(struct VM *vm);
+uint32_t nkxVmGetErrorCount(struct VM *vm);
 
-// TODO: Error string functions.
-
-/// Run a single instruction inside the VM and advance the program
-/// counter.
-void vmIterate(struct VM *vm);
+/// Run some number of instructions inside the VM and advance the
+/// program counter.
+void nkxVmIterate(struct VM *vm, uint32_t count);
 
 /// Force a garbage collection pass.
-void vmGarbageCollect(struct VM *vm);
+void nkxVmGarbageCollect(struct VM *vm);
 
 /// Call a function inside the VM. This does not do any kind of
 /// iteration control, and will simply keep iterating until the
 /// instruction pointer points to the end of addressable program
 /// space, indicating that the function has returned.
 ///
+/// functionValue is an input Value containing the function id.
+///
 /// arguments is an input pointing to the first element in an array of
 ///   argumentCount elements.
 ///
 /// returnValue is an output pointing to the Value to fill with the
 ///   return value from the function call.
-void vmCallFunction(
+void nkxVmCallFunction(
     struct VM *vm,
     struct Value *functionValue,
     uint32_t argumentCount,
@@ -55,7 +68,7 @@ void vmCallFunction(
 /// func is the C function pointer itself.
 ///
 /// output is the Value to write the pointer to.
-void vmCreateCFunction(
+void nkxVmCreateCFunction(
     struct VM *vm,
     VMFunctionCallback func,
     struct Value *output);
@@ -67,24 +80,21 @@ void vmCreateCFunction(
 /// point where they are declared, and until that point, the stack
 /// area they occupy may be used by other things, or may not exist at
 /// all.)
-struct Value *vmFindGlobalVariable(
+struct Value *nkxVmFindGlobalVariable(
     struct VM *vm, const char *name);
 
 // ----------------------------------------------------------------------
 // Public compiler interface
 
-struct CompilerState;
-struct VM;
-
 /// Create a compiler.
-struct CompilerState *vmCompilerCreate(
+struct CompilerState *nkxVmCompilerCreate(
     struct VM *vm);
 
 /// Create a C function and assign it a variable name at the current
 /// scope. Use this to make a globally defined C function at
 /// compile-time. Do this before script compilation, so the script
 /// itself can access it.
-void vmCompilerCreateCFunctionVariable(
+void nkxVmCompilerCreateCFunctionVariable(
     struct CompilerState *cs,
     const char *name,
     VMFunctionCallback func,
@@ -93,34 +103,19 @@ void vmCompilerCreateCFunctionVariable(
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number
 /// counts.
-bool vmCompilerCompileScript(
+bool nkxVmCompilerCompileScript(
     struct CompilerState *cs,
     const char *script);
 
-// bool vmCompilerCompileScriptFile(
-//     struct CompilerState *cs,
-//     const char *scriptFilename);
+bool nkxVmCompilerCompileScriptFile(
+    struct CompilerState *cs,
+    const char *scriptFilename);
 
 /// Destroy a compiler. This will also finish off any remaining tasks
 /// like setting up the global variable list in the VM.
-void vmCompilerFinalize(
+void nkxVmCompilerFinalize(
     struct CompilerState *cs);
 
-// ----------------------------------------------------------------------
-// Public types
+const char *nkxValueToString(struct VM *vm, struct Value *value);
 
-struct VMFunctionCallbackData
-{
-    struct VM *vm;
-
-    struct Value *arguments;
-    uint32_t argumentCount;
-
-    // Set this to something to return a value.
-    struct Value returnValue;
-
-    void *userData;
-};
-
-#endif
-
+#endif // NINKASI_NKX

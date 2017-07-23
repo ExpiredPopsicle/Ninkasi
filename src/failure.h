@@ -47,12 +47,16 @@
 
 /// Catastrophic failure handler trigger. Used by the allocator to
 /// handle out-of-memory situations.
-#define NK_CATASTROPHY()                                    \
+#define NK_CATASTROPHE()                                    \
     do {                                                    \
         errorStateSetAllocationFailFlag(&vm->errorState);   \
         printf("Catastrophic failure!\n");                  \
+        stackdump(); \
         longjmp(vm->catastrophicFailureJmpBuf, 1);          \
     } while(0)
+
+#define NK_CHECK_CATASTROPHE() \
+    (vm ? vm->errorState.allocationFailure : true)
 
 void stackdump(void);
 

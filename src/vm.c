@@ -557,32 +557,6 @@ uint32_t vmGetErrorCount(struct VM *vm)
     return count;
 }
 
-struct VM *nkVmCreate(void)
-{
-    NK_FAILURE_RECOVERY_DECL();
-
-    struct VM *vm = malloc(sizeof(struct VM));
-
-    NK_SET_FAILURE_RECOVERY(vm);
-
-    if(vm) {
-        memset(vm, 0, sizeof(*vm));
-        vmInit(vm);
-    }
-
-    NK_CLEAR_FAILURE_RECOVERY();
-
-    return vm;
-}
-
-void nkVmDelete(struct VM *vm)
-{
-    if(vm) {
-        vmDestroy(vm);
-    }
-    free(vm);
-}
-
 struct Value *vmFindGlobalVariable(
     struct VM *vm, const char *name)
 {

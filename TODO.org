@@ -112,3 +112,7 @@ Ugghhhh
 Blaaaaaaaaaaaaaaaagh
 ** TODO Make a public interface wrapper that handles all the NK_FAILURE_RECOVERY_DECL, NK_SET_FAILURE_RECOVERY*, and NK_CLEAR_FAILURE_RECOVERY crap
 Call it... nkx?
+** TODO Make sure all calls to stuff outside the engine get stuff properly wrapped.
+Check the error status after we get back from the call. Fire off
+another catastrophe if we need to.
+* TODO Split everything into nkx and nki

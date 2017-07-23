@@ -1,4 +1,5 @@
 #include "public.h"
+#include "nkx.h"
 
 #include <assert.h>
 #include <malloc.h>
@@ -136,7 +137,7 @@ void testVMFunc(struct VMFunctionCallbackData *data)
     printf("testVMFunc hit!\n");
     // for(i = 0; i < data->argumentCount; i++) {
     //     printf("Argument %d: %s\n", i,
-    //         valueToString(data->vm, &data->arguments[i]));
+    //         nkxValueToString(data->vm, &data->arguments[i]));
     // }
 
     data->returnValue.intData = 565656;
@@ -146,9 +147,9 @@ void testVMFunc(struct VMFunctionCallbackData *data)
         return;
     }
 
-    vmCallFunction(data->vm, &data->arguments[0], 0, NULL, &data->returnValue);
+    nkxVmCallFunction(data->vm, &data->arguments[0], 0, NULL, &data->returnValue);
 
-    printf("Got data back from VM: %s\n", valueToString(data->vm, &data->returnValue));
+    printf("Got data back from VM: %s\n", nkxValueToString(data->vm, &data->returnValue));
 }
 
 void getHash(struct VMFunctionCallbackData *data)
@@ -181,7 +182,7 @@ void vmFuncPrint(struct VMFunctionCallbackData *data)
     uint32_t i;
 
     for(i = 0; i < data->argumentCount; i++) {
-        printf("\033[1m%s\033[0m", valueToString(data->vm, &data->arguments[i]));
+        printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
     }
 
     (*(int*)data->userData)++;
@@ -202,6 +203,7 @@ int main(int argc, char *argv[])
     maxRam = 130000;
     maxRam = 1;
     maxRam = 158000;
+    maxMaxRam = maxRam + 100;
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
@@ -221,16 +223,17 @@ int main(int argc, char *argv[])
         vm.limits.maxAllocatedMemory = maxRam;
 
         {
-            struct CompilerState *cs = vmCompilerCreate(&vm);
+            struct CompilerState *cs = nkxVmCompilerCreate(&vm);
             if(cs) {
-                vmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
-                vmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
-                vmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
-                vmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
-                vmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
-                vmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
-                vmCompilerCompileScript(cs, script);
-                vmCompilerFinalize(cs);
+                nkxVmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
+                nkxVmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
+                nkxVmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
+                nkxVmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
+                nkxVmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
+                nkxVmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
+                // vmCompilerCompileScript(cs, script);
+                nkxVmCompilerCompileScriptFile(cs, "test.txt");
+                nkxVmCompilerFinalize(cs);
             }
 
             // Dump errors.
@@ -279,7 +282,7 @@ int main(int argc, char *argv[])
                         vm.instructionAddressMask].opcode != OP_NOP &&
                     instructionCountMax)
                 {
-                    vmIterate(&vm);
+                    nkxVmIterate(&vm, 2000);
 
                     // printf("\n\n\n\n");
                     // printf("----------------------------------------------------------------------\n");
@@ -291,7 +294,7 @@ int main(int argc, char *argv[])
                     // dumpListing(&vm, script);
                     // getchar();
 
-                    if(vm.errorState.firstError) {
+                    if(nkxVmGetErrorCount(&vm)) {
                         break;
                     }
 
@@ -303,7 +306,7 @@ int main(int argc, char *argv[])
                 {
                     struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");
                     if(v) {
-                        printf("Value found: %s\n", valueToString(&vm, v));
+                        printf("Value found: %s\n", nkxValueToString(&vm, v));
                     } else {
                         printf("Value NOT found.\n");
                     }
@@ -325,7 +328,7 @@ int main(int argc, char *argv[])
             }
 
             //     vmStackDump(&vm);
-            //     // vmGarbageCollect(&vm);
+            //     // nkxVmGarbageCollect(&vm);
 
             //     printf("next at %d\n",
             //         vm.instructionPointer);
@@ -349,7 +352,7 @@ int main(int argc, char *argv[])
 
         printf("Final stack...\n");
         vmStackDump(&vm);
-        vmGarbageCollect(&vm);
+        nkxVmGarbageCollect(&vm);
         printf("Final stack again...\n");
         vmStackDump(&vm);
 
@@ -401,7 +404,7 @@ int main(int argc, char *argv[])
 
         }
 
-        vmGarbageCollect(&vm);
+        nkxVmGarbageCollect(&vm);
         printf("Final object table dump...\n");
         vmObjectTableDump(&vm);
 

@@ -491,6 +491,16 @@ void opcode_call(struct VM *vm)
         // Actual function call.
         funcOb->CFunctionCallback(&data);
 
+        // If the C function called some code back inside the VM, we
+        // may have suffered a catastrophic failure in that code, so
+        // returning up through the stack in this side would not be a
+        // good idea, because the VM may be in a bad state. Chain
+        // another catastrophe event to get us all the way back to the
+        // last user call.
+        if(NK_CHECK_CATASTROPHE()) {
+            NK_CATASTROPHE();
+        }
+
         nkFree(vm, data.arguments);
 
         // Pop all the arguments.
@@ -576,6 +586,10 @@ void opcode_end(struct VM *vm)
 {
     // This doesn't actually do anything. The iteration loops know to
     // check for it and stop, though.
+
+    // Okay, it does do one thing, and that is keeping itself on the
+    // end instruction.
+    vm->instructionPointer--;
 }
 
 void opcode_jz(struct VM *vm)

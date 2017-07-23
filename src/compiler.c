@@ -953,52 +953,52 @@ bool vmCompilerCompileScript(
     return success;
 }
 
-bool vmCompilerCompileScriptFile(
-    struct CompilerState *cs,
-    const char *scriptFilename)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    struct VM *vm = cs->vm;
-    FILE *in = fopen(scriptFilename, "rb");
-    uint32_t len;
-    char *buf;
-    bool success;
+// bool vmCompilerCompileScriptFile(
+//     struct CompilerState *cs,
+//     const char *scriptFilename)
+// {
+//     NK_FAILURE_RECOVERY_DECL();
+//     struct VM *vm = cs->vm;
+//     FILE *in = fopen(scriptFilename, "rb");
+//     uint32_t len;
+//     char *buf;
+//     bool success;
 
-    NK_SET_FAILURE_RECOVERY(false);
+//     NK_SET_FAILURE_RECOVERY(false);
 
-    if(!in) {
-        struct DynString *errStr =
-            dynStrCreate("Cannot open script file: ");
-        dynStrAppend(errStr, scriptFilename);
-        vmCompilerAddError(cs, errStr->data);
-        dynStrDelete(errStr);
-        return false;
-    }
+//     if(!in) {
+//         struct DynString *errStr =
+//             dynStrCreate("Cannot open script file: ");
+//         dynStrAppend(errStr, scriptFilename);
+//         vmCompilerAddError(cs, errStr->data);
+//         dynStrDelete(errStr);
+//         return false;
+//     }
 
-    fseek(in, 0, SEEK_END);
-    len = ftell(in);
-    fseek(in, 0, SEEK_SET);
+//     fseek(in, 0, SEEK_END);
+//     len = ftell(in);
+//     fseek(in, 0, SEEK_SET);
 
-    buf = malloc(len + 1);
-    if(!buf) {
-        fclose(in);
-        errorStateSetAllocationFailFlag(&vm->errorState);
-        NK_CLEAR_FAILURE_RECOVERY();
-        return false;
-    }
-    fread(buf, len, 1, in);
-    buf[len] = 0;
+//     buf = malloc(len + 1);
+//     if(!buf) {
+//         fclose(in);
+//         errorStateSetAllocationFailFlag(&vm->errorState);
+//         NK_CLEAR_FAILURE_RECOVERY();
+//         return false;
+//     }
+//     fread(buf, len, 1, in);
+//     buf[len] = 0;
 
-    fclose(in);
+//     fclose(in);
 
-    success = vmCompilerCompileScript(cs, buf);
+//     success = vmCompilerCompileScript(cs, buf);
 
-    free(buf);
+//     free(buf);
 
-    NK_CLEAR_FAILURE_RECOVERY();
+//     NK_CLEAR_FAILURE_RECOVERY();
 
-    return success;
-}
+//     return success;
+// }
 
 uint32_t emitJump(struct CompilerState *cs, uint32_t target)
 {
