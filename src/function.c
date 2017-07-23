@@ -6,7 +6,8 @@ bool vmFunctionCallbackCheckArgCount(
     const char *functionName)
 {
     if(data->argumentCount != 1) {
-        struct DynString *dynStr = dynStrCreate("Bad argument count in ");
+        struct DynString *dynStr = dynStrCreate(
+            data->vm, "Bad argument count in ");
         dynStrAppend(dynStr, functionName);
         errorStateAddError(&data->vm->errorState, -1, dynStr->data);
         dynStrDelete(dynStr);

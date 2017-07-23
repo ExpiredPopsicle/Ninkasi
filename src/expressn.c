@@ -167,20 +167,20 @@ int32_t getPrecedence(enum TokenType t)
         deleteExpressionNode(cs->vm, valueNode);        \
     } while(0)
 
-#define EXPECT_AND_SKIP(x)                          \
-    do {                                            \
-        if(vmCompilerTokenType(cs) != (x)) {        \
-            struct DynString *errStr =              \
-                dynStrCreate("Unexpected token: "); \
-            dynStrAppend(                           \
-                errStr,                             \
-                vmCompilerTokenString(cs));         \
-            PARSE_ERROR(errStr->data);              \
-            dynStrDelete(errStr);                   \
-            CLEANUP_INLOOP();                       \
-            return NULL;                            \
-        }                                           \
-        vmCompilerNextToken(cs);                    \
+#define EXPECT_AND_SKIP(x)                                  \
+    do {                                                    \
+        if(vmCompilerTokenType(cs) != (x)) {                \
+            struct DynString *errStr =                      \
+                dynStrCreate(cs->vm, "Unexpected token: "); \
+            dynStrAppend(                                   \
+                errStr,                                     \
+                vmCompilerTokenString(cs));                 \
+            PARSE_ERROR(errStr->data);                      \
+            dynStrDelete(errStr);                           \
+            CLEANUP_INLOOP();                               \
+            return NULL;                                    \
+        }                                                   \
+        vmCompilerNextToken(cs);                            \
     } while(0)
 
 bool reduce(
@@ -506,7 +506,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             } else {
 
                 struct DynString *str =
-                    dynStrCreate("Unknown postfix operator: ");
+                    dynStrCreate(cs->vm, "Unknown postfix operator: ");
                 dynStrAppend(str, vmCompilerTokenString(cs));
                 PARSE_ERROR(str->data);
                 dynStrDelete(str);
@@ -546,7 +546,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         // Make sure this is even something valid.
         if(getPrecedence((*currentToken)->type) == -1) {
             struct DynString *str =
-                dynStrCreate("Unknown operator: ");
+                dynStrCreate(cs->vm, "Unknown operator: ");
             dynStrAppend(str, vmCompilerTokenString(cs));
             PARSE_ERROR(str->data);
             dynStrDelete(str);
@@ -750,7 +750,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
 
         default: {
             struct DynString *dynStr =
-                dynStrCreate("Operator or value cannot be used to generate an LValue: ");
+                dynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
             dynStrAppend(dynStr, node->children[0]->opOrValue->str);
             vmCompilerAddError(
                 cs, dynStr->data);
@@ -952,7 +952,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
         default: {
             struct DynString *dynStr =
-                dynStrCreate("Unknown value or operator in emitExpression: ");
+                dynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
             dynStrAppend(dynStr, node->opOrValue->str);
             errorStateAddError(
                 &cs->vm->errorState,

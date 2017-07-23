@@ -1,16 +1,17 @@
 #include "common.h"
 
-struct DynString *dynStrCreate(const char *str)
+struct DynString *dynStrCreate(struct VM *vm, const char *str)
 {
-    struct DynString *ret = malloc(sizeof(struct DynString) + 1);
-    ret->data = strdup(str ? str : "<null>");
+    struct DynString *ret = nkMalloc(vm, sizeof(struct DynString) + 1);
+    ret->vm = vm;
+    ret->data = nkStrdup(vm, str ? str : "<null>");
     return ret;
 }
 
 void dynStrDelete(struct DynString *dynStr)
 {
-    free(dynStr->data);
-    free(dynStr);
+    nkFree(dynStr->vm, dynStr->data);
+    nkFree(dynStr->vm, dynStr);
 }
 
 void dynStrAppend(struct DynString *dynStr, const char *str)
@@ -19,7 +20,8 @@ void dynStrAppend(struct DynString *dynStr, const char *str)
         str = "<null>";
     }
 
-    dynStr->data = realloc(
+    dynStr->data = nkRealloc(
+        dynStr->vm,
         dynStr->data,
         strlen(dynStr->data) + strlen(str) + 1);
 

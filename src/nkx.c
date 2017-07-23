@@ -11,9 +11,10 @@ struct VM *nkxVmCreate(void)
         return NULL;
     }
 
-    NK_SET_FAILURE_RECOVERY(NULL);
-
     memset(vm, 0, sizeof(*vm));
+
+    NK_SET_FAILURE_RECOVERY(vm);
+
     vmInit(vm);
 
     NK_CLEAR_FAILURE_RECOVERY();
@@ -23,15 +24,10 @@ struct VM *nkxVmCreate(void)
 
 void nkxVmDelete(struct VM *vm)
 {
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-
     if(vm) {
         vmDestroy(vm);
     }
     free(vm);
-
-    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 bool nkxVmExecuteProgram(struct VM *vm)

@@ -6,9 +6,10 @@
 struct DynString
 {
     char *data;
+    struct VM *vm;
 };
 
-struct DynString *dynStrCreate(const char *str);
+struct DynString *dynStrCreate(struct VM *vm, const char *str);
 void dynStrDelete(struct DynString *dynStr);
 
 void dynStrAppend(struct DynString *dynStr, const char *str);

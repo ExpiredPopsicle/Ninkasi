@@ -28,7 +28,7 @@ void opcode_add(struct VM *vm)
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
             struct DynString *dynStr =
-                dynStrCreate(
+                dynStrCreate(vm,
                     vmStringTableGetStringById(
                         &vm->stringTable,
                         in1->stringTableEntry));
@@ -50,7 +50,7 @@ void opcode_add(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Addition unimplemented for type ");
+                dynStrCreate(vm, "Addition unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(
@@ -134,7 +134,7 @@ void opcode_subtract(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Subtraction unimplemented for type ");
+                dynStrCreate(vm, "Subtraction unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(
@@ -170,7 +170,7 @@ void opcode_multiply(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Multiplication unimplemented for type ");
+                dynStrCreate(vm, "Multiplication unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(
@@ -213,7 +213,7 @@ void opcode_divide(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Division unimplemented for type ");
+                dynStrCreate(vm, "Division unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(
@@ -249,7 +249,7 @@ void opcode_modulo(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Modulo unimplemented for type ");
+                dynStrCreate(vm, "Modulo unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(
@@ -282,7 +282,7 @@ void opcode_negate(struct VM *vm)
 
         default: {
             struct DynString *ds =
-                dynStrCreate("Negation unimplemented for type ");
+                dynStrCreate(vm, "Negation unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             errorStateAddError(

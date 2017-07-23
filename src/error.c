@@ -5,18 +5,23 @@ void errorStateAddError(
     int32_t lineNumber,
     const char *str)
 {
-    struct DynString *fixedStr = dynStrCreate("");
     struct Error *newError = malloc(
         sizeof(struct Error));
 
-    dynStrAppendInt32(fixedStr, lineNumber);
-    dynStrAppend(fixedStr, ": ");
-    dynStrAppend(fixedStr, str);
+    if(!newError) {
+        return;
+    }
 
-    newError->errorText = strdup(fixedStr->data);
+    // if(!newError) {
+    //     NK_CATASTROPHE();
+    // }
+
+    newError->errorText =
+        malloc(strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
+    newError->errorText[0] = 0;
+    sprintf(newError->errorText, "%d: %s", lineNumber, str);
+
     newError->next = NULL;
-
-    dynStrDelete(fixedStr);
 
     // Add error to the error list.
     if(es->lastError) {

@@ -83,9 +83,10 @@ static void vmInitOpcodeTable(void)
 
 void vmInit(struct VM *vm)
 {
-    memset(
-        &vm->catastrophicFailureJmpBuf,
-        0, sizeof(vm->catastrophicFailureJmpBuf));
+    // FIXME: Don't do this here.
+    // memset(
+    //     &vm->catastrophicFailureJmpBuf,
+    //     0, sizeof(vm->catastrophicFailureJmpBuf));
 
     // Init memory management before almost anything else.
     vm->currentMemoryUsage = 0;

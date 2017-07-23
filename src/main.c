@@ -203,27 +203,32 @@ int main(int argc, char *argv[])
     maxRam = 130000;
     maxRam = 1;
     maxRam = 158000;
-    maxMaxRam = maxRam + 100;
+    // maxMaxRam = maxRam + 100;
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         uint32_t instructionCountMax = 1024*1024*1024;
-        struct VM vm;
+        struct VM *vm = nkxVmCreate();
+        if(!vm) continue;
+        if(vmGetErrorCount(vm)) {
+            nkxVmDelete(vm);
+            continue;
+        }
 
         uint32_t lineCount = 0;
         char **lines = splitLines(script, &lineCount);
         assert(script);
 
-        vmInit(&vm);
-        // vm.limits.maxStrings = 256;
-        // vm.limits.maxStringLength = 10;
-        // vm.limits.maxStacksize = 5;
-        // vm.limits.maxObjects = 1;
-        // vm.limits.maxFieldsPerObject = 2;
-        vm.limits.maxAllocatedMemory = maxRam;
+        // vmInit(&vm);
+        // vm->limits.maxStrings = 256;
+        // vm->limits.maxStringLength = 10;
+        // vm->limits.maxStacksize = 5;
+        // vm->limits.maxObjects = 1;
+        // vm->limits.maxFieldsPerObject = 2;
+        vm->limits.maxAllocatedMemory = maxRam;
 
         {
-            struct CompilerState *cs = nkxVmCompilerCreate(&vm);
+            struct CompilerState *cs = nkxVmCompilerCreate(vm);
             if(cs) {
                 nkxVmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
                 nkxVmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
@@ -237,8 +242,8 @@ int main(int argc, char *argv[])
             }
 
             // Dump errors.
-            if(vmGetErrorCount(&vm)) {
-                struct Error *err = vm.errorState.firstError;
+            if(vmGetErrorCount(vm)) {
+                struct Error *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
                     err = err->next;
@@ -246,7 +251,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if(!vm.errorState.firstError) {
+        if(!vm->errorState.firstError) {
 
             // printf("----------------------------------------------------------------------\n");
             // printf("  Original script\n");
@@ -263,38 +268,38 @@ int main(int argc, char *argv[])
             // printf("  Dump\n");
             // printf("----------------------------------------------------------------------\n");
 
-            // dumpListing(&vm, script);
+            // dumpListing(vm, script);
 
             printf("----------------------------------------------------------------------\n");
             printf("  Execution\n");
             printf("----------------------------------------------------------------------\n");
 
-            if(!vmGetErrorCount(&vm)) {
+            if(!vmGetErrorCount(vm)) {
 
-                // vmExecuteProgram(&vm);
+                // vmExecuteProgram(vm);
 
                 while(
-                    vm.instructions[
-                        vm.instructionPointer &
-                        vm.instructionAddressMask].opcode != OP_END &&
-                    vm.instructions[
-                        vm.instructionPointer &
-                        vm.instructionAddressMask].opcode != OP_NOP &&
+                    vm->instructions[
+                        vm->instructionPointer &
+                        vm->instructionAddressMask].opcode != OP_END &&
+                    vm->instructions[
+                        vm->instructionPointer &
+                        vm->instructionAddressMask].opcode != OP_NOP &&
                     instructionCountMax)
                 {
-                    nkxVmIterate(&vm, 2000);
+                    nkxVmIterate(vm, 2000);
 
                     // printf("\n\n\n\n");
                     // printf("----------------------------------------------------------------------\n");
-                    // printf("PC: %u\n", vm.instructionPointer);
+                    // printf("PC: %u\n", vm->instructionPointer);
                     // printf("Stack...\n");
                     // printf("----------------------------------------------------------------------\n");
-                    // vmStackDump(&vm);
+                    // vmStackDump(vm);
                     // printf("\n");
-                    // dumpListing(&vm, script);
+                    // dumpListing(vm, script);
                     // getchar();
 
-                    if(nkxVmGetErrorCount(&vm)) {
+                    if(nkxVmGetErrorCount(vm)) {
                         break;
                     }
 
@@ -304,42 +309,42 @@ int main(int argc, char *argv[])
 
 
                 {
-                    struct Value *v = vmFindGlobalVariable(&vm, "readMeFromC");
+                    struct Value *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
                     if(v) {
-                        printf("Value found: %s\n", nkxValueToString(&vm, v));
+                        printf("Value found: %s\n", nkxValueToString(vm, v));
                     } else {
                         printf("Value NOT found.\n");
                     }
                 }
             }
 
-            // while(vm.instructions[vm.instructionPointer].opcode != OP_END) {
+            // while(vm->instructions[vm->instructionPointer].opcode != OP_END) {
 
-            //     // printf("instruction %d: %d\n", vm.instructionPointer, vm.instructions[vm.instructionPointer].opcode);
-            //     // printf("  %d\n", vm.instructions[vm.instructionPointer].opcode);
-            //     vmIterate(&vm);
+            //     // printf("instruction %d: %d\n", vm->instructionPointer, vm->instructions[vm->instructionPointer].opcode);
+            //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);
+            //     vmIterate(vm);
 
-            if(vm.errorState.firstError) {
-                struct Error *err = vm.errorState.firstError;
+            if(vm->errorState.firstError) {
+                struct Error *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
                     err = err->next;
                 }
             }
 
-            //     vmStackDump(&vm);
-            //     // nkxVmGarbageCollect(&vm);
+            //     vmStackDump(vm);
+            //     // nkxVmGarbageCollect(vm);
 
             //     printf("next at %d\n",
-            //         vm.instructionPointer);
+            //         vm->instructionPointer);
             //     printf("next instruction %d: %d = %s\n",
-            //         vm.instructionPointer,
-            //         vm.instructions[vm.instructionPointer].opcode,
-            //         vmGetOpcodeName(vm.instructions[vm.instructionPointer].opcode));
+            //         vm->instructionPointer,
+            //         vm->instructions[vm->instructionPointer].opcode,
+            //         vmGetOpcodeName(vm->instructions[vm->instructionPointer].opcode));
             // }
 
             // // Function call test.
-            // if(!vm.errorState.firstError) {
+            // if(!vm->errorState.firstError) {
             //     struct Value retVal;
             //     memset(&retVal, 0, sizeof(retVal));
             //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
@@ -351,10 +356,10 @@ int main(int argc, char *argv[])
         printf("----------------------------------------------------------------------\n");
 
         printf("Final stack...\n");
-        vmStackDump(&vm);
-        nkxVmGarbageCollect(&vm);
+        vmStackDump(vm);
+        nkxVmGarbageCollect(vm);
         printf("Final stack again...\n");
-        vmStackDump(&vm);
+        vmStackDump(vm);
 
         if(0) {
 
@@ -363,57 +368,58 @@ int main(int argc, char *argv[])
             // printf("----------------------------------------------------------------------\n");
 
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
 
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "bladgh");
+            //     vm->stringTable, "bladgh");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "foom");
+            //     vm->stringTable, "foom");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "dicks");
+            //     vm->stringTable, "dicks");
             // vmStringTableFindOrAddString(
-            //     &vm.stringTable, "sadf");
+            //     vm->stringTable, "sadf");
 
-            // vmStringTableDump(&vm.stringTable);
+            // vmStringTableDump(vm->stringTable);
 
             // vmStringTableGetEntryById(
-            //     &vm.stringTable,
-            //     vmStringTableFindOrAddString(&vm.stringTable, "sadf"))->lastGCPass = 1234;
+            //     vm->stringTable,
+            //     vmStringTableFindOrAddString(vm->stringTable, "sadf"))->lastGCPass = 1234;
 
-            // vmStringTableCleanOldStrings(&vm.stringTable, 1234);
+            // vmStringTableCleanOldStrings(vm->stringTable, 1234);
 
-            // vmStringTableDump(&vm.stringTable);
+            // vmStringTableDump(vm->stringTable);
 
-            // vmRescanProgramStrings(&vm);
+            // vmRescanProgramStrings(vm);
 
 
-            // vmIterate(&vm);
-            // vmIterate(&vm);
-            // vmIterate(&vm);
-            // vmIterate(&vm);
+            // vmIterate(vm);
+            // vmIterate(vm);
+            // vmIterate(vm);
+            // vmIterate(vm);
             printf("Final stack dump...\n");
-            vmStackDump(&vm);
+            vmStackDump(vm);
 
         }
 
-        nkxVmGarbageCollect(&vm);
+        nkxVmGarbageCollect(vm);
         printf("Final object table dump...\n");
-        vmObjectTableDump(&vm);
+        vmObjectTableDump(vm);
 
-        printf("Peak memory usage:    %u\n", vm.peakMemoryUsage);
-        printf("Current memory usage: %u\n", vm.currentMemoryUsage);
+        printf("Peak memory usage:    %u\n", vm->peakMemoryUsage);
+        printf("Current memory usage: %u\n", vm->currentMemoryUsage);
 
-        vmDestroy(&vm);
+        // vmDestroy(&vm);
+        nkxVmDelete(vm);
 
-        printf("Post-cleanup memory usage: %u\n", vm.currentMemoryUsage);
+        // printf("Post-cleanup memory usage: %u\n", vm->currentMemoryUsage);
 
         free(lines[0]);
         free(lines);

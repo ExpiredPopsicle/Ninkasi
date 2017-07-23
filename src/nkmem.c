@@ -1,8 +1,14 @@
 #include "common.h"
 
+// static uint32_t killCounter = 2;
+
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
-    // if(rand() % 128 == 0) return NULL;
+    if(rand() % 2048 == 0) {
+        errorStateSetAllocationFailFlag(&vm->errorState);
+        NK_CATASTROPHE();
+        return NULL;
+    }
 
     if(size != 0) {
 
