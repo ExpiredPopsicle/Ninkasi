@@ -12,12 +12,23 @@ void errorStateAddError(
         return;
     }
 
+    // FIXME: Enable this.
     // if(!newError) {
     //     NK_CATASTROPHE();
     // }
 
     newError->errorText =
         malloc(strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
+
+    if(!newError->errorText) {
+        return;
+    }
+
+    // FIXME: Enable this.
+    // if(!newError) {
+    //     NK_CATASTROPHE();
+    // }
+
     newError->errorText[0] = 0;
     sprintf(newError->errorText, "%d: %s", lineNumber, str);
 

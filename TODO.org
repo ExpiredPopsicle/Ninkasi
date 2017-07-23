@@ -116,3 +116,6 @@ Call it... nkx?
 Check the error status after we get back from the call. Fire off
 another catastrophe if we need to.
 * TODO Split everything into nkx and nki
+* TODO Make errorStateAddError take a VM as a param
+Mostly about cleaning up every single call in the code.
+Name it nkiVmAddError.
