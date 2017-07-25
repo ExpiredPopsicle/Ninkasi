@@ -44,11 +44,11 @@ compatibility between different architectures, for example.)
 *** DONE Max stack size
 *** DONE Max objects
 *** DONE Max fields per object
-*** TODO Max allocated memory
+*** DONE Max allocated memory
 Remember to search for all the malloc, reallocs, and strdups.
-**** TODO Correctly handle errors for everything
-**** TODO Make a tester that randomly starts returning NULL and see if anything breaks.
-** TODO Compiler recursion limit
+**** DONE Correctly handle errors for everything
+**** DONE Make a tester that randomly starts returning NULL and see if anything breaks.
+** DONE Compiler recursion limit
 * TODO Documentation
 Pfffffft
 
