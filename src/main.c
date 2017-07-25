@@ -204,8 +204,9 @@ int main(int argc, char *argv[])
     maxRam = 115200;
     maxRam = 130000;
     maxRam = 1;
-    maxRam = 158000;
-    // maxMaxRam = maxRam + 100;
+    // maxRam = 158000;
+    maxRam = 15800000;
+    maxMaxRam = maxRam + 100;
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {

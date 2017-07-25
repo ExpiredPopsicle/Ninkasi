@@ -79,7 +79,8 @@ void vmObjectTableCleanOldObjects(
 struct Value *vmObjectFindOrAddEntry(
     struct VM *vm,
     struct VMObject *ob,
-    struct Value *key);
+    struct Value *key,
+    bool noAdd);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.

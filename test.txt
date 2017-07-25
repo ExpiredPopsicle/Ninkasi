@@ -312,9 +312,9 @@ var butts = newobject;
 butts["asdf"] = anotherObTest;
 butts["asdf"]();
 for(i = 0; i < 2000; ++i) {
-    print("GC abuse iteration: ");
-    print(i);
-    print("\n");
+    // print("GC abuse iteration: ");
+    // print(i);
+    // print("\n");
     var n = i % 5;
     var c = butts[n];
     if(!butts[n]) {
@@ -365,3 +365,4 @@ print(nil, "\n");
 }
 
 
+print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");

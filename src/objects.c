@@ -202,7 +202,8 @@ void vmObjectClearEntry(
 struct Value *vmObjectFindOrAddEntry(
     struct VM *vm,
     struct VMObject *ob,
-    struct Value *key)
+    struct Value *key,
+    bool noAdd)
 {
     struct VMObjectElement **obList =
         &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
@@ -221,6 +222,11 @@ struct Value *vmObjectFindOrAddEntry(
     // If we can't find the entry, make a new one.
     if(!el) {
 
+        // But only add if we're supposed to.
+        if(noAdd) {
+            return NULL;
+        }
+
         ob->size++;
         if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
             ob->size--;
@@ -238,8 +244,6 @@ struct Value *vmObjectFindOrAddEntry(
     }
 
     return &el->value;
-
-    return NULL;
 }
 
 void vmObjectTableDump(struct VM *vm)

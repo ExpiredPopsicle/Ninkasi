@@ -731,9 +731,14 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
     output = vmStackPush_internal(vm);
 
     objectValue =
-        vmObjectFindOrAddEntry(vm, ob, indexToGet);
+        vmObjectFindOrAddEntry(vm, ob, indexToGet, true);
 
-    *output = *objectValue;
+    if(objectValue) {
+        *output = *objectValue;
+    } else {
+        output->type = VALUETYPE_NIL;
+        output->basicHashValue = 0;
+    }
 }
 
 void opcode_objectFieldGet(struct VM *vm)
@@ -785,7 +790,7 @@ void opcode_objectFieldSet(struct VM *vm)
         // For non-nil values, set or create the field.
 
         objectValue =
-            vmObjectFindOrAddEntry(vm, ob, indexToSet);
+            vmObjectFindOrAddEntry(vm, ob, indexToSet, false);
 
         if(objectValue) {
             *objectValue = *valueToSet;

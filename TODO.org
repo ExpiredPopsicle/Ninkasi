@@ -103,19 +103,19 @@ x.a(b, c) is...
 * TODO Get rid of all the asserts that were ensuring contexts line up.
 * TODO Make sure the error system has a standard way of reporting errors.
 Looking at the structure won't work.
-* TODO Looking up a nonexistant entry in an object should return nil and not create anything.
+* DONE Looking up a nonexistant entry in an object should return nil and not create anything.
 * TODO Catastrophe handling
 ** TODO Make sure the standard error reporting recognizes the out-of-memory special case.
 ** TODO Check every single direct access to a context and add NULL pointer protection.
 Ugghhhh
 ** TODO Find every nkMalloc, nkRealloc, and nkStrdup, and make sure they all have error handling.
 Blaaaaaaaaaaaaaaaagh
-** TODO Make a public interface wrapper that handles all the NK_FAILURE_RECOVERY_DECL, NK_SET_FAILURE_RECOVERY*, and NK_CLEAR_FAILURE_RECOVERY crap
+** DONE Make a public interface wrapper that handles all the NK_FAILURE_RECOVERY_DECL, NK_SET_FAILURE_RECOVERY*, and NK_CLEAR_FAILURE_RECOVERY crap
 Call it... nkx?
 ** TODO Make sure all calls to stuff outside the engine get stuff properly wrapped.
 Check the error status after we get back from the call. Fire off
 another catastrophe if we need to.
 * TODO Split everything into nkx and nki
-* TODO Make errorStateAddError take a VM as a param
+* DONE Make errorStateAddError take a VM as a param
 Mostly about cleaning up every single call in the code.
 Name it nkiVmAddError.
