@@ -34,7 +34,7 @@ struct VMLimits
 
 struct VM
 {
-    struct ErrorState errorState;
+    struct NKErrorState errorState;
     struct VMStack stack;
 
     struct Instruction *instructions;

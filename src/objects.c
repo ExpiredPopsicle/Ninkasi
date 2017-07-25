@@ -101,9 +101,8 @@ uint32_t vmObjectTableCreateObject(
         // If we're going to have to allocate more space in our table, we
         // need to check against our VM's string limit.
         if((newCapacity > vm->limits.maxObjects || !newCapacity)) {
-            errorStateAddError(
-                &vm->errorState,
-                -1, "Reached object table capacity limit.");
+            nkiAddError(
+                vm, -1, "Reached object table capacity limit.");
             return ~(uint32_t)0;
         }
 
@@ -225,8 +224,8 @@ struct Value *vmObjectFindOrAddEntry(
         ob->size++;
         if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
             ob->size--;
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 "Reached object field count limit.");
             return NULL;
         }
@@ -282,9 +281,8 @@ void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
 
         // Make sure we actually got an object.
         if(!ob) {
-            errorStateAddError(
-                &vm->errorState,
-                -1, "Bad object ID in vmObjectAcquireHandle.");
+            nkiAddError(
+                vm, -1, "Bad object ID in vmObjectAcquireHandle.");
             return;
         }
 
@@ -314,9 +312,8 @@ void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
 
     } else {
 
-        errorStateAddError(
-            &vm->errorState,
-            -1, "Tried to acquire handle for non-object.");
+        nkiAddError(
+            vm, -1, "Tried to acquire handle for non-object.");
     }
 }
 
@@ -329,16 +326,14 @@ void vmObjectReleaseHandle(struct VM *vm, struct Value *value)
 
         // Make sure we actually got an object.
         if(!ob) {
-            errorStateAddError(
-                &vm->errorState,
-                -1, "Bad object ID in vmObjectAcquireHandle.");
+            nkiAddError(
+                vm, -1, "Bad object ID in vmObjectAcquireHandle.");
             return;
         }
 
         if(ob->externalHandleCount == 0) {
-            errorStateAddError(
-                &vm->errorState,
-                -1, "Tried to release handle for object with no external handles.");
+            nkiAddError(
+                vm, -1, "Tried to release handle for object with no external handles.");
         }
 
         ob->externalHandleCount--;
@@ -355,9 +350,8 @@ void vmObjectReleaseHandle(struct VM *vm, struct Value *value)
 
     } else {
 
-        errorStateAddError(
-            &vm->errorState,
-            -1, "Tried to release handle for non-object.");
+        nkiAddError(
+            vm, -1, "Tried to release handle for non-object.");
     }
 }
 

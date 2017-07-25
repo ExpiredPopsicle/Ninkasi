@@ -102,9 +102,8 @@ uint32_t vmStringTableFindOrAddString(
     // Check our length.
     uint32_t len = strlen(str);
     if(len > vm->limits.maxStringLength) {
-        errorStateAddError(
-            &vm->errorState,
-            -1, "Reached string length limit.");
+        nkiAddError(
+            vm, -1, "Reached string length limit.");
         return ~(uint32_t)0;
     }
 
@@ -138,9 +137,8 @@ uint32_t vmStringTableFindOrAddString(
             // If we're going to have to allocate more space in our table, we
             // need to check against our VM's string limit.
             if((newCapacity > vm->limits.maxStrings || !newCapacity)) {
-                errorStateAddError(
-                    &vm->errorState,
-                    -1, "Reached string table capacity limit.");
+                nkiAddError(
+                    vm, -1, "Reached string table capacity limit.");
                 return ~(uint32_t)0;
             }
 

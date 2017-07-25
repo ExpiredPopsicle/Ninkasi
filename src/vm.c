@@ -102,7 +102,7 @@ void vmInit(struct VM *vm)
 
     vmInitOpcodeTable();
 
-    errorStateInit(&vm->errorState);
+    nkiErrorStateInit(vm);
     vmStackInit(vm);
     vm->instructionPointer = 0;
 
@@ -150,7 +150,7 @@ void vmDestroy(struct VM *vm)
         vmStringTableDestroy(vm);
 
         vmStackDestroy(vm);
-        errorStateDestroy(&vm->errorState);
+        nkiErrorStateDestroy(vm);
         nkFree(vm, vm->instructions);
         nkFree(vm, vm->functionTable);
 
@@ -296,8 +296,8 @@ void vmGarbageCollect_markReferenced(
                     if(str) {
                         str->lastGCPass = gcState->currentGCPass;
                     } else {
-                        errorStateAddError(
-                            &gcState->vm->errorState, -1,
+                        nkiAddError(
+                            gcState->vm, -1,
                             "GC error: Bad string table index.");
                     }
                 } break;
@@ -313,8 +313,8 @@ void vmGarbageCollect_markReferenced(
                         vmGarbageCollect_markObject(gcState, ob);
 
                     } else {
-                        errorStateAddError(
-                            &gcState->vm->errorState, -1,
+                        nkiAddError(
+                            gcState->vm, -1,
                             "GC error: Bad object table index.");
                     }
                 } break;
@@ -484,9 +484,8 @@ void vmCallFunction(
     struct Value *returnValue)
 {
     if(functionValue->type != VALUETYPE_FUNCTIONID) {
-        errorStateAddError(
-            &vm->errorState,
-            -1,
+        nkiAddError(
+            vm, -1,
             "Tried to call a non-function with vmCallFunction.");
         return;
     }
@@ -544,7 +543,7 @@ bool vmExecuteProgram(struct VM *vm)
 uint32_t vmGetErrorCount(struct VM *vm)
 {
     uint32_t count = 0;
-    struct Error *error = vm->errorState.firstError;
+    struct NKError *error = vm->errorState.firstError;
 
     while(error) {
         count++;

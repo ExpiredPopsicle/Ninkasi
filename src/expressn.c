@@ -954,8 +954,8 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             struct DynString *dynStr =
                 dynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
             dynStrAppend(dynStr, node->opOrValue->str);
-            errorStateAddError(
-                &cs->vm->errorState,
+            nkiAddError(
+                cs->vm,
                 node->opOrValue->lineNumber,
                 dynStr->data);
             dynStrDelete(dynStr);

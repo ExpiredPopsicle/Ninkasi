@@ -98,8 +98,8 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
             struct DynString *ds = dynStrCreate(vm, "Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));
             dynStrAppend(ds, " to an integer.");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
             return 0;
@@ -129,8 +129,8 @@ float valueToFloat(struct VM *vm, struct Value *value)
             struct DynString *ds = dynStrCreate(vm, "Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));
             dynStrAppend(ds, " to an integer.");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
             return 0;
@@ -288,8 +288,8 @@ int32_t value_compare(
                 dynStrCreate(vm, "Comparison unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;

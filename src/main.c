@@ -143,7 +143,9 @@ void testVMFunc(struct VMFunctionCallbackData *data)
     data->returnValue.intData = 565656;
 
     if(data->argumentCount != 1) {
-        errorStateAddError(&data->vm->errorState, -1, "Bad argument count in testVMFunc.");
+        nkiAddError(
+            data->vm,
+            -1, "Bad argument count in testVMFunc.");
         return;
     }
 
@@ -243,7 +245,7 @@ int main(int argc, char *argv[])
 
             // Dump errors.
             if(vmGetErrorCount(vm)) {
-                struct Error *err = vm->errorState.firstError;
+                struct NKError *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
                     err = err->next;
@@ -325,7 +327,7 @@ int main(int argc, char *argv[])
             //     vmIterate(vm);
 
             if(vm->errorState.firstError) {
-                struct Error *err = vm->errorState.firstError;
+                struct NKError *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
                     err = err->next;

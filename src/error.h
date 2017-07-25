@@ -3,16 +3,18 @@
 
 #include "basetype.h"
 
-struct Error
+struct VM;
+
+struct NKError
 {
     char *errorText;
-    struct Error *next;
+    struct NKError *next;
 };
 
-struct ErrorState
+struct NKErrorState
 {
-    struct Error *firstError;
-    struct Error *lastError;
+    struct NKError *firstError;
+    struct NKError *lastError;
 
     // Allocation failures are handled separately, as their own flag,
     // because if we're in a situation where an allocation has failed,
@@ -21,17 +23,19 @@ struct ErrorState
     bool allocationFailure;
 };
 
-void errorStateInit(struct ErrorState *es);
-void errorStateDestroy(struct ErrorState *es);
+void nkiErrorStateInit(struct VM *vm);
+void nkiErrorStateDestroy(struct VM *vm);
 
-void errorStateAddError(
-    struct ErrorState *es,
+void nkiAddError(
+    struct VM *vm,
     int32_t lineNumber,
     const char *str);
 
-void errorStateSetAllocationFailFlag(
-    struct ErrorState *es);
+void nkiErrorStateSetAllocationFailFlag(
+    struct VM *vm);
 
-bool errorStateHasErrors(const struct ErrorState *es);
+/// Get whether or not an error has occurred (faster than
+/// vmGetErrorCount).
+bool nkiVmHasErrors(struct VM *vm);
 
 #endif

@@ -29,8 +29,8 @@ struct Value *vmStackPush_internal(struct VM *vm)
         // TODO: Add an adjustable stack size limit.
         if(stack->capacity > 0xffff) {
 
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 "Stack overflow.");
 
             return &stack->values[0];
@@ -41,15 +41,15 @@ struct Value *vmStackPush_internal(struct VM *vm)
         // TODO: Make this a normal error. (Return NULL?)
         assert(stack->capacity);
         if(!stack->capacity) {
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 "Stack ran out of address space.");
             return &stack->values[0];
         }
 
         if(stack->capacity > vm->limits.maxStacksize) {
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 "Reached stack capacity limit.");
             return &stack->values[0];
         }
@@ -118,7 +118,7 @@ struct Value *vmStackPop(struct VM *vm)
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
-        errorStateAddError(&vm->errorState, -1, "Stack underflow in pop.");
+        nkiAddError(vm, -1, "Stack underflow in pop.");
         return &stack->values[0];
     }
 
@@ -138,7 +138,7 @@ void vmStackPopN(struct VM *vm, uint32_t count)
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
-        errorStateAddError(&vm->errorState, -1, "Stack underflow in popN.");
+        nkiAddError(vm, -1, "Stack underflow in popN.");
         stack->size = 0;
         return;
     }

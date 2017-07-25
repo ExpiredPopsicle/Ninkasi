@@ -575,8 +575,8 @@ bool compileFunctionDefinition(struct CompilerState *cs)
         functionName = vmCompilerTokenString(cs);
         vmCompilerNextToken(cs);
     } else {
-        errorStateAddError(
-            &cs->vm->errorState,
+        nkiAddError(
+            cs->vm,
             vmCompilerGetLinenumber(cs),
             "Expected identifier for function name.");
         return false;
@@ -771,8 +771,8 @@ const char *vmCompilerTokenString(struct CompilerState *cs)
 
 void vmCompilerAddError(struct CompilerState *cs, const char *error)
 {
-    errorStateAddError(
-        &cs->vm->errorState,
+    nkiAddError(
+        cs->vm,
         vmCompilerGetLinenumber(cs),
         error);
 }
@@ -982,7 +982,7 @@ bool vmCompilerCompileScript(
 //     buf = malloc(len + 1);
 //     if(!buf) {
 //         fclose(in);
-//         errorStateSetAllocationFailFlag(&vm->errorState);
+//         nkiErrorStateSetAllocationFailFlag(vm);
 //         NK_CLEAR_FAILURE_RECOVERY();
 //         return false;
 //     }

@@ -47,12 +47,12 @@
 
 /// Catastrophic failure handler trigger. Used by the allocator to
 /// handle out-of-memory situations.
-#define NK_CATASTROPHE()                                    \
-    do {                                                    \
-        errorStateSetAllocationFailFlag(&vm->errorState);   \
-        printf("Catastrophic failure!\n");                  \
-        stackdump(); \
-        longjmp(vm->catastrophicFailureJmpBuf, 1);          \
+#define NK_CATASTROPHE()                            \
+    do {                                            \
+        nkiErrorStateSetAllocationFailFlag(vm);     \
+        printf("Catastrophic failure!\n");          \
+        stackdump();                                \
+        longjmp(vm->catastrophicFailureJmpBuf, 1);  \
     } while(0)
 
 #define NK_CHECK_CATASTROPHE() \

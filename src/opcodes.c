@@ -53,8 +53,8 @@ void opcode_add(struct VM *vm)
                 dynStrCreate(vm, "Addition unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
             return;
@@ -137,8 +137,8 @@ void opcode_subtract(struct VM *vm)
                 dynStrCreate(vm, "Subtraction unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;
@@ -173,8 +173,8 @@ void opcode_multiply(struct VM *vm)
                 dynStrCreate(vm, "Multiplication unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;
@@ -193,8 +193,8 @@ void opcode_divide(struct VM *vm)
         case VALUETYPE_INT: {
             int32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
-                errorStateAddError(
-                    &vm->errorState, -1,
+                nkiAddError(
+                    vm, -1,
                     "Integer divide-by-zero.");
             } else {
                 vmStackPushInt(
@@ -216,8 +216,8 @@ void opcode_divide(struct VM *vm)
                 dynStrCreate(vm, "Division unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;
@@ -236,8 +236,8 @@ void opcode_modulo(struct VM *vm)
         case VALUETYPE_INT: {
             int32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
-                errorStateAddError(
-                    &vm->errorState, -1,
+                nkiAddError(
+                    vm, -1,
                     "Integer divide-by-zero.");
             } else {
                 vmStackPushInt(
@@ -252,8 +252,8 @@ void opcode_modulo(struct VM *vm)
                 dynStrCreate(vm, "Modulo unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;
@@ -285,8 +285,8 @@ void opcode_negate(struct VM *vm)
                 dynStrCreate(vm, "Negation unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
-            errorStateAddError(
-                &vm->errorState, -1,
+            nkiAddError(
+                vm, -1,
                 ds->data);
             dynStrDelete(ds);
         } break;
@@ -318,7 +318,7 @@ void opcode_stackPeek(struct VM *vm)
     // Read index.
     struct Value *v = vmStackPop(vm);
     if(v->type != VALUETYPE_INT) {
-        errorStateAddError(&vm->errorState, -1,
+        nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
         return;
     }
@@ -353,7 +353,7 @@ void opcode_stackPoke(struct VM *vm)
     // Read index.
     struct Value *stackAddrValue = vmStackPop(vm);
     if(stackAddrValue->type != VALUETYPE_INT) {
-        errorStateAddError(&vm->errorState, -1,
+        nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
         return;
     }
@@ -408,8 +408,8 @@ void opcode_call(struct VM *vm)
             vm, vm->stack.size - (argumentCount + 2));
 
         if(functionIdValue->type != VALUETYPE_FUNCTIONID) {
-            errorStateAddError(
-                &vm->errorState,
+            nkiAddError(
+                vm,
                 -1,
                 "Tried to call something that is not a function id.");
             return;
@@ -421,8 +421,8 @@ void opcode_call(struct VM *vm)
 
     // Look up the function in our table of function objects.
     if(functionId >= vm->functionCount) {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Bad function id.");
         return;
@@ -434,8 +434,8 @@ void opcode_call(struct VM *vm)
     if(funcOb->argumentCount != ~(uint32_t)0 &&
         funcOb->argumentCount != argumentCount)
     {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Incorrect argument count for function call.");
 
@@ -470,8 +470,8 @@ void opcode_call(struct VM *vm)
         // directly off of a value given to us from the program, so
         // let's make sure that worked.
         if(!data.arguments) {
-            errorStateAddError(
-                &vm->errorState,
+            nkiAddError(
+                vm,
                 -1,
                 "Failed to allocated arguments for function call.");
             return;
@@ -711,8 +711,8 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
     }
 
     if(objectToGet->type != VALUETYPE_OBJECTID) {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Attempted to get a field on a value that is not an object.");
         return;
@@ -721,8 +721,8 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
     ob = vmObjectTableGetEntryById(&vm->objectTable, objectToGet->objectId);
 
     if(!ob) {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Bad object id in opcode_objectFieldGet.");
         return;
@@ -757,8 +757,8 @@ void opcode_objectFieldSet(struct VM *vm)
     struct VMObject *ob;
 
     if(objectToSet->type != VALUETYPE_OBJECTID) {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Attempted to set a field on a value that is not an object.");
         return;
@@ -767,8 +767,8 @@ void opcode_objectFieldSet(struct VM *vm)
     ob = vmObjectTableGetEntryById(&vm->objectTable, objectToSet->objectId);
 
     if(!ob) {
-        errorStateAddError(
-            &vm->errorState,
+        nkiAddError(
+            vm,
             -1,
             "Bad object id in opcode_objectFieldSet.");
         return;

@@ -1,33 +1,46 @@
 #include "common.h"
 
-void errorStateAddError(
-    struct ErrorState *es,
+void nkiErrorStateSetAllocationFailFlag(
+    struct VM *vm)
+{
+    vm->errorState.allocationFailure = true;
+}
+
+void nkiErrorStateInit(struct VM *vm)
+{
+    vm->errorState.firstError = NULL;
+    vm->errorState.lastError = NULL;
+    vm->errorState.allocationFailure = false;
+}
+
+void nkiErrorStateDestroy(struct VM *vm)
+{
+    struct NKError *e = vm->errorState.firstError;
+    while(e) {
+        struct NKError *next = e->next;
+        nkFree(vm, e->errorText);
+        nkFree(vm, e);
+        e = next;
+    }
+    vm->errorState.firstError = NULL;
+}
+
+bool nkiVmHasErrors(struct VM *vm)
+{
+    return vm->errorState.firstError || vm->errorState.allocationFailure;
+}
+
+void nkiAddError(
+    struct VM *vm,
     int32_t lineNumber,
     const char *str)
 {
-    struct Error *newError = malloc(
-        sizeof(struct Error));
-
-    if(!newError) {
-        return;
-    }
-
-    // FIXME: Enable this.
-    // if(!newError) {
-    //     NK_CATASTROPHE();
-    // }
+    struct NKError *newError = nkMalloc(
+        vm,
+        sizeof(struct NKError));
 
     newError->errorText =
-        malloc(strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
-
-    if(!newError->errorText) {
-        return;
-    }
-
-    // FIXME: Enable this.
-    // if(!newError) {
-    //     NK_CATASTROPHE();
-    // }
+        nkMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, "%d: %s", lineNumber, str);
@@ -35,40 +48,11 @@ void errorStateAddError(
     newError->next = NULL;
 
     // Add error to the error list.
-    if(es->lastError) {
-        es->lastError->next = newError;
+    if(vm->errorState.lastError) {
+        vm->errorState.lastError->next = newError;
     }
-    es->lastError = newError;
-    if(!es->firstError) {
-        es->firstError = newError;
+    vm->errorState.lastError = newError;
+    if(!vm->errorState.firstError) {
+        vm->errorState.firstError = newError;
     }
-}
-
-void errorStateSetAllocationFailFlag(
-    struct ErrorState *es)
-{
-    es->allocationFailure = true;
-}
-
-void errorStateInit(struct ErrorState *es)
-{
-    es->firstError = NULL;
-    es->lastError = NULL;
-    es->allocationFailure = false;
-}
-
-void errorStateDestroy(struct ErrorState *es)
-{
-    struct Error *e = es->firstError;
-    while(e) {
-        struct Error *next = e->next;
-        free(e->errorText);
-        free(e);
-        e = next;
-    }
-}
-
-bool errorStateHasErrors(const struct ErrorState *es)
-{
-    return (es->firstError || es->allocationFailure);
 }

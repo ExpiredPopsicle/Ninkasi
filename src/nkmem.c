@@ -5,7 +5,7 @@
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
     if(rand() % 2048 == 0) {
-        errorStateSetAllocationFailFlag(&vm->errorState);
+        nkiErrorStateSetAllocationFailFlag(vm);
         NK_CATASTROPHE();
         return NULL;
     }
@@ -20,7 +20,7 @@ void *nkMalloc(struct VM *vm, uint32_t size)
             newChunkSize > vm->limits.maxAllocatedMemory - vm->currentMemoryUsage)
         {
             // VM allocation failure (hit user-set limit).
-            errorStateSetAllocationFailFlag(&vm->errorState);
+            nkiErrorStateSetAllocationFailFlag(vm);
             NK_CATASTROPHE();
             return NULL;
         }
@@ -52,7 +52,7 @@ void *nkMalloc(struct VM *vm, uint32_t size)
 
             // System allocation failure (possible address space
             // exhaustion).
-            errorStateSetAllocationFailFlag(&vm->errorState);
+            nkiErrorStateSetAllocationFailFlag(vm);
             NK_CATASTROPHE();
         }
     }

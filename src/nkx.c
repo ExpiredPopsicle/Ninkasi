@@ -183,7 +183,7 @@ bool nkxVmCompilerCompileScriptFile(
     buf = malloc(len + 1);
     if(!buf) {
         fclose(in);
-        errorStateSetAllocationFailFlag(&vm->errorState);
+        nkiErrorStateSetAllocationFailFlag(vm);
         return false;
     }
     fread(buf, len, 1, in);

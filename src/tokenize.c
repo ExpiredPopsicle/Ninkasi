@@ -335,9 +335,7 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 // In order to not mess up line counting, we're just
                 // going to make newlines inside strings a bad thing.
                 if(*strEnd == '\n') {
-                    errorStateAddError(
-                        &vm->errorState,
-                        lineNumber, "Newline inside of quoted string.");
+                    nkiAddError(vm, lineNumber, "Newline inside of quoted string.");
                     return false;
                 }
 
@@ -441,9 +439,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
         } else {
 
-            errorStateAddError(
-                &vm->errorState,
-                lineNumber, "Unknown token.");
+            nkiAddError(
+                vm, lineNumber, "Unknown token.");
 
             return false;
         }
