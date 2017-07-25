@@ -283,6 +283,7 @@ bool vmCompilerExpectAndSkipToken(
 #define EXPECT_AND_SKIP_STATEMENT(x)                \
     do {                                            \
         if(!vmCompilerExpectAndSkipToken(cs, x)) {  \
+            nkiCompilerPopRecursion(cs);            \
             return false;                           \
         }                                           \
     } while(0)
@@ -291,6 +292,10 @@ bool vmCompilerExpectAndSkipToken(
 bool compileStatement(struct CompilerState *cs)
 {
     struct CompilerStateContext *startContext = cs->context;
+
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
 
     // FIXME: Remove this.
     dbgWriteLine(
@@ -380,6 +385,7 @@ bool compileStatement(struct CompilerState *cs)
     }
 
     assert(cs->context == startContext);
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
@@ -421,14 +427,14 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
 {
     struct CompilerStateContext *startContext = cs->context;
 
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
+
     if(!noBracesOrContext) {
         EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
         pushContext(cs);
     }
-
-    // FIXME: Remove this.
-    dbgWriteLine("Compiling block");
-    dbgPush();
 
     while(
         vmCompilerTokenType(cs) != TOKENTYPE_CURLYBRACE_CLOSE &&
@@ -436,20 +442,15 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
     {
         if(!compileStatement(cs)) {
 
-            // FIXME: Remove this.
-            dbgPop();
-
             if(!noBracesOrContext) {
                 popContext(cs);
             }
 
             // assert(startContext == cs->context);
+            nkiCompilerPopRecursion(cs);
             return false;
         }
     }
-
-    // FIXME: Remove this.
-    dbgPop();
 
     if(!noBracesOrContext) {
         popContext(cs);
@@ -457,15 +458,21 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
     }
 
     assert(startContext == cs->context);
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
 bool compileVariableDeclaration(struct CompilerState *cs)
 {
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
+
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_VAR);
 
     if(vmCompilerTokenType(cs) != TOKENTYPE_IDENTIFIER) {
         vmCompilerAddError(cs, "Expected identifier in variable declaration.");
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -482,6 +489,7 @@ bool compileVariableDeclaration(struct CompilerState *cs)
             EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ASSIGNMENT);
 
             if(!compileExpression(cs)) {
+                nkiCompilerPopRecursion(cs);
                 return false;
             }
 
@@ -497,6 +505,7 @@ bool compileVariableDeclaration(struct CompilerState *cs)
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
 
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
@@ -544,12 +553,23 @@ void emitReturn(struct CompilerState *cs)
 
 bool compileReturnStatement(struct CompilerState *cs)
 {
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_RETURN);
-    if(!compileExpression(cs)) {
+    if(!nkiCompilerPushRecursion(cs)) {
         return false;
     }
+
+    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_RETURN);
+
+    if(!compileExpression(cs)) {
+        nkiCompilerPopRecursion(cs);
+        return false;
+    }
+
     emitReturn(cs);
+
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    nkiCompilerPopRecursion(cs);
+
     return true;
 }
 
@@ -565,7 +585,13 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     uint32_t functionArgumentCount = 0;
 
     uint32_t functionId = 0;
-    struct VMFunction *functionObject = vmCreateFunction(
+    struct VMFunction *functionObject;
+
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
+
+    functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
@@ -579,6 +605,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
             cs->vm,
             vmCompilerGetLinenumber(cs),
             "Expected identifier for function name.");
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -731,6 +758,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     popContext(cs);
     cs->context = savedContext;
 
+    nkiCompilerPopRecursion(cs);
     return ret;
 }
 
@@ -783,11 +811,8 @@ void vmCompilerCreateCFunctionVariable(
     VMFunctionCallback func,
     void *userData)
 {
-    NK_FAILURE_RECOVERY_DECL();
     uint32_t functionId = 0;
     struct VM *vm = cs->vm;
-
-    NK_SET_FAILURE_RECOVERY_VOID();
 
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
@@ -813,8 +838,6 @@ void vmCompilerCreateCFunctionVariable(
     emitPushLiteralFunctionId(cs, functionId);
     cs->context->stackFrameOffset++;
     addVariableWithoutStackAllocation(cs, name);
-
-    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 struct CompilerState *vmCompilerCreate(
@@ -846,10 +869,6 @@ struct CompilerState *vmCompilerCreate(
 void vmCompilerFinalize(
     struct CompilerState *cs)
 {
-    NK_FAILURE_RECOVERY_DECL();
-    struct VM *vm = cs->vm;
-    NK_SET_FAILURE_RECOVERY_VOID();
-
     // We MUST end up on the global context at the end.
     if(!cs->context || cs->context->parent) {
         vmCompilerAddError(cs, "Context mismatch at compilation end!");
@@ -909,20 +928,18 @@ void vmCompilerFinalize(
     addInstructionSimple(cs, OP_END);
 
     nkFree(cs->vm, cs);
-
-    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 bool vmCompilerCompileScript(
     struct CompilerState *cs,
     const char *script)
 {
-    NK_FAILURE_RECOVERY_DECL();
     struct TokenList tokenList;
     bool success;
-    struct VM *vm = cs->vm;
 
-    NK_SET_FAILURE_RECOVERY(false);
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
 
     // Tokenize.
 
@@ -933,7 +950,7 @@ bool vmCompilerCompileScript(
     success = tokenize(cs->vm, script, &tokenList);
     if(!success) {
         destroyTokenList(cs->vm, &tokenList);
-        NK_CLEAR_FAILURE_RECOVERY();
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -949,7 +966,7 @@ bool vmCompilerCompileScript(
     cs->currentLineNumber = 0;
     destroyTokenList(cs->vm, &tokenList);
 
-    NK_CLEAR_FAILURE_RECOVERY();
+    nkiCompilerPopRecursion(cs);
     return success;
 }
 
@@ -1046,12 +1063,17 @@ bool compileIfStatement(struct CompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
 
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
+
     // Skip "if("
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IF);
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
     if(!compileExpression(cs)) {
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1066,6 +1088,7 @@ bool compileIfStatement(struct CompilerState *cs)
     pushContext(cs);
     if(!compileStatement(cs)) {
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     popContext(cs);
@@ -1093,6 +1116,7 @@ bool compileIfStatement(struct CompilerState *cs)
         pushContext(cs);
         if(!compileStatement(cs)) {
             popContext(cs);
+            nkiCompilerPopRecursion(cs);
             return false;
         }
         popContext(cs);
@@ -1101,6 +1125,7 @@ bool compileIfStatement(struct CompilerState *cs)
         modifyJump(cs, skipAddressWritePtrElse, cs->instructionWriteIndex);
     }
 
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
@@ -1120,6 +1145,10 @@ bool compileWhileStatement(struct CompilerState *cs)
     uint32_t skipAddressWritePtr = 0;
     uint32_t startAddress = cs->instructionWriteIndex;
 
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
+
     pushContext(cs);
     cs->context->isLoopContext = true;
     pushContext(cs);
@@ -1130,6 +1159,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1137,6 +1167,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     if(!compileExpression(cs)) {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1148,6 +1179,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1157,6 +1189,7 @@ bool compileWhileStatement(struct CompilerState *cs)
         popContext(cs);
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     popContext(cs);
@@ -1171,6 +1204,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     fixupBreakJumpForContext(cs);
     popContext(cs);
 
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
@@ -1179,6 +1213,10 @@ bool compileForStatement(struct CompilerState *cs)
     uint32_t skipAddressWritePtr = 0;
     uint32_t loopStartAddress = 0;
     struct ExpressionAstNode *incrementExpression = NULL;
+
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
 
     pushContext(cs);
     cs->context->isLoopContext = true;
@@ -1193,6 +1231,7 @@ bool compileForStatement(struct CompilerState *cs)
     {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1203,6 +1242,7 @@ bool compileForStatement(struct CompilerState *cs)
     if(!compileStatement(cs)) {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     // If we ever go back to using expressions for the init thing,
@@ -1217,6 +1257,7 @@ bool compileForStatement(struct CompilerState *cs)
     if(!compileExpression(cs)) {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
@@ -1224,6 +1265,7 @@ bool compileForStatement(struct CompilerState *cs)
     if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_SEMICOLON)) {
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1236,6 +1278,7 @@ bool compileForStatement(struct CompilerState *cs)
         deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1246,6 +1289,7 @@ bool compileForStatement(struct CompilerState *cs)
         popContext(cs);
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     popContext(cs);
@@ -1255,6 +1299,7 @@ bool compileForStatement(struct CompilerState *cs)
         deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
+        nkiCompilerPopRecursion(cs);
         return false;
     }
     addInstructionSimple(cs, OP_POP);
@@ -1271,6 +1316,7 @@ bool compileForStatement(struct CompilerState *cs)
     popContext(cs);
     fixupBreakJumpForContext(cs);
     popContext(cs);
+    nkiCompilerPopRecursion(cs);
     return true;
 }
 
@@ -1278,6 +1324,10 @@ bool compileBreakStatement(struct CompilerState *cs)
 {
     uint32_t contextLevel = cs->context->stackFrameOffset;
     uint32_t loopContextLevel = 0;
+
+    if(!nkiCompilerPushRecursion(cs)) {
+        return false;
+    }
 
     // Find a loop context we can break out of.
     struct CompilerStateContext *searchContext = cs->context;
@@ -1290,11 +1340,13 @@ bool compileBreakStatement(struct CompilerState *cs)
 
     if(!searchContext) {
         vmCompilerAddError(cs, "Cannot break outside of a loop.");
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
     if(!searchContext->parent) {
         vmCompilerAddError(cs, "Cannot break out of the root context.");
+        nkiCompilerPopRecursion(cs);
         return false;
     }
 
@@ -1319,5 +1371,24 @@ bool compileBreakStatement(struct CompilerState *cs)
 
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_BREAK);
     EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+
+    nkiCompilerPopRecursion(cs);
     return true;
+}
+
+bool nkiCompilerPushRecursion(struct CompilerState *cs)
+{
+    // TODO: Make this limit configurable.
+    if(cs->recursionCount > 64) {
+        vmCompilerAddError(cs, "Reached recursion limit during compilation.");
+        return false;
+    }
+    cs->recursionCount++;
+    return true;
+}
+
+void nkiCompilerPopRecursion(struct CompilerState *cs)
+{
+    assert(cs->recursionCount != 0);
+    cs->recursionCount--;
 }

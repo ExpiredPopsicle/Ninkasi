@@ -4,11 +4,11 @@
 
 void *nkMalloc(struct VM *vm, uint32_t size)
 {
-    if(rand() % 2048 == 0) {
-        nkiErrorStateSetAllocationFailFlag(vm);
-        NK_CATASTROPHE();
-        return NULL;
-    }
+    // if(rand() % 2048 == 0) {
+    //     nkiErrorStateSetAllocationFailFlag(vm);
+    //     NK_CATASTROPHE();
+    //     return NULL;
+    // }
 
     if(size != 0) {
 

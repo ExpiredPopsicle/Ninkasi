@@ -51,6 +51,8 @@ struct CompilerState
 
     struct Token *currentToken;
     uint32_t currentLineNumber;
+
+    uint32_t recursionCount;
 };
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst);
@@ -90,5 +92,9 @@ const char *vmCompilerTokenString(struct CompilerState *cs);
 void vmCompilerAddError(struct CompilerState *cs, const char *error);
 bool vmCompilerExpectAndSkipToken(
     struct CompilerState *cs, enum TokenType t);
+
+bool nkiCompilerPushRecursion(struct CompilerState *cs);
+void nkiCompilerPopRecursion(struct CompilerState *cs);
+
 
 #endif
