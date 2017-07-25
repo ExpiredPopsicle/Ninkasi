@@ -366,3 +366,13 @@ print(nil, "\n");
 
 
 print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
+
+
+
+function causeCatastrophe()
+{
+    catastrophe();
+}
+
+
+cfunc(causeCatastrophe);

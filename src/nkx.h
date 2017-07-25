@@ -118,4 +118,8 @@ void nkxVmCompilerFinalize(
 
 const char *nkxValueToString(struct VM *vm, struct Value *value);
 
+/// Force a catastrophic failure. This is mainly to test error
+/// recovery by C functions and callbacks.
+void nkxForceCatastrophicFailure(struct VM *vm);
+
 #endif // NINKASI_NKX

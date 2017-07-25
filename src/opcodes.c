@@ -466,17 +466,6 @@ void opcode_call(struct VM *vm)
         // because then the called function would have to worry about
         // the stack index mask and all that crap.
 
-        // This is one of the few places where we do allocations based
-        // directly off of a value given to us from the program, so
-        // let's make sure that worked.
-        if(!data.arguments) {
-            nkiAddError(
-                vm,
-                -1,
-                "Failed to allocated arguments for function call.");
-            return;
-        }
-
         // Copy arguments over.
         {
             uint32_t i;

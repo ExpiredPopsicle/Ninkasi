@@ -215,3 +215,11 @@ const char *nkxValueToString(struct VM *vm, struct Value *value)
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
+
+void nkxForceCatastrophicFailure(struct VM *vm)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    NK_CATASTROPHE();
+    NK_CLEAR_FAILURE_RECOVERY();
+}

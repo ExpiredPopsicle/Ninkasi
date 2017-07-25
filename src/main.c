@@ -154,6 +154,11 @@ void testVMFunc(struct VMFunctionCallbackData *data)
     printf("Got data back from VM: %s\n", nkxValueToString(data->vm, &data->returnValue));
 }
 
+void testVMCatastrophe(struct VMFunctionCallbackData *data)
+{
+    nkxForceCatastrophicFailure(data->vm);
+}
+
 void getHash(struct VMFunctionCallbackData *data)
 {
     if(!vmFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
@@ -234,6 +239,7 @@ int main(int argc, char *argv[])
             struct CompilerState *cs = nkxVmCompilerCreate(vm);
             if(cs) {
                 nkxVmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
+                nkxVmCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe, NULL);
                 nkxVmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
                 nkxVmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
                 nkxVmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
