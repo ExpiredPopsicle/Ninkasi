@@ -72,10 +72,10 @@ enum NKOpcode
 
     NK_OP_PUSHNIL,
 
-    OPCODE_REALCOUNT,
+    NK_OPCODE_REALCOUNT,
 
     // This must be a power of two.
-    OPCODE_PADDEDCOUNT = 64
+    NK_OPCODE_PADDEDCOUNT = 64
 };
 
 enum TokenType

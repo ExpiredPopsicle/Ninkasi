@@ -1,5 +1,5 @@
-#ifndef OPCODE_H
-#define OPCODE_H
+#ifndef NINKASI_OPCODE_H
+#define NINKASI_OPCODE_H
 
 #include "config.h"
 #include "value.h"

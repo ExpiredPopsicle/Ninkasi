@@ -4,8 +4,8 @@
 // Static opcode table setup.
 
 typedef void (*VMOpcodeCall)(struct VM *vm);
-static VMOpcodeCall opcodeTable[OPCODE_PADDEDCOUNT];
-static const char *opcodeNameTable[OPCODE_PADDEDCOUNT];
+static VMOpcodeCall opcodeTable[NK_OPCODE_PADDEDCOUNT];
+static const char *opcodeNameTable[NK_OPCODE_PADDEDCOUNT];
 
 #define SETUP_OP(x, y)                          \
     do {                                        \
@@ -15,7 +15,7 @@ static const char *opcodeNameTable[OPCODE_PADDEDCOUNT];
 
 static void vmInitOpcodeTable(void)
 {
-    assert(OPCODE_PADDEDCOUNT >= OPCODE_REALCOUNT);
+    assert(NK_OPCODE_PADDEDCOUNT >= NK_OPCODE_REALCOUNT);
 
     SETUP_OP(NK_OP_ADD,                    opcode_add);
     SETUP_OP(NK_OP_SUBTRACT,               opcode_subtract);
@@ -72,7 +72,7 @@ static void vmInitOpcodeTable(void)
     // instead of branching to make sure they're valid.
     {
         uint32_t i;
-        for(i = OPCODE_REALCOUNT; i < OPCODE_PADDEDCOUNT; i++) {
+        for(i = NK_OPCODE_REALCOUNT; i < NK_OPCODE_PADDEDCOUNT; i++) {
             opcodeTable[i] = opcode_nop;
         }
     }
@@ -170,7 +170,7 @@ void vmIterate(struct VM *vm)
 {
     struct Instruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
-    uint32_t opcodeId = inst->opcode & (OPCODE_PADDEDCOUNT - 1);
+    uint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 
     dbgWriteLine("Executing: %s", vmGetOpcodeName(opcodeId));
 
@@ -432,7 +432,7 @@ void vmRescanProgramStrings(struct VM *vm)
 
 const char *vmGetOpcodeName(enum NKOpcode op)
 {
-    return opcodeNameTable[op & (OPCODE_PADDEDCOUNT - 1)];
+    return opcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
 }
 
 struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
