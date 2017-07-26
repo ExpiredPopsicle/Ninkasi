@@ -762,7 +762,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     return ret;
 }
 
-struct Token *vmCompilerNextToken(struct CompilerState *cs)
+struct NKToken *vmCompilerNextToken(struct CompilerState *cs)
 {
     if(cs->currentToken) {
         cs->currentToken = cs->currentToken->next;
@@ -934,7 +934,7 @@ bool vmCompilerCompileScript(
     struct CompilerState *cs,
     const char *script)
 {
-    struct TokenList tokenList;
+    struct NKTokenList tokenList;
     bool success;
 
     if(!nkiCompilerPushRecursion(cs)) {

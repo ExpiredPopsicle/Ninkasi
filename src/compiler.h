@@ -7,7 +7,7 @@
 // Internals
 
 struct NKInstruction;
-struct Token;
+struct NKToken;
 
 struct CompilerStateContextVariable
 {
@@ -49,7 +49,7 @@ struct CompilerState
 
     struct CompilerStateContext *context;
 
-    struct Token *currentToken;
+    struct NKToken *currentToken;
     uint32_t currentLineNumber;
 
     uint32_t recursionCount;
@@ -85,7 +85,7 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str);
 void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId);
 void emitPushNil(struct CompilerState *cs);
 
-struct Token *vmCompilerNextToken(struct CompilerState *cs);
+struct NKToken *vmCompilerNextToken(struct CompilerState *cs);
 enum TokenType vmCompilerTokenType(struct CompilerState *cs);
 uint32_t vmCompilerGetLinenumber(struct CompilerState *cs);
 const char *vmCompilerTokenString(struct CompilerState *cs);

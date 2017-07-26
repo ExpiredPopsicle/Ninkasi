@@ -5,29 +5,29 @@
 
 struct VM;
 
-struct Token
+struct NKToken
 {
     enum TokenType type;
     char *str;
-    struct Token *next;
+    struct NKToken *next;
     int32_t lineNumber;
 };
 
-struct TokenList
+struct NKTokenList
 {
-    struct Token *first;
-    struct Token *last;
+    struct NKToken *first;
+    struct NKToken *last;
 };
 
 void deleteToken(
-    struct VM *vm, struct Token *token);
-void destroyTokenList(struct VM *vm, struct TokenList *tokenList);
+    struct VM *vm, struct NKToken *token);
+void destroyTokenList(struct VM *vm, struct NKTokenList *tokenList);
 void addToken(
     struct VM *vm,
     enum TokenType type,
     const char *str,
     int32_t lineNumber,
-    struct TokenList *tokenList);
-bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList);
+    struct NKTokenList *tokenList);
+bool tokenize(struct VM *vm, const char *str, struct NKTokenList *tokenList);
 
 #endif

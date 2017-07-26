@@ -13,7 +13,7 @@ static bool isNumber(char c)
     return (c >= '0' && c <= '9');
 }
 
-void deleteToken(struct VM *vm, struct Token *token)
+void deleteToken(struct VM *vm, struct NKToken *token)
 {
     if(token) {
         nkiFree(vm, token->str);
@@ -22,11 +22,11 @@ void deleteToken(struct VM *vm, struct Token *token)
 }
 
 void destroyTokenList(
-    struct VM *vm, struct TokenList *tokenList)
+    struct VM *vm, struct NKTokenList *tokenList)
 {
-    struct Token *t = tokenList->first;
+    struct NKToken *t = tokenList->first;
     while(t) {
-        struct Token *next = t->next;
+        struct NKToken *next = t->next;
         deleteToken(vm, t);
         t = next;
     }
@@ -39,10 +39,10 @@ void addToken(
     enum TokenType type,
     const char *str,
     int32_t lineNumber,
-    struct TokenList *tokenList)
+    struct NKTokenList *tokenList)
 {
-    struct Token *newToken =
-        nkiMalloc(vm, sizeof(struct Token));
+    struct NKToken *newToken =
+        nkiMalloc(vm, sizeof(struct NKToken));
     newToken->next = NULL;
     newToken->str = nkiStrdup(vm, str);
     newToken->type = type;
@@ -109,9 +109,9 @@ char *tokenizerUnescapeString(
     return out;
 }
 
-void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
+void consolidateStringLiterals(struct VM *vm, struct NKTokenList *tokenList)
 {
-    struct Token *tok = tokenList->first;
+    struct NKToken *tok = tokenList->first;
 
     while(tok) {
 
@@ -120,7 +120,7 @@ void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
             tok->next->type == TOKENTYPE_STRING)
         {
             // Found two strings in a row.
-            struct Token *next = tok->next;
+            struct NKToken *next = tok->next;
 
             // Make a concatenated string.
             char *newStr = nkiMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
@@ -167,7 +167,7 @@ bool isValidIdentifierCharacter(char c, bool isFirstCharacter)
     return false;
 }
 
-bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
+bool tokenize(struct VM *vm, const char *str, struct NKTokenList *tokenList)
 {
     uint32_t len = strlen(str);
     uint32_t i = 0;

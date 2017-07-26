@@ -3,13 +3,13 @@
 
 #include "basetype.h"
 
-struct Token;
+struct NKToken;
 struct VM;
 struct CompilerState;
 
 struct ExpressionAstNode
 {
-    struct Token *opOrValue;
+    struct NKToken *opOrValue;
     struct ExpressionAstNode *children[2];
     struct ExpressionAstNode *stackNext;
 
@@ -26,10 +26,10 @@ struct ExpressionAstNode
     bool isRootFunctionCallNode;
 };
 
-bool isPrefixOperator(struct Token *token);
-bool isPostfixOperator(struct Token *token);
-bool isExpressionEndingToken(struct Token *token);
-bool isSubexpressionEndingToken(struct Token *token);
+bool isPrefixOperator(struct NKToken *token);
+bool isPostfixOperator(struct NKToken *token);
+bool isExpressionEndingToken(struct NKToken *token);
+bool isSubexpressionEndingToken(struct NKToken *token);
 int32_t getPrecedence(enum TokenType t);
 
 struct ExpressionAstNode *makeImmediateExpressionNode(

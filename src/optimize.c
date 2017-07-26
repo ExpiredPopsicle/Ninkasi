@@ -29,8 +29,8 @@ struct ExpressionAstNode *makeImmediateExpressionNode(
 {
     struct ExpressionAstNode *newNode =
         nkiMalloc(vm, sizeof(struct ExpressionAstNode));
-    struct Token *newToken =
-        nkiMalloc(vm, sizeof(struct Token));
+    struct NKToken *newToken =
+        nkiMalloc(vm, sizeof(struct NKToken));
     memset(newNode, 0, sizeof(*newNode));
     memset(newToken, 0, sizeof(*newToken));
     newNode->ownedToken = true;

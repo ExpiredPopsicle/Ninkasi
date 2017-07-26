@@ -76,7 +76,7 @@ void dumpExpressionAstNode(struct ExpressionAstNode *node)
     }
 }
 
-bool isSubexpressionEndingToken(struct Token *token)
+bool isSubexpressionEndingToken(struct NKToken *token)
 {
     return !token ||
         token->type == TOKENTYPE_PAREN_CLOSE ||
@@ -84,13 +84,13 @@ bool isSubexpressionEndingToken(struct Token *token)
         token->type == TOKENTYPE_COMMA;
 }
 
-bool isExpressionEndingToken(struct Token *token)
+bool isExpressionEndingToken(struct NKToken *token)
 {
     return !token || isSubexpressionEndingToken(token) ||
         token->type == TOKENTYPE_SEMICOLON;
 }
 
-bool isPrefixOperator(struct Token *token)
+bool isPrefixOperator(struct NKToken *token)
 {
     return token && (
         token->type == TOKENTYPE_MINUS ||
@@ -99,7 +99,7 @@ bool isPrefixOperator(struct Token *token)
         token->type == TOKENTYPE_NOT);
 }
 
-bool isPostfixOperator(struct Token *token)
+bool isPostfixOperator(struct NKToken *token)
 {
     return token && (
         token->type == TOKENTYPE_BRACKET_OPEN ||
@@ -292,7 +292,7 @@ bool parseFunctioncall(
 
 struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 {
-    struct Token **currentToken = &cs->currentToken;
+    struct NKToken **currentToken = &cs->currentToken;
     struct ExpressionAstNode *opStack = NULL;
     struct ExpressionAstNode *valueStack = NULL;
 
@@ -421,14 +421,14 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                     struct ExpressionAstNode *indexIntoNode = postfixNode;
 
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
-                    identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
+                    identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
                     identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
                     identifierStringNode->opOrValue->str = nkiStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = true;
 
-                    indexIntoNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
+                    indexIntoNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
                     indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
                     indexIntoNode->opOrValue->str = nkiStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
@@ -444,7 +444,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                         struct ExpressionAstNode *functionCallNode =
                             nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
 
-                        functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
+                        functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
                         functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
                         functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
@@ -1024,8 +1024,8 @@ struct ExpressionAstNode *cloneExpressionTree(
 
     newNode->ownedToken = node->ownedToken;
     if(node->ownedToken) {
-        newNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
-        memset(newNode->opOrValue, 0, sizeof(struct Token));
+        newNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
+        memset(newNode->opOrValue, 0, sizeof(struct NKToken));
         newNode->opOrValue->type = node->opOrValue->type;
         newNode->opOrValue->str = nkiStrdup(cs->vm, node->opOrValue->str);
         newNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
@@ -1067,12 +1067,12 @@ void expandIncrementsAndDecrements(
                 nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
             struct ExpressionAstNode *literalOneNode =
                 nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
-            struct Token *oldToken = node->opOrValue;
+            struct NKToken *oldToken = node->opOrValue;
             bool wasOwningToken = node->ownedToken;
 
-            struct Token *literalOneToken = nkiMalloc(cs->vm, sizeof(struct Token));
-            struct Token *additionToken = nkiMalloc(cs->vm, sizeof(struct Token));
-            struct Token *assignmentToken = nkiMalloc(cs->vm, sizeof(struct Token));
+            struct NKToken *literalOneToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
+            struct NKToken *additionToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
+            struct NKToken *assignmentToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
             char *oneTokenStr = nkiStrdup(cs->vm, "1");
             char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
             char *assignTokenStr = nkiStrdup(cs->vm, "=");
