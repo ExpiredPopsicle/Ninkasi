@@ -106,7 +106,7 @@ uint32_t vmObjectTableCreateObject(
             return ~(uint32_t)0;
         }
 
-        table->objectTable = nkRealloc(
+        table->objectTable = nkiRealloc(
             vm,
             table->objectTable,
             sizeof(struct VMObject *) * newCapacity);

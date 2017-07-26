@@ -20,7 +20,7 @@ void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
         str = "<null>";
     }
 
-    dynStr->data = nkRealloc(
+    dynStr->data = nkiRealloc(
         dynStr->vm,
         dynStr->data,
         strlen(dynStr->data) + strlen(str) + 1);

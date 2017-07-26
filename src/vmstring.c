@@ -142,7 +142,7 @@ uint32_t vmStringTableFindOrAddString(
                 return ~(uint32_t)0;
             }
 
-            table->stringTable = nkRealloc(
+            table->stringTable = nkiRealloc(
                 vm,
                 table->stringTable,
                 sizeof(struct VMString *) * newCapacity);

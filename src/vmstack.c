@@ -56,7 +56,7 @@ struct Value *vmStackPush_internal(struct VM *vm)
 
         stack->indexMask <<= 1;
         stack->indexMask |= 1;
-        stack->values = nkRealloc(
+        stack->values = nkiRealloc(
             vm,
             stack->values,
             stack->capacity * sizeof(struct Value));

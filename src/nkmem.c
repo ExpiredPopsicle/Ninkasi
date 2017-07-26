@@ -81,7 +81,7 @@ void nkiFree(struct VM *vm, void *data)
     }
 }
 
-void *nkRealloc(struct VM *vm, void *data, uint32_t size)
+void *nkiRealloc(struct VM *vm, void *data, uint32_t size)
 {
     if(!data) {
         return nkiMalloc(vm, size);

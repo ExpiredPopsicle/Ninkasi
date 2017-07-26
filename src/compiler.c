@@ -18,7 +18,7 @@ void addInstruction(struct CompilerState *cs, struct NKInstruction *inst)
 
             cs->vm->instructionAddressMask <<= 1;
             cs->vm->instructionAddressMask |= 1;
-            cs->vm->instructions = nkRealloc(
+            cs->vm->instructions = nkiRealloc(
                 cs->vm,
                 cs->vm->instructions,
                 sizeof(struct NKInstruction) *
@@ -1361,7 +1361,7 @@ bool compileBreakStatement(struct CompilerState *cs)
         uint32_t jumpFixup = emitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
-            nkRealloc(cs->vm, searchContext->loopContextFixups,
+            nkiRealloc(cs->vm, searchContext->loopContextFixups,
                 sizeof(*searchContext->loopContextFixups) *
                 searchContext->loopContextFixupCount);
         searchContext->loopContextFixups[

@@ -442,7 +442,7 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
     }
 
 
-    vm->functionTable = nkRealloc(
+    vm->functionTable = nkiRealloc(
         vm,
         vm->functionTable,
         sizeof(struct VMFunction) * vm->functionCount);
