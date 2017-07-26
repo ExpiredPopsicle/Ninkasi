@@ -78,7 +78,7 @@ enum NKOpcode
     NK_OPCODE_PADDEDCOUNT = 64
 };
 
-enum TokenType
+enum NKTokenType
 {
     TOKENTYPE_INTEGER,
     TOKENTYPE_FLOAT,

@@ -7,7 +7,7 @@ struct VM;
 
 struct NKToken
 {
-    enum TokenType type;
+    enum NKTokenType type;
     char *str;
     struct NKToken *next;
     int32_t lineNumber;
@@ -24,7 +24,7 @@ void deleteToken(
 void destroyTokenList(struct VM *vm, struct NKTokenList *tokenList);
 void addToken(
     struct VM *vm,
-    enum TokenType type,
+    enum NKTokenType type,
     const char *str,
     int32_t lineNumber,
     struct NKTokenList *tokenList);

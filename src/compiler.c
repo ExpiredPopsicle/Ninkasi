@@ -1,6 +1,6 @@
 #include "common.h"
 
-void addInstruction(struct CompilerState *cs, struct NKInstruction *inst)
+void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst)
 {
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
@@ -41,7 +41,7 @@ void addInstruction(struct CompilerState *cs, struct NKInstruction *inst)
     cs->instructionWriteIndex++;
 }
 
-void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode)
+void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode)
 {
     struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
@@ -49,10 +49,10 @@ void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode)
     addInstruction(cs, &inst);
 }
 
-void pushContext(struct CompilerState *cs)
+void pushContext(struct NKCompilerState *cs)
 {
-    struct CompilerStateContext *newContext =
-        nkiMalloc(cs->vm, sizeof(struct CompilerStateContext));
+    struct NKCompilerStateContext *newContext =
+        nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId = ~(uint32_t)0;
     newContext->parent = cs->context;
@@ -68,21 +68,21 @@ void pushContext(struct CompilerState *cs)
     dbgPush();
 }
 
-void popContext(struct CompilerState *cs)
+void popContext(struct NKCompilerState *cs)
 {
-    struct CompilerStateContext *oldContext =
+    struct NKCompilerStateContext *oldContext =
         cs->context;
     cs->context = cs->context->parent;
 
     // Free variable data.
     {
-        struct CompilerStateContextVariable *var =
+        struct NKCompilerStateContextVariable *var =
             oldContext->variables;
 
         uint32_t popCount = 0;
 
         while(var) {
-            struct CompilerStateContextVariable *next =
+            struct NKCompilerStateContextVariable *next =
                 var->next;
 
             // Count up the amount of stuff in this stack frame to get
@@ -154,7 +154,7 @@ void popContext(struct CompilerState *cs)
 }
 
 
-void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
+void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value)
 {
     struct NKInstruction inst;
 
@@ -169,7 +169,7 @@ void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
     addInstruction(cs, &inst);
 }
 
-void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
+void emitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId)
 {
     struct NKInstruction inst;
 
@@ -184,7 +184,7 @@ void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
     addInstruction(cs, &inst);
 }
 
-void emitPushLiteralFloat(struct CompilerState *cs, float value)
+void emitPushLiteralFloat(struct NKCompilerState *cs, float value)
 {
     struct NKInstruction inst;
 
@@ -199,7 +199,7 @@ void emitPushLiteralFloat(struct CompilerState *cs, float value)
     addInstruction(cs, &inst);
 }
 
-void emitPushLiteralString(struct CompilerState *cs, const char *str)
+void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
 {
     struct NKInstruction inst;
 
@@ -226,16 +226,16 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str)
     }
 }
 
-void emitPushNil(struct CompilerState *cs)
+void emitPushNil(struct NKCompilerState *cs)
 {
     addInstructionSimple(cs, NK_OP_PUSHNIL);
 }
 
-struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
-    struct CompilerState *cs, const char *name)
+struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
+    struct NKCompilerState *cs, const char *name)
 {
-    struct CompilerStateContextVariable *var =
-        nkiMalloc(cs->vm, sizeof(struct CompilerStateContextVariable));
+    struct NKCompilerStateContextVariable *var =
+        nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
     var->next = cs->context->variables;
@@ -250,7 +250,7 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
     return var;
 }
 
-void addVariable(struct CompilerState *cs, const char *name)
+void addVariable(struct NKCompilerState *cs, const char *name)
 {
     // Add an instruction to make some stack space for this variable.
     emitPushLiteralInt(cs, 0);
@@ -261,7 +261,7 @@ void addVariable(struct CompilerState *cs, const char *name)
 }
 
 bool vmCompilerExpectAndSkipToken(
-    struct CompilerState *cs, enum TokenType t)
+    struct NKCompilerState *cs, enum NKTokenType t)
 {
     if(vmCompilerTokenType(cs) != t) {
         struct NKDynString *errStr =
@@ -289,9 +289,9 @@ bool vmCompilerExpectAndSkipToken(
     } while(0)
 
 
-bool compileStatement(struct CompilerState *cs)
+bool compileStatement(struct NKCompilerState *cs)
 {
-    struct CompilerStateContext *startContext = cs->context;
+    struct NKCompilerStateContext *startContext = cs->context;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -389,12 +389,12 @@ bool compileStatement(struct CompilerState *cs)
     return true;
 }
 
-struct CompilerStateContextVariable *lookupVariable(
-    struct CompilerState *cs,
+struct NKCompilerStateContextVariable *lookupVariable(
+    struct NKCompilerState *cs,
     const char *name)
 {
-    struct CompilerStateContext *ctx = cs->context;
-    struct CompilerStateContextVariable *var = NULL;
+    struct NKCompilerStateContext *ctx = cs->context;
+    struct NKCompilerStateContextVariable *var = NULL;
 
     while(ctx) {
         var = ctx->variables;
@@ -423,9 +423,9 @@ struct CompilerStateContextVariable *lookupVariable(
     return var;
 }
 
-bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
+bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
 {
-    struct CompilerStateContext *startContext = cs->context;
+    struct NKCompilerStateContext *startContext = cs->context;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -462,7 +462,7 @@ bool compileBlock(struct CompilerState *cs, bool noBracesOrContext)
     return true;
 }
 
-bool compileVariableDeclaration(struct CompilerState *cs)
+bool compileVariableDeclaration(struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -509,10 +509,10 @@ bool compileVariableDeclaration(struct CompilerState *cs)
     return true;
 }
 
-void emitReturn(struct CompilerState *cs)
+void emitReturn(struct NKCompilerState *cs)
 {
     // Find the function we're in.
-    struct CompilerStateContext *ctx = cs->context;
+    struct NKCompilerStateContext *ctx = cs->context;
     struct VMFunction *func;
     while(ctx && ctx->currentFunctionId == ~(uint32_t)0) {
         ctx = ctx->parent;
@@ -551,7 +551,7 @@ void emitReturn(struct CompilerState *cs)
     }
 }
 
-bool compileReturnStatement(struct CompilerState *cs)
+bool compileReturnStatement(struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -573,15 +573,15 @@ bool compileReturnStatement(struct CompilerState *cs)
     return true;
 }
 
-bool compileFunctionDefinition(struct CompilerState *cs)
+bool compileFunctionDefinition(struct NKCompilerState *cs)
 {
     bool ret = true;
     const char *functionName = NULL;
     uint32_t skipOffset;
-    struct CompilerStateContext *functionLocalContext;
-    struct CompilerStateContext *savedContext;
-    struct CompilerStateContext *searchContext;
-    struct CompilerStateContextVariable *varTmp;
+    struct NKCompilerStateContext *functionLocalContext;
+    struct NKCompilerStateContext *savedContext;
+    struct NKCompilerStateContext *searchContext;
+    struct NKCompilerStateContextVariable *varTmp;
     uint32_t functionArgumentCount = 0;
 
     uint32_t functionId = 0;
@@ -631,7 +631,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // because it's parented to the global context. So we're going to
     // set it and parent it directly.
     functionLocalContext = nkiMalloc(
-        cs->vm, sizeof(struct CompilerStateContext));
+        cs->vm, sizeof(struct NKCompilerStateContext));
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
     // Find the global context and set it as our parent.
@@ -762,7 +762,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     return ret;
 }
 
-struct NKToken *vmCompilerNextToken(struct CompilerState *cs)
+struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         cs->currentToken = cs->currentToken->next;
@@ -773,7 +773,7 @@ struct NKToken *vmCompilerNextToken(struct CompilerState *cs)
     return cs->currentToken;
 }
 
-enum TokenType vmCompilerTokenType(struct CompilerState *cs)
+enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->type;
@@ -781,7 +781,7 @@ enum TokenType vmCompilerTokenType(struct CompilerState *cs)
     return TOKENTYPE_INVALID;
 }
 
-uint32_t vmCompilerGetLinenumber(struct CompilerState *cs)
+uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->lineNumber;
@@ -789,7 +789,7 @@ uint32_t vmCompilerGetLinenumber(struct CompilerState *cs)
     return cs->currentLineNumber;
 }
 
-const char *vmCompilerTokenString(struct CompilerState *cs)
+const char *vmCompilerTokenString(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->str;
@@ -797,7 +797,7 @@ const char *vmCompilerTokenString(struct CompilerState *cs)
     return "<invalid token>";
 }
 
-void vmCompilerAddError(struct CompilerState *cs, const char *error)
+void vmCompilerAddError(struct NKCompilerState *cs, const char *error)
 {
     nkiAddError(
         cs->vm,
@@ -806,7 +806,7 @@ void vmCompilerAddError(struct CompilerState *cs, const char *error)
 }
 
 void vmCompilerCreateCFunctionVariable(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,
     void *userData)
@@ -840,16 +840,16 @@ void vmCompilerCreateCFunctionVariable(
     addVariableWithoutStackAllocation(cs, name);
 }
 
-struct CompilerState *vmCompilerCreate(
+struct NKCompilerState *vmCompilerCreate(
     struct VM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
 
-    struct CompilerState *cs;
+    struct NKCompilerState *cs;
 
     NK_SET_FAILURE_RECOVERY(NULL);
 
-    cs = nkiMalloc(vm, sizeof(struct CompilerState));
+    cs = nkiMalloc(vm, sizeof(struct NKCompilerState));
     memset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
@@ -867,7 +867,7 @@ struct CompilerState *vmCompilerCreate(
 }
 
 void vmCompilerFinalize(
-    struct CompilerState *cs)
+    struct NKCompilerState *cs)
 {
     // We MUST end up on the global context at the end.
     if(!cs->context || cs->context->parent) {
@@ -885,7 +885,7 @@ void vmCompilerFinalize(
         // memory we need.
         uint32_t count = 0;
         uint32_t nameStorageNeeded = 0;
-        struct CompilerStateContextVariable *var =
+        struct NKCompilerStateContextVariable *var =
             cs->context->variables;
         while(var) {
             count++;
@@ -931,7 +931,7 @@ void vmCompilerFinalize(
 }
 
 bool vmCompilerCompileScript(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *script)
 {
     struct NKTokenList tokenList;
@@ -971,7 +971,7 @@ bool vmCompilerCompileScript(
 }
 
 // bool vmCompilerCompileScriptFile(
-//     struct CompilerState *cs,
+//     struct NKCompilerState *cs,
 //     const char *scriptFilename)
 // {
 //     NK_FAILURE_RECOVERY_DECL();
@@ -1017,7 +1017,7 @@ bool vmCompilerCompileScript(
 //     return success;
 // }
 
-uint32_t emitJump(struct CompilerState *cs, uint32_t target)
+uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
@@ -1026,7 +1026,7 @@ uint32_t emitJump(struct CompilerState *cs, uint32_t target)
 }
 
 // Note: Pops +1 item off the stack.
-uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
+uint32_t emitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
@@ -1035,13 +1035,13 @@ uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
     return instructionWriteIndex;
 }
 
-struct NKInstruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
+struct NKInstruction *vmCompilerGetInstruction(struct NKCompilerState *cs, uint32_t address)
 {
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
 
 void modifyJump(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     uint32_t pushLiteralBeforeJumpAddress,
     uint32_t target)
 {
@@ -1059,7 +1059,7 @@ void modifyJump(
         (target - pushLiteralBeforeJumpAddress) - 3;
 }
 
-bool compileIfStatement(struct CompilerState *cs)
+bool compileIfStatement(struct NKCompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
 
@@ -1129,7 +1129,7 @@ bool compileIfStatement(struct CompilerState *cs)
     return true;
 }
 
-void fixupBreakJumpForContext(struct CompilerState *cs)
+void fixupBreakJumpForContext(struct NKCompilerState *cs)
 {
     while(cs->context->loopContextFixupCount) {
         uint32_t fixupLocation =
@@ -1140,7 +1140,7 @@ void fixupBreakJumpForContext(struct CompilerState *cs)
     cs->context->loopContextFixups = NULL;
 }
 
-bool compileWhileStatement(struct CompilerState *cs)
+bool compileWhileStatement(struct NKCompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
     uint32_t startAddress = cs->instructionWriteIndex;
@@ -1208,7 +1208,7 @@ bool compileWhileStatement(struct CompilerState *cs)
     return true;
 }
 
-bool compileForStatement(struct CompilerState *cs)
+bool compileForStatement(struct NKCompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
     uint32_t loopStartAddress = 0;
@@ -1320,7 +1320,7 @@ bool compileForStatement(struct CompilerState *cs)
     return true;
 }
 
-bool compileBreakStatement(struct CompilerState *cs)
+bool compileBreakStatement(struct NKCompilerState *cs)
 {
     uint32_t contextLevel = cs->context->stackFrameOffset;
     uint32_t loopContextLevel = 0;
@@ -1330,7 +1330,7 @@ bool compileBreakStatement(struct CompilerState *cs)
     }
 
     // Find a loop context we can break out of.
-    struct CompilerStateContext *searchContext = cs->context;
+    struct NKCompilerStateContext *searchContext = cs->context;
     while(searchContext) {
         if(searchContext->isLoopContext) {
             break;
@@ -1376,7 +1376,7 @@ bool compileBreakStatement(struct CompilerState *cs)
     return true;
 }
 
-bool nkiCompilerPushRecursion(struct CompilerState *cs)
+bool nkiCompilerPushRecursion(struct NKCompilerState *cs)
 {
     // TODO: Make this limit configurable.
     if(cs->recursionCount > 64) {
@@ -1387,7 +1387,7 @@ bool nkiCompilerPushRecursion(struct CompilerState *cs)
     return true;
 }
 
-void nkiCompilerPopRecursion(struct CompilerState *cs)
+void nkiCompilerPopRecursion(struct NKCompilerState *cs)
 {
     assert(cs->recursionCount != 0);
     cs->recursionCount--;

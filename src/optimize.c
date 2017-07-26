@@ -24,7 +24,7 @@ bool isImmediateValue(struct ExpressionAstNode *node)
 
 struct ExpressionAstNode *makeImmediateExpressionNode(
     struct VM *vm,
-    enum TokenType type,
+    enum NKTokenType type,
     uint32_t lineNumber)
 {
     struct ExpressionAstNode *newNode =

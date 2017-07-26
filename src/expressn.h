@@ -5,7 +5,7 @@
 
 struct NKToken;
 struct VM;
-struct CompilerState;
+struct NKCompilerState;
 
 struct ExpressionAstNode
 {
@@ -30,21 +30,21 @@ bool isPrefixOperator(struct NKToken *token);
 bool isPostfixOperator(struct NKToken *token);
 bool isExpressionEndingToken(struct NKToken *token);
 bool isSubexpressionEndingToken(struct NKToken *token);
-int32_t getPrecedence(enum TokenType t);
+int32_t getPrecedence(enum NKTokenType t);
 
 struct ExpressionAstNode *makeImmediateExpressionNode(
     struct VM *vm,
-    enum TokenType type,
+    enum NKTokenType type,
     uint32_t lineNumber);
 
 void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node);
 void dumpExpressionAstNode(struct ExpressionAstNode *node);
 
-struct ExpressionAstNode *parseExpression(struct CompilerState *cs);
+struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs);
 
 
-bool compileExpression(struct CompilerState *cs);
-struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs);
-bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
+bool compileExpression(struct NKCompilerState *cs);
+struct ExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs);
+bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node);
 
 #endif

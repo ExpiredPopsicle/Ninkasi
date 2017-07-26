@@ -87,7 +87,7 @@ struct Value *nkxVmFindGlobalVariable(
 // Public compiler interface
 
 /// Create a compiler.
-struct CompilerState *nkxVmCompilerCreate(
+struct NKCompilerState *nkxVmCompilerCreate(
     struct VM *vm);
 
 /// Create a C function and assign it a variable name at the current
@@ -95,7 +95,7 @@ struct CompilerState *nkxVmCompilerCreate(
 /// compile-time. Do this before script compilation, so the script
 /// itself can access it.
 void nkxVmCompilerCreateCFunctionVariable(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,
     void *userData);
@@ -104,17 +104,17 @@ void nkxVmCompilerCreateCFunctionVariable(
 /// appending each script onto the end, except for the line number
 /// counts.
 bool nkxVmCompilerCompileScript(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *script);
 
 bool nkxVmCompilerCompileScriptFile(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *scriptFilename);
 
 /// Destroy a compiler. This will also finish off any remaining tasks
 /// like setting up the global variable list in the VM.
 void nkxVmCompilerFinalize(
-    struct CompilerState *cs);
+    struct NKCompilerState *cs);
 
 const char *nkxValueToString(struct VM *vm, struct Value *value);
 

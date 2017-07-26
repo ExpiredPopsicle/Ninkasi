@@ -236,7 +236,7 @@ int main(int argc, char *argv[])
         vm->limits.maxAllocatedMemory = maxRam;
 
         {
-            struct CompilerState *cs = nkxVmCompilerCreate(vm);
+            struct NKCompilerState *cs = nkxVmCompilerCreate(vm);
             if(cs) {
                 nkxVmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
                 nkxVmCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe, NULL);

@@ -107,7 +107,7 @@ bool isPostfixOperator(struct NKToken *token)
         token->type == TOKENTYPE_DOT);
 }
 
-int32_t getPrecedence(enum TokenType t)
+int32_t getPrecedence(enum NKTokenType t)
 {
     // Reference:
     // http://en.cppreference.com/w/cpp/language/operator_precedence
@@ -216,7 +216,7 @@ bool reduce(
 
 bool parseFunctioncall(
     struct ExpressionAstNode *postfixNode,
-    struct CompilerState *cs)
+    struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -290,7 +290,7 @@ bool parseFunctioncall(
     return true;
 }
 
-struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
+struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 {
     struct NKToken **currentToken = &cs->currentToken;
     struct ExpressionAstNode *opStack = NULL;
@@ -661,11 +661,11 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 }
 
 bool emitFetchVariable(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *name,
     struct ExpressionAstNode *node)
 {
-    struct CompilerStateContextVariable *var =
+    struct NKCompilerStateContextVariable *var =
         lookupVariable(cs, name);
 
     if(!var) {
@@ -699,11 +699,11 @@ bool emitFetchVariable(
 }
 
 bool emitSetVariable(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *name,
     struct ExpressionAstNode *node)
 {
-    struct CompilerStateContextVariable *var =
+    struct NKCompilerStateContextVariable *var =
         lookupVariable(cs, name);
 
     if(!var) {
@@ -732,9 +732,9 @@ bool emitSetVariable(
     return true;
 }
 
-bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node);
+bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node);
 
-bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode *node)
+bool emitExpressionAssignment(struct NKCompilerState *cs, struct ExpressionAstNode *node)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -798,7 +798,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
     return true;
 }
 
-bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
+bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node)
 {
     struct NKInstruction inst;
     uint32_t i;
@@ -1010,7 +1010,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 }
 
 struct ExpressionAstNode *cloneExpressionTree(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     struct ExpressionAstNode *node)
 {
     struct ExpressionAstNode *newNode;
@@ -1042,7 +1042,7 @@ struct ExpressionAstNode *cloneExpressionTree(
 }
 
 void expandIncrementsAndDecrements(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     struct ExpressionAstNode *node)
 {
     if(!node) {
@@ -1135,7 +1135,7 @@ void expandIncrementsAndDecrements(
     nkiCompilerPopRecursion(cs);
 }
 
-struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs)
+struct ExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs)
 {
     struct ExpressionAstNode *node;
 
@@ -1160,7 +1160,7 @@ struct ExpressionAstNode *compileExpressionWithoutEmit(struct CompilerState *cs)
     return node;
 }
 
-bool compileExpression(struct CompilerState *cs)
+bool compileExpression(struct NKCompilerState *cs)
 {
     struct ExpressionAstNode *node;
 

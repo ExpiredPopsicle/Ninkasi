@@ -9,7 +9,7 @@
 struct NKInstruction;
 struct NKToken;
 
-struct CompilerStateContextVariable
+struct NKCompilerStateContextVariable
 {
     char *name;
     bool isGlobal;
@@ -25,13 +25,13 @@ struct CompilerStateContextVariable
     // stackPos is the position from the start of the stack frame.
     uint32_t stackPos;
 
-    struct CompilerStateContextVariable *next;
+    struct NKCompilerStateContextVariable *next;
 };
 
-struct CompilerStateContext
+struct NKCompilerStateContext
 {
-    struct CompilerStateContext *parent;
-    struct CompilerStateContextVariable *variables;
+    struct NKCompilerStateContext *parent;
+    struct NKCompilerStateContextVariable *variables;
 
     uint32_t stackFrameOffset;
 
@@ -41,13 +41,13 @@ struct CompilerStateContext
     uint32_t loopContextFixupCount;
 };
 
-struct CompilerState
+struct NKCompilerState
 {
     struct VM *vm;
 
     uint32_t instructionWriteIndex;
 
-    struct CompilerStateContext *context;
+    struct NKCompilerStateContext *context;
 
     struct NKToken *currentToken;
     uint32_t currentLineNumber;
@@ -55,45 +55,45 @@ struct CompilerState
     uint32_t recursionCount;
 };
 
-void addInstruction(struct CompilerState *cs, struct NKInstruction *inst);
-void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode);
+void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst);
+void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode);
 
-void pushContext(struct CompilerState *cs);
-void popContext(struct CompilerState *cs);
+void pushContext(struct NKCompilerState *cs);
+void popContext(struct NKCompilerState *cs);
 
-void addVariable(struct CompilerState *cs, const char *name);
-struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
-    struct CompilerState *cs, const char *name);
+void addVariable(struct NKCompilerState *cs, const char *name);
+struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
+    struct NKCompilerState *cs, const char *name);
 
-struct CompilerStateContextVariable *lookupVariable(
-    struct CompilerState *cs,
+struct NKCompilerStateContextVariable *lookupVariable(
+    struct NKCompilerState *cs,
     const char *name);
 
-bool compileStatement(struct CompilerState *cs);
-bool compileBlock(struct CompilerState *cs, bool noBracesOrContext);
-bool compileVariableDeclaration(struct CompilerState *cs);
-bool compileFunctionDefinition(struct CompilerState *cs);
-bool compileReturnStatement(struct CompilerState *cs);
-bool compileIfStatement(struct CompilerState *cs);
-bool compileWhileStatement(struct CompilerState *cs);
-bool compileForStatement(struct CompilerState *cs);
-bool compileBreakStatement(struct CompilerState *cs);
+bool compileStatement(struct NKCompilerState *cs);
+bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext);
+bool compileVariableDeclaration(struct NKCompilerState *cs);
+bool compileFunctionDefinition(struct NKCompilerState *cs);
+bool compileReturnStatement(struct NKCompilerState *cs);
+bool compileIfStatement(struct NKCompilerState *cs);
+bool compileWhileStatement(struct NKCompilerState *cs);
+bool compileForStatement(struct NKCompilerState *cs);
+bool compileBreakStatement(struct NKCompilerState *cs);
 
-void emitPushLiteralInt(struct CompilerState *cs, int32_t value);
-void emitPushLiteralFloat(struct CompilerState *cs, float value);
-void emitPushLiteralString(struct CompilerState *cs, const char *str);
-void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId);
-void emitPushNil(struct CompilerState *cs);
+void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value);
+void emitPushLiteralFloat(struct NKCompilerState *cs, float value);
+void emitPushLiteralString(struct NKCompilerState *cs, const char *str);
+void emitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId);
+void emitPushNil(struct NKCompilerState *cs);
 
-struct NKToken *vmCompilerNextToken(struct CompilerState *cs);
-enum TokenType vmCompilerTokenType(struct CompilerState *cs);
-uint32_t vmCompilerGetLinenumber(struct CompilerState *cs);
-const char *vmCompilerTokenString(struct CompilerState *cs);
-void vmCompilerAddError(struct CompilerState *cs, const char *error);
+struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs);
+enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs);
+uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs);
+const char *vmCompilerTokenString(struct NKCompilerState *cs);
+void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
 bool vmCompilerExpectAndSkipToken(
-    struct CompilerState *cs, enum TokenType t);
+    struct NKCompilerState *cs, enum NKTokenType t);
 
-bool nkiCompilerPushRecursion(struct CompilerState *cs);
-void nkiCompilerPopRecursion(struct CompilerState *cs);
+bool nkiCompilerPushRecursion(struct NKCompilerState *cs);
+void nkiCompilerPopRecursion(struct NKCompilerState *cs);
 
 #endif // NINKASI_COMPILER_H

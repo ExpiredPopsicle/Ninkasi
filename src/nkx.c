@@ -121,11 +121,11 @@ struct Value *nkxVmFindGlobalVariable(
     return ret;
 }
 
-struct CompilerState *nkxVmCompilerCreate(
+struct NKCompilerState *nkxVmCompilerCreate(
     struct VM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
-    struct CompilerState *ret;
+    struct NKCompilerState *ret;
     NK_SET_FAILURE_RECOVERY(NULL);
     ret = vmCompilerCreate(vm);
     NK_CLEAR_FAILURE_RECOVERY();
@@ -133,7 +133,7 @@ struct CompilerState *nkxVmCompilerCreate(
 }
 
 void nkxVmCompilerCreateCFunctionVariable(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,
     void *userData)
@@ -146,7 +146,7 @@ void nkxVmCompilerCreateCFunctionVariable(
 }
 
 bool nkxVmCompilerCompileScript(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *script)
 {
     NK_FAILURE_RECOVERY_DECL();
@@ -159,7 +159,7 @@ bool nkxVmCompilerCompileScript(
 }
 
 bool nkxVmCompilerCompileScriptFile(
-    struct CompilerState *cs,
+    struct NKCompilerState *cs,
     const char *scriptFilename)
 {
     struct VM *vm = cs->vm;
@@ -197,7 +197,7 @@ bool nkxVmCompilerCompileScriptFile(
 }
 
 void nkxVmCompilerFinalize(
-    struct CompilerState *cs)
+    struct NKCompilerState *cs)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct VM *vm = cs->vm;
