@@ -41,7 +41,7 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
     cs->instructionWriteIndex++;
 }
 
-void addInstructionSimple(struct CompilerState *cs, enum Opcode opcode)
+void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode)
 {
     struct Instruction inst;
     memset(&inst, 0, sizeof(inst));

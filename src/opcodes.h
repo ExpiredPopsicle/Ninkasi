@@ -10,7 +10,7 @@ struct VM;
 struct Instruction
 {
     union {
-        enum Opcode opcode;
+        enum NKOpcode opcode;
 
         int32_t opData_int;
         float opData_float;

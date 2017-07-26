@@ -47,7 +47,7 @@ void dumpListing(struct VM *vm, const char *script)
     if(vm->instructions) {
         for(i = 0; i <= vm->instructionAddressMask; i++) {
 
-            enum Opcode opcode = vm->instructions[i].opcode;
+            enum NKOpcode opcode = vm->instructions[i].opcode;
             struct Instruction *maybeParams =
                 &vm->instructions[(i+1) & vm->instructionAddressMask];
 

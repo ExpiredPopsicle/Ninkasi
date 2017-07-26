@@ -430,7 +430,7 @@ void vmRescanProgramStrings(struct VM *vm)
     }
 }
 
-const char *vmGetOpcodeName(enum Opcode op)
+const char *vmGetOpcodeName(enum NKOpcode op)
 {
     return opcodeNameTable[op & (OPCODE_PADDEDCOUNT - 1)];
 }

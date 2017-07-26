@@ -56,7 +56,7 @@ struct CompilerState
 };
 
 void addInstruction(struct CompilerState *cs, struct Instruction *inst);
-void addInstructionSimple(struct CompilerState *cs, enum Opcode opcode);
+void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode);
 
 void pushContext(struct CompilerState *cs);
 void popContext(struct CompilerState *cs);

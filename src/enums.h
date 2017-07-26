@@ -15,7 +15,7 @@ enum NKValueType
     NK_VALUETYPE_NIL
 };
 
-enum Opcode
+enum NKOpcode
 {
     NK_OP_NOP = 0, // Leave this at zero so we can memset() sections of
                 // code to zero.
