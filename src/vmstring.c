@@ -89,7 +89,7 @@ uint32_t vmStringTableFindOrAddString(
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
-        table->stringsByHash[hash & (vmStringTableHashTableSize - 1)];
+        table->stringsByHash[hash & (nkVmStringHashTableSize - 1)];
     struct NKVMString *cur = hashBucket;
 
     while(cur) {
@@ -174,7 +174,7 @@ uint32_t vmStringTableFindOrAddString(
         newString->hash = stringHash(str);
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
-        table->stringsByHash[hash & (vmStringTableHashTableSize - 1)] = newString;
+        table->stringsByHash[hash & (nkVmStringHashTableSize - 1)] = newString;
         table->stringTable[index] = newString;
 
         return newString->stringTableIndex;
@@ -187,7 +187,7 @@ void vmStringTableDump(struct NKVMStringTable *table)
     printf("String table dump...\n");
 
     printf("  Hash table...\n");
-    for(i = 0; i < vmStringTableHashTableSize; i++) {
+    for(i = 0; i < nkVmStringHashTableSize  ; i++) {
         struct NKVMString *str = table->stringsByHash[i];
         printf("    %.2x\n", i);
         while(str) {
@@ -214,7 +214,7 @@ void vmStringTableCleanOldStrings(
     dbgWriteLine("Purging unused strings...");
     dbgPush();
 
-    for(i = 0; i < vmStringTableHashTableSize; i++) {
+    for(i = 0; i < nkVmStringHashTableSize; i++) {
 
         struct NKVMString **lastPtr = &table->stringsByHash[i];
         struct NKVMString *str = table->stringsByHash[i];

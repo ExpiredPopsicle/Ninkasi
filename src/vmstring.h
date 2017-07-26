@@ -24,11 +24,11 @@ struct NKVMStringTableHole
     uint32_t index;
 };
 
-#define vmStringTableHashTableSize 256
+#define nkVmStringHashTableSize 256
 
 struct NKVMStringTable
 {
-    struct NKVMString *stringsByHash[vmStringTableHashTableSize];
+    struct NKVMString *stringsByHash[nkVmStringHashTableSize];
 
     struct NKVMStringTableHole *tableHoles;
 
