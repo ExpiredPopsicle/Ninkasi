@@ -51,7 +51,7 @@ void dumpListing(struct VM *vm, const char *script)
             struct Instruction *maybeParams =
                 &vm->instructions[(i+1) & vm->instructionAddressMask];
 
-            if(opcode == OP_END) {
+            if(opcode == NK_OP_END) {
                 break;
             }
 
@@ -82,16 +82,16 @@ void dumpListing(struct VM *vm, const char *script)
           #endif
 
             // Output parameters.
-            if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
+            if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
                 i++;
                 printf(" %d", maybeParams->opData_int);
-            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FLOAT) {
                 i++;
                 printf(" %f", maybeParams->opData_float);
-            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FUNCTIONID) {
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FUNCTIONID) {
                 i++;
                 printf(" %u", maybeParams->opData_functionId);
-            } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
                 const char *str = vmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
                 i++;
                 // TODO: Escape string before showing here.
@@ -290,10 +290,10 @@ int main(int argc, char *argv[])
                 while(
                     vm->instructions[
                         vm->instructionPointer &
-                        vm->instructionAddressMask].opcode != OP_END &&
+                        vm->instructionAddressMask].opcode != NK_OP_END &&
                     vm->instructions[
                         vm->instructionPointer &
-                        vm->instructionAddressMask].opcode != OP_NOP &&
+                        vm->instructionAddressMask].opcode != NK_OP_NOP &&
                     instructionCountMax)
                 {
                     nkxVmIterate(vm, 2000);
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
                 }
             }
 
-            // while(vm->instructions[vm->instructionPointer].opcode != OP_END) {
+            // while(vm->instructions[vm->instructionPointer].opcode != NK_OP_END) {
 
             //     // printf("instruction %d: %d\n", vm->instructionPointer, vm->instructions[vm->instructionPointer].opcode);
             //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);

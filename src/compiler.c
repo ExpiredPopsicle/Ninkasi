@@ -121,8 +121,8 @@ void popContext(struct CompilerState *cs)
             // uint32_t maybePopNAddr =
             //     (cs->instructionWriteIndex - 1) & cs->vm->instructionAddressMask;
 
-            // if(cs->vm->instructions[maybePushIntAddr].opcode == OP_PUSHLITERAL_INT &&
-            //     cs->vm->instructions[maybePopNAddr].opcode == OP_POPN)
+            // if(cs->vm->instructions[maybePushIntAddr].opcode == NK_OP_PUSHLITERAL_INT &&
+            //     cs->vm->instructions[maybePopNAddr].opcode == NK_OP_POPN)
             // {
             //     // Looks like we just came out of a context, so we can
             //     // add onto that.
@@ -135,7 +135,7 @@ void popContext(struct CompilerState *cs)
                 // anything to pop.)
                 if(popCount) {
                     emitPushLiteralInt(cs, popCount);
-                    addInstructionSimple(cs, OP_POPN);
+                    addInstructionSimple(cs, NK_OP_POPN);
                 }
 
             // }
@@ -160,7 +160,7 @@ void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
-    inst.opcode = OP_PUSHLITERAL_INT;
+    inst.opcode = NK_OP_PUSHLITERAL_INT;
     addInstruction(cs, &inst);
 
     // Add parameter.
@@ -175,7 +175,7 @@ void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
-    inst.opcode = OP_PUSHLITERAL_FUNCTIONID;
+    inst.opcode = NK_OP_PUSHLITERAL_FUNCTIONID;
     addInstruction(cs, &inst);
 
     // Add parameter.
@@ -190,7 +190,7 @@ void emitPushLiteralFloat(struct CompilerState *cs, float value)
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
-    inst.opcode = OP_PUSHLITERAL_FLOAT;
+    inst.opcode = NK_OP_PUSHLITERAL_FLOAT;
     addInstruction(cs, &inst);
 
     // Add parameter.
@@ -205,7 +205,7 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str)
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
-    inst.opcode = OP_PUSHLITERAL_STRING;
+    inst.opcode = NK_OP_PUSHLITERAL_STRING;
     addInstruction(cs, &inst);
 
     // Add string table entry data as op parameter.
@@ -228,7 +228,7 @@ void emitPushLiteralString(struct CompilerState *cs, const char *str)
 
 void emitPushNil(struct CompilerState *cs)
 {
-    addInstructionSimple(cs, OP_PUSHNIL);
+    addInstructionSimple(cs, NK_OP_PUSHNIL);
 }
 
 struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
@@ -374,8 +374,8 @@ bool compileStatement(struct CompilerState *cs)
 
             if(vmCompilerTokenType(cs) == TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
-                // a OP_POP.
-                addInstructionSimple(cs, OP_DUMP);
+                // a NK_OP_POP.
+                addInstructionSimple(cs, NK_OP_DUMP);
                 cs->context->stackFrameOffset--;
             }
 
@@ -547,7 +547,7 @@ void emitReturn(struct CompilerState *cs)
         dbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
         emitPushLiteralInt(cs, throwAwayContext);
-        addInstructionSimple(cs, OP_RETURN);
+        addInstructionSimple(cs, NK_OP_RETURN);
     }
 }
 
@@ -625,7 +625,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // will only happen once per function so whatever.
     emitPushLiteralInt(cs, 0);
     skipOffset = cs->instructionWriteIndex - 1;
-    addInstructionSimple(cs, OP_JUMP_RELATIVE);
+    addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
 
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
@@ -925,7 +925,7 @@ void vmCompilerFinalize(
     }
 
     // Add a single end instruction.
-    addInstructionSimple(cs, OP_END);
+    addInstructionSimple(cs, NK_OP_END);
 
     nkFree(cs->vm, cs);
 }
@@ -1021,7 +1021,7 @@ uint32_t emitJump(struct CompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
-    addInstructionSimple(cs, OP_JUMP_RELATIVE);
+    addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
     return instructionWriteIndex;
 }
 
@@ -1030,7 +1030,7 @@ uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
-    addInstructionSimple(cs, OP_JUMP_IF_ZERO);
+    addInstructionSimple(cs, NK_OP_JUMP_IF_ZERO);
     cs->context->stackFrameOffset--;
     return instructionWriteIndex;
 }
@@ -1050,10 +1050,10 @@ void modifyJump(
     struct Instruction *jumpInst =
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
 
-    assert(pushLitInst->opcode == OP_PUSHLITERAL_INT);
+    assert(pushLitInst->opcode == NK_OP_PUSHLITERAL_INT);
     assert(
-        jumpInst->opcode == OP_JUMP_RELATIVE ||
-        jumpInst->opcode == OP_JUMP_IF_ZERO);
+        jumpInst->opcode == NK_OP_JUMP_RELATIVE ||
+        jumpInst->opcode == NK_OP_JUMP_IF_ZERO);
 
     vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 1)->opData_int =
         (target - pushLiteralBeforeJumpAddress) - 3;
@@ -1077,7 +1077,7 @@ bool compileIfStatement(struct CompilerState *cs)
         return false;
     }
 
-    // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
+    // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
@@ -1108,7 +1108,7 @@ bool compileIfStatement(struct CompilerState *cs)
         skipAddressWritePtrElse = emitJump(cs, 0);
 
         // Increase our skip amount to account for the
-        // OP_PUSHLITERAL_INT and OP_JUMP_RELATIVE we added to skip
+        // NK_OP_PUSHLITERAL_INT and NK_OP_JUMP_RELATIVE we added to skip
         // past the "else" clause.
         modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
@@ -1171,7 +1171,7 @@ bool compileWhileStatement(struct CompilerState *cs)
         return false;
     }
 
-    // Add the OP_JUMP_IF_ZERO, and save the literal address so we can
+    // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
@@ -1302,7 +1302,7 @@ bool compileForStatement(struct CompilerState *cs)
         nkiCompilerPopRecursion(cs);
         return false;
     }
-    addInstructionSimple(cs, OP_POP);
+    addInstructionSimple(cs, NK_OP_POP);
     cs->context->stackFrameOffset--;
 
     // Emit jump back to start.
@@ -1356,7 +1356,7 @@ bool compileBreakStatement(struct CompilerState *cs)
     // assert(0);
 
     emitPushLiteralInt(cs, contextLevel - loopContextLevel);
-    addInstructionSimple(cs, OP_POPN);
+    addInstructionSimple(cs, NK_OP_POPN);
     {
         uint32_t jumpFixup = emitJump(cs, 0);
         searchContext->loopContextFixupCount++;

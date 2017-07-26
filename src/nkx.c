@@ -61,7 +61,7 @@ void nkxVmIterate(struct VM *vm, uint32_t count)
         // Check for end-of-program.
         if(vm->instructions[
                 vm->instructionPointer &
-                vm->instructionAddressMask].opcode == OP_END)
+                vm->instructionAddressMask].opcode == NK_OP_END)
         {
             break;
         }

@@ -690,7 +690,7 @@ bool emitFetchVariable(
         dbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
 
-    addInstructionSimple(cs, OP_STACKPEEK);
+    addInstructionSimple(cs, NK_OP_STACKPEEK);
     cs->context->stackFrameOffset++;
 
     dbgWriteLine("GET VAR: %s", name);
@@ -725,7 +725,7 @@ bool emitSetVariable(
 
     }
 
-    addInstructionSimple(cs, OP_STACKPOKE);
+    addInstructionSimple(cs, NK_OP_STACKPOKE);
 
     dbgWriteLine("SET VAR: %s", name);
 
@@ -777,7 +777,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
             emitExpression(cs, node->children[0]->children[0]); // Object id
             emitExpression(cs, node->children[0]->children[1]); // Index
 
-            addInstructionSimple(cs, OP_OBJECTFIELDSET);
+            addInstructionSimple(cs, NK_OP_OBJECTFIELDSET);
             cs->context->stackFrameOffset -= 2;
         } break;
 
@@ -853,17 +853,17 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
         } break;
 
         case TOKENTYPE_NEWOBJECT: {
-            addInstructionSimple(cs, OP_CREATEOBJECT);
+            addInstructionSimple(cs, NK_OP_CREATEOBJECT);
             cs->context->stackFrameOffset++;
         } break;
 
         case TOKENTYPE_NIL: {
-            addInstructionSimple(cs, OP_PUSHNIL);
+            addInstructionSimple(cs, NK_OP_PUSHNIL);
             cs->context->stackFrameOffset++;
         } break;
 
         case TOKENTYPE_PLUS: {
-            addInstructionSimple(cs, OP_ADD);
+            addInstructionSimple(cs, NK_OP_ADD);
             cs->context->stackFrameOffset--;
 
             dbgWriteLine("ADD");
@@ -872,70 +872,70 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
         case TOKENTYPE_MINUS:
             if(!node->children[1]) {
-                addInstructionSimple(cs, OP_NEGATE);
+                addInstructionSimple(cs, NK_OP_NEGATE);
                 dbgWriteLine("NEGATE");
             } else {
-                addInstructionSimple(cs, OP_SUBTRACT);
+                addInstructionSimple(cs, NK_OP_SUBTRACT);
                 cs->context->stackFrameOffset--;
                 dbgWriteLine("SUBTRACT");
             }
             break;
 
         case TOKENTYPE_MULTIPLY:
-            addInstructionSimple(cs, OP_MULTIPLY);
+            addInstructionSimple(cs, NK_OP_MULTIPLY);
             cs->context->stackFrameOffset--;
             dbgWriteLine("MULTIPLY");
             break;
 
         case TOKENTYPE_DIVIDE:
-            addInstructionSimple(cs, OP_DIVIDE);
+            addInstructionSimple(cs, NK_OP_DIVIDE);
             cs->context->stackFrameOffset--;
             dbgWriteLine("DIVIDE");
             break;
 
         case TOKENTYPE_MODULO:
-            addInstructionSimple(cs, OP_MODULO);
+            addInstructionSimple(cs, NK_OP_MODULO);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_GREATERTHAN:
-            addInstructionSimple(cs, OP_GREATERTHAN);
+            addInstructionSimple(cs, NK_OP_GREATERTHAN);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_LESSTHAN:
-            addInstructionSimple(cs, OP_LESSTHAN);
+            addInstructionSimple(cs, NK_OP_LESSTHAN);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_GREATERTHANOREQUAL:
-            addInstructionSimple(cs, OP_GREATERTHANOREQUAL);
+            addInstructionSimple(cs, NK_OP_GREATERTHANOREQUAL);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_LESSTHANOREQUAL:
-            addInstructionSimple(cs, OP_LESSTHANOREQUAL);
+            addInstructionSimple(cs, NK_OP_LESSTHANOREQUAL);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_EQUAL:
-            addInstructionSimple(cs, OP_EQUAL);
+            addInstructionSimple(cs, NK_OP_EQUAL);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_NOTEQUAL:
-            addInstructionSimple(cs, OP_NOTEQUAL);
+            addInstructionSimple(cs, NK_OP_NOTEQUAL);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_EQUALWITHSAMETYPE:
-            addInstructionSimple(cs, OP_EQUALWITHSAMETYPE);
+            addInstructionSimple(cs, NK_OP_EQUALWITHSAMETYPE);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_NOT:
             // No stack size change here.
-            addInstructionSimple(cs, OP_NOT);
+            addInstructionSimple(cs, NK_OP_NOT);
             break;
 
         case TOKENTYPE_IDENTIFIER:
@@ -943,17 +943,17 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             break;
 
         case TOKENTYPE_AND:
-            addInstructionSimple(cs, OP_AND);
+            addInstructionSimple(cs, NK_OP_AND);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_OR:
-            addInstructionSimple(cs, OP_OR);
+            addInstructionSimple(cs, NK_OP_OR);
             cs->context->stackFrameOffset--;
             break;
 
         case TOKENTYPE_BRACKET_OPEN:
-            addInstructionSimple(cs, OP_OBJECTFIELDGET);
+            addInstructionSimple(cs, NK_OP_OBJECTFIELDGET);
             cs->context->stackFrameOffset--;
             break;
 
@@ -976,11 +976,11 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
                 emitPushLiteralInt(cs, argumentCount);
 
                 if(node->opOrValue->type == TOKENTYPE_FUNCTIONCALL_WITHSELF) {
-                    addInstructionSimple(cs, OP_PREPARESELFCALL);
+                    addInstructionSimple(cs, NK_OP_PREPARESELFCALL);
                     argumentCount++;
                 }
 
-                addInstructionSimple(cs, OP_CALL);
+                addInstructionSimple(cs, NK_OP_CALL);
 
                 cs->context->stackFrameOffset -= argumentCount;
             }
@@ -988,7 +988,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
         } break;
 
         case TOKENTYPE_INDEXINTO_NOPOP:
-            addInstructionSimple(cs, OP_OBJECTFIELDGET_NOPOP);
+            addInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP);
             break;
 
         default: {

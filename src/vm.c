@@ -17,55 +17,55 @@ static void vmInitOpcodeTable(void)
 {
     assert(OPCODE_PADDEDCOUNT >= OPCODE_REALCOUNT);
 
-    SETUP_OP(OP_ADD,                    opcode_add);
-    SETUP_OP(OP_SUBTRACT,               opcode_subtract);
-    SETUP_OP(OP_MULTIPLY,               opcode_multiply);
-    SETUP_OP(OP_DIVIDE,                 opcode_divide);
-    SETUP_OP(OP_MODULO,                 opcode_modulo);
-    SETUP_OP(OP_NEGATE,                 opcode_negate);
-    SETUP_OP(OP_PUSHLITERAL_INT,        opcode_pushLiteral_int);
-    SETUP_OP(OP_PUSHLITERAL_FLOAT,      opcode_pushLiteral_float);
-    SETUP_OP(OP_PUSHLITERAL_STRING,     opcode_pushLiteral_string);
-    SETUP_OP(OP_PUSHLITERAL_FUNCTIONID, opcode_pushLiteral_functionId);
-    SETUP_OP(OP_NOP,                    opcode_nop);
-    SETUP_OP(OP_POP,                    opcode_pop);
-    SETUP_OP(OP_POPN,                   opcode_popN);
+    SETUP_OP(NK_OP_ADD,                    opcode_add);
+    SETUP_OP(NK_OP_SUBTRACT,               opcode_subtract);
+    SETUP_OP(NK_OP_MULTIPLY,               opcode_multiply);
+    SETUP_OP(NK_OP_DIVIDE,                 opcode_divide);
+    SETUP_OP(NK_OP_MODULO,                 opcode_modulo);
+    SETUP_OP(NK_OP_NEGATE,                 opcode_negate);
+    SETUP_OP(NK_OP_PUSHLITERAL_INT,        opcode_pushLiteral_int);
+    SETUP_OP(NK_OP_PUSHLITERAL_FLOAT,      opcode_pushLiteral_float);
+    SETUP_OP(NK_OP_PUSHLITERAL_STRING,     opcode_pushLiteral_string);
+    SETUP_OP(NK_OP_PUSHLITERAL_FUNCTIONID, opcode_pushLiteral_functionId);
+    SETUP_OP(NK_OP_NOP,                    opcode_nop);
+    SETUP_OP(NK_OP_POP,                    opcode_pop);
+    SETUP_OP(NK_OP_POPN,                   opcode_popN);
 
-    SETUP_OP(OP_DUMP,                   opcode_dump);
+    SETUP_OP(NK_OP_DUMP,                   opcode_dump);
 
-    SETUP_OP(OP_STACKPEEK,              opcode_stackPeek);
-    SETUP_OP(OP_STACKPOKE,              opcode_stackPoke);
+    SETUP_OP(NK_OP_STACKPEEK,              opcode_stackPeek);
+    SETUP_OP(NK_OP_STACKPOKE,              opcode_stackPoke);
 
-    SETUP_OP(OP_JUMP_RELATIVE,          opcode_jumpRelative);
+    SETUP_OP(NK_OP_JUMP_RELATIVE,          opcode_jumpRelative);
 
-    SETUP_OP(OP_CALL,                   opcode_call);
-    SETUP_OP(OP_RETURN,                 opcode_return);
+    SETUP_OP(NK_OP_CALL,                   opcode_call);
+    SETUP_OP(NK_OP_RETURN,                 opcode_return);
 
-    SETUP_OP(OP_END,                    opcode_end);
+    SETUP_OP(NK_OP_END,                    opcode_end);
 
-    SETUP_OP(OP_JUMP_IF_ZERO,           opcode_jz);
+    SETUP_OP(NK_OP_JUMP_IF_ZERO,           opcode_jz);
 
-    SETUP_OP(OP_GREATERTHAN,            opcode_gt);
-    SETUP_OP(OP_LESSTHAN,               opcode_lt);
-    SETUP_OP(OP_GREATERTHANOREQUAL,     opcode_ge);
-    SETUP_OP(OP_LESSTHANOREQUAL,        opcode_le);
-    SETUP_OP(OP_EQUAL,                  opcode_eq);
-    SETUP_OP(OP_NOTEQUAL,               opcode_ne);
-    SETUP_OP(OP_EQUALWITHSAMETYPE,      opcode_eqsametype);
-    SETUP_OP(OP_NOT,                    opcode_not);
+    SETUP_OP(NK_OP_GREATERTHAN,            opcode_gt);
+    SETUP_OP(NK_OP_LESSTHAN,               opcode_lt);
+    SETUP_OP(NK_OP_GREATERTHANOREQUAL,     opcode_ge);
+    SETUP_OP(NK_OP_LESSTHANOREQUAL,        opcode_le);
+    SETUP_OP(NK_OP_EQUAL,                  opcode_eq);
+    SETUP_OP(NK_OP_NOTEQUAL,               opcode_ne);
+    SETUP_OP(NK_OP_EQUALWITHSAMETYPE,      opcode_eqsametype);
+    SETUP_OP(NK_OP_NOT,                    opcode_not);
 
-    SETUP_OP(OP_AND,                    opcode_and);
-    SETUP_OP(OP_OR,                     opcode_or);
+    SETUP_OP(NK_OP_AND,                    opcode_and);
+    SETUP_OP(NK_OP_OR,                     opcode_or);
 
-    SETUP_OP(OP_OBJECTFIELDGET,         opcode_objectFieldGet);
-    SETUP_OP(OP_OBJECTFIELDSET,         opcode_objectFieldSet);
+    SETUP_OP(NK_OP_OBJECTFIELDGET,         opcode_objectFieldGet);
+    SETUP_OP(NK_OP_OBJECTFIELDSET,         opcode_objectFieldSet);
 
-    SETUP_OP(OP_CREATEOBJECT,           opcode_createObject);
+    SETUP_OP(NK_OP_CREATEOBJECT,           opcode_createObject);
 
-    SETUP_OP(OP_PREPARESELFCALL,        opcode_prepareSelfCall);
-    SETUP_OP(OP_OBJECTFIELDGET_NOPOP,   opcode_objectFieldGet_noPop);
+    SETUP_OP(NK_OP_PREPARESELFCALL,        opcode_prepareSelfCall);
+    SETUP_OP(NK_OP_OBJECTFIELDGET_NOPOP,   opcode_objectFieldGet_noPop);
 
-    SETUP_OP(OP_PUSHNIL,                opcode_pushNil);
+    SETUP_OP(NK_OP_PUSHNIL,                opcode_pushNil);
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
@@ -407,7 +407,7 @@ void vmRescanProgramStrings(struct VM *vm)
     // Mark everything that's referenced from the program.
     for(i = 0; i <= vm->instructionAddressMask; i++) {
 
-        if(vm->instructions[i].opcode == OP_PUSHLITERAL_STRING) {
+        if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
 
             i++;
             {
@@ -422,9 +422,9 @@ void vmRescanProgramStrings(struct VM *vm)
                     dbgWriteLine("Marked string as in-use by program: %s", entry->str);
                 }
             }
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_INT) {
+        } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
             i++; // Skip data for this.
-        } else if(vm->instructions[i].opcode == OP_PUSHLITERAL_FLOAT) {
+        } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FLOAT) {
             i++; // Skip data for this.
         }
     }
@@ -528,7 +528,7 @@ bool vmExecuteProgram(struct VM *vm)
 {
     while(vm->instructions[
             vm->instructionPointer &
-            vm->instructionAddressMask].opcode != OP_END)
+            vm->instructionAddressMask].opcode != NK_OP_END)
     {
         vmIterate(vm);
 
