@@ -302,18 +302,18 @@ bool compileStatement(struct NKCompilerState *cs)
         "Entering compileStatement with stackFrameOffset: %u",
         cs->context->stackFrameOffset);
 
-    if(vmCompilerTokenType(cs) == TOKENTYPE_INVALID) {
+    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_INVALID) {
         vmCompilerAddError(cs, "Ran out of tokens to parse.");
         return false;
     }
 
     switch(vmCompilerTokenType(cs)) {
 
-        case TOKENTYPE_VAR:
+        case NK_TOKENTYPE_VAR:
             // "var" = Variable declaration.
             return compileVariableDeclaration(cs);
 
-        case TOKENTYPE_FUNCTION:
+        case NK_TOKENTYPE_FUNCTION:
             // "function" = Function definition.
             if(!compileFunctionDefinition(cs)) {
                 // assert(cs->context == startContext);
@@ -321,11 +321,11 @@ bool compileStatement(struct NKCompilerState *cs)
             }
             break;
 
-        case TOKENTYPE_RETURN:
+        case NK_TOKENTYPE_RETURN:
             // "return" = Return statement.
             return compileReturnStatement(cs);
 
-        case TOKENTYPE_CURLYBRACE_OPEN:
+        case NK_TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
             if(!compileBlock(cs, false)) {
                 // assert(cs->context == startContext);
@@ -333,7 +333,7 @@ bool compileStatement(struct NKCompilerState *cs)
             }
             break;
 
-        case TOKENTYPE_IF:
+        case NK_TOKENTYPE_IF:
             // "if" statements.
             if(!compileIfStatement(cs)) {
                 // assert(cs->context == startContext);
@@ -341,7 +341,7 @@ bool compileStatement(struct NKCompilerState *cs)
             }
             break;
 
-        case TOKENTYPE_WHILE:
+        case NK_TOKENTYPE_WHILE:
             // "while" statements.
             if(!compileWhileStatement(cs)) {
                 // assert(cs->context == startContext);
@@ -349,7 +349,7 @@ bool compileStatement(struct NKCompilerState *cs)
             }
             break;
 
-        case TOKENTYPE_FOR:
+        case NK_TOKENTYPE_FOR:
             // "for" statements.
             if(!compileForStatement(cs)) {
                 // assert(cs->context == startContext);
@@ -357,7 +357,7 @@ bool compileStatement(struct NKCompilerState *cs)
             }
             break;
 
-        case TOKENTYPE_BREAK:
+        case NK_TOKENTYPE_BREAK:
             // "break" statements.
             if(!compileBreakStatement(cs)) {
                 // assert(cs->context == startContext);
@@ -372,14 +372,14 @@ bool compileStatement(struct NKCompilerState *cs)
                 return false;
             }
 
-            if(vmCompilerTokenType(cs) == TOKENTYPE_SEMICOLON) {
+            if(vmCompilerTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
                 // a NK_OP_POP.
                 addInstructionSimple(cs, NK_OP_DUMP);
                 cs->context->stackFrameOffset--;
             }
 
-            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+            EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
             break;
     }
@@ -432,13 +432,13 @@ bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
     }
 
     if(!noBracesOrContext) {
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_OPEN);
+        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_OPEN);
         pushContext(cs);
     }
 
     while(
-        vmCompilerTokenType(cs) != TOKENTYPE_CURLYBRACE_CLOSE &&
-        vmCompilerTokenType(cs) != TOKENTYPE_INVALID)
+        vmCompilerTokenType(cs) != NK_TOKENTYPE_CURLYBRACE_CLOSE &&
+        vmCompilerTokenType(cs) != NK_TOKENTYPE_INVALID)
     {
         if(!compileStatement(cs)) {
 
@@ -454,7 +454,7 @@ bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
 
     if(!noBracesOrContext) {
         popContext(cs);
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_CURLYBRACE_CLOSE);
+        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_CLOSE);
     }
 
     assert(startContext == cs->context);
@@ -468,9 +468,9 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
         return false;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_VAR);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
 
-    if(vmCompilerTokenType(cs) != TOKENTYPE_IDENTIFIER) {
+    if(vmCompilerTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
         vmCompilerAddError(cs, "Expected identifier in variable declaration.");
         nkiCompilerPopRecursion(cs);
         return false;
@@ -479,14 +479,14 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
     {
         const char *variableName = vmCompilerTokenString(cs);
 
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IDENTIFIER);
+        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IDENTIFIER);
 
-        if(vmCompilerTokenType(cs) == TOKENTYPE_ASSIGNMENT) {
+        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_ASSIGNMENT) {
 
             // Something in the form of "var foo = expression;" We'll just
             // treat the "foo = expression;" part as a separate thing.
 
-            EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ASSIGNMENT);
+            EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ASSIGNMENT);
 
             if(!compileExpression(cs)) {
                 nkiCompilerPopRecursion(cs);
@@ -503,7 +503,7 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
         }
     }
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
     return true;
@@ -557,7 +557,7 @@ bool compileReturnStatement(struct NKCompilerState *cs)
         return false;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_RETURN);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_RETURN);
 
     if(!compileExpression(cs)) {
         nkiCompilerPopRecursion(cs);
@@ -566,7 +566,7 @@ bool compileReturnStatement(struct NKCompilerState *cs)
 
     emitReturn(cs);
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
 
@@ -594,10 +594,10 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_FUNCTION);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
 
     // Read the function name.
-    if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
+    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
         functionName = vmCompilerTokenString(cs);
         vmCompilerNextToken(cs);
     } else {
@@ -645,7 +645,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     cs->context = functionLocalContext;
 
     // Skip '('.
-    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
         vmCompilerNextToken(cs);
     } else {
         vmCompilerAddError(cs, "Expected '('.");
@@ -653,10 +653,10 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
-    while(vmCompilerTokenType(cs) != TOKENTYPE_INVALID) {
+    while(vmCompilerTokenType(cs) != NK_TOKENTYPE_INVALID) {
 
         // Add each of them as a local variable to the new context.
-        if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
+        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
             const char *argumentName = vmCompilerTokenString(cs);
 
@@ -671,7 +671,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
             vmCompilerNextToken(cs);
 
-        } else if(vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE) {
+        } else if(vmCompilerTokenType(cs) != NK_TOKENTYPE_PAREN_CLOSE) {
 
             vmCompilerAddError(
                 cs, "Expected identifier for function argument name.");
@@ -679,11 +679,11 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
             break;
         }
 
-        if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
+        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
             break;
         }
 
-        if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
+        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_COMMA) {
             vmCompilerNextToken(cs);
         } else {
             vmCompilerAddError(cs, "Expected ')' or ','.");
@@ -718,7 +718,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     varTmp->doNotPopWhenOutOfScope = true;
 
     // Skip ')'.
-    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
+    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
         vmCompilerNextToken(cs);
     } else {
         vmCompilerAddError(cs, "Expected ')'.");
@@ -778,7 +778,7 @@ enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs)
     if(cs->currentToken) {
         return cs->currentToken->type;
     }
-    return TOKENTYPE_INVALID;
+    return NK_TOKENTYPE_INVALID;
 }
 
 uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs)
@@ -1068,8 +1068,8 @@ bool compileIfStatement(struct NKCompilerState *cs)
     }
 
     // Skip "if("
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_IF);
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_OPEN);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IF);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
     if(!compileExpression(cs)) {
@@ -1082,7 +1082,7 @@ bool compileIfStatement(struct NKCompilerState *cs)
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_PAREN_CLOSE);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_CLOSE);
 
     // Generate code to execute if test passes.
     pushContext(cs);
@@ -1096,11 +1096,11 @@ bool compileIfStatement(struct NKCompilerState *cs)
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
-    if(vmCompilerTokenType(cs) == TOKENTYPE_ELSE) {
+    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_ELSE) {
 
         uint32_t skipAddressWritePtrElse = 0;
 
-        EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_ELSE);
+        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ELSE);
 
         // Emit instructions to skip past the contents of the "else"
         // block. Keep the index of the relative offset here so we can
@@ -1154,8 +1154,8 @@ bool compileWhileStatement(struct NKCompilerState *cs)
     pushContext(cs);
 
     // Skip "while("
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_WHILE) ||
-        !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_OPEN))
+    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_WHILE) ||
+        !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
     {
         popContext(cs);
         popContext(cs);
@@ -1176,7 +1176,7 @@ bool compileWhileStatement(struct NKCompilerState *cs)
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         popContext(cs);
         popContext(cs);
         nkiCompilerPopRecursion(cs);
@@ -1226,8 +1226,8 @@ bool compileForStatement(struct NKCompilerState *cs)
     pushContext(cs);
 
     // Skip "for("
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_FOR) ||
-        !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_OPEN))
+    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_FOR) ||
+        !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
     {
         popContext(cs);
         popContext(cs);
@@ -1248,7 +1248,7 @@ bool compileForStatement(struct NKCompilerState *cs)
     // If we ever go back to using expressions for the init thing,
     // we'll have to remember to pop the value it leaves behind,
     // decrement the stack frame offset, and then
-    // EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON).
+    // EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON).
 
     // Save the address we want to jump back to for the loop.
     loopStartAddress = cs->instructionWriteIndex;
@@ -1262,7 +1262,7 @@ bool compileForStatement(struct NKCompilerState *cs)
     }
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_SEMICOLON)) {
+    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
         popContext(cs);
         popContext(cs);
         nkiCompilerPopRecursion(cs);
@@ -1274,7 +1274,7 @@ bool compileForStatement(struct NKCompilerState *cs)
     incrementExpression = compileExpressionWithoutEmit(cs); // FIXME: Check return value.
 
     // Skip ")"
-    if(!incrementExpression || !vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+    if(!incrementExpression || !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         deleteExpressionNode(cs->vm, incrementExpression);
         popContext(cs);
         popContext(cs);
@@ -1369,8 +1369,8 @@ bool compileBreakStatement(struct NKCompilerState *cs)
             jumpFixup;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_BREAK);
-    EXPECT_AND_SKIP_STATEMENT(TOKENTYPE_SEMICOLON);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_BREAK);
+    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
     return true;

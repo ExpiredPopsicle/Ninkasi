@@ -39,7 +39,7 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node)
         dbgPop();
         dbgWriteLine(")");
 
-    } else if(node->opOrValue->type == TOKENTYPE_BRACKET_OPEN) {
+    } else if(node->opOrValue->type == NK_TOKENTYPE_BRACKET_OPEN) {
 
         dbgWriteLine("(");
         dumpExpressionAstNode(node->children[0]);
@@ -79,32 +79,32 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node)
 bool isSubexpressionEndingToken(struct NKToken *token)
 {
     return !token ||
-        token->type == TOKENTYPE_PAREN_CLOSE ||
-        token->type == TOKENTYPE_BRACKET_CLOSE ||
-        token->type == TOKENTYPE_COMMA;
+        token->type == NK_TOKENTYPE_PAREN_CLOSE ||
+        token->type == NK_TOKENTYPE_BRACKET_CLOSE ||
+        token->type == NK_TOKENTYPE_COMMA;
 }
 
 bool isExpressionEndingToken(struct NKToken *token)
 {
     return !token || isSubexpressionEndingToken(token) ||
-        token->type == TOKENTYPE_SEMICOLON;
+        token->type == NK_TOKENTYPE_SEMICOLON;
 }
 
 bool isPrefixOperator(struct NKToken *token)
 {
     return token && (
-        token->type == TOKENTYPE_MINUS ||
-        token->type == TOKENTYPE_DECREMENT ||
-        token->type == TOKENTYPE_INCREMENT ||
-        token->type == TOKENTYPE_NOT);
+        token->type == NK_TOKENTYPE_MINUS ||
+        token->type == NK_TOKENTYPE_DECREMENT ||
+        token->type == NK_TOKENTYPE_INCREMENT ||
+        token->type == NK_TOKENTYPE_NOT);
 }
 
 bool isPostfixOperator(struct NKToken *token)
 {
     return token && (
-        token->type == TOKENTYPE_BRACKET_OPEN ||
-        token->type == TOKENTYPE_PAREN_OPEN ||
-        token->type == TOKENTYPE_DOT);
+        token->type == NK_TOKENTYPE_BRACKET_OPEN ||
+        token->type == NK_TOKENTYPE_PAREN_OPEN ||
+        token->type == NK_TOKENTYPE_DOT);
 }
 
 int32_t getPrecedence(enum NKTokenType t)
@@ -113,27 +113,27 @@ int32_t getPrecedence(enum NKTokenType t)
     // http://en.cppreference.com/w/cpp/language/operator_precedence
 
     switch(t) {
-        case TOKENTYPE_MULTIPLY:
-        case TOKENTYPE_DIVIDE:
-        case TOKENTYPE_MODULO:
+        case NK_TOKENTYPE_MULTIPLY:
+        case NK_TOKENTYPE_DIVIDE:
+        case NK_TOKENTYPE_MODULO:
             return 5;
-        case TOKENTYPE_PLUS:
-        case TOKENTYPE_MINUS:
+        case NK_TOKENTYPE_PLUS:
+        case NK_TOKENTYPE_MINUS:
             return 6;
-        case TOKENTYPE_GREATERTHAN:
-        case TOKENTYPE_LESSTHAN:
-        case TOKENTYPE_GREATERTHANOREQUAL:
-        case TOKENTYPE_LESSTHANOREQUAL:
+        case NK_TOKENTYPE_GREATERTHAN:
+        case NK_TOKENTYPE_LESSTHAN:
+        case NK_TOKENTYPE_GREATERTHANOREQUAL:
+        case NK_TOKENTYPE_LESSTHANOREQUAL:
             return 8;
-        case TOKENTYPE_EQUAL:
-        case TOKENTYPE_NOTEQUAL:
-        case TOKENTYPE_EQUALWITHSAMETYPE:
+        case NK_TOKENTYPE_EQUAL:
+        case NK_TOKENTYPE_NOTEQUAL:
+        case NK_TOKENTYPE_EQUALWITHSAMETYPE:
             return 9;
-        case TOKENTYPE_AND:
+        case NK_TOKENTYPE_AND:
             return 13;
-        case TOKENTYPE_OR:
+        case NK_TOKENTYPE_OR:
             return 14;
-        case TOKENTYPE_ASSIGNMENT:
+        case NK_TOKENTYPE_ASSIGNMENT:
             return 15;
         default:
             // Error?
@@ -237,8 +237,8 @@ bool parseFunctioncall(
         uint32_t argCount = 0;
 
         while(
-            vmCompilerTokenType(cs) != TOKENTYPE_INVALID &&
-            vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE)
+            vmCompilerTokenType(cs) != NK_TOKENTYPE_INVALID &&
+            vmCompilerTokenType(cs) != NK_TOKENTYPE_PAREN_CLOSE)
         {
             // Make a new node for this parameter.
             struct NKExpressionAstNode *thisParamNode =
@@ -262,9 +262,9 @@ bool parseFunctioncall(
             }
 
             // Skip commas.
-            if(vmCompilerTokenType(cs) == TOKENTYPE_COMMA) {
+            if(vmCompilerTokenType(cs) == NK_TOKENTYPE_COMMA) {
                 vmCompilerNextToken(cs);
-            } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_CLOSE) {
+            } else if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
                 // This is okay. It just means we're at the end.
             } else {
                 // Anything else is bad.
@@ -279,7 +279,7 @@ bool parseFunctioncall(
     }
     dbgPop();
 
-    if(!vmCompilerExpectAndSkipToken(cs, TOKENTYPE_PAREN_CLOSE)) {
+    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         nkiCompilerPopRecursion(cs);
         return false;
     }
@@ -333,7 +333,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         }
 
         // Parse a value or sub-expression.
-        if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
             // Parse sub-expression.
             dbgWriteLine("Parse sub-expression.");
@@ -407,13 +407,13 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
             dbgWriteLine("Parse postfix operator: %s", (*currentToken)->str);
 
-            if(vmCompilerTokenType(cs) == TOKENTYPE_DOT) {
+            if(vmCompilerTokenType(cs) == NK_TOKENTYPE_DOT) {
 
                 // Handle index-into, or function call with "self" param.
 
-                EXPECT_AND_SKIP(TOKENTYPE_DOT);
+                EXPECT_AND_SKIP(NK_TOKENTYPE_DOT);
 
-                if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
+                if(vmCompilerTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
                     struct NKExpressionAstNode *identifierStringNode =
                         nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
@@ -422,30 +422,30 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
-                    identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
+                    identifierStringNode->opOrValue->type = NK_TOKENTYPE_STRING;
                     identifierStringNode->opOrValue->str = nkiStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = true;
 
                     indexIntoNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
-                    indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
+                    indexIntoNode->opOrValue->type = NK_TOKENTYPE_BRACKET_OPEN;
                     indexIntoNode->opOrValue->str = nkiStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
                     indexIntoNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     indexIntoNode->ownedToken = true;
                     indexIntoNode->children[1] = identifierStringNode;
 
-                    EXPECT_AND_SKIP(TOKENTYPE_IDENTIFIER);
+                    EXPECT_AND_SKIP(NK_TOKENTYPE_IDENTIFIER);
 
                     // Now see if this is a function call.
-                    if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+                    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
                         struct NKExpressionAstNode *functionCallNode =
                             nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
 
                         functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
-                        functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
+                        functionCallNode->opOrValue->type = NK_TOKENTYPE_PAREN_OPEN;
                         functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
                         functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
@@ -465,14 +465,14 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                         // Make sure the "self" value stays on the stack.
                         indexIntoNode->opOrValue->type =
-                            TOKENTYPE_INDEXINTO_NOPOP;
+                            NK_TOKENTYPE_INDEXINTO_NOPOP;
 
                         // And switch to a version of the function
                         // call that knows that the "self" parameter
                         // is going to be before the function itself
                         // in the stack.
                         functionCallNode->opOrValue->type =
-                            TOKENTYPE_FUNCTIONCALL_WITHSELF;
+                            NK_TOKENTYPE_FUNCTIONCALL_WITHSELF;
 
                         if(firstPostfixOp == postfixNode) {
                             firstPostfixOp = indexIntoNode;
@@ -493,7 +493,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                     return NULL;
                 }
 
-            } else if(vmCompilerTokenType(cs) == TOKENTYPE_BRACKET_OPEN) {
+            } else if(vmCompilerTokenType(cs) == NK_TOKENTYPE_BRACKET_OPEN) {
 
                 // Handle index-into operator.
 
@@ -511,11 +511,11 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                     return NULL;
                 }
 
-                EXPECT_AND_SKIP(TOKENTYPE_BRACKET_CLOSE);
+                EXPECT_AND_SKIP(NK_TOKENTYPE_BRACKET_CLOSE);
 
                 dbgWriteLine("Index-into operator complete.");
 
-            } else if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
+            } else if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
                 // Handle function call "operator".
                 if(!parseFunctioncall(postfixNode, cs)) {
@@ -763,7 +763,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
     switch(node->children[0]->opOrValue->type) {
 
         // Variable assignment.
-        case TOKENTYPE_IDENTIFIER: {
+        case NK_TOKENTYPE_IDENTIFIER: {
             emitSetVariable(
                 cs,
                 node->children[0]->opOrValue->str,
@@ -771,7 +771,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
         } break;
 
         // Object index.
-        case TOKENTYPE_BRACKET_OPEN: {
+        case NK_TOKENTYPE_BRACKET_OPEN: {
 
             // Emit the thing we're going to assign to.
             emitExpression(cs, node->children[0]->children[0]); // Object id
@@ -809,7 +809,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
     // Assignments are special, because we need to evaluate the left
     // side as an LValue.
-    if(node->opOrValue->type == TOKENTYPE_ASSIGNMENT) {
+    if(node->opOrValue->type == NK_TOKENTYPE_ASSIGNMENT) {
         nkiCompilerPopRecursion(cs);
         return emitExpressionAssignment(cs, node);
     }
@@ -828,7 +828,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
     switch(node->opOrValue->type) {
 
-        case TOKENTYPE_INTEGER: {
+        case NK_TOKENTYPE_INTEGER: {
             emitPushLiteralInt(cs, atoi(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
@@ -836,7 +836,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
         } break;
 
-        case TOKENTYPE_FLOAT: {
+        case NK_TOKENTYPE_FLOAT: {
             emitPushLiteralFloat(cs, atof(node->opOrValue->str));
             cs->context->stackFrameOffset++;
 
@@ -844,7 +844,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
         } break;
 
-        case TOKENTYPE_STRING: {
+        case NK_TOKENTYPE_STRING: {
             emitPushLiteralString(cs, node->opOrValue->str);
             cs->context->stackFrameOffset++;
 
@@ -852,17 +852,17 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
         } break;
 
-        case TOKENTYPE_NEWOBJECT: {
+        case NK_TOKENTYPE_NEWOBJECT: {
             addInstructionSimple(cs, NK_OP_CREATEOBJECT);
             cs->context->stackFrameOffset++;
         } break;
 
-        case TOKENTYPE_NIL: {
+        case NK_TOKENTYPE_NIL: {
             addInstructionSimple(cs, NK_OP_PUSHNIL);
             cs->context->stackFrameOffset++;
         } break;
 
-        case TOKENTYPE_PLUS: {
+        case NK_TOKENTYPE_PLUS: {
             addInstructionSimple(cs, NK_OP_ADD);
             cs->context->stackFrameOffset--;
 
@@ -870,7 +870,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
         } break;
 
-        case TOKENTYPE_MINUS:
+        case NK_TOKENTYPE_MINUS:
             if(!node->children[1]) {
                 addInstructionSimple(cs, NK_OP_NEGATE);
                 dbgWriteLine("NEGATE");
@@ -881,84 +881,84 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
             }
             break;
 
-        case TOKENTYPE_MULTIPLY:
+        case NK_TOKENTYPE_MULTIPLY:
             addInstructionSimple(cs, NK_OP_MULTIPLY);
             cs->context->stackFrameOffset--;
             dbgWriteLine("MULTIPLY");
             break;
 
-        case TOKENTYPE_DIVIDE:
+        case NK_TOKENTYPE_DIVIDE:
             addInstructionSimple(cs, NK_OP_DIVIDE);
             cs->context->stackFrameOffset--;
             dbgWriteLine("DIVIDE");
             break;
 
-        case TOKENTYPE_MODULO:
+        case NK_TOKENTYPE_MODULO:
             addInstructionSimple(cs, NK_OP_MODULO);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_GREATERTHAN:
+        case NK_TOKENTYPE_GREATERTHAN:
             addInstructionSimple(cs, NK_OP_GREATERTHAN);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_LESSTHAN:
+        case NK_TOKENTYPE_LESSTHAN:
             addInstructionSimple(cs, NK_OP_LESSTHAN);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_GREATERTHANOREQUAL:
+        case NK_TOKENTYPE_GREATERTHANOREQUAL:
             addInstructionSimple(cs, NK_OP_GREATERTHANOREQUAL);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_LESSTHANOREQUAL:
+        case NK_TOKENTYPE_LESSTHANOREQUAL:
             addInstructionSimple(cs, NK_OP_LESSTHANOREQUAL);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_EQUAL:
+        case NK_TOKENTYPE_EQUAL:
             addInstructionSimple(cs, NK_OP_EQUAL);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_NOTEQUAL:
+        case NK_TOKENTYPE_NOTEQUAL:
             addInstructionSimple(cs, NK_OP_NOTEQUAL);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_EQUALWITHSAMETYPE:
+        case NK_TOKENTYPE_EQUALWITHSAMETYPE:
             addInstructionSimple(cs, NK_OP_EQUALWITHSAMETYPE);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_NOT:
+        case NK_TOKENTYPE_NOT:
             // No stack size change here.
             addInstructionSimple(cs, NK_OP_NOT);
             break;
 
-        case TOKENTYPE_IDENTIFIER:
+        case NK_TOKENTYPE_IDENTIFIER:
             emitFetchVariable(cs, node->opOrValue->str, node);
             break;
 
-        case TOKENTYPE_AND:
+        case NK_TOKENTYPE_AND:
             addInstructionSimple(cs, NK_OP_AND);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_OR:
+        case NK_TOKENTYPE_OR:
             addInstructionSimple(cs, NK_OP_OR);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_BRACKET_OPEN:
+        case NK_TOKENTYPE_BRACKET_OPEN:
             addInstructionSimple(cs, NK_OP_OBJECTFIELDGET);
             cs->context->stackFrameOffset--;
             break;
 
-        case TOKENTYPE_PAREN_OPEN:
-        case TOKENTYPE_FUNCTIONCALL_WITHSELF:
+        case NK_TOKENTYPE_PAREN_OPEN:
+        case NK_TOKENTYPE_FUNCTIONCALL_WITHSELF:
         {
             // Function calls.
 
@@ -975,7 +975,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
                 dbgWriteLine("Emitting function call with arguments: %u", argumentCount);
                 emitPushLiteralInt(cs, argumentCount);
 
-                if(node->opOrValue->type == TOKENTYPE_FUNCTIONCALL_WITHSELF) {
+                if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
                     addInstructionSimple(cs, NK_OP_PREPARESELFCALL);
                     argumentCount++;
                 }
@@ -987,7 +987,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
 
         } break;
 
-        case TOKENTYPE_INDEXINTO_NOPOP:
+        case NK_TOKENTYPE_INDEXINTO_NOPOP:
             addInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP);
             break;
 
@@ -1053,8 +1053,8 @@ void expandIncrementsAndDecrements(
         return;
     }
 
-    if(node->opOrValue->type == TOKENTYPE_INCREMENT ||
-        node->opOrValue->type == TOKENTYPE_DECREMENT)
+    if(node->opOrValue->type == NK_TOKENTYPE_INCREMENT ||
+        node->opOrValue->type == NK_TOKENTYPE_DECREMENT)
     {
         assert(node->children[0]);
         assert(!node->children[1]);
@@ -1074,12 +1074,12 @@ void expandIncrementsAndDecrements(
             struct NKToken *additionToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
             struct NKToken *assignmentToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
             char *oneTokenStr = nkiStrdup(cs->vm, "1");
-            char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
+            char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == NK_TOKENTYPE_INCREMENT ? "+" : "-");
             char *assignTokenStr = nkiStrdup(cs->vm, "=");
 
             // Generate a node for the number 1.
             literalOneNode->opOrValue = literalOneToken;
-            literalOneNode->opOrValue->type = TOKENTYPE_INTEGER;
+            literalOneNode->opOrValue->type = NK_TOKENTYPE_INTEGER;
             literalOneNode->opOrValue->str = oneTokenStr;
             literalOneNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             literalOneNode->opOrValue->next = NULL;
@@ -1092,7 +1092,7 @@ void expandIncrementsAndDecrements(
             // Generate a node that just adds 1 to the value.
             additionNode->opOrValue = additionToken;
             additionNode->opOrValue->type =
-                oldToken->type == TOKENTYPE_INCREMENT ? TOKENTYPE_PLUS : TOKENTYPE_MINUS;
+                oldToken->type == NK_TOKENTYPE_INCREMENT ? NK_TOKENTYPE_PLUS : NK_TOKENTYPE_MINUS;
             additionNode->opOrValue->str = addTokenStr;
             additionNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             additionNode->opOrValue->next = NULL;
@@ -1106,7 +1106,7 @@ void expandIncrementsAndDecrements(
             // the original value. This just turns this node into an
             // assignment node.
             node->opOrValue = assignmentToken;
-            node->opOrValue->type = TOKENTYPE_ASSIGNMENT;
+            node->opOrValue->type = NK_TOKENTYPE_ASSIGNMENT;
             node->opOrValue->str = assignTokenStr;
             node->opOrValue->lineNumber = oldToken->lineNumber;
             node->opOrValue->next = NULL;

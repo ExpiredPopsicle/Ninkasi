@@ -2,10 +2,10 @@
 
 bool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 {
-    if(node->opOrValue->type == TOKENTYPE_PLUS ||
-        node->opOrValue->type == TOKENTYPE_MINUS ||
-        node->opOrValue->type == TOKENTYPE_MULTIPLY ||
-        node->opOrValue->type == TOKENTYPE_DIVIDE)
+    if(node->opOrValue->type == NK_TOKENTYPE_PLUS ||
+        node->opOrValue->type == NK_TOKENTYPE_MINUS ||
+        node->opOrValue->type == NK_TOKENTYPE_MULTIPLY ||
+        node->opOrValue->type == NK_TOKENTYPE_DIVIDE)
     {
         return true;
     }
@@ -14,8 +14,8 @@ bool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 
 bool isImmediateValue(struct NKExpressionAstNode *node)
 {
-    if(node->opOrValue->type == TOKENTYPE_INTEGER ||
-        node->opOrValue->type == TOKENTYPE_FLOAT)
+    if(node->opOrValue->type == NK_TOKENTYPE_INTEGER ||
+        node->opOrValue->type == NK_TOKENTYPE_FLOAT)
     {
         return true;
     }
@@ -44,12 +44,12 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
     do {                                                \
         switch((*node)->opOrValue->type) {              \
                                                         \
-            case TOKENTYPE_PLUS:                        \
+            case NK_TOKENTYPE_PLUS:                        \
                 /* Addition. */                         \
                 val = c0Val + c1Val;                    \
                 break;                                  \
                                                         \
-            case TOKENTYPE_MINUS:                       \
+            case NK_TOKENTYPE_MINUS:                       \
                 if(!(*node)->children[1]) {             \
                     /* Unary negation. */               \
                     val = -c0Val;                       \
@@ -59,12 +59,12 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
                 }                                       \
                 break;                                  \
                                                         \
-            case TOKENTYPE_MULTIPLY:                    \
+            case NK_TOKENTYPE_MULTIPLY:                    \
                 /* Multiplication. */                   \
                 val = c0Val * c1Val;                    \
                 break;                                  \
                                                         \
-            case TOKENTYPE_DIVIDE:                      \
+            case NK_TOKENTYPE_DIVIDE:                      \
                 /* Division. */                         \
                 if(c1Val == 0) {                        \
                     deleteExpressionNode(vm, newNode);  \
@@ -127,7 +127,7 @@ void optimizeConstants(struct VM *vm, struct NKExpressionAstNode **node)
 
             switch((*node)->children[0]->opOrValue->type) {
 
-                case TOKENTYPE_INTEGER: {
+                case NK_TOKENTYPE_INTEGER: {
 
                     // Fetch original values.
                     int32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
@@ -150,7 +150,7 @@ void optimizeConstants(struct VM *vm, struct NKExpressionAstNode **node)
 
                 } break;
 
-                case TOKENTYPE_FLOAT: {
+                case NK_TOKENTYPE_FLOAT: {
 
                     // Fetch original values.
                     float c0Val = (*node)->children[0] ? atof((*node)->children[0]->opOrValue->str) : 0;
