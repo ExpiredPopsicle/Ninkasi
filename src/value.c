@@ -42,7 +42,7 @@ bool value_dump(
     return true;
 }
 
-const char *valueTypeGetName(enum ValueType type)
+const char *valueTypeGetName(enum NKValueType type)
 {
     switch(type) {
 
@@ -217,7 +217,7 @@ int32_t value_compare(
     struct Value *in2,
     bool strictType)
 {
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     if(strictType) {
         int32_t typeDiff = value_compareType(in1, in2);

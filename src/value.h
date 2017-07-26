@@ -7,7 +7,7 @@ struct VM;
 
 struct Value
 {
-    enum ValueType type;
+    enum NKValueType type;
     uint32_t lastGCPass;
 
     union
@@ -25,7 +25,7 @@ struct Value
 
 bool value_dump(struct VM *vm, struct Value *value);
 
-const char *valueTypeGetName(enum ValueType type);
+const char *valueTypeGetName(enum NKValueType type);
 
 int32_t valueToInt(struct VM *vm, struct Value *value);
 

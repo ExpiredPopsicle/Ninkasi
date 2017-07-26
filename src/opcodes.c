@@ -5,7 +5,7 @@ void opcode_add(struct VM *vm)
     struct Value *in2  = vmStackPop(vm);
     struct Value *in1  = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 
@@ -114,7 +114,7 @@ void opcode_subtract(struct VM *vm)
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 
@@ -150,7 +150,7 @@ void opcode_multiply(struct VM *vm)
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 
@@ -186,7 +186,7 @@ void opcode_divide(struct VM *vm)
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 
@@ -229,7 +229,7 @@ void opcode_modulo(struct VM *vm)
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 
@@ -264,7 +264,7 @@ void opcode_negate(struct VM *vm)
 {
     struct Value *in1 = vmStackPop(vm);
 
-    enum ValueType type = in1->type;
+    enum NKValueType type = in1->type;
 
     switch(type) {
 

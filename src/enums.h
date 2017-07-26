@@ -5,7 +5,7 @@
 // jamming all the enums for this system into this one file. It also
 // doesn't allow C++ style comments but fuck it, whatever.
 
-enum ValueType
+enum NKValueType
 {
     NK_VALUETYPE_INT,
     NK_VALUETYPE_FLOAT,
