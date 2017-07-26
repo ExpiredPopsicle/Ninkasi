@@ -9,8 +9,8 @@ struct NKDynString
     struct VM *vm;
 };
 
-struct NKDynString *dynStrCreate(struct VM *vm, const char *str);
-void dynStrDelete(struct NKDynString *dynStr);
+struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str);
+void nkiDynStrDelete(struct NKDynString *dynStr);
 
 void dynStrAppend(struct NKDynString *dynStr, const char *str);
 void dynStrAppendInt32(struct NKDynString *dynStr, int32_t value);

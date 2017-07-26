@@ -28,7 +28,7 @@ void opcode_add(struct VM *vm)
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
             struct NKDynString *dynStr =
-                dynStrCreate(vm,
+                nkiDynStrCreate(vm,
                     vmStringTableGetStringById(
                         &vm->stringTable,
                         in1->stringTableEntry));
@@ -42,7 +42,7 @@ void opcode_add(struct VM *vm)
                 vm, dynStr->data);
 
             // Clean up.
-            dynStrDelete(dynStr);
+            nkiDynStrDelete(dynStr);
 
         } break;
 
@@ -50,13 +50,13 @@ void opcode_add(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Addition unimplemented for type ");
+                nkiDynStrCreate(vm, "Addition unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
             return;
         }
     }
@@ -134,13 +134,13 @@ void opcode_subtract(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Subtraction unimplemented for type ");
+                nkiDynStrCreate(vm, "Subtraction unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
         } break;
     }
 }
@@ -170,13 +170,13 @@ void opcode_multiply(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Multiplication unimplemented for type ");
+                nkiDynStrCreate(vm, "Multiplication unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
         } break;
     }
 }
@@ -213,13 +213,13 @@ void opcode_divide(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Division unimplemented for type ");
+                nkiDynStrCreate(vm, "Division unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
         } break;
     }
 }
@@ -249,13 +249,13 @@ void opcode_modulo(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Modulo unimplemented for type ");
+                nkiDynStrCreate(vm, "Modulo unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
         } break;
     }
 }
@@ -282,13 +282,13 @@ void opcode_negate(struct VM *vm)
 
         default: {
             struct NKDynString *ds =
-                dynStrCreate(vm, "Negation unimplemented for type ");
+                nkiDynStrCreate(vm, "Negation unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
-            dynStrDelete(ds);
+            nkiDynStrDelete(ds);
         } break;
     }
 }

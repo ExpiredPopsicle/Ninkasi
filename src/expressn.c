@@ -172,12 +172,12 @@ int32_t getPrecedence(enum TokenType t)
     do {                                                    \
         if(vmCompilerTokenType(cs) != (x)) {                \
             struct NKDynString *errStr =                    \
-                dynStrCreate(cs->vm, "Unexpected token: "); \
+                nkiDynStrCreate(cs->vm, "Unexpected token: "); \
             dynStrAppend(                                   \
                 errStr,                                     \
                 vmCompilerTokenString(cs));                 \
             PARSE_ERROR(errStr->data);                      \
-            dynStrDelete(errStr);                           \
+            nkiDynStrDelete(errStr);                           \
             CLEANUP_INLOOP();                               \
             nkiCompilerPopRecursion(cs);                    \
             return NULL;                                    \
@@ -527,10 +527,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
             } else {
 
                 struct NKDynString *str =
-                    dynStrCreate(cs->vm, "Unknown postfix operator: ");
+                    nkiDynStrCreate(cs->vm, "Unknown postfix operator: ");
                 dynStrAppend(str, vmCompilerTokenString(cs));
                 PARSE_ERROR(str->data);
-                dynStrDelete(str);
+                nkiDynStrDelete(str);
                 CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
                 return NULL;
@@ -568,10 +568,10 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         // Make sure this is even something valid.
         if(getPrecedence((*currentToken)->type) == -1) {
             struct NKDynString *str =
-                dynStrCreate(cs->vm, "Unknown operator: ");
+                nkiDynStrCreate(cs->vm, "Unknown operator: ");
             dynStrAppend(str, vmCompilerTokenString(cs));
             PARSE_ERROR(str->data);
-            dynStrDelete(str);
+            nkiDynStrDelete(str);
             CLEANUP_INLOOP();
             nkiCompilerPopRecursion(cs);
             return NULL;
@@ -783,11 +783,11 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
 
         default: {
             struct NKDynString *dynStr =
-                dynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
+                nkiDynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
             dynStrAppend(dynStr, node->children[0]->opOrValue->str);
             vmCompilerAddError(
                 cs, dynStr->data);
-            dynStrDelete(dynStr);
+            nkiDynStrDelete(dynStr);
             nkiCompilerPopRecursion(cs);
             return false;
         } break;
@@ -993,13 +993,13 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 
         default: {
             struct NKDynString *dynStr =
-                dynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
+                nkiDynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
             dynStrAppend(dynStr, node->opOrValue->str);
             nkiAddError(
                 cs->vm,
                 node->opOrValue->lineNumber,
                 dynStr->data);
-            dynStrDelete(dynStr);
+            nkiDynStrDelete(dynStr);
             nkiCompilerPopRecursion(cs);
             return false;
         } break;

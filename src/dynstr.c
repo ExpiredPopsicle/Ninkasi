@@ -1,6 +1,6 @@
 #include "common.h"
 
-struct NKDynString *dynStrCreate(struct VM *vm, const char *str)
+struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str)
 {
     struct NKDynString *ret = nkMalloc(vm, sizeof(struct NKDynString) + 1);
     ret->vm = vm;
@@ -8,7 +8,7 @@ struct NKDynString *dynStrCreate(struct VM *vm, const char *str)
     return ret;
 }
 
-void dynStrDelete(struct NKDynString *dynStr)
+void nkiDynStrDelete(struct NKDynString *dynStr)
 {
     nkFree(dynStr->vm, dynStr->data);
     nkFree(dynStr->vm, dynStr);

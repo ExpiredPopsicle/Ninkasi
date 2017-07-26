@@ -6,12 +6,12 @@ bool vmFunctionCallbackCheckArgCount(
     const char *functionName)
 {
     if(data->argumentCount != 1) {
-        struct NKDynString *dynStr = dynStrCreate(
+        struct NKDynString *dynStr = nkiDynStrCreate(
             data->vm, "Bad argument count in ");
         dynStrAppend(dynStr, functionName);
         nkiAddError(
             data->vm, -1, dynStr->data);
-        dynStrDelete(dynStr);
+        nkiDynStrDelete(dynStr);
         return false;
     }
     return true;
