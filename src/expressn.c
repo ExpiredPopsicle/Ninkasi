@@ -423,14 +423,14 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
                     identifierStringNode->opOrValue->type = TOKENTYPE_STRING;
-                    identifierStringNode->opOrValue->str = nkStrdup(cs->vm, cs->currentToken->str);
+                    identifierStringNode->opOrValue->str = nkiStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = true;
 
                     indexIntoNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
                     indexIntoNode->opOrValue->type = TOKENTYPE_BRACKET_OPEN;
-                    indexIntoNode->opOrValue->str = nkStrdup(cs->vm, "[");
+                    indexIntoNode->opOrValue->str = nkiStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
                     indexIntoNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     indexIntoNode->ownedToken = true;
@@ -446,7 +446,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
                         functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
                         functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
-                        functionCallNode->opOrValue->str = nkStrdup(cs->vm, "(");
+                        functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
                         functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                         functionCallNode->ownedToken = true;
@@ -1027,7 +1027,7 @@ struct ExpressionAstNode *cloneExpressionTree(
         newNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct Token));
         memset(newNode->opOrValue, 0, sizeof(struct Token));
         newNode->opOrValue->type = node->opOrValue->type;
-        newNode->opOrValue->str = nkStrdup(cs->vm, node->opOrValue->str);
+        newNode->opOrValue->str = nkiStrdup(cs->vm, node->opOrValue->str);
         newNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
     } else {
         newNode->opOrValue = node->opOrValue;
@@ -1073,9 +1073,9 @@ void expandIncrementsAndDecrements(
             struct Token *literalOneToken = nkiMalloc(cs->vm, sizeof(struct Token));
             struct Token *additionToken = nkiMalloc(cs->vm, sizeof(struct Token));
             struct Token *assignmentToken = nkiMalloc(cs->vm, sizeof(struct Token));
-            char *oneTokenStr = nkStrdup(cs->vm, "1");
-            char *addTokenStr = nkStrdup(cs->vm, oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
-            char *assignTokenStr = nkStrdup(cs->vm, "=");
+            char *oneTokenStr = nkiStrdup(cs->vm, "1");
+            char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == TOKENTYPE_INCREMENT ? "+" : "-");
+            char *assignTokenStr = nkiStrdup(cs->vm, "=");
 
             // Generate a node for the number 1.
             literalOneNode->opOrValue = literalOneToken;

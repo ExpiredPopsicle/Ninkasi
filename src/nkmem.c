@@ -98,7 +98,7 @@ void *nkiRealloc(struct VM *vm, void *data, uint32_t size)
     return NULL;
 }
 
-char *nkStrdup(struct VM *vm, const char *str)
+char *nkiStrdup(struct VM *vm, const char *str)
 {
     if(str) {
         uint32_t len = strlen(str) + 1;

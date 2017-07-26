@@ -240,7 +240,7 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
 
     var->next = cs->context->variables;
     var->isGlobal = !cs->context->parent;
-    var->name = nkStrdup(cs->vm, name);
+    var->name = nkiStrdup(cs->vm, name);
     var->stackPos = cs->context->stackFrameOffset - 1;
 
     cs->context->variables = var;

@@ -142,7 +142,7 @@ void optimizeConstants(struct VM *vm, struct ExpressionAstNode **node)
 
                     // Set the string for the result.
                     sprintf(tmp, "%d", val);
-                    newNode->opOrValue->str = nkStrdup(vm, tmp);
+                    newNode->opOrValue->str = nkiStrdup(vm, tmp);
 
                     // Replace the original node.
                     deleteExpressionNode(vm, *node);
@@ -165,7 +165,7 @@ void optimizeConstants(struct VM *vm, struct ExpressionAstNode **node)
 
                     // Set the string for the result.
                     sprintf(tmp, "%f", val);
-                    newNode->opOrValue->str = nkStrdup(vm, tmp);
+                    newNode->opOrValue->str = nkiStrdup(vm, tmp);
 
                     // Replace the original node.
                     deleteExpressionNode(vm, *node);

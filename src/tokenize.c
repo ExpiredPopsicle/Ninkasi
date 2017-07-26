@@ -44,7 +44,7 @@ void addToken(
     struct Token *newToken =
         nkiMalloc(vm, sizeof(struct Token));
     newToken->next = NULL;
-    newToken->str = nkStrdup(vm, str);
+    newToken->str = nkiStrdup(vm, str);
     newToken->type = type;
     newToken->lineNumber = lineNumber;
 
