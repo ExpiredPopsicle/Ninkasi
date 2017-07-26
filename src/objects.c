@@ -278,7 +278,7 @@ void vmObjectTableDump(struct VM *vm)
 
 void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
 {
-    if(value->type == VALUETYPE_OBJECTID) {
+    if(value->type == NK_VALUETYPE_OBJECTID) {
 
         struct VMObject *ob = vmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
@@ -323,7 +323,7 @@ void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
 
 void vmObjectReleaseHandle(struct VM *vm, struct Value *value)
 {
-    if(value->type == VALUETYPE_OBJECTID) {
+    if(value->type == NK_VALUETYPE_OBJECTID) {
 
         struct VMObject *ob = vmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);

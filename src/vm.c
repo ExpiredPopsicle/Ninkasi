@@ -241,8 +241,8 @@ void vmGarbageCollect_markObject(
             for(k = 0; k < 2; k++) {
                 struct Value *v = k ? &el->value : &el->key;
 
-                if(v->type == VALUETYPE_STRING ||
-                    v->type == VALUETYPE_OBJECTID)
+                if(v->type == NK_VALUETYPE_STRING ||
+                    v->type == NK_VALUETYPE_OBJECTID)
                 {
                     struct VMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
                     newEntry->value = v;
@@ -287,7 +287,7 @@ void vmGarbageCollect_markReferenced(
 
             switch(value->type) {
 
-                case VALUETYPE_STRING: {
+                case NK_VALUETYPE_STRING: {
 
                     struct VMString *str = vmStringTableGetEntryById(
                         &gcState->vm->stringTable,
@@ -302,7 +302,7 @@ void vmGarbageCollect_markReferenced(
                     }
                 } break;
 
-                case VALUETYPE_OBJECTID: {
+                case NK_VALUETYPE_OBJECTID: {
 
                     struct VMObject *ob = vmObjectTableGetEntryById(
                         &gcState->vm->objectTable,
@@ -472,7 +472,7 @@ void vmCreateCFunction(
     vmfunc->isCFunction = true;
     vmfunc->CFunctionCallback = func;
 
-    output->type = VALUETYPE_FUNCTIONID;
+    output->type = NK_VALUETYPE_FUNCTIONID;
     output->functionId = functionId;
 }
 
@@ -483,7 +483,7 @@ void vmCallFunction(
     struct Value *arguments,
     struct Value *returnValue)
 {
-    if(functionValue->type != VALUETYPE_FUNCTIONID) {
+    if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
         nkiAddError(
             vm, -1,
             "Tried to call a non-function with vmCallFunction.");

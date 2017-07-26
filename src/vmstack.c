@@ -77,7 +77,7 @@ bool vmStackPushInt(struct VM *vm, int32_t value)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
-        data->type = VALUETYPE_INT;
+        data->type = NK_VALUETYPE_INT;
         data->intData = value;
         return true;
     }
@@ -88,7 +88,7 @@ bool vmStackPushFloat(struct VM *vm, float value)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
-        data->type = VALUETYPE_FLOAT;
+        data->type = NK_VALUETYPE_FLOAT;
         data->floatData = value;
         return true;
     }
@@ -99,7 +99,7 @@ bool vmStackPushString(struct VM *vm, const char *str)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
-        data->type = VALUETYPE_STRING;
+        data->type = NK_VALUETYPE_STRING;
         data->stringTableEntry =
             vmStringTableFindOrAddString(
                 vm, str);

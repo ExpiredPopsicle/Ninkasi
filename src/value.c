@@ -6,30 +6,30 @@ bool value_dump(
     // TODO: Function pointer table here?
     switch(value->type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             printf("%d", value->intData);
             break;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             printf("%f", value->floatData);
             break;
 
-        case VALUETYPE_STRING: {
+        case NK_VALUETYPE_STRING: {
             const char *str = vmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
             printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
         } break;
 
-        case VALUETYPE_NIL:
+        case NK_VALUETYPE_NIL:
             printf("<nil>");
             break;
 
-        case VALUETYPE_FUNCTIONID:
+        case NK_VALUETYPE_FUNCTIONID:
             printf("<function:%u>", value->functionId);
             break;
 
-        case VALUETYPE_OBJECTID:
+        case NK_VALUETYPE_OBJECTID:
             printf("<object:%u>", value->objectId);
             break;
 
@@ -46,22 +46,22 @@ const char *valueTypeGetName(enum ValueType type)
 {
     switch(type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             return "integer";
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             return "float";
 
-        case VALUETYPE_STRING:
+        case NK_VALUETYPE_STRING:
             return "string";
 
-        case VALUETYPE_FUNCTIONID:
+        case NK_VALUETYPE_FUNCTIONID:
             return "function";
 
-        case VALUETYPE_OBJECTID:
+        case NK_VALUETYPE_OBJECTID:
             return "object";
 
-        case VALUETYPE_NIL:
+        case NK_VALUETYPE_NIL:
             return "nil";
 
         default:
@@ -77,21 +77,21 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
 
     switch(value->type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             return value->intData;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             return (int)value->floatData;
 
-        case VALUETYPE_STRING:
+        case NK_VALUETYPE_STRING:
             return atoi(valueToString(vm, value));
 
-        case VALUETYPE_OBJECTID:
+        case NK_VALUETYPE_OBJECTID:
             // This is just for detection of the presence of objects
             // (like a null pointer check).
             return 1;
 
-        case VALUETYPE_NIL:
+        case NK_VALUETYPE_NIL:
             return 0;
 
         default: {
@@ -113,16 +113,16 @@ float valueToFloat(struct VM *vm, struct Value *value)
 
     switch(value->type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             return (float)value->intData;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             return value->floatData;
 
-        case VALUETYPE_STRING:
+        case NK_VALUETYPE_STRING:
             return atof(valueToString(vm, value));
 
-        case VALUETYPE_NIL:
+        case NK_VALUETYPE_NIL:
             return 0.0f;
 
         default: {
@@ -144,12 +144,12 @@ const char *valueToString(struct VM *vm, struct Value *value)
 
     switch(value->type) {
 
-        case VALUETYPE_STRING:
+        case NK_VALUETYPE_STRING:
             return vmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
 
-        case VALUETYPE_INT: {
+        case NK_VALUETYPE_INT: {
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
             uint32_t id;
 
@@ -164,7 +164,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
                 id);
         }
 
-        case VALUETYPE_FLOAT: {
+        case NK_VALUETYPE_FLOAT: {
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
             uint32_t id;
 
@@ -228,7 +228,7 @@ int32_t value_compare(
 
     switch(type) {
 
-        case VALUETYPE_INT: {
+        case NK_VALUETYPE_INT: {
             int32_t other = valueToInt(vm, in2);
             if(in1->intData > other) {
                 return 1;
@@ -239,7 +239,7 @@ int32_t value_compare(
             }
         } break;
 
-        case VALUETYPE_FLOAT: {
+        case NK_VALUETYPE_FLOAT: {
             float other = valueToFloat(vm, in2);
             if(in1->floatData > other) {
                 return 1;
@@ -250,7 +250,7 @@ int32_t value_compare(
             }
         } break;
 
-        case VALUETYPE_STRING: {
+        case NK_VALUETYPE_STRING: {
             const char *other = valueToString(vm, in2);
             const char *thisData = valueToString(vm, in1);
 
@@ -263,8 +263,8 @@ int32_t value_compare(
             return strcmp(thisData, other);
         } break;
 
-        case VALUETYPE_FUNCTIONID: {
-            if(in2->type == VALUETYPE_FUNCTIONID &&
+        case NK_VALUETYPE_FUNCTIONID: {
+            if(in2->type == NK_VALUETYPE_FUNCTIONID &&
                 in2->functionId == in1->functionId)
             {
                 return 0;
@@ -273,8 +273,8 @@ int32_t value_compare(
             }
         }
 
-        case VALUETYPE_OBJECTID: {
-            if(in2->type == VALUETYPE_OBJECTID &&
+        case NK_VALUETYPE_OBJECTID: {
+            if(in2->type == NK_VALUETYPE_OBJECTID &&
                 in2->objectId == in1->objectId)
             {
                 return 0;
@@ -304,14 +304,14 @@ uint32_t valueHash(struct VM *vm, struct Value *value)
 
     switch(value->type) {
 
-        case VALUETYPE_INT:
-        case VALUETYPE_FLOAT:
-        case VALUETYPE_FUNCTIONID:
-        case VALUETYPE_OBJECTID:
+        case NK_VALUETYPE_INT:
+        case NK_VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FUNCTIONID:
+        case NK_VALUETYPE_OBJECTID:
             ret = value->basicHashValue;
             break;
 
-        case VALUETYPE_STRING: {
+        case NK_VALUETYPE_STRING: {
 
             struct VMString *vmStr = vmStringTableGetEntryById(
                 &vm->stringTable,
@@ -335,19 +335,19 @@ uint32_t valueHash(struct VM *vm, struct Value *value)
 
 void vmValueSetInt(struct VM *vm, struct Value *value, int32_t intData)
 {
-    value->type = VALUETYPE_INT;
+    value->type = NK_VALUETYPE_INT;
     value->intData = intData;
 }
 
 void vmValueSetFloat(struct VM *vm, struct Value *value, float floatData)
 {
-    value->type = VALUETYPE_FLOAT;
+    value->type = NK_VALUETYPE_FLOAT;
     value->floatData = floatData;
 }
 
 void vmValueSetString(struct VM *vm, struct Value *value, const char *str)
 {
-    value->type = VALUETYPE_STRING;
+    value->type = NK_VALUETYPE_STRING;
     value->stringTableEntry =
         vmStringTableFindOrAddString(
             vm, str);

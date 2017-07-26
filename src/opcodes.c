@@ -9,21 +9,21 @@ void opcode_add(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             vmStackPushInt(
                 vm,
                 in1->intData +
                 valueToInt(vm, in2));
             break;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             vmStackPushFloat(
                 vm,
                 in1->floatData +
                 valueToFloat(vm, in2));
             break;
 
-        case VALUETYPE_STRING: {
+        case NK_VALUETYPE_STRING: {
 
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
@@ -67,7 +67,7 @@ void opcode_pushLiteral_int(struct VM *vm)
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
 
-    stackVal->type = VALUETYPE_INT;
+    stackVal->type = NK_VALUETYPE_INT;
     stackVal->intData =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_int;
 }
@@ -77,7 +77,7 @@ void opcode_pushLiteral_float(struct VM *vm)
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
 
-    stackVal->type = VALUETYPE_FLOAT;
+    stackVal->type = NK_VALUETYPE_FLOAT;
     stackVal->floatData =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_float;
 }
@@ -87,7 +87,7 @@ void opcode_pushLiteral_string(struct VM *vm)
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
 
-    stackVal->type = VALUETYPE_STRING;
+    stackVal->type = NK_VALUETYPE_STRING;
     stackVal->stringTableEntry =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_string;
 
@@ -100,7 +100,7 @@ void opcode_pushLiteral_functionId(struct VM *vm)
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
 
-    stackVal->type = VALUETYPE_FUNCTIONID;
+    stackVal->type = NK_VALUETYPE_FUNCTIONID;
     stackVal->functionId =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_functionId;
 }
@@ -118,14 +118,14 @@ void opcode_subtract(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             vmStackPushInt(
                 vm,
                 in1->intData -
                 valueToInt(vm, in2));
             break;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             vmStackPushFloat(
                 vm,
                 in1->floatData -
@@ -154,14 +154,14 @@ void opcode_multiply(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT:
+        case NK_VALUETYPE_INT:
             vmStackPushInt(
                 vm,
                 in1->intData *
                 valueToInt(vm, in2));
             break;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             vmStackPushFloat(
                 vm,
                 in1->floatData *
@@ -190,7 +190,7 @@ void opcode_divide(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT: {
+        case NK_VALUETYPE_INT: {
             int32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
                 nkiAddError(
@@ -204,7 +204,7 @@ void opcode_divide(struct VM *vm)
             }
         } break;
 
-        case VALUETYPE_FLOAT:
+        case NK_VALUETYPE_FLOAT:
             vmStackPushFloat(
                 vm,
                 in1->floatData /
@@ -233,7 +233,7 @@ void opcode_modulo(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT: {
+        case NK_VALUETYPE_INT: {
             int32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
                 nkiAddError(
@@ -268,13 +268,13 @@ void opcode_negate(struct VM *vm)
 
     switch(type) {
 
-        case VALUETYPE_INT: {
+        case NK_VALUETYPE_INT: {
             vmStackPushInt(
                 vm,
                 -(in1->intData));
         } break;
 
-        case VALUETYPE_FLOAT: {
+        case NK_VALUETYPE_FLOAT: {
             vmStackPushFloat(
                 vm,
                 -(in1->floatData));
@@ -317,7 +317,7 @@ void opcode_stackPeek(struct VM *vm)
 {
     // Read index.
     struct Value *v = vmStackPop(vm);
-    if(v->type != VALUETYPE_INT) {
+    if(v->type != NK_VALUETYPE_INT) {
         nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
         return;
@@ -352,7 +352,7 @@ void opcode_stackPoke(struct VM *vm)
 {
     // Read index.
     struct Value *stackAddrValue = vmStackPop(vm);
-    if(stackAddrValue->type != VALUETYPE_INT) {
+    if(stackAddrValue->type != NK_VALUETYPE_INT) {
         nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
         return;
@@ -407,7 +407,7 @@ void opcode_call(struct VM *vm)
         struct Value *functionIdValue = vmStackPeek(
             vm, vm->stack.size - (argumentCount + 2));
 
-        if(functionIdValue->type != VALUETYPE_FUNCTIONID) {
+        if(functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
             nkiAddError(
                 vm,
                 -1,
@@ -681,7 +681,7 @@ void opcode_or(struct VM *vm)
 void opcode_createObject(struct VM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
-    v->type = VALUETYPE_OBJECTID;
+    v->type = NK_VALUETYPE_OBJECTID;
     v->objectId = vmObjectTableCreateObject(vm);
 }
 
@@ -699,7 +699,7 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
         objectToGet = vmStackPeek(vm, vm->stack.size - 1);
     }
 
-    if(objectToGet->type != VALUETYPE_OBJECTID) {
+    if(objectToGet->type != NK_VALUETYPE_OBJECTID) {
         nkiAddError(
             vm,
             -1,
@@ -725,7 +725,7 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
     if(objectValue) {
         *output = *objectValue;
     } else {
-        output->type = VALUETYPE_NIL;
+        output->type = NK_VALUETYPE_NIL;
         output->basicHashValue = 0;
     }
 }
@@ -750,7 +750,7 @@ void opcode_objectFieldSet(struct VM *vm)
     struct Value *objectValue;
     struct VMObject *ob;
 
-    if(objectToSet->type != VALUETYPE_OBJECTID) {
+    if(objectToSet->type != NK_VALUETYPE_OBJECTID) {
         nkiAddError(
             vm,
             -1,
@@ -768,7 +768,7 @@ void opcode_objectFieldSet(struct VM *vm)
         return;
     }
 
-    if(valueToSet->type == VALUETYPE_NIL) {
+    if(valueToSet->type == NK_VALUETYPE_NIL) {
 
         // For nil, we actually want to remove a field.
 
@@ -802,12 +802,12 @@ void opcode_prepareSelfCall(struct VM *vm)
     *object = tmp;
 
     // Fixup argument count.
-    argumentCount->type = VALUETYPE_INT;
+    argumentCount->type = NK_VALUETYPE_INT;
     argumentCount->intData = stackOffset + 1;
 }
 
 void opcode_pushNil(struct VM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
-    v->type = VALUETYPE_NIL;
+    v->type = NK_VALUETYPE_NIL;
 }
