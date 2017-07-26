@@ -1,6 +1,6 @@
 #include "common.h"
 
-bool canOptimizeOperationWithConstants(struct ExpressionAstNode *node)
+bool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == TOKENTYPE_PLUS ||
         node->opOrValue->type == TOKENTYPE_MINUS ||
@@ -12,7 +12,7 @@ bool canOptimizeOperationWithConstants(struct ExpressionAstNode *node)
     return false;
 }
 
-bool isImmediateValue(struct ExpressionAstNode *node)
+bool isImmediateValue(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == TOKENTYPE_INTEGER ||
         node->opOrValue->type == TOKENTYPE_FLOAT)
@@ -22,13 +22,13 @@ bool isImmediateValue(struct ExpressionAstNode *node)
     return false;
 }
 
-struct ExpressionAstNode *makeImmediateExpressionNode(
+struct NKExpressionAstNode *makeImmediateExpressionNode(
     struct VM *vm,
     enum NKTokenType type,
     uint32_t lineNumber)
 {
-    struct ExpressionAstNode *newNode =
-        nkiMalloc(vm, sizeof(struct ExpressionAstNode));
+    struct NKExpressionAstNode *newNode =
+        nkiMalloc(vm, sizeof(struct NKExpressionAstNode));
     struct NKToken *newToken =
         nkiMalloc(vm, sizeof(struct NKToken));
     memset(newNode, 0, sizeof(*newNode));
@@ -82,7 +82,7 @@ struct ExpressionAstNode *makeImmediateExpressionNode(
         }                                               \
     } while(0)
 
-void optimizeConstants(struct VM *vm, struct ExpressionAstNode **node)
+void optimizeConstants(struct VM *vm, struct NKExpressionAstNode **node)
 {
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't
@@ -117,7 +117,7 @@ void optimizeConstants(struct VM *vm, struct ExpressionAstNode **node)
 
             // Make a new literal value node with the same type as
             // whatever we have on the left.
-            struct ExpressionAstNode *newNode =
+            struct NKExpressionAstNode *newNode =
                 makeImmediateExpressionNode(
                     vm,
                     (*node)->children[0]->opOrValue->type,

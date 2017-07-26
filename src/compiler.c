@@ -1212,7 +1212,7 @@ bool compileForStatement(struct NKCompilerState *cs)
 {
     uint32_t skipAddressWritePtr = 0;
     uint32_t loopStartAddress = 0;
-    struct ExpressionAstNode *incrementExpression = NULL;
+    struct NKExpressionAstNode *incrementExpression = NULL;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;

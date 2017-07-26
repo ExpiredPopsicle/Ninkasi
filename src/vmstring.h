@@ -1,5 +1,5 @@
-#ifndef VMSTRING_H
-#define VMSTRING_H
+#ifndef NINKASI_VMSTRING_H
+#define NINKASI_VMSTRING_H
 
 #include "basetype.h"
 
@@ -57,4 +57,5 @@ void vmStringTableCleanOldStrings(
     struct VM *vm,
     uint32_t lastGCPass);
 
-#endif
+#endif // NINKASI_VMSTRING_H
+

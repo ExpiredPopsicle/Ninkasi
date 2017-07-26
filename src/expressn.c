@@ -1,7 +1,7 @@
 #include "common.h"
 
 // TODO: Make a non-recursive version of this.
-void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node)
+void deleteExpressionNode(struct VM *vm, struct NKExpressionAstNode *node)
 {
     if(!node) {
         return;
@@ -23,7 +23,7 @@ void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node)
 }
 
 // TODO: Remove this.
-void dumpExpressionAstNode(struct ExpressionAstNode *node)
+void dumpExpressionAstNode(struct NKExpressionAstNode *node)
 {
     if(!node) {
         dbgWriteLine("<NULL>");
@@ -146,18 +146,18 @@ int32_t getPrecedence(enum NKTokenType t)
         cs,                                     \
         (x))
 
-#define CLEANUP_OUTER()                                             \
-    do {                                                            \
-        while(opStack) {                                            \
-            struct ExpressionAstNode *next = opStack->stackNext;    \
-            deleteExpressionNode(cs->vm, opStack);                  \
-            opStack = next;                                         \
-        }                                                           \
-        while(valueStack) {                                         \
-            struct ExpressionAstNode *next = valueStack->stackNext; \
-            deleteExpressionNode(cs->vm, valueStack);               \
-            valueStack = next;                                      \
-        }                                                           \
+#define CLEANUP_OUTER()                                                 \
+    do {                                                                \
+        while(opStack) {                                                \
+            struct NKExpressionAstNode *next = opStack->stackNext;      \
+            deleteExpressionNode(cs->vm, opStack);                      \
+            opStack = next;                                             \
+        }                                                               \
+        while(valueStack) {                                             \
+            struct NKExpressionAstNode *next = valueStack->stackNext;   \
+            deleteExpressionNode(cs->vm, valueStack);                   \
+            valueStack = next;                                          \
+        }                                                               \
     } while(0)
 
 #define CLEANUP_INLOOP()                                \
@@ -166,32 +166,32 @@ int32_t getPrecedence(enum NKTokenType t)
         deleteExpressionNode(cs->vm, firstPrefixOp);    \
         deleteExpressionNode(cs->vm, lastPostfixOp);    \
         deleteExpressionNode(cs->vm, valueNode);        \
-    } while(0)
+        } while(0)
 
-#define EXPECT_AND_SKIP(x)                                  \
-    do {                                                    \
-        if(vmCompilerTokenType(cs) != (x)) {                \
-            struct NKDynString *errStr =                    \
-                nkiDynStrCreate(cs->vm, "Unexpected token: "); \
-            nkiDynStrAppend(                                   \
-                errStr,                                     \
-                vmCompilerTokenString(cs));                 \
-            PARSE_ERROR(errStr->data);                      \
-            nkiDynStrDelete(errStr);                           \
-            CLEANUP_INLOOP();                               \
-            nkiCompilerPopRecursion(cs);                    \
-            return NULL;                                    \
-        }                                                   \
-        vmCompilerNextToken(cs);                            \
+#define EXPECT_AND_SKIP(x)                                              \
+    do {                                                                \
+        if(vmCompilerTokenType(cs) != (x)) {                            \
+            struct NKDynString *errStr =                                \
+                nkiDynStrCreate(cs->vm, "Unexpected token: ");          \
+            nkiDynStrAppend(                                            \
+                errStr,                                                 \
+                vmCompilerTokenString(cs));                             \
+            PARSE_ERROR(errStr->data);                                  \
+            nkiDynStrDelete(errStr);                                    \
+            CLEANUP_INLOOP();                                           \
+            nkiCompilerPopRecursion(cs);                                \
+            return NULL;                                                \
+        }                                                               \
+        vmCompilerNextToken(cs);                                        \
     } while(0)
 
 bool reduce(
-    struct ExpressionAstNode **opStack,
-    struct ExpressionAstNode **valueStack)
+    struct NKExpressionAstNode **opStack,
+    struct NKExpressionAstNode **valueStack)
 {
-    struct ExpressionAstNode *valNode1 = (*valueStack)->stackNext;
-    struct ExpressionAstNode *valNode2 = (*valueStack);
-    struct ExpressionAstNode *opNode   = (*opStack);
+    struct NKExpressionAstNode *valNode1 = (*valueStack)->stackNext;
+    struct NKExpressionAstNode *valNode2 = (*valueStack);
+    struct NKExpressionAstNode *opNode   = (*opStack);
 
     if(!valNode1 || !valNode2 || !opNode) {
         return false;
@@ -215,7 +215,7 @@ bool reduce(
 }
 
 bool parseFunctioncall(
-    struct ExpressionAstNode *postfixNode,
+    struct NKExpressionAstNode *postfixNode,
     struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
@@ -233,7 +233,7 @@ bool parseFunctioncall(
     dbgPush();
     vmCompilerNextToken(cs);
     {
-        struct ExpressionAstNode *lastParamNode = postfixNode;
+        struct NKExpressionAstNode *lastParamNode = postfixNode;
         uint32_t argCount = 0;
 
         while(
@@ -241,8 +241,8 @@ bool parseFunctioncall(
             vmCompilerTokenType(cs) != TOKENTYPE_PAREN_CLOSE)
         {
             // Make a new node for this parameter.
-            struct ExpressionAstNode *thisParamNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct NKExpressionAstNode *thisParamNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             memset(thisParamNode, 0, sizeof(*thisParamNode));
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
@@ -290,11 +290,11 @@ bool parseFunctioncall(
     return true;
 }
 
-struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
+struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 {
     struct NKToken **currentToken = &cs->currentToken;
-    struct ExpressionAstNode *opStack = NULL;
-    struct ExpressionAstNode *valueStack = NULL;
+    struct NKExpressionAstNode *opStack = NULL;
+    struct NKExpressionAstNode *valueStack = NULL;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return NULL;
@@ -302,17 +302,17 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
     while(!isExpressionEndingToken(*currentToken)) {
 
-        struct ExpressionAstNode *lastPrefixOp   = NULL;
-        struct ExpressionAstNode *firstPrefixOp  = NULL;
-        struct ExpressionAstNode *lastPostfixOp  = NULL;
-        struct ExpressionAstNode *firstPostfixOp = NULL;
-        struct ExpressionAstNode *valueNode      = NULL;
+        struct NKExpressionAstNode *lastPrefixOp   = NULL;
+        struct NKExpressionAstNode *firstPrefixOp  = NULL;
+        struct NKExpressionAstNode *lastPostfixOp  = NULL;
+        struct NKExpressionAstNode *firstPostfixOp = NULL;
+        struct NKExpressionAstNode *valueNode      = NULL;
 
         // Deal with prefix operators. Build up a list of them.
         while(isPrefixOperator(*currentToken)) {
 
-            struct ExpressionAstNode *prefixNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct NKExpressionAstNode *prefixNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             memset(prefixNode, 0, sizeof(*prefixNode));
 
             // Add it to the end of our list of prefix operations.
@@ -368,7 +368,7 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             // Parse the actual value.
             if(!isExpressionEndingToken(*currentToken)) {
 
-                valueNode = nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+                valueNode = nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
                 memset(valueNode, 0, sizeof(*valueNode));
                 valueNode->opOrValue = *currentToken;
 
@@ -389,8 +389,8 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         // Deal with postfix operators.
         while(isPostfixOperator(*currentToken)) {
 
-            struct ExpressionAstNode *postfixNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct NKExpressionAstNode *postfixNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             memset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
@@ -415,10 +415,10 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                 if(vmCompilerTokenType(cs) == TOKENTYPE_IDENTIFIER) {
 
-                    struct ExpressionAstNode *identifierStringNode =
-                        nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+                    struct NKExpressionAstNode *identifierStringNode =
+                        nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
 
-                    struct ExpressionAstNode *indexIntoNode = postfixNode;
+                    struct NKExpressionAstNode *indexIntoNode = postfixNode;
 
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
@@ -441,8 +441,8 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                     // Now see if this is a function call.
                     if(vmCompilerTokenType(cs) == TOKENTYPE_PAREN_OPEN) {
 
-                        struct ExpressionAstNode *functionCallNode =
-                            nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+                        struct NKExpressionAstNode *functionCallNode =
+                            nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
 
                         functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
                         functionCallNode->opOrValue->type = TOKENTYPE_PAREN_OPEN;
@@ -601,8 +601,8 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         // Push this operation onto the stack now that we've cleared
         // out everthing of a lower precedence.
         {
-            struct ExpressionAstNode *astNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct NKExpressionAstNode *astNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             memset(astNode, 0, sizeof(*astNode));
             astNode->stackNext = opStack;
             astNode->opOrValue = cs->currentToken;
@@ -639,7 +639,7 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
     dbgWriteLine("remaining values...");
     {
-        struct ExpressionAstNode *n = valueStack;
+        struct NKExpressionAstNode *n = valueStack;
         while(n) {
             dumpExpressionAstNode(n);
             n = n->stackNext;
@@ -648,7 +648,7 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
     dbgWriteLine("remaining ops...\n");
     {
-        struct ExpressionAstNode *n = opStack;
+        struct NKExpressionAstNode *n = opStack;
         while(n) {
             dumpExpressionAstNode(n);
             n = n->stackNext;
@@ -663,7 +663,7 @@ struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 bool emitFetchVariable(
     struct NKCompilerState *cs,
     const char *name,
-    struct ExpressionAstNode *node)
+    struct NKExpressionAstNode *node)
 {
     struct NKCompilerStateContextVariable *var =
         lookupVariable(cs, name);
@@ -701,7 +701,7 @@ bool emitFetchVariable(
 bool emitSetVariable(
     struct NKCompilerState *cs,
     const char *name,
-    struct ExpressionAstNode *node)
+    struct NKExpressionAstNode *node)
 {
     struct NKCompilerStateContextVariable *var =
         lookupVariable(cs, name);
@@ -732,9 +732,9 @@ bool emitSetVariable(
     return true;
 }
 
-bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node);
+bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
-bool emitExpressionAssignment(struct NKCompilerState *cs, struct ExpressionAstNode *node)
+bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -798,7 +798,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct ExpressionAstNo
     return true;
 }
 
-bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node)
+bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
 {
     struct NKInstruction inst;
     uint32_t i;
@@ -966,7 +966,7 @@ bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node)
 
                 // Count up the arguments.
                 uint32_t argumentCount = 0;
-                struct ExpressionAstNode *argumentAstNode = node->children[1];
+                struct NKExpressionAstNode *argumentAstNode = node->children[1];
                 while(argumentAstNode) {
                     argumentAstNode = argumentAstNode->children[1];
                     argumentCount++;
@@ -1009,17 +1009,17 @@ bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node)
     return true;
 }
 
-struct ExpressionAstNode *cloneExpressionTree(
+struct NKExpressionAstNode *cloneExpressionTree(
     struct NKCompilerState *cs,
-    struct ExpressionAstNode *node)
+    struct NKExpressionAstNode *node)
 {
-    struct ExpressionAstNode *newNode;
+    struct NKExpressionAstNode *newNode;
 
     if(!node) {
         return NULL;
     }
 
-    newNode = nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+    newNode = nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
     memset(newNode, 0, sizeof(*newNode));
 
     newNode->ownedToken = node->ownedToken;
@@ -1043,7 +1043,7 @@ struct ExpressionAstNode *cloneExpressionTree(
 
 void expandIncrementsAndDecrements(
     struct NKCompilerState *cs,
-    struct ExpressionAstNode *node)
+    struct NKExpressionAstNode *node)
 {
     if(!node) {
         return;
@@ -1060,13 +1060,13 @@ void expandIncrementsAndDecrements(
         assert(!node->children[1]);
 
         {
-            struct ExpressionAstNode *lvalueNode = node->children[0];
-            struct ExpressionAstNode *rvalueNode1 =
+            struct NKExpressionAstNode *lvalueNode = node->children[0];
+            struct NKExpressionAstNode *rvalueNode1 =
                 cloneExpressionTree(cs, node->children[0]);
-            struct ExpressionAstNode *additionNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
-            struct ExpressionAstNode *literalOneNode =
-                nkiMalloc(cs->vm, sizeof(struct ExpressionAstNode));
+            struct NKExpressionAstNode *additionNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+            struct NKExpressionAstNode *literalOneNode =
+                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             struct NKToken *oldToken = node->opOrValue;
             bool wasOwningToken = node->ownedToken;
 
@@ -1135,9 +1135,9 @@ void expandIncrementsAndDecrements(
     nkiCompilerPopRecursion(cs);
 }
 
-struct ExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs)
+struct NKExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs)
 {
-    struct ExpressionAstNode *node;
+    struct NKExpressionAstNode *node;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return NULL;
@@ -1162,7 +1162,7 @@ struct ExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *c
 
 bool compileExpression(struct NKCompilerState *cs)
 {
-    struct ExpressionAstNode *node;
+    struct NKExpressionAstNode *node;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;

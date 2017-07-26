@@ -36,7 +36,7 @@ void destroyTokenList(
 
 void addToken(
     struct VM *vm,
-    enum TokenType type,
+    enum NKTokenType type,
     const char *str,
     int32_t lineNumber,
     struct NKTokenList *tokenList)

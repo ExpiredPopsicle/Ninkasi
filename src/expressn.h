@@ -7,11 +7,11 @@ struct NKToken;
 struct VM;
 struct NKCompilerState;
 
-struct ExpressionAstNode
+struct NKExpressionAstNode
 {
     struct NKToken *opOrValue;
-    struct ExpressionAstNode *children[2];
-    struct ExpressionAstNode *stackNext;
+    struct NKExpressionAstNode *children[2];
+    struct NKExpressionAstNode *stackNext;
 
     // True if the token was generated for this ExpressionAstNode, and
     // should be deleted with it.
@@ -32,19 +32,19 @@ bool isExpressionEndingToken(struct NKToken *token);
 bool isSubexpressionEndingToken(struct NKToken *token);
 int32_t getPrecedence(enum NKTokenType t);
 
-struct ExpressionAstNode *makeImmediateExpressionNode(
+struct NKExpressionAstNode *makeImmediateExpressionNode(
     struct VM *vm,
     enum NKTokenType type,
     uint32_t lineNumber);
 
-void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node);
-void dumpExpressionAstNode(struct ExpressionAstNode *node);
+void deleteExpressionNode(struct VM *vm, struct NKExpressionAstNode *node);
+void dumpExpressionAstNode(struct NKExpressionAstNode *node);
 
-struct ExpressionAstNode *parseExpression(struct NKCompilerState *cs);
+struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs);
 
 
 bool compileExpression(struct NKCompilerState *cs);
-struct ExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs);
-bool emitExpression(struct NKCompilerState *cs, struct ExpressionAstNode *node);
+struct NKExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs);
+bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
 #endif
