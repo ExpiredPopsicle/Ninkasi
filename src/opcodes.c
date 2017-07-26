@@ -27,7 +27,7 @@ void opcode_add(struct VM *vm)
 
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
-            struct DynString *dynStr =
+            struct NKDynString *dynStr =
                 dynStrCreate(vm,
                     vmStringTableGetStringById(
                         &vm->stringTable,
@@ -49,7 +49,7 @@ void opcode_add(struct VM *vm)
             // TODO: Array concatenation support.
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Addition unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
@@ -133,7 +133,7 @@ void opcode_subtract(struct VM *vm)
             break;
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Subtraction unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
@@ -169,7 +169,7 @@ void opcode_multiply(struct VM *vm)
             break;
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Multiplication unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
@@ -212,7 +212,7 @@ void opcode_divide(struct VM *vm)
             break;
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Division unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
@@ -248,7 +248,7 @@ void opcode_modulo(struct VM *vm)
         } break;
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Modulo unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
@@ -281,7 +281,7 @@ void opcode_negate(struct VM *vm)
         } break;
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Negation unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");

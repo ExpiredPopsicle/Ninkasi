@@ -171,7 +171,7 @@ int32_t getPrecedence(enum TokenType t)
 #define EXPECT_AND_SKIP(x)                                  \
     do {                                                    \
         if(vmCompilerTokenType(cs) != (x)) {                \
-            struct DynString *errStr =                      \
+            struct NKDynString *errStr =                    \
                 dynStrCreate(cs->vm, "Unexpected token: "); \
             dynStrAppend(                                   \
                 errStr,                                     \
@@ -526,7 +526,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
             } else {
 
-                struct DynString *str =
+                struct NKDynString *str =
                     dynStrCreate(cs->vm, "Unknown postfix operator: ");
                 dynStrAppend(str, vmCompilerTokenString(cs));
                 PARSE_ERROR(str->data);
@@ -567,7 +567,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
         // Make sure this is even something valid.
         if(getPrecedence((*currentToken)->type) == -1) {
-            struct DynString *str =
+            struct NKDynString *str =
                 dynStrCreate(cs->vm, "Unknown operator: ");
             dynStrAppend(str, vmCompilerTokenString(cs));
             PARSE_ERROR(str->data);
@@ -782,7 +782,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
         } break;
 
         default: {
-            struct DynString *dynStr =
+            struct NKDynString *dynStr =
                 dynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
             dynStrAppend(dynStr, node->children[0]->opOrValue->str);
             vmCompilerAddError(
@@ -992,7 +992,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
             break;
 
         default: {
-            struct DynString *dynStr =
+            struct NKDynString *dynStr =
                 dynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
             dynStrAppend(dynStr, node->opOrValue->str);
             nkiAddError(

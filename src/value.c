@@ -95,7 +95,7 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
             return 0;
 
         default: {
-            struct DynString *ds = dynStrCreate(vm, "Cannot convert type ");
+            struct NKDynString *ds = dynStrCreate(vm, "Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));
             dynStrAppend(ds, " to an integer.");
             nkiAddError(
@@ -126,7 +126,7 @@ float valueToFloat(struct VM *vm, struct Value *value)
             return 0.0f;
 
         default: {
-            struct DynString *ds = dynStrCreate(vm, "Cannot convert type ");
+            struct NKDynString *ds = dynStrCreate(vm, "Cannot convert type ");
             dynStrAppend(ds, valueTypeGetName(value->type));
             dynStrAppend(ds, " to an integer.");
             nkiAddError(
@@ -150,7 +150,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
                 value->stringTableEntry);
 
         case VALUETYPE_INT: {
-            struct DynString *dynStr = dynStrCreate(vm, "");
+            struct NKDynString *dynStr = dynStrCreate(vm, "");
             uint32_t id;
 
             dynStrAppendInt32(dynStr, value->intData);
@@ -165,7 +165,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
         }
 
         case VALUETYPE_FLOAT: {
-            struct DynString *dynStr = dynStrCreate(vm, "");
+            struct NKDynString *dynStr = dynStrCreate(vm, "");
             uint32_t id;
 
             dynStrAppendFloat(dynStr, value->floatData);
@@ -180,7 +180,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
         }
 
         default: {
-            struct DynString *dynStr = dynStrCreate(vm, "<");
+            struct NKDynString *dynStr = dynStrCreate(vm, "<");
             uint32_t id;
 
             dynStrAppend(dynStr, valueTypeGetName(value->type));
@@ -284,7 +284,7 @@ int32_t value_compare(
         }
 
         default: {
-            struct DynString *ds =
+            struct NKDynString *ds =
                 dynStrCreate(vm, "Comparison unimplemented for type ");
             dynStrAppend(ds, valueTypeGetName(type));
             dynStrAppend(ds, ".");
