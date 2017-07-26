@@ -289,7 +289,7 @@ void vmGarbageCollect_markReferenced(
 
                 case NK_VALUETYPE_STRING: {
 
-                    struct VMString *str = vmStringTableGetEntryById(
+                    struct NKVMString *str = vmStringTableGetEntryById(
                         &gcState->vm->stringTable,
                         value->stringTableEntry);
 
@@ -398,7 +398,7 @@ void vmRescanProgramStrings(struct VM *vm)
     // Unmark dontGC on everything.
     uint32_t i;
     for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
-        struct VMString *str = vm->stringTable.stringTable[i];
+        struct NKVMString *str = vm->stringTable.stringTable[i];
         if(str) {
             str->dontGC = false;
         }
@@ -411,7 +411,7 @@ void vmRescanProgramStrings(struct VM *vm)
 
             i++;
             {
-                struct VMString *entry =
+                struct NKVMString *entry =
                     vmStringTableGetEntryById(
                         &vm->stringTable,
                         vm->instructions[i].opData_string);

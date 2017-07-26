@@ -218,7 +218,7 @@ void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
 
     // Mark this string as not garbage-collected.
     {
-        struct VMString *entry = vmStringTableGetEntryById(
+        struct NKVMString *entry = vmStringTableGetEntryById(
             &cs->vm->stringTable, inst.opData_string);
         if(entry) {
             entry->dontGC = true;

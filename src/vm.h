@@ -41,7 +41,7 @@ struct VM
     uint32_t instructionAddressMask;
     uint32_t instructionPointer;
 
-    struct VMStringTable stringTable;
+    struct NKVMStringTable stringTable;
     struct VMObjectTable objectTable;
     // TODO: External data table.
 

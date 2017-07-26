@@ -3,9 +3,9 @@
 
 #include "basetype.h"
 
-struct VMString
+struct NKVMString
 {
-    struct VMString *nextInHashBucket;
+    struct NKVMString *nextInHashBucket;
     uint32_t stringTableIndex;
     uint32_t lastGCPass;
     bool dontGC;
@@ -18,40 +18,40 @@ struct VMString
     char str[1];
 };
 
-struct VMStringTableHole
+struct NKVMStringTableHole
 {
-    struct VMStringTableHole *next;
+    struct NKVMStringTableHole *next;
     uint32_t index;
 };
 
 #define vmStringTableHashTableSize 256
 
-struct VMStringTable
+struct NKVMStringTable
 {
-    struct VMString *stringsByHash[vmStringTableHashTableSize];
+    struct NKVMString *stringsByHash[vmStringTableHashTableSize];
 
-    struct VMStringTableHole *tableHoles;
+    struct NKVMStringTableHole *tableHoles;
 
-    struct VMString **stringTable;
+    struct NKVMString **stringTable;
     uint32_t stringTableCapacity;
 };
 
 void vmStringTableInit(struct VM *vm);
 void vmStringTableDestroy(struct VM *vm);
 
-struct VMString *vmStringTableGetEntryById(
-    struct VMStringTable *table,
+struct NKVMString *vmStringTableGetEntryById(
+    struct NKVMStringTable *table,
     uint32_t index);
 
 const char *vmStringTableGetStringById(
-    struct VMStringTable *table,
+    struct NKVMStringTable *table,
     uint32_t index);
 
 uint32_t vmStringTableFindOrAddString(
     struct VM *vm,
     const char *str);
 
-void vmStringTableDump(struct VMStringTable *table);
+void vmStringTableDump(struct NKVMStringTable *table);
 
 void vmStringTableCleanOldStrings(
     struct VM *vm,

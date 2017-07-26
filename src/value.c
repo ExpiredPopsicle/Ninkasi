@@ -313,7 +313,7 @@ uint32_t valueHash(struct VM *vm, struct Value *value)
 
         case NK_VALUETYPE_STRING: {
 
-            struct VMString *vmStr = vmStringTableGetEntryById(
+            struct NKVMString *vmStr = vmStringTableGetEntryById(
                 &vm->stringTable,
                 value->stringTableEntry);
 
