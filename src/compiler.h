@@ -1,7 +1,7 @@
-#ifndef COMPILER_H
-#define COMPILER_H
+#ifndef NINKASI_COMPILER_H
+#define NINKASI_COMPILER_H
 
-#include "function.h"
+#include "nkfunc.h"
 
 // ----------------------------------------------------------------------
 // Internals
@@ -96,5 +96,4 @@ bool vmCompilerExpectAndSkipToken(
 bool nkiCompilerPushRecursion(struct CompilerState *cs);
 void nkiCompilerPopRecursion(struct CompilerState *cs);
 
-
-#endif
+#endif // NINKASI_COMPILER_H

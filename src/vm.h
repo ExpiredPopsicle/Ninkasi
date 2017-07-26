@@ -7,7 +7,7 @@
 #include "vmstack.h"
 #include "opcodes.h"
 #include "vmstring.h"
-#include "function.h"
+#include "nkfunc.h"
 #include "objects.h"
 
 struct VM;

@@ -28,7 +28,7 @@
 #include "vm.h"
 #include "compiler.h"
 #include "vmstring.h"
-#include "function.h"
+#include "nkfunc.h"
 #include "objects.h"
 #include "nkmem.h"
 #include "failure.h"
