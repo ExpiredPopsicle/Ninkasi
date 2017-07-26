@@ -96,8 +96,8 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
 
         default: {
             struct NKDynString *ds = nkiDynStrCreate(vm, "Cannot convert type ");
-            dynStrAppend(ds, valueTypeGetName(value->type));
-            dynStrAppend(ds, " to an integer.");
+            nkiDynStrAppend(ds, valueTypeGetName(value->type));
+            nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -127,8 +127,8 @@ float valueToFloat(struct VM *vm, struct Value *value)
 
         default: {
             struct NKDynString *ds = nkiDynStrCreate(vm, "Cannot convert type ");
-            dynStrAppend(ds, valueTypeGetName(value->type));
-            dynStrAppend(ds, " to an integer.");
+            nkiDynStrAppend(ds, valueTypeGetName(value->type));
+            nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -153,7 +153,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
             uint32_t id;
 
-            dynStrAppendInt32(dynStr, value->intData);
+            nkiDynStrAppendInt32(dynStr, value->intData);
 
             id = vmStringTableFindOrAddString(
                 vm, dynStr->data);
@@ -168,7 +168,7 @@ const char *valueToString(struct VM *vm, struct Value *value)
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
             uint32_t id;
 
-            dynStrAppendFloat(dynStr, value->floatData);
+            nkiDynStrAppendFloat(dynStr, value->floatData);
 
             id = vmStringTableFindOrAddString(
                 vm, dynStr->data);
@@ -183,10 +183,10 @@ const char *valueToString(struct VM *vm, struct Value *value)
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "<");
             uint32_t id;
 
-            dynStrAppend(dynStr, valueTypeGetName(value->type));
-            dynStrAppend(dynStr, ":");
-            dynStrAppendInt32(dynStr, valueHash(vm, value));
-            dynStrAppend(dynStr, ">");
+            nkiDynStrAppend(dynStr, valueTypeGetName(value->type));
+            nkiDynStrAppend(dynStr, ":");
+            nkiDynStrAppendInt32(dynStr, valueHash(vm, value));
+            nkiDynStrAppend(dynStr, ">");
 
             id = vmStringTableFindOrAddString(
                 vm, dynStr->data);
@@ -286,8 +286,8 @@ int32_t value_compare(
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Comparison unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);

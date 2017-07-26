@@ -8,7 +8,7 @@ bool vmFunctionCallbackCheckArgCount(
     if(data->argumentCount != 1) {
         struct NKDynString *dynStr = nkiDynStrCreate(
             data->vm, "Bad argument count in ");
-        dynStrAppend(dynStr, functionName);
+        nkiDynStrAppend(dynStr, functionName);
         nkiAddError(
             data->vm, -1, dynStr->data);
         nkiDynStrDelete(dynStr);

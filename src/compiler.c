@@ -266,7 +266,7 @@ bool vmCompilerExpectAndSkipToken(
     if(vmCompilerTokenType(cs) != t) {
         struct NKDynString *errStr =
             nkiDynStrCreate(cs->vm, "Unexpected token: ");
-        dynStrAppend(
+        nkiDynStrAppend(
             errStr,
             vmCompilerTokenString(cs));
         vmCompilerAddError(cs, errStr->data);
@@ -414,7 +414,7 @@ struct CompilerStateContextVariable *lookupVariable(
     if(!var) {
         struct NKDynString *dynStr =
             nkiDynStrCreate(cs->vm, "Cannot find variable: ");
-        dynStrAppend(dynStr, name);
+        nkiDynStrAppend(dynStr, name);
         vmCompilerAddError(cs, dynStr->data);
         nkiDynStrDelete(dynStr);
         return NULL;
@@ -986,7 +986,7 @@ bool vmCompilerCompileScript(
 //     if(!in) {
 //         struct NKDynString *errStr =
 //             nkiDynStrCreate(cs->vm, "Cannot open script file: ");
-//         dynStrAppend(errStr, scriptFilename);
+//         nkiDynStrAppend(errStr, scriptFilename);
 //         vmCompilerAddError(cs, errStr->data);
 //         nkiDynStrDelete(errStr);
 //         return false;

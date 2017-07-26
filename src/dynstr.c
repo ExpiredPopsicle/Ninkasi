@@ -14,7 +14,7 @@ void nkiDynStrDelete(struct NKDynString *dynStr)
     nkFree(dynStr->vm, dynStr);
 }
 
-void dynStrAppend(struct NKDynString *dynStr, const char *str)
+void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
 {
     if(!str) {
         str = "<null>";
@@ -28,19 +28,19 @@ void dynStrAppend(struct NKDynString *dynStr, const char *str)
     strcat(dynStr->data, str);
 }
 
-void dynStrAppendInt32(struct NKDynString *dynStr, int32_t value)
+void nkiDynStrAppendInt32(struct NKDynString *dynStr, int32_t value)
 {
     // +1 for terminator, +1 for '-'.
     char tmp[sizeof(int32_t) * 8 + 2];
     sprintf(tmp, "%d", value);
-    dynStrAppend(dynStr, tmp);
+    nkiDynStrAppend(dynStr, tmp);
 }
 
-void dynStrAppendFloat(struct NKDynString *dynStr, float value)
+void nkiDynStrAppendFloat(struct NKDynString *dynStr, float value)
 {
     // +1 for terminator, +1 for '-', +1 for '.'.
     // +a lot because float.
     char tmp[sizeof(float) * 16 + 3];
     sprintf(tmp, "%f", value);
-    dynStrAppend(dynStr, tmp);
+    nkiDynStrAppend(dynStr, tmp);
 }

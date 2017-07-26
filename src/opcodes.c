@@ -35,7 +35,7 @@ void opcode_add(struct VM *vm)
 
             // Append the other one, after conversion to string if
             // necessary.
-            dynStrAppend(dynStr, valueToString(vm, in2));
+            nkiDynStrAppend(dynStr, valueToString(vm, in2));
 
             // Push the result.
             vmStackPushString(
@@ -51,8 +51,8 @@ void opcode_add(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Addition unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -135,8 +135,8 @@ void opcode_subtract(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Subtraction unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -171,8 +171,8 @@ void opcode_multiply(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Multiplication unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -214,8 +214,8 @@ void opcode_divide(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Division unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -250,8 +250,8 @@ void opcode_modulo(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Modulo unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);
@@ -283,8 +283,8 @@ void opcode_negate(struct VM *vm)
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Negation unimplemented for type ");
-            dynStrAppend(ds, valueTypeGetName(type));
-            dynStrAppend(ds, ".");
+            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,
                 ds->data);

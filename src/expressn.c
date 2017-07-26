@@ -173,7 +173,7 @@ int32_t getPrecedence(enum TokenType t)
         if(vmCompilerTokenType(cs) != (x)) {                \
             struct NKDynString *errStr =                    \
                 nkiDynStrCreate(cs->vm, "Unexpected token: "); \
-            dynStrAppend(                                   \
+            nkiDynStrAppend(                                   \
                 errStr,                                     \
                 vmCompilerTokenString(cs));                 \
             PARSE_ERROR(errStr->data);                      \
@@ -528,7 +528,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
 
                 struct NKDynString *str =
                     nkiDynStrCreate(cs->vm, "Unknown postfix operator: ");
-                dynStrAppend(str, vmCompilerTokenString(cs));
+                nkiDynStrAppend(str, vmCompilerTokenString(cs));
                 PARSE_ERROR(str->data);
                 nkiDynStrDelete(str);
                 CLEANUP_INLOOP();
@@ -569,7 +569,7 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
         if(getPrecedence((*currentToken)->type) == -1) {
             struct NKDynString *str =
                 nkiDynStrCreate(cs->vm, "Unknown operator: ");
-            dynStrAppend(str, vmCompilerTokenString(cs));
+            nkiDynStrAppend(str, vmCompilerTokenString(cs));
             PARSE_ERROR(str->data);
             nkiDynStrDelete(str);
             CLEANUP_INLOOP();
@@ -784,7 +784,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
         default: {
             struct NKDynString *dynStr =
                 nkiDynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
-            dynStrAppend(dynStr, node->children[0]->opOrValue->str);
+            nkiDynStrAppend(dynStr, node->children[0]->opOrValue->str);
             vmCompilerAddError(
                 cs, dynStr->data);
             nkiDynStrDelete(dynStr);
@@ -994,7 +994,7 @@ bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
         default: {
             struct NKDynString *dynStr =
                 nkiDynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
-            dynStrAppend(dynStr, node->opOrValue->str);
+            nkiDynStrAppend(dynStr, node->opOrValue->str);
             nkiAddError(
                 cs->vm,
                 node->opOrValue->lineNumber,
