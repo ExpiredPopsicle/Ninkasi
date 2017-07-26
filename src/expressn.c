@@ -800,7 +800,7 @@ bool emitExpressionAssignment(struct CompilerState *cs, struct ExpressionAstNode
 
 bool emitExpression(struct CompilerState *cs, struct ExpressionAstNode *node)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
     uint32_t i;
 
     if(!nkiCompilerPushRecursion(cs)) {

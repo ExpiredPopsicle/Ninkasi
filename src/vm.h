@@ -37,7 +37,7 @@ struct VM
     struct NKErrorState errorState;
     struct VMStack stack;
 
-    struct Instruction *instructions;
+    struct NKInstruction *instructions;
     uint32_t instructionAddressMask;
     uint32_t instructionPointer;
 

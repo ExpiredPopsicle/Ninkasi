@@ -1,6 +1,6 @@
 #include "common.h"
 
-void addInstruction(struct CompilerState *cs, struct Instruction *inst)
+void addInstruction(struct CompilerState *cs, struct NKInstruction *inst)
 {
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
@@ -21,13 +21,13 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
             cs->vm->instructions = nkRealloc(
                 cs->vm,
                 cs->vm->instructions,
-                sizeof(struct Instruction) *
+                sizeof(struct NKInstruction) *
                 newSize);
 
             // Clear the new area to NOPs.
             memset(
                 cs->vm->instructions + oldSize, 0,
-                (newSize - oldSize) * sizeof(struct Instruction));
+                (newSize - oldSize) * sizeof(struct NKInstruction));
         }
     }
 
@@ -43,7 +43,7 @@ void addInstruction(struct CompilerState *cs, struct Instruction *inst)
 
 void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
     inst.opcode = opcode;
     addInstruction(cs, &inst);
@@ -156,7 +156,7 @@ void popContext(struct CompilerState *cs)
 
 void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
@@ -171,7 +171,7 @@ void emitPushLiteralInt(struct CompilerState *cs, int32_t value)
 
 void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
@@ -186,7 +186,7 @@ void emitPushLiteralFunctionId(struct CompilerState *cs, uint32_t functionId)
 
 void emitPushLiteralFloat(struct CompilerState *cs, float value)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
@@ -201,7 +201,7 @@ void emitPushLiteralFloat(struct CompilerState *cs, float value)
 
 void emitPushLiteralString(struct CompilerState *cs, const char *str)
 {
-    struct Instruction inst;
+    struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
@@ -1035,7 +1035,7 @@ uint32_t emitJumpIfZero(struct CompilerState *cs, uint32_t target)
     return instructionWriteIndex;
 }
 
-struct Instruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
+struct NKInstruction *vmCompilerGetInstruction(struct CompilerState *cs, uint32_t address)
 {
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
@@ -1045,9 +1045,9 @@ void modifyJump(
     uint32_t pushLiteralBeforeJumpAddress,
     uint32_t target)
 {
-    struct Instruction *pushLitInst =
+    struct NKInstruction *pushLitInst =
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
-    struct Instruction *jumpInst =
+    struct NKInstruction *jumpInst =
         vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
 
     assert(pushLitInst->opcode == NK_OP_PUSHLITERAL_INT);

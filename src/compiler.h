@@ -6,7 +6,7 @@
 // ----------------------------------------------------------------------
 // Internals
 
-struct Instruction;
+struct NKInstruction;
 struct Token;
 
 struct CompilerStateContextVariable
@@ -55,7 +55,7 @@ struct CompilerState
     uint32_t recursionCount;
 };
 
-void addInstruction(struct CompilerState *cs, struct Instruction *inst);
+void addInstruction(struct CompilerState *cs, struct NKInstruction *inst);
 void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode);
 
 void pushContext(struct CompilerState *cs);

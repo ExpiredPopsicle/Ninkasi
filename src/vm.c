@@ -107,9 +107,9 @@ void vmInit(struct VM *vm)
     vm->instructionPointer = 0;
 
     vm->instructions =
-        nkMalloc(vm, sizeof(struct Instruction) * 4);
+        nkMalloc(vm, sizeof(struct NKInstruction) * 4);
     vm->instructionAddressMask = 0x3;
-    memset(vm->instructions, 0, sizeof(struct Instruction) * 4);
+    memset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
 
     vmStringTableInit(vm);
 
@@ -168,7 +168,7 @@ void vmDestroy(struct VM *vm)
 
 void vmIterate(struct VM *vm)
 {
-    struct Instruction *inst = &vm->instructions[
+    struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
     uint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 

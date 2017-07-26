@@ -7,7 +7,7 @@
 struct VMStack;
 struct VM;
 
-struct Instruction
+struct NKInstruction
 {
     union {
         enum NKOpcode opcode;
