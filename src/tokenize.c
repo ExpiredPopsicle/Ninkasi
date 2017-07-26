@@ -42,7 +42,7 @@ void addToken(
     struct TokenList *tokenList)
 {
     struct Token *newToken =
-        nkMalloc(vm, sizeof(struct Token));
+        nkiMalloc(vm, sizeof(struct Token));
     newToken->next = NULL;
     newToken->str = nkStrdup(vm, str);
     newToken->type = type;
@@ -66,7 +66,7 @@ char *tokenizerUnescapeString(
 {
     // +2 for weird backslash-before null-terminator, and the regular
     // null terminator.
-    char *out = nkMalloc(vm, strlen(in) + 2);
+    char *out = nkiMalloc(vm, strlen(in) + 2);
     uint32_t len = strlen(in);
     uint32_t readIndex;
     uint32_t writeIndex = 0;
@@ -123,7 +123,7 @@ void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
             struct Token *next = tok->next;
 
             // Make a concatenated string.
-            char *newStr = nkMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
+            char *newStr = nkiMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
             strcpy(newStr, tok->str);
             strcat(newStr, tok->next->str);
 
@@ -344,7 +344,7 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
-            strTmp = nkMalloc(vm, len + 1);
+            strTmp = nkiMalloc(vm, len + 1);
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
@@ -400,7 +400,7 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 i++;
             }
 
-            tmp = nkMalloc(vm, (i - startIndex) + 1);
+            tmp = nkiMalloc(vm, (i - startIndex) + 1);
             memcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 

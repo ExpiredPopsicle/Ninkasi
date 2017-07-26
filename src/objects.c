@@ -7,12 +7,12 @@ void vmObjectTableInit(struct VM *vm)
     table->tableHoles = NULL;
 
     // Create a table of one empty entry.
-    table->objectTable = nkMalloc(vm, sizeof(struct VMObject*));
+    table->objectTable = nkiMalloc(vm, sizeof(struct VMObject*));
     table->objectTableCapacity = 1;
     table->objectTable[0] = NULL;
 
     // Create the hole object that goes with the empty space.
-    table->tableHoles = nkMalloc(vm, sizeof(struct VMObjectTableHole));
+    table->tableHoles = nkiMalloc(vm, sizeof(struct VMObjectTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 
@@ -76,7 +76,7 @@ uint32_t vmObjectTableCreateObject(
 {
     struct VMObjectTable *table = &vm->objectTable;
     uint32_t index = ~0;
-    struct VMObject *newObject = nkMalloc(vm, sizeof(struct VMObject));
+    struct VMObject *newObject = nkiMalloc(vm, sizeof(struct VMObject));
     memset(newObject, 0, sizeof(*newObject));
 
     if(table->tableHoles) {
@@ -117,7 +117,7 @@ uint32_t vmObjectTableCreateObject(
         // be going.
         for(i = oldCapacity + 1; i < newCapacity; i++) {
             struct VMObjectTableHole *hole =
-                nkMalloc(vm, sizeof(struct VMObjectTableHole));
+                nkiMalloc(vm, sizeof(struct VMObjectTableHole));
             hole->index = i;
             hole->next = table->tableHoles;
             table->tableHoles = hole;
@@ -154,7 +154,7 @@ void vmObjectTableCleanOldObjects(
             if(lastGCPass != ob->lastGCPass) {
 
                 struct VMObjectTableHole *hole =
-                    nkMalloc(vm, sizeof(struct VMObjectTableHole));
+                    nkiMalloc(vm, sizeof(struct VMObjectTableHole));
 
                 dbgWriteLine("Purging object at index %u", i);
 
@@ -236,7 +236,7 @@ struct Value *vmObjectFindOrAddEntry(
             return NULL;
         }
 
-        el = nkMalloc(vm, sizeof(struct VMObjectElement));
+        el = nkiMalloc(vm, sizeof(struct VMObjectElement));
         memset(el, 0, sizeof(struct VMObjectElement));
         el->next = *obList;
         el->key = *key;

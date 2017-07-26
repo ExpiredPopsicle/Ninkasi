@@ -3,7 +3,7 @@
 void vmStackInit(struct VM *vm)
 {
     struct VMStack *stack = &vm->stack;
-    stack->values = nkMalloc(vm, sizeof(struct Value));
+    stack->values = nkiMalloc(vm, sizeof(struct Value));
     memset(stack->values, 0, sizeof(struct Value));
     stack->size = 0;
     stack->capacity = 1;

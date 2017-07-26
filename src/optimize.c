@@ -28,9 +28,9 @@ struct ExpressionAstNode *makeImmediateExpressionNode(
     uint32_t lineNumber)
 {
     struct ExpressionAstNode *newNode =
-        nkMalloc(vm, sizeof(struct ExpressionAstNode));
+        nkiMalloc(vm, sizeof(struct ExpressionAstNode));
     struct Token *newToken =
-        nkMalloc(vm, sizeof(struct Token));
+        nkiMalloc(vm, sizeof(struct Token));
     memset(newNode, 0, sizeof(*newNode));
     memset(newToken, 0, sizeof(*newToken));
     newNode->ownedToken = true;

@@ -35,12 +35,12 @@ void nkiAddError(
     int32_t lineNumber,
     const char *str)
 {
-    struct NKError *newError = nkMalloc(
+    struct NKError *newError = nkiMalloc(
         vm,
         sizeof(struct NKError));
 
     newError->errorText =
-        nkMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
+        nkiMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, "%d: %s", lineNumber, str);

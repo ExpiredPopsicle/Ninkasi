@@ -2,7 +2,7 @@
 
 struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str)
 {
-    struct NKDynString *ret = nkMalloc(vm, sizeof(struct NKDynString) + 1);
+    struct NKDynString *ret = nkiMalloc(vm, sizeof(struct NKDynString) + 1);
     ret->vm = vm;
     ret->data = nkStrdup(vm, str ? str : "<null>");
     return ret;

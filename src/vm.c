@@ -107,7 +107,7 @@ void vmInit(struct VM *vm)
     vm->instructionPointer = 0;
 
     vm->instructions =
-        nkMalloc(vm, sizeof(struct NKInstruction) * 4);
+        nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
     vm->instructionAddressMask = 0x3;
     memset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
 
@@ -211,7 +211,7 @@ struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
         ret = state->closedList;
         state->closedList = ret->next;
     } else {
-        ret = nkMalloc(state->vm, sizeof(struct VMValueGCEntry));
+        ret = nkiMalloc(state->vm, sizeof(struct VMValueGCEntry));
     }
 
     ret->next = state->openList;

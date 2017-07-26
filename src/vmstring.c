@@ -23,13 +23,13 @@ void vmStringTableInit(struct VM *vm)
     table->tableHoles = NULL;
 
     // Create a table with a capacity of a single string.
-    table->stringTable = nkMalloc(vm, sizeof(struct VMString*));
+    table->stringTable = nkiMalloc(vm, sizeof(struct VMString*));
     table->stringTableCapacity = 1;
     table->stringTable[0] = NULL;
 
     // Create a "hole" object indicating that we have space in the
     // table.
-    table->tableHoles = nkMalloc(vm, sizeof(struct VMStringTableHole));
+    table->tableHoles = nkiMalloc(vm, sizeof(struct VMStringTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 }
@@ -111,7 +111,7 @@ uint32_t vmStringTableFindOrAddString(
     // so we'll go ahead and make a new entry.
     {
         struct VMString *newString =
-            nkMalloc(vm, sizeof(struct VMString) + len + 1);
+            nkiMalloc(vm, sizeof(struct VMString) + len + 1);
         uint32_t index = 0;
 
         if(table->tableHoles) {
@@ -153,7 +153,7 @@ uint32_t vmStringTableFindOrAddString(
             // be going.
             for(i = oldCapacity + 1; i < newCapacity; i++) {
                 struct VMStringTableHole *hole =
-                    nkMalloc(vm, sizeof(struct VMStringTableHole));
+                    nkiMalloc(vm, sizeof(struct VMStringTableHole));
                 hole->index = i;
                 hole->next = table->tableHoles;
                 table->tableHoles = hole;
@@ -225,7 +225,7 @@ void vmStringTableCleanOldStrings(
 
                 uint32_t index = str->stringTableIndex;
                 struct VMStringTableHole *hole =
-                    nkMalloc(vm, sizeof(struct VMStringTableHole));
+                    nkiMalloc(vm, sizeof(struct VMStringTableHole));
 
                 // TODO: Remove this.
                 dbgWriteLine("Purging unused string: %s", str->str);

@@ -52,7 +52,7 @@ void addInstructionSimple(struct CompilerState *cs, enum NKOpcode opcode)
 void pushContext(struct CompilerState *cs)
 {
     struct CompilerStateContext *newContext =
-        nkMalloc(cs->vm, sizeof(struct CompilerStateContext));
+        nkiMalloc(cs->vm, sizeof(struct CompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId = ~(uint32_t)0;
     newContext->parent = cs->context;
@@ -235,7 +235,7 @@ struct CompilerStateContextVariable *addVariableWithoutStackAllocation(
     struct CompilerState *cs, const char *name)
 {
     struct CompilerStateContextVariable *var =
-        nkMalloc(cs->vm, sizeof(struct CompilerStateContextVariable));
+        nkiMalloc(cs->vm, sizeof(struct CompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
     var->next = cs->context->variables;
@@ -630,7 +630,7 @@ bool compileFunctionDefinition(struct CompilerState *cs)
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
     // set it and parent it directly.
-    functionLocalContext = nkMalloc(
+    functionLocalContext = nkiMalloc(
         cs->vm, sizeof(struct CompilerStateContext));
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
@@ -849,7 +849,7 @@ struct CompilerState *vmCompilerCreate(
 
     NK_SET_FAILURE_RECOVERY(NULL);
 
-    cs = nkMalloc(vm, sizeof(struct CompilerState));
+    cs = nkiMalloc(vm, sizeof(struct CompilerState));
     memset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
@@ -894,10 +894,10 @@ void vmCompilerFinalize(
         }
 
         // Allocate that.
-        cs->vm->globalVariableNameStorage = nkMalloc(
+        cs->vm->globalVariableNameStorage = nkiMalloc(
             cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
-            nkMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
+            nkiMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
         cs->vm->globalVariableCount = count;
 
         // Now run through it all again and actually assign data.

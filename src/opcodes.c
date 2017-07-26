@@ -459,7 +459,7 @@ void opcode_call(struct VM *vm)
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
-        data.arguments = nkMalloc(vm, argumentCount * sizeof(struct Value));
+        data.arguments = nkiMalloc(vm, argumentCount * sizeof(struct Value));
         data.userData = funcOb->CFunctionCallbackUserdata;
 
         // Note: We're not simply giving the function a stack pointer,
