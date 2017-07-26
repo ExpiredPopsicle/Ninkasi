@@ -13,7 +13,7 @@ void vmStackInit(struct VM *vm)
 void vmStackDestroy(struct VM *vm)
 {
     struct VMStack *stack = &vm->stack;
-    nkFree(vm, stack->values);
+    nkiFree(vm, stack->values);
     memset(stack, 0, sizeof(struct VMStack));
 }
 

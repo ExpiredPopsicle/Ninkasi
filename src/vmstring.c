@@ -41,10 +41,10 @@ void vmStringTableDestroy(struct VM *vm)
     // Clear out the main table.
     uint32_t i;
     for(i = 0; i < table->stringTableCapacity; i++) {
-        nkFree(vm, table->stringTable[i]);
+        nkiFree(vm, table->stringTable[i]);
         table->stringTable[i] = NULL;
     }
-    nkFree(vm, table->stringTable);
+    nkiFree(vm, table->stringTable);
     table->stringTableCapacity = 0;
 
     // Clear out the holes list.
@@ -52,7 +52,7 @@ void vmStringTableDestroy(struct VM *vm)
         struct VMStringTableHole *th = table->tableHoles;
         while(th) {
             struct VMStringTableHole *next = th->next;
-            nkFree(vm, th);
+            nkiFree(vm, th);
             th = next;
         }
         table->tableHoles = NULL;
@@ -121,7 +121,7 @@ uint32_t vmStringTableFindOrAddString(
             struct VMStringTableHole *hole = table->tableHoles;
             table->tableHoles = hole->next;
             index = hole->index;
-            nkFree(vm, hole);
+            nkiFree(vm, hole);
 
             // TODO: Remove.
             dbgWriteLine("Filled a string table hole at index %d", index);
@@ -232,7 +232,7 @@ void vmStringTableCleanOldStrings(
 
                 *lastPtr = str->nextInHashBucket;
                 table->stringTable[str->stringTableIndex] = NULL;
-                nkFree(vm, str);
+                nkiFree(vm, str);
                 str = *lastPtr;
 
                 // Create a table hole for our new gap.

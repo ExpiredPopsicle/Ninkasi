@@ -11,7 +11,7 @@ struct NKMemoryHeader
 };
 
 void *nkiMalloc(struct VM *vm, uint32_t size);
-void nkFree(struct VM *vm, void *data);
+void nkiFree(struct VM *vm, void *data);
 void *nkRealloc(struct VM *vm, void *data, uint32_t size);
 char *nkStrdup(struct VM *vm, const char *str);
 

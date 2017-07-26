@@ -26,11 +26,11 @@ void vmObjectDelete(struct VM *vm, struct VMObject *ob)
         struct VMObjectElement *el = ob->hashBuckets[i];
         while(el) {
             struct VMObjectElement *next = el->next;
-            nkFree(vm, el);
+            nkiFree(vm, el);
             el = next;
         }
     }
-    nkFree(vm, ob);
+    nkiFree(vm, ob);
 }
 
 void vmObjectTableDestroy(struct VM *vm)
@@ -45,7 +45,7 @@ void vmObjectTableDestroy(struct VM *vm)
         }
         table->objectTable[i] = NULL;
     }
-    nkFree(vm, table->objectTable);
+    nkiFree(vm, table->objectTable);
     table->objectTableCapacity = 0;
 
     // Clear out the holes list.
@@ -53,7 +53,7 @@ void vmObjectTableDestroy(struct VM *vm)
         struct VMObjectTableHole *th = table->tableHoles;
         while(th) {
             struct VMObjectTableHole *next = th->next;
-            nkFree(vm, th);
+            nkiFree(vm, th);
             th = next;
         }
         table->tableHoles = NULL;
@@ -86,7 +86,7 @@ uint32_t vmObjectTableCreateObject(
         struct VMObjectTableHole *hole = table->tableHoles;
         table->tableHoles = hole->next;
         index = hole->index;
-        nkFree(vm, hole);
+        nkiFree(vm, hole);
 
     } else {
 
@@ -192,7 +192,7 @@ void vmObjectClearEntry(
     if(*elPtr) {
         struct VMObjectElement *el = *elPtr;
         *elPtr = (*elPtr)->next;
-        nkFree(vm, el);
+        nkiFree(vm, el);
 
         assert(ob->size);
         ob->size--;

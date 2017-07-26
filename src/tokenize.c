@@ -16,8 +16,8 @@ static bool isNumber(char c)
 void deleteToken(struct VM *vm, struct Token *token)
 {
     if(token) {
-        nkFree(vm, token->str);
-        nkFree(vm, token);
+        nkiFree(vm, token->str);
+        nkiFree(vm, token);
     }
 }
 
@@ -128,7 +128,7 @@ void consolidateStringLiterals(struct VM *vm, struct TokenList *tokenList)
             strcat(newStr, tok->next->str);
 
             // Replace this token's string with it.
-            nkFree(vm, tok->str);
+            nkiFree(vm, tok->str);
             tok->str = newStr;
 
             // Snip the next token out of the list.
@@ -352,8 +352,8 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
 
             addToken(vm, TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
 
-            nkFree(vm, strTmp);
-            nkFree(vm, strUnescaped);
+            nkiFree(vm, strTmp);
+            nkiFree(vm, strUnescaped);
 
             // Skip the whole string and end quote.
             i += len + 1;
@@ -428,7 +428,7 @@ bool tokenize(struct VM *vm, const char *str, struct TokenList *tokenList)
                 addToken(vm, TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }
 
-            nkFree(vm, tmp);
+            nkiFree(vm, tmp);
 
             i--;
 

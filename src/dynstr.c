@@ -10,8 +10,8 @@ struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str)
 
 void nkiDynStrDelete(struct NKDynString *dynStr)
 {
-    nkFree(dynStr->vm, dynStr->data);
-    nkFree(dynStr->vm, dynStr);
+    nkiFree(dynStr->vm, dynStr->data);
+    nkiFree(dynStr->vm, dynStr);
 }
 
 void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)

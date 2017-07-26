@@ -151,11 +151,11 @@ void vmDestroy(struct VM *vm)
 
         vmStackDestroy(vm);
         nkiErrorStateDestroy(vm);
-        nkFree(vm, vm->instructions);
-        nkFree(vm, vm->functionTable);
+        nkiFree(vm, vm->instructions);
+        nkiFree(vm, vm->functionTable);
 
-        nkFree(vm, vm->globalVariables);
-        nkFree(vm, vm->globalVariableNameStorage);
+        nkiFree(vm, vm->globalVariables);
+        nkiFree(vm, vm->globalVariableNameStorage);
 
         vmObjectTableDestroy(vm);
 
@@ -382,7 +382,7 @@ void vmGarbageCollect(struct VM *vm)
         uint32_t count = 0;
         while(gcState.closedList) {
             struct VMValueGCEntry *next = gcState.closedList->next;
-            nkFree(vm, gcState.closedList);
+            nkiFree(vm, gcState.closedList);
             gcState.closedList = next;
             count++;
         }

@@ -19,7 +19,7 @@ void deleteExpressionNode(struct VM *vm, struct ExpressionAstNode *node)
         deleteExpressionNode(vm, node->children[1]);
     }
 
-    nkFree(vm, node);
+    nkiFree(vm, node);
 }
 
 // TODO: Remove this.
@@ -456,8 +456,8 @@ struct ExpressionAstNode *parseExpression(struct CompilerState *cs)
                         if(!functionCallNode->opOrValue->str ||
                             !parseFunctioncall(functionCallNode, cs))
                         {
-                            nkFree(cs->vm, functionCallNode->opOrValue->str);
-                            nkFree(cs->vm, functionCallNode);
+                            nkiFree(cs->vm, functionCallNode->opOrValue->str);
+                            nkiFree(cs->vm, functionCallNode);
                             CLEANUP_INLOOP();
                             nkiCompilerPopRecursion(cs);
                             return NULL;

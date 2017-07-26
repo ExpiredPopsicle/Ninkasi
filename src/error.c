@@ -18,8 +18,8 @@ void nkiErrorStateDestroy(struct VM *vm)
     struct NKError *e = vm->errorState.firstError;
     while(e) {
         struct NKError *next = e->next;
-        nkFree(vm, e->errorText);
-        nkFree(vm, e);
+        nkiFree(vm, e->errorText);
+        nkiFree(vm, e);
         e = next;
     }
     vm->errorState.firstError = NULL;

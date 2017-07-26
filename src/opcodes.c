@@ -490,7 +490,7 @@ void opcode_call(struct VM *vm)
             NK_CATASTROPHE();
         }
 
-        nkFree(vm, data.arguments);
+        nkiFree(vm, data.arguments);
 
         // Pop all the arguments.
         vmStackPopN(vm, argumentCount + 2);

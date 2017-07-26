@@ -64,7 +64,7 @@ void *nkiMalloc(struct VM *vm, uint32_t size)
     return NULL;
 }
 
-void nkFree(struct VM *vm, void *data)
+void nkiFree(struct VM *vm, void *data)
 {
     if(data) {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
@@ -92,7 +92,7 @@ void *nkRealloc(struct VM *vm, void *data, uint32_t size)
         if(newData) {
             memcpy(newData, data, copySize);
         }
-        nkFree(vm, data);
+        nkiFree(vm, data);
         return newData;
     }
     return NULL;

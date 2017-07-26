@@ -92,8 +92,8 @@ void popContext(struct CompilerState *cs)
             }
 
             // Free it.
-            nkFree(cs->vm, var->name);
-            nkFree(cs->vm, var);
+            nkiFree(cs->vm, var->name);
+            nkiFree(cs->vm, var);
             var = next;
 
             dbgWriteLine("Variable removed.");
@@ -144,10 +144,10 @@ void popContext(struct CompilerState *cs)
     }
 
     // Free loop context jump fixups for break statements.
-    nkFree(cs->vm, oldContext->loopContextFixups);
+    nkiFree(cs->vm, oldContext->loopContextFixups);
 
     // Free the context itself.
-    nkFree(cs->vm, oldContext);
+    nkiFree(cs->vm, oldContext);
 
     dbgPop();
     dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
@@ -927,7 +927,7 @@ void vmCompilerFinalize(
     // Add a single end instruction.
     addInstructionSimple(cs, NK_OP_END);
 
-    nkFree(cs->vm, cs);
+    nkiFree(cs->vm, cs);
 }
 
 bool vmCompilerCompileScript(
@@ -1136,7 +1136,7 @@ void fixupBreakJumpForContext(struct CompilerState *cs)
             cs->context->loopContextFixups[--cs->context->loopContextFixupCount];
         modifyJump(cs, fixupLocation, cs->instructionWriteIndex);
     }
-    nkFree(cs->vm, cs->context->loopContextFixups);
+    nkiFree(cs->vm, cs->context->loopContextFixups);
     cs->context->loopContextFixups = NULL;
 }
 
