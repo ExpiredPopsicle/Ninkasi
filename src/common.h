@@ -27,7 +27,7 @@
 #include "dynstr.h"
 #include "vm.h"
 #include "compiler.h"
-#include "vmstring.h"
+#include "nkstring.h"
 #include "nkfunc.h"
 #include "objects.h"
 #include "nkmem.h"

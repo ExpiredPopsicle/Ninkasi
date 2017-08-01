@@ -1,6 +1,6 @@
 #include "common.h"
 
-static uint32_t stringHash(const char *in)
+static uint32_t nkiStringHash(const char *in)
 {
     uint32_t len = strlen(in);
     uint32_t a = 1;
@@ -85,7 +85,7 @@ uint32_t nkiVmStringTableFindOrAddString(
     const char *str)
 {
     struct NKVMStringTable *table = &vm->stringTable;
-    uint32_t hash = stringHash(str);
+    uint32_t hash = nkiStringHash(str);
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
@@ -171,7 +171,7 @@ uint32_t nkiVmStringTableFindOrAddString(
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
         newString->dontGC = false;
-        newString->hash = stringHash(str);
+        newString->hash = nkiStringHash(str);
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
         table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
