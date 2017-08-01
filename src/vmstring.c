@@ -15,7 +15,7 @@ static uint32_t stringHash(const char *in)
     return (b << 16) | a;
 }
 
-void vmStringTableInit(struct VM *vm)
+void nkiVmStringTableInit(struct VM *vm)
 {
     struct NKVMStringTable *table = &vm->stringTable;
 
@@ -34,7 +34,7 @@ void vmStringTableInit(struct VM *vm)
     table->tableHoles->next = NULL;
 }
 
-void vmStringTableDestroy(struct VM *vm)
+void nkiVmStringTableDestroy(struct VM *vm)
 {
     struct NKVMStringTable *table = &vm->stringTable;
 

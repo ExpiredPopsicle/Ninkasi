@@ -111,7 +111,7 @@ void vmInit(struct VM *vm)
     vm->instructionAddressMask = 0x3;
     memset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
 
-    vmStringTableInit(vm);
+    nkiVmStringTableInit(vm);
 
     vm->lastGCPass = 0;
     vm->gcInterval = 1000;
@@ -147,7 +147,7 @@ void vmDestroy(struct VM *vm)
 
         NK_SET_FAILURE_RECOVERY_VOID();
 
-        vmStringTableDestroy(vm);
+        nkiVmStringTableDestroy(vm);
 
         vmStackDestroy(vm);
         nkiErrorStateDestroy(vm);

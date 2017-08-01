@@ -369,10 +369,11 @@ print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
 
 
 
-function causeCatastrophe()
-{
-    catastrophe();
-}
+// function causeCatastrophe()
+// {
+//     catastrophe();
+// }
+// cfunc(causeCatastrophe);
 
 
-cfunc(causeCatastrophe);
+

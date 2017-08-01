@@ -36,8 +36,8 @@ struct NKVMStringTable
     uint32_t stringTableCapacity;
 };
 
-void vmStringTableInit(struct VM *vm);
-void vmStringTableDestroy(struct VM *vm);
+void nkiVmStringTableInit(struct VM *vm);
+void nkiVmStringTableDestroy(struct VM *vm);
 
 struct NKVMString *vmStringTableGetEntryById(
     struct NKVMStringTable *table,
