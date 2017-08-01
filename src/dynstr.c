@@ -1,6 +1,6 @@
 #include "common.h"
 
-struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str)
+struct NKDynString *nkiDynStrCreate(struct NKVM *vm, const char *str)
 {
     struct NKDynString *ret = nkiMalloc(vm, sizeof(struct NKDynString) + 1);
     ret->vm = vm;

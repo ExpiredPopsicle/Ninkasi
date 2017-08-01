@@ -9,27 +9,27 @@
 
 /// Increment the reference count for an object. This keeps it (and
 /// everything referenced from it) from being garbage collected.
-void vmObjectAcquireHandle(struct VM *vm, struct Value *value);
+void vmObjectAcquireHandle(struct NKVM *vm, struct Value *value);
 
 /// Decrement the reference count for an object. Objects that reach
 /// zero references and have no owning references inside the VM will
 /// be deleted next garbage collection pass.
-void vmObjectReleaseHandle(struct VM *vm, struct Value *value);
+void vmObjectReleaseHandle(struct NKVM *vm, struct Value *value);
 
 // ----------------------------------------------------------------------
 // Internals
 
 // Dumb linked-list for object data. We should replace this some day.
-struct VMObjectElement
+struct NKVMObjectElement
 {
     struct Value key;
     struct Value value;
-    struct VMObjectElement *next;
+    struct NKVMObjectElement *next;
 };
 
 #define VMObjectHashBucketCount 16
 
-struct VMObject
+struct NKVMObject
 {
     uint32_t objectTableIndex;
     uint32_t lastGCPass;
@@ -37,58 +37,58 @@ struct VMObject
     // Cached count of number of entries.
     uint32_t size;
 
-    struct VMObjectElement *hashBuckets[VMObjectHashBucketCount];
+    struct NKVMObjectElement *hashBuckets[VMObjectHashBucketCount];
 
     // External handle stuff.
-    struct VMObject *nextObjectWithExternalHandles;
-    struct VMObject **previousExternalHandleListPtr;
+    struct NKVMObject *nextObjectWithExternalHandles;
+    struct NKVMObject **previousExternalHandleListPtr;
     uint32_t externalHandleCount;
 };
 
-struct VMObjectTableHole
+struct NKVMObjectTableHole
 {
-    struct VMObjectTableHole *next;
+    struct NKVMObjectTableHole *next;
     uint32_t index;
 };
 
-struct VMObjectTable
+struct NKVMObjectTable
 {
-    struct VMObjectTableHole *tableHoles;
-    struct VMObject **objectTable;
+    struct NKVMObjectTableHole *tableHoles;
+    struct NKVMObject **objectTable;
     uint32_t objectTableCapacity;
 
-    struct VMObject *objectsWithExternalHandles;
+    struct NKVMObject *objectsWithExternalHandles;
 };
 
-void vmObjectTableInit(struct VM *vm);
-void vmObjectTableDestroy(struct VM *vm);
+void vmObjectTableInit(struct NKVM *vm);
+void vmObjectTableDestroy(struct NKVM *vm);
 
-struct VMObject *vmObjectTableGetEntryById(
-    struct VMObjectTable *table,
+struct NKVMObject *vmObjectTableGetEntryById(
+    struct NKVMObjectTable *table,
     uint32_t index);
 
 uint32_t vmObjectTableCreateObject(
-    struct VM *vm);
+    struct NKVM *vm);
 
 void vmObjectTableCleanOldObjects(
-    struct VM *vm,
+    struct NKVM *vm,
     uint32_t lastGCPass);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.
 struct Value *vmObjectFindOrAddEntry(
-    struct VM *vm,
-    struct VMObject *ob,
+    struct NKVM *vm,
+    struct NKVMObject *ob,
     struct Value *key,
     bool noAdd);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.
 void vmObjectClearEntry(
-    struct VM *vm,
-    struct VMObject *ob,
+    struct NKVM *vm,
+    struct NKVMObject *ob,
     struct Value *key);
 
-void vmObjectTableDump(struct VM *vm);
+void vmObjectTableDump(struct NKVM *vm);
 
 #endif

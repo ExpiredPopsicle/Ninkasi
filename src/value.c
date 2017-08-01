@@ -1,7 +1,7 @@
 #include "common.h"
 
 bool value_dump(
-    struct VM *vm, struct Value *value)
+    struct NKVM *vm, struct Value *value)
 {
     // TODO: Function pointer table here?
     switch(value->type) {
@@ -71,7 +71,7 @@ const char *valueTypeGetName(enum NKValueType type)
     }
 }
 
-int32_t valueToInt(struct VM *vm, struct Value *value)
+int32_t valueToInt(struct NKVM *vm, struct Value *value)
 {
     // TODO: De-reference references here.
 
@@ -107,7 +107,7 @@ int32_t valueToInt(struct VM *vm, struct Value *value)
     }
 }
 
-float valueToFloat(struct VM *vm, struct Value *value)
+float valueToFloat(struct NKVM *vm, struct Value *value)
 {
     // TODO: De-reference references here.
 
@@ -138,7 +138,7 @@ float valueToFloat(struct VM *vm, struct Value *value)
     }
 }
 
-const char *valueToString(struct VM *vm, struct Value *value)
+const char *valueToString(struct NKVM *vm, struct Value *value)
 {
     // TODO: De-reference references here.
 
@@ -212,7 +212,7 @@ int32_t value_compareType(
 }
 
 int32_t value_compare(
-    struct VM *vm,
+    struct NKVM *vm,
     struct Value *in1,
     struct Value *in2,
     bool strictType)
@@ -298,7 +298,7 @@ int32_t value_compare(
     return ~0;
 }
 
-uint32_t valueHash(struct VM *vm, struct Value *value)
+uint32_t valueHash(struct NKVM *vm, struct Value *value)
 {
     uint32_t ret = 0;
 
@@ -333,19 +333,19 @@ uint32_t valueHash(struct VM *vm, struct Value *value)
     return ret;
 }
 
-void vmValueSetInt(struct VM *vm, struct Value *value, int32_t intData)
+void vmValueSetInt(struct NKVM *vm, struct Value *value, int32_t intData)
 {
     value->type = NK_VALUETYPE_INT;
     value->intData = intData;
 }
 
-void vmValueSetFloat(struct VM *vm, struct Value *value, float floatData)
+void vmValueSetFloat(struct NKVM *vm, struct Value *value, float floatData)
 {
     value->type = NK_VALUETYPE_FLOAT;
     value->floatData = floatData;
 }
 
-void vmValueSetString(struct VM *vm, struct Value *value, const char *str)
+void vmValueSetString(struct NKVM *vm, struct Value *value, const char *str)
 {
     value->type = NK_VALUETYPE_STRING;
     value->stringTableEntry =

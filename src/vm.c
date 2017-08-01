@@ -3,7 +3,7 @@
 // ----------------------------------------------------------------------
 // Static opcode table setup.
 
-typedef void (*VMOpcodeCall)(struct VM *vm);
+typedef void (*VMOpcodeCall)(struct NKVM *vm);
 static VMOpcodeCall opcodeTable[NK_OPCODE_PADDEDCOUNT];
 static const char *opcodeNameTable[NK_OPCODE_PADDEDCOUNT];
 
@@ -81,7 +81,7 @@ static void vmInitOpcodeTable(void)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
-void vmInit(struct VM *vm)
+void vmInit(struct NKVM *vm)
 {
     // FIXME: Don't do this here.
     // memset(
@@ -129,7 +129,7 @@ void vmInit(struct VM *vm)
     vmObjectTableInit(vm);
 }
 
-void vmDestroy(struct VM *vm)
+void vmDestroy(struct NKVM *vm)
 {
     if(vm->errorState.allocationFailure) {
 
@@ -168,7 +168,7 @@ void vmDestroy(struct VM *vm)
 // ----------------------------------------------------------------------
 // Iteration
 
-void vmIterate(struct VM *vm)
+void vmIterate(struct NKVM *vm)
 {
     struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
@@ -194,29 +194,29 @@ void vmIterate(struct VM *vm)
 // ----------------------------------------------------------------------
 // Garbage collection
 
-struct VMValueGCEntry
+struct NKVMValueGCEntry
 {
     struct Value *value;
-    struct VMValueGCEntry *next;
+    struct NKVMValueGCEntry *next;
 };
 
-struct VMGCState
+struct NKVMGCState
 {
-    struct VM *vm;
+    struct NKVM *vm;
     uint32_t currentGCPass;
-    struct VMValueGCEntry *openList;
-    struct VMValueGCEntry *closedList; // We'll keep this just for re-using allocations.
+    struct NKVMValueGCEntry *openList;
+    struct NKVMValueGCEntry *closedList; // We'll keep this just for re-using allocations.
 };
 
-struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
+struct NKVMValueGCEntry *vmGcStateMakeEntry(struct NKVMGCState *state)
 {
-    struct VMValueGCEntry *ret = NULL;
+    struct NKVMValueGCEntry *ret = NULL;
 
     if(state->closedList) {
         ret = state->closedList;
         state->closedList = ret->next;
     } else {
-        ret = nkiMalloc(state->vm, sizeof(struct VMValueGCEntry));
+        ret = nkiMalloc(state->vm, sizeof(struct NKVMValueGCEntry));
     }
 
     ret->next = state->openList;
@@ -225,8 +225,8 @@ struct VMValueGCEntry *vmGcStateMakeEntry(struct VMGCState *state)
 }
 
 void vmGarbageCollect_markObject(
-    struct VMGCState *gcState,
-    struct VMObject *ob)
+    struct NKVMGCState *gcState,
+    struct NKVMObject *ob)
 {
     uint32_t bucket;
 
@@ -238,7 +238,7 @@ void vmGarbageCollect_markObject(
 
     for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
 
-        struct VMObjectElement *el = ob->hashBuckets[bucket];
+        struct NKVMObjectElement *el = ob->hashBuckets[bucket];
 
         while(el) {
 
@@ -249,7 +249,7 @@ void vmGarbageCollect_markObject(
                 if(v->type == NK_VALUETYPE_STRING ||
                     v->type == NK_VALUETYPE_OBJECTID)
                 {
-                    struct VMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
+                    struct NKVMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
                     newEntry->value = v;
                 }
             }
@@ -262,7 +262,7 @@ void vmGarbageCollect_markObject(
 
 // FIXME: Find a way to do this without tons of allocations.
 void vmGarbageCollect_markValue(
-    struct VMGCState *gcState,
+    struct NKVMGCState *gcState,
     struct Value *v)
 {
     if(v->lastGCPass == gcState->currentGCPass) {
@@ -270,18 +270,18 @@ void vmGarbageCollect_markValue(
     }
 
     {
-        struct VMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
+        struct NKVMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
         entry->value = v;
     }
 }
 
 void vmGarbageCollect_markReferenced(
-    struct VMGCState *gcState)
+    struct NKVMGCState *gcState)
 {
     while(gcState->openList) {
 
         // Remove the value from the list.
-        struct VMValueGCEntry *currentEntry = gcState->openList;
+        struct NKVMValueGCEntry *currentEntry = gcState->openList;
         gcState->openList = gcState->openList->next;
 
         if(currentEntry->value->lastGCPass != gcState->currentGCPass) {
@@ -309,7 +309,7 @@ void vmGarbageCollect_markReferenced(
 
                 case NK_VALUETYPE_OBJECTID: {
 
-                    struct VMObject *ob = vmObjectTableGetEntryById(
+                    struct NKVMObject *ob = vmObjectTableGetEntryById(
                         &gcState->vm->objectTable,
                         value->objectId);
 
@@ -334,9 +334,9 @@ void vmGarbageCollect_markReferenced(
     }
 }
 
-void vmGarbageCollect(struct VM *vm)
+void vmGarbageCollect(struct NKVM *vm)
 {
-    struct VMGCState gcState;
+    struct NKVMGCState gcState;
     memset(&gcState, 0, sizeof(gcState));
     gcState.currentGCPass = ++vm->lastGCPass;
     gcState.vm = vm;
@@ -346,7 +346,7 @@ void vmGarbageCollect(struct VM *vm)
 
     // Iterate through objects with external handles.
     {
-        struct VMObject *ob;
+        struct NKVMObject *ob;
         for(ob = vm->objectTable.objectsWithExternalHandles; ob;
             ob = ob->nextObjectWithExternalHandles)
         {
@@ -386,7 +386,7 @@ void vmGarbageCollect(struct VM *vm)
     {
         uint32_t count = 0;
         while(gcState.closedList) {
-            struct VMValueGCEntry *next = gcState.closedList->next;
+            struct NKVMValueGCEntry *next = gcState.closedList->next;
             nkiFree(vm, gcState.closedList);
             gcState.closedList = next;
             count++;
@@ -395,7 +395,7 @@ void vmGarbageCollect(struct VM *vm)
     }
 }
 
-void vmRescanProgramStrings(struct VM *vm)
+void vmRescanProgramStrings(struct NKVM *vm)
 {
     // This is needed for REPL support. Without it, string literals
     // would clutter stuff up permanently.
@@ -440,7 +440,7 @@ const char *vmGetOpcodeName(enum NKOpcode op)
     return opcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
 }
 
-struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
+struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId)
 {
     if(functionId) {
         *functionId = vm->functionCount++;
@@ -450,17 +450,17 @@ struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId)
     vm->functionTable = nkiRealloc(
         vm,
         vm->functionTable,
-        sizeof(struct VMFunction) * vm->functionCount);
+        sizeof(struct NKVMFunction) * vm->functionCount);
 
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
-        sizeof(struct VMFunction));
+        sizeof(struct NKVMFunction));
 
     return &vm->functionTable[vm->functionCount - 1];
 }
 
 void vmCreateCFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     VMFunctionCallback func,
     struct Value *output)
 {
@@ -470,7 +470,7 @@ void vmCreateCFunction(
     // TODO: Test this stupid thing.
 
     uint32_t functionId = 0;
-    struct VMFunction *vmfunc =
+    struct NKVMFunction *vmfunc =
         vmCreateFunction(vm, &functionId);
 
     vmfunc->argumentCount = ~(uint32_t)0;
@@ -482,7 +482,7 @@ void vmCreateCFunction(
 }
 
 void vmCallFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     struct Value *functionValue,
     uint32_t argumentCount,
     struct Value *arguments,
@@ -529,7 +529,7 @@ void vmCallFunction(
     }
 }
 
-bool vmExecuteProgram(struct VM *vm)
+bool vmExecuteProgram(struct NKVM *vm)
 {
     while(vm->instructions[
             vm->instructionPointer &
@@ -545,7 +545,7 @@ bool vmExecuteProgram(struct VM *vm)
     return true;
 }
 
-uint32_t vmGetErrorCount(struct VM *vm)
+uint32_t vmGetErrorCount(struct NKVM *vm)
 {
     uint32_t count = 0;
     struct NKError *error = vm->errorState.firstError;
@@ -563,7 +563,7 @@ uint32_t vmGetErrorCount(struct VM *vm)
 }
 
 struct Value *vmFindGlobalVariable(
-    struct VM *vm, const char *name)
+    struct NKVM *vm, const char *name)
 {
     uint32_t i;
     for(i = 0; i < vm->globalVariableCount; i++) {

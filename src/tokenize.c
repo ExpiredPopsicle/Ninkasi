@@ -13,7 +13,7 @@ static bool isNumber(char c)
     return (c >= '0' && c <= '9');
 }
 
-void deleteToken(struct VM *vm, struct NKToken *token)
+void deleteToken(struct NKVM *vm, struct NKToken *token)
 {
     if(token) {
         nkiFree(vm, token->str);
@@ -22,7 +22,7 @@ void deleteToken(struct VM *vm, struct NKToken *token)
 }
 
 void destroyTokenList(
-    struct VM *vm, struct NKTokenList *tokenList)
+    struct NKVM *vm, struct NKTokenList *tokenList)
 {
     struct NKToken *t = tokenList->first;
     while(t) {
@@ -35,7 +35,7 @@ void destroyTokenList(
 }
 
 void addToken(
-    struct VM *vm,
+    struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
     int32_t lineNumber,
@@ -61,7 +61,7 @@ void addToken(
 }
 
 char *tokenizerUnescapeString(
-    struct VM *vm,
+    struct NKVM *vm,
     const char *in)
 {
     // +2 for weird backslash-before null-terminator, and the regular
@@ -109,7 +109,7 @@ char *tokenizerUnescapeString(
     return out;
 }
 
-void consolidateStringLiterals(struct VM *vm, struct NKTokenList *tokenList)
+void consolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
 {
     struct NKToken *tok = tokenList->first;
 
@@ -167,7 +167,7 @@ bool isValidIdentifierCharacter(char c, bool isFirstCharacter)
     return false;
 }
 
-bool tokenize(struct VM *vm, const char *str, struct NKTokenList *tokenList)
+bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 {
     uint32_t len = strlen(str);
     uint32_t i = 0;

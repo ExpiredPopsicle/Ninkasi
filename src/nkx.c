@@ -1,11 +1,11 @@
 #include "common.h"
 #include "nkx.h"
 
-struct VM *nkxVmCreate(void)
+struct NKVM *nkxVmCreate(void)
 {
     NK_FAILURE_RECOVERY_DECL();
 
-    struct VM *vm = malloc(sizeof(struct VM));
+    struct NKVM *vm = malloc(sizeof(struct NKVM));
 
     if(!vm) {
         return NULL;
@@ -22,7 +22,7 @@ struct VM *nkxVmCreate(void)
     return vm;
 }
 
-void nkxVmDelete(struct VM *vm)
+void nkxVmDelete(struct NKVM *vm)
 {
     if(vm) {
         vmDestroy(vm);
@@ -30,7 +30,7 @@ void nkxVmDelete(struct VM *vm)
     free(vm);
 }
 
-bool nkxVmExecuteProgram(struct VM *vm)
+bool nkxVmExecuteProgram(struct NKVM *vm)
 {
     bool ret;
     NK_FAILURE_RECOVERY_DECL();
@@ -40,7 +40,7 @@ bool nkxVmExecuteProgram(struct VM *vm)
     return ret;
 }
 
-uint32_t nkxVmGetErrorCount(struct VM *vm)
+uint32_t nkxVmGetErrorCount(struct NKVM *vm)
 {
     uint32_t ret;
     NK_FAILURE_RECOVERY_DECL();
@@ -50,7 +50,7 @@ uint32_t nkxVmGetErrorCount(struct VM *vm)
     return ret;
 }
 
-void nkxVmIterate(struct VM *vm, uint32_t count)
+void nkxVmIterate(struct NKVM *vm, uint32_t count)
 {
     NK_FAILURE_RECOVERY_DECL();
     uint32_t i;
@@ -77,7 +77,7 @@ void nkxVmIterate(struct VM *vm, uint32_t count)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-void nkxVmGarbageCollect(struct VM *vm)
+void nkxVmGarbageCollect(struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
@@ -87,7 +87,7 @@ void nkxVmGarbageCollect(struct VM *vm)
 
 // FIXME: Add max iteration count param.
 void nkxVmCallFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     struct Value *functionValue,
     uint32_t argumentCount,
     struct Value *arguments,
@@ -100,7 +100,7 @@ void nkxVmCallFunction(
 }
 
 void nkxVmCreateCFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     VMFunctionCallback func,
     struct Value *output)
 {
@@ -111,7 +111,7 @@ void nkxVmCreateCFunction(
 }
 
 struct Value *nkxVmFindGlobalVariable(
-    struct VM *vm, const char *name)
+    struct NKVM *vm, const char *name)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct Value *ret;
@@ -122,7 +122,7 @@ struct Value *nkxVmFindGlobalVariable(
 }
 
 struct NKCompilerState *nkxVmCompilerCreate(
-    struct VM *vm)
+    struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct NKCompilerState *ret;
@@ -139,7 +139,7 @@ void nkxVmCompilerCreateCFunctionVariable(
     void *userData)
 {
     NK_FAILURE_RECOVERY_DECL();
-    struct VM *vm = cs->vm;
+    struct NKVM *vm = cs->vm;
     NK_SET_FAILURE_RECOVERY_VOID();
     vmCompilerCreateCFunctionVariable(cs, name, func, userData);
     NK_CLEAR_FAILURE_RECOVERY();
@@ -150,7 +150,7 @@ bool nkxVmCompilerCompileScript(
     const char *script)
 {
     NK_FAILURE_RECOVERY_DECL();
-    struct VM *vm = cs->vm;
+    struct NKVM *vm = cs->vm;
     bool ret;
     NK_SET_FAILURE_RECOVERY(false);
     ret = vmCompilerCompileScript(cs, script);
@@ -162,7 +162,7 @@ bool nkxVmCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename)
 {
-    struct VM *vm = cs->vm;
+    struct NKVM *vm = cs->vm;
     FILE *in = fopen(scriptFilename, "rb");
     uint32_t len;
     char *buf;
@@ -200,13 +200,13 @@ void nkxVmCompilerFinalize(
     struct NKCompilerState *cs)
 {
     NK_FAILURE_RECOVERY_DECL();
-    struct VM *vm = cs->vm;
+    struct NKVM *vm = cs->vm;
     NK_SET_FAILURE_RECOVERY_VOID();
     vmCompilerFinalize(cs);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-const char *nkxValueToString(struct VM *vm, struct Value *value)
+const char *nkxValueToString(struct NKVM *vm, struct Value *value)
 {
     NK_FAILURE_RECOVERY_DECL();
     const char *ret = NULL;
@@ -216,7 +216,7 @@ const char *nkxValueToString(struct VM *vm, struct Value *value)
     return ret;
 }
 
-void nkxForceCatastrophicFailure(struct VM *vm)
+void nkxForceCatastrophicFailure(struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();

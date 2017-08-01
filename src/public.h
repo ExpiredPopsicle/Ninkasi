@@ -1,9 +1,9 @@
 #ifndef NINKASI_PUBLIC_H
 #define NINKASI_PUBLIC_H
 
-struct VM;
-struct VMFunctionCallbackData;
-typedef void (*VMFunctionCallback)(struct VMFunctionCallbackData *data);
+struct NKVM;
+struct NKVMFunctionCallbackData;
+typedef void (*VMFunctionCallback)(struct NKVMFunctionCallbackData *data);
 struct Value;
 
 #include "basetype.h"
@@ -13,25 +13,25 @@ struct Value;
 // ----------------------------------------------------------------------
 // Public VM interface
 
-void vmInit(struct VM *vm);
+void vmInit(struct NKVM *vm);
 
-void vmDestroy(struct VM *vm);
+void vmDestroy(struct NKVM *vm);
 
 /// Run the compiled program.
-bool vmExecuteProgram(struct VM *vm);
+bool vmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-uint32_t vmGetErrorCount(struct VM *vm);
+uint32_t vmGetErrorCount(struct NKVM *vm);
 
 // TODO: Error string functions.
 
 /// Run a single instruction inside the VM and advance the program
 /// counter.
-void vmIterate(struct VM *vm);
+void vmIterate(struct NKVM *vm);
 
 /// Force a garbage collection pass.
-void vmGarbageCollect(struct VM *vm);
+void vmGarbageCollect(struct NKVM *vm);
 
 /// Call a function inside the VM. This does not do any kind of
 /// iteration control, and will simply keep iterating until the
@@ -44,7 +44,7 @@ void vmGarbageCollect(struct VM *vm);
 /// returnValue is an output pointing to the Value to fill with the
 ///   return value from the function call.
 void vmCallFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     struct Value *functionValue,
     uint32_t argumentCount,
     struct Value *arguments,
@@ -56,7 +56,7 @@ void vmCallFunction(
 ///
 /// output is the Value to write the pointer to.
 void vmCreateCFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     VMFunctionCallback func,
     struct Value *output);
 
@@ -68,17 +68,17 @@ void vmCreateCFunction(
 /// area they occupy may be used by other things, or may not exist at
 /// all.)
 struct Value *vmFindGlobalVariable(
-    struct VM *vm, const char *name);
+    struct NKVM *vm, const char *name);
 
 // ----------------------------------------------------------------------
 // Public compiler interface
 
 struct NKCompilerState;
-struct VM;
+struct NKVM;
 
 /// Create a compiler.
 struct NKCompilerState *vmCompilerCreate(
-    struct VM *vm);
+    struct NKVM *vm);
 
 /// Create a C function and assign it a variable name at the current
 /// scope. Use this to make a globally defined C function at
@@ -109,9 +109,9 @@ void vmCompilerFinalize(
 // ----------------------------------------------------------------------
 // Public types
 
-struct VMFunctionCallbackData
+struct NKVMFunctionCallbackData
 {
-    struct VM *vm;
+    struct NKVM *vm;
 
     struct Value *arguments;
     uint32_t argumentCount;

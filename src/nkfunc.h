@@ -4,7 +4,7 @@
 #include "value.h"
 #include "public.h"
 
-struct VMFunction
+struct NKVMFunction
 {
     uint32_t argumentCount;
     uint32_t firstInstructionIndex;
@@ -19,7 +19,7 @@ struct VMFunction
 /// error will be added and this function will return false. Otherwise
 /// it will return true.
 bool vmFunctionCallbackCheckArgCount(
-    struct VMFunctionCallbackData *data,
+    struct NKVMFunctionCallbackData *data,
     uint32_t argCount,
     const char *functionName);
 

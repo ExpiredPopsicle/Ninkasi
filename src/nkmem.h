@@ -4,15 +4,15 @@
 struct NKMemoryHeader
 {
     uint32_t size;
-    struct VM *vm;
+    struct NKVM *vm;
 
     struct NKMemoryHeader *nextAllocation;
     struct NKMemoryHeader **prevAllocationPtr;
 };
 
-void *nkiMalloc(struct VM *vm, uint32_t size);
-void nkiFree(struct VM *vm, void *data);
-void *nkiRealloc(struct VM *vm, void *data, uint32_t size);
-char *nkiStrdup(struct VM *vm, const char *str);
+void *nkiMalloc(struct NKVM *vm, uint32_t size);
+void nkiFree(struct NKVM *vm, void *data);
+void *nkiRealloc(struct NKVM *vm, void *data, uint32_t size);
+char *nkiStrdup(struct NKVM *vm, const char *str);
 
 #endif // NINKASI_MEM_H

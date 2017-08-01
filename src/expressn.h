@@ -4,7 +4,7 @@
 #include "basetype.h"
 
 struct NKToken;
-struct VM;
+struct NKVM;
 struct NKCompilerState;
 
 struct NKExpressionAstNode
@@ -33,11 +33,11 @@ bool isSubexpressionEndingToken(struct NKToken *token);
 int32_t getPrecedence(enum NKTokenType t);
 
 struct NKExpressionAstNode *makeImmediateExpressionNode(
-    struct VM *vm,
+    struct NKVM *vm,
     enum NKTokenType type,
     uint32_t lineNumber);
 
-void deleteExpressionNode(struct VM *vm, struct NKExpressionAstNode *node);
+void deleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node);
 void dumpExpressionAstNode(struct NKExpressionAstNode *node);
 
 struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs);

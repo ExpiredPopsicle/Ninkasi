@@ -113,7 +113,7 @@ x.a(b, c) is...
 
 * TODO Get rid of all the asserts that were ensuring contexts line up.
 * TODO Make sure the error system has a standard way of reporting errors.
-Looking at the structure won't work.
+Looking at the errorState structure won't work.
 * DONE Looking up a nonexistant entry in an object should return nil and not create anything.
 * TODO Catastrophe handling
 ** TODO Make sure the standard error reporting recognizes the out-of-memory special case.

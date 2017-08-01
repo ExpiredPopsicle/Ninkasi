@@ -1,7 +1,7 @@
 #include "common.h"
 
 // TODO: Make a non-recursive version of this.
-void deleteExpressionNode(struct VM *vm, struct NKExpressionAstNode *node)
+void deleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node)
 {
     if(!node) {
         return;

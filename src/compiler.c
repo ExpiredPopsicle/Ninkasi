@@ -513,7 +513,7 @@ void emitReturn(struct NKCompilerState *cs)
 {
     // Find the function we're in.
     struct NKCompilerStateContext *ctx = cs->context;
-    struct VMFunction *func;
+    struct NKVMFunction *func;
     while(ctx && ctx->currentFunctionId == ~(uint32_t)0) {
         ctx = ctx->parent;
     }
@@ -585,7 +585,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     uint32_t functionArgumentCount = 0;
 
     uint32_t functionId = 0;
-    struct VMFunction *functionObject;
+    struct NKVMFunction *functionObject;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
@@ -812,7 +812,7 @@ void vmCompilerCreateCFunctionVariable(
     void *userData)
 {
     uint32_t functionId = 0;
-    struct VM *vm = cs->vm;
+    struct NKVM *vm = cs->vm;
 
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
@@ -826,7 +826,7 @@ void vmCompilerCreateCFunctionVariable(
 
     // Add a new one if we haven't found an existing one.
     if(functionId == cs->vm->functionCount) {
-        struct VMFunction *vmfunc =
+        struct NKVMFunction *vmfunc =
             vmCreateFunction(cs->vm, &functionId);
         vmfunc->argumentCount = ~(uint32_t)0;
         vmfunc->isCFunction = true;
@@ -841,7 +841,7 @@ void vmCompilerCreateCFunctionVariable(
 }
 
 struct NKCompilerState *vmCompilerCreate(
-    struct VM *vm)
+    struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
 
@@ -975,7 +975,7 @@ bool vmCompilerCompileScript(
 //     const char *scriptFilename)
 // {
 //     NK_FAILURE_RECOVERY_DECL();
-//     struct VM *vm = cs->vm;
+//     struct NKVM *vm = cs->vm;
 //     FILE *in = fopen(scriptFilename, "rb");
 //     uint32_t len;
 //     char *buf;

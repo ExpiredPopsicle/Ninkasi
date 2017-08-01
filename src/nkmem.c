@@ -2,7 +2,7 @@
 
 // static uint32_t killCounter = 2;
 
-void *nkiMalloc(struct VM *vm, uint32_t size)
+void *nkiMalloc(struct NKVM *vm, uint32_t size)
 {
     // if(rand() % 2048 == 0) {
     //     nkiErrorStateSetAllocationFailFlag(vm);
@@ -64,7 +64,7 @@ void *nkiMalloc(struct VM *vm, uint32_t size)
     return NULL;
 }
 
-void nkiFree(struct VM *vm, void *data)
+void nkiFree(struct NKVM *vm, void *data)
 {
     if(data) {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
@@ -81,7 +81,7 @@ void nkiFree(struct VM *vm, void *data)
     }
 }
 
-void *nkiRealloc(struct VM *vm, void *data, uint32_t size)
+void *nkiRealloc(struct NKVM *vm, void *data, uint32_t size)
 {
     if(!data) {
         return nkiMalloc(vm, size);
@@ -98,7 +98,7 @@ void *nkiRealloc(struct VM *vm, void *data, uint32_t size)
     return NULL;
 }
 
-char *nkiStrdup(struct VM *vm, const char *str)
+char *nkiStrdup(struct NKVM *vm, const char *str)
 {
     if(str) {
         uint32_t len = strlen(str) + 1;

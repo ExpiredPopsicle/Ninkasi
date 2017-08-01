@@ -16,33 +16,33 @@
 #include "basetype.h"
 #include "value.h"
 
-struct VM;
-struct VMFunctionCallbackData;
-typedef void (*VMFunctionCallback)(struct VMFunctionCallbackData *data);
+struct NKVM;
+struct NKVMFunctionCallbackData;
+typedef void (*VMFunctionCallback)(struct NKVMFunctionCallbackData *data);
 struct Value;
 
 // ----------------------------------------------------------------------
 // Public VM interface
 
 /// Create and initialize a VM object.
-struct VM *nkxVmCreate(void);
+struct NKVM *nkxVmCreate(void);
 
 /// De-initialize and free a VM object.
-void nkxVmDelete(struct VM *vm);
+void nkxVmDelete(struct NKVM *vm);
 
 /// Run the compiled program.
-bool nkxVmExecuteProgram(struct VM *vm);
+bool nkxVmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-uint32_t nkxVmGetErrorCount(struct VM *vm);
+uint32_t nkxVmGetErrorCount(struct NKVM *vm);
 
 /// Run some number of instructions inside the VM and advance the
 /// program counter.
-void nkxVmIterate(struct VM *vm, uint32_t count);
+void nkxVmIterate(struct NKVM *vm, uint32_t count);
 
 /// Force a garbage collection pass.
-void nkxVmGarbageCollect(struct VM *vm);
+void nkxVmGarbageCollect(struct NKVM *vm);
 
 /// Call a function inside the VM. This does not do any kind of
 /// iteration control, and will simply keep iterating until the
@@ -57,7 +57,7 @@ void nkxVmGarbageCollect(struct VM *vm);
 /// returnValue is an output pointing to the Value to fill with the
 ///   return value from the function call.
 void nkxVmCallFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     struct Value *functionValue,
     uint32_t argumentCount,
     struct Value *arguments,
@@ -69,7 +69,7 @@ void nkxVmCallFunction(
 ///
 /// output is the Value to write the pointer to.
 void nkxVmCreateCFunction(
-    struct VM *vm,
+    struct NKVM *vm,
     VMFunctionCallback func,
     struct Value *output);
 
@@ -81,14 +81,14 @@ void nkxVmCreateCFunction(
 /// area they occupy may be used by other things, or may not exist at
 /// all.)
 struct Value *nkxVmFindGlobalVariable(
-    struct VM *vm, const char *name);
+    struct NKVM *vm, const char *name);
 
 // ----------------------------------------------------------------------
 // Public compiler interface
 
 /// Create a compiler.
 struct NKCompilerState *nkxVmCompilerCreate(
-    struct VM *vm);
+    struct NKVM *vm);
 
 /// Create a C function and assign it a variable name at the current
 /// scope. Use this to make a globally defined C function at
@@ -116,10 +116,10 @@ bool nkxVmCompilerCompileScriptFile(
 void nkxVmCompilerFinalize(
     struct NKCompilerState *cs);
 
-const char *nkxValueToString(struct VM *vm, struct Value *value);
+const char *nkxValueToString(struct NKVM *vm, struct Value *value);
 
 /// Force a catastrophic failure. This is mainly to test error
 /// recovery by C functions and callbacks.
-void nkxForceCatastrophicFailure(struct VM *vm);
+void nkxForceCatastrophicFailure(struct NKVM *vm);
 
 #endif // NINKASI_NKX

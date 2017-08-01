@@ -1,6 +1,6 @@
 #include "common.h"
 
-void opcode_add(struct VM *vm)
+void opcode_add(struct NKVM *vm)
 {
     struct Value *in2  = vmStackPop(vm);
     struct Value *in1  = vmStackPop(vm);
@@ -62,7 +62,7 @@ void opcode_add(struct VM *vm)
     }
 }
 
-void opcode_pushLiteral_int(struct VM *vm)
+void opcode_pushLiteral_int(struct NKVM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -72,7 +72,7 @@ void opcode_pushLiteral_int(struct VM *vm)
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_int;
 }
 
-void opcode_pushLiteral_float(struct VM *vm)
+void opcode_pushLiteral_float(struct NKVM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -82,7 +82,7 @@ void opcode_pushLiteral_float(struct VM *vm)
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_float;
 }
 
-void opcode_pushLiteral_string(struct VM *vm)
+void opcode_pushLiteral_string(struct NKVM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -95,7 +95,7 @@ void opcode_pushLiteral_string(struct VM *vm)
 
 }
 
-void opcode_pushLiteral_functionId(struct VM *vm)
+void opcode_pushLiteral_functionId(struct NKVM *vm)
 {
     struct Value *stackVal = vmStackPush_internal(vm);
     vm->instructionPointer++;
@@ -105,11 +105,11 @@ void opcode_pushLiteral_functionId(struct VM *vm)
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_functionId;
 }
 
-void opcode_nop(struct VM *vm)
+void opcode_nop(struct NKVM *vm)
 {
 }
 
-void opcode_subtract(struct VM *vm)
+void opcode_subtract(struct NKVM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -145,7 +145,7 @@ void opcode_subtract(struct VM *vm)
     }
 }
 
-void opcode_multiply(struct VM *vm)
+void opcode_multiply(struct NKVM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -181,7 +181,7 @@ void opcode_multiply(struct VM *vm)
     }
 }
 
-void opcode_divide(struct VM *vm)
+void opcode_divide(struct NKVM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -224,7 +224,7 @@ void opcode_divide(struct VM *vm)
     }
 }
 
-void opcode_modulo(struct VM *vm)
+void opcode_modulo(struct NKVM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -260,7 +260,7 @@ void opcode_modulo(struct VM *vm)
     }
 }
 
-void opcode_negate(struct VM *vm)
+void opcode_negate(struct NKVM *vm)
 {
     struct Value *in1 = vmStackPop(vm);
 
@@ -293,18 +293,18 @@ void opcode_negate(struct VM *vm)
     }
 }
 
-void opcode_pop(struct VM *vm)
+void opcode_pop(struct NKVM *vm)
 {
     vmStackPop(vm);
 }
 
-void opcode_popN(struct VM *vm)
+void opcode_popN(struct NKVM *vm)
 {
     struct Value *v = vmStackPop(vm);
     vmStackPopN(vm, valueToInt(vm, v));
 }
 
-void opcode_dump(struct VM *vm)
+void opcode_dump(struct NKVM *vm)
 {
     vmStackPop(vm);
     // struct Value *v = vmStackPop(vm);
@@ -313,7 +313,7 @@ void opcode_dump(struct VM *vm)
     // printf("\n");
 }
 
-void opcode_stackPeek(struct VM *vm)
+void opcode_stackPeek(struct NKVM *vm)
 {
     // Read index.
     struct Value *v = vmStackPop(vm);
@@ -348,7 +348,7 @@ void opcode_stackPeek(struct VM *vm)
     }
 }
 
-void opcode_stackPoke(struct VM *vm)
+void opcode_stackPoke(struct NKVM *vm)
 {
     // Read index.
     struct Value *stackAddrValue = vmStackPop(vm);
@@ -380,13 +380,13 @@ void opcode_stackPoke(struct VM *vm)
     }
 }
 
-void opcode_jumpRelative(struct VM *vm)
+void opcode_jumpRelative(struct NKVM *vm)
 {
     struct Value *offsetVal = vmStackPop(vm);
     vm->instructionPointer += valueToInt(vm, offsetVal);
 }
 
-void opcode_call(struct VM *vm)
+void opcode_call(struct NKVM *vm)
 {
     // Expected stack state at start...
     //   _argumentCount
@@ -395,7 +395,7 @@ void opcode_call(struct VM *vm)
 
     uint32_t argumentCount = 0;
     uint32_t functionId = 0;
-    struct VMFunction *funcOb = NULL;
+    struct NKVMFunction *funcOb = NULL;
 
     // PEEK at the top of the stack. That's _argumentCount.
     argumentCount = valueToInt(vm, vmStackPeek(vm, (vm->stack.size - 1)));
@@ -453,7 +453,7 @@ void opcode_call(struct VM *vm)
         // of our data off the stack, push the return value, and then
         // return from this function.
 
-        struct VMFunctionCallbackData data;
+        struct NKVMFunctionCallbackData data;
         memset(&data, 0, sizeof(data));
 
         // Fill in important stuff here.
@@ -518,7 +518,7 @@ void opcode_call(struct VM *vm)
     }
 }
 
-void opcode_return(struct VM *vm)
+void opcode_return(struct NKVM *vm)
 {
     // Expected stack state at start...
     //   context amount to throw away (contextCount)
@@ -571,7 +571,7 @@ void opcode_return(struct VM *vm)
     //   _returnValue
 }
 
-void opcode_end(struct VM *vm)
+void opcode_end(struct NKVM *vm)
 {
     // This doesn't actually do anything. The iteration loops know to
     // check for it and stop, though.
@@ -581,7 +581,7 @@ void opcode_end(struct VM *vm)
     vm->instructionPointer--;
 }
 
-void opcode_jz(struct VM *vm)
+void opcode_jz(struct NKVM *vm)
 {
     struct Value *relativeOffsetValue = vmStackPop(vm);
     struct Value *testValue = vmStackPop(vm);
@@ -595,7 +595,7 @@ void opcode_jz(struct VM *vm)
     }
 }
 
-int32_t opcode_internal_compare(struct VM *vm)
+int32_t opcode_internal_compare(struct NKVM *vm)
 {
     struct Value *in2 = vmStackPop(vm);
     struct Value *in1 = vmStackPop(vm);
@@ -603,43 +603,43 @@ int32_t opcode_internal_compare(struct VM *vm)
     return value_compare(vm, in1, in2, false);
 }
 
-void opcode_gt(struct VM *vm)
+void opcode_gt(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 1);
 }
 
-void opcode_lt(struct VM *vm)
+void opcode_lt(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == -1);
 }
 
-void opcode_ge(struct VM *vm)
+void opcode_ge(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0 || comparison == 1);
 }
 
-void opcode_le(struct VM *vm)
+void opcode_le(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0 || comparison == -1);
 }
 
-void opcode_eq(struct VM *vm)
+void opcode_eq(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0);
 }
 
-void opcode_ne(struct VM *vm)
+void opcode_ne(struct NKVM *vm)
 {
     int32_t comparison = opcode_internal_compare(vm);
     vmStackPushInt(vm, comparison != 0);
 }
 
-void opcode_eqsametype(struct VM *vm)
+void opcode_eqsametype(struct NKVM *vm)
 {
     uint32_t stackSize = vm->stack.size;
     bool sameTypes =
@@ -655,12 +655,12 @@ void opcode_eqsametype(struct VM *vm)
     }
 }
 
-void opcode_not(struct VM *vm)
+void opcode_not(struct NKVM *vm)
 {
     vmStackPushInt(vm, !valueToInt(vm, vmStackPop(vm)));
 }
 
-void opcode_and(struct VM *vm)
+void opcode_and(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
@@ -669,7 +669,7 @@ void opcode_and(struct VM *vm)
     vmStackPushInt(vm, in1 && in2);
 }
 
-void opcode_or(struct VM *vm)
+void opcode_or(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
@@ -678,20 +678,20 @@ void opcode_or(struct VM *vm)
     vmStackPushInt(vm, in1 || in2);
 }
 
-void opcode_createObject(struct VM *vm)
+void opcode_createObject(struct NKVM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
     v->type = NK_VALUETYPE_OBJECTID;
     v->objectId = vmObjectTableCreateObject(vm);
 }
 
-void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
+void opcode_objectFieldGet_internal(struct NKVM *vm, bool popObject)
 {
     struct Value *indexToGet = vmStackPop(vm);
     struct Value *objectToGet;
     struct Value *output;
     struct Value *objectValue;
-    struct VMObject *ob;
+    struct NKVMObject *ob;
 
     if(popObject) {
         objectToGet = vmStackPop(vm);
@@ -730,17 +730,17 @@ void opcode_objectFieldGet_internal(struct VM *vm, bool popObject)
     }
 }
 
-void opcode_objectFieldGet(struct VM *vm)
+void opcode_objectFieldGet(struct NKVM *vm)
 {
     opcode_objectFieldGet_internal(vm, true);
 }
 
-void opcode_objectFieldGet_noPop(struct VM *vm)
+void opcode_objectFieldGet_noPop(struct NKVM *vm)
 {
     opcode_objectFieldGet_internal(vm, false);
 }
 
-void opcode_objectFieldSet(struct VM *vm)
+void opcode_objectFieldSet(struct NKVM *vm)
 {
     struct Value *indexToSet  = vmStackPop(vm);
     struct Value *objectToSet = vmStackPop(vm);
@@ -748,7 +748,7 @@ void opcode_objectFieldSet(struct VM *vm)
 
     // TODO: Actually assign the value.
     struct Value *objectValue;
-    struct VMObject *ob;
+    struct NKVMObject *ob;
 
     if(objectToSet->type != NK_VALUETYPE_OBJECTID) {
         nkiAddError(
@@ -790,7 +790,7 @@ void opcode_objectFieldSet(struct VM *vm)
     *vmStackPush_internal(vm) = *valueToSet;
 }
 
-void opcode_prepareSelfCall(struct VM *vm)
+void opcode_prepareSelfCall(struct NKVM *vm)
 {
     struct Value *argumentCount = vmStackPeek(vm, vm->stack.size - 1);
     uint32_t stackOffset = valueToInt(vm, argumentCount);
@@ -806,7 +806,7 @@ void opcode_prepareSelfCall(struct VM *vm)
     argumentCount->intData = stackOffset + 1;
 }
 
-void opcode_pushNil(struct VM *vm)
+void opcode_pushNil(struct NKVM *vm)
 {
     struct Value *v = vmStackPush_internal(vm);
     v->type = NK_VALUETYPE_NIL;

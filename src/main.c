@@ -33,7 +33,7 @@ char **splitLines(const char *str, uint32_t *lineCount)
     return lines;
 }
 
-void dumpListing(struct VM *vm, const char *script)
+void dumpListing(struct NKVM *vm, const char *script)
 {
     uint32_t i;
 
@@ -131,7 +131,7 @@ char *loadScript(const char *filename)
     return buf;
 }
 
-void testVMFunc(struct VMFunctionCallbackData *data)
+void testVMFunc(struct NKVMFunctionCallbackData *data)
 {
     // uint32_t i;
     printf("testVMFunc hit!\n");
@@ -154,12 +154,12 @@ void testVMFunc(struct VMFunctionCallbackData *data)
     printf("Got data back from VM: %s\n", nkxValueToString(data->vm, &data->returnValue));
 }
 
-void testVMCatastrophe(struct VMFunctionCallbackData *data)
+void testVMCatastrophe(struct NKVMFunctionCallbackData *data)
 {
     nkxForceCatastrophicFailure(data->vm);
 }
 
-void getHash(struct VMFunctionCallbackData *data)
+void getHash(struct NKVMFunctionCallbackData *data)
 {
     if(!vmFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
 
@@ -169,14 +169,14 @@ void getHash(struct VMFunctionCallbackData *data)
         valueHash(data->vm, &data->arguments[0]));
 }
 
-void testHandle1(struct VMFunctionCallbackData *data)
+void testHandle1(struct NKVMFunctionCallbackData *data)
 {
     if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle1")) return;
 
     vmObjectAcquireHandle(data->vm, &data->arguments[0]);
 }
 
-void testHandle2(struct VMFunctionCallbackData *data)
+void testHandle2(struct NKVMFunctionCallbackData *data)
 {
     if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle2")) return;
 
@@ -184,7 +184,7 @@ void testHandle2(struct VMFunctionCallbackData *data)
 }
 
 
-void vmFuncPrint(struct VMFunctionCallbackData *data)
+void vmFuncPrint(struct NKVMFunctionCallbackData *data)
 {
     uint32_t i;
 
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         uint32_t instructionCountMax = 1024*1024*1024;
-        struct VM *vm = nkxVmCreate();
+        struct NKVM *vm = nkxVmCreate();
         if(!vm) continue;
         if(vmGetErrorCount(vm)) {
             nkxVmDelete(vm);

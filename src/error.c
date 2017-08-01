@@ -1,19 +1,19 @@
 #include "common.h"
 
 void nkiErrorStateSetAllocationFailFlag(
-    struct VM *vm)
+    struct NKVM *vm)
 {
     vm->errorState.allocationFailure = true;
 }
 
-void nkiErrorStateInit(struct VM *vm)
+void nkiErrorStateInit(struct NKVM *vm)
 {
     vm->errorState.firstError = NULL;
     vm->errorState.lastError = NULL;
     vm->errorState.allocationFailure = false;
 }
 
-void nkiErrorStateDestroy(struct VM *vm)
+void nkiErrorStateDestroy(struct NKVM *vm)
 {
     struct NKError *e = vm->errorState.firstError;
     while(e) {
@@ -25,13 +25,13 @@ void nkiErrorStateDestroy(struct VM *vm)
     vm->errorState.firstError = NULL;
 }
 
-bool nkiVmHasErrors(struct VM *vm)
+bool nkiVmHasErrors(struct NKVM *vm)
 {
     return vm->errorState.firstError || vm->errorState.allocationFailure;
 }
 
 void nkiAddError(
-    struct VM *vm,
+    struct NKVM *vm,
     int32_t lineNumber,
     const char *str)
 {

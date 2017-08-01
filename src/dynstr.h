@@ -6,10 +6,10 @@
 struct NKDynString
 {
     char *data;
-    struct VM *vm;
+    struct NKVM *vm;
 };
 
-struct NKDynString *nkiDynStrCreate(struct VM *vm, const char *str);
+struct NKDynString *nkiDynStrCreate(struct NKVM *vm, const char *str);
 void nkiDynStrDelete(struct NKDynString *dynStr);
 
 void nkiDynStrAppend(struct NKDynString *dynStr, const char *str);

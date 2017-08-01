@@ -10,15 +10,15 @@
 #include "nkfunc.h"
 #include "objects.h"
 
-struct VM;
+struct NKVM;
 
 // ----------------------------------------------------------------------
 // Internals
 
-struct VMFunction;
+struct NKVMFunction;
 struct NKMemoryHeader;
 
-struct VMLimits
+struct NKVMLimits
 {
     // Many of these values are only checked when a section needs to
     // expand (double) its memory usage. So only powers of two are
@@ -32,17 +32,17 @@ struct VMLimits
     uint32_t maxAllocatedMemory;
 };
 
-struct VM
+struct NKVM
 {
     struct NKErrorState errorState;
-    struct VMStack stack;
+    struct NKVMStack stack;
 
     struct NKInstruction *instructions;
     uint32_t instructionAddressMask;
     uint32_t instructionPointer;
 
     struct NKVMStringTable stringTable;
-    struct VMObjectTable objectTable;
+    struct NKVMObjectTable objectTable;
 
     // TODO: External data table.
 
@@ -53,7 +53,7 @@ struct VM
     uint32_t gcNewObjectCountdown;
 
     uint32_t functionCount;
-    struct VMFunction *functionTable;
+    struct NKVMFunction *functionTable;
 
     // NOTE: When you add the object table, you will need to add
     // external reference counts. We don't care about this for strings
@@ -76,7 +76,7 @@ struct VM
     char *globalVariableNameStorage;
     uint32_t globalVariableCount;
 
-    struct VMLimits limits;
+    struct NKVMLimits limits;
     uint32_t currentMemoryUsage;
     uint32_t peakMemoryUsage;
 
@@ -88,7 +88,7 @@ struct VM
 /// Re-check all strings in the string table to see if they're in-use
 /// by any program code. If program code has been removed that
 /// references strings, then they can be made garbage-collectible.
-void vmRescanProgramStrings(struct VM *vm);
+void vmRescanProgramStrings(struct NKVM *vm);
 
 const char *vmGetOpcodeName(enum NKOpcode op);
 
@@ -96,7 +96,7 @@ const char *vmGetOpcodeName(enum NKOpcode op);
 
 /// Compiler internal function creation. Don't use this outside. Not
 /// for that.
-struct VMFunction *vmCreateFunction(struct VM *vm, uint32_t *functionId);
+struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId);
 
 
 #endif

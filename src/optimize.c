@@ -23,7 +23,7 @@ bool isImmediateValue(struct NKExpressionAstNode *node)
 }
 
 struct NKExpressionAstNode *makeImmediateExpressionNode(
-    struct VM *vm,
+    struct NKVM *vm,
     enum NKTokenType type,
     uint32_t lineNumber)
 {
@@ -82,7 +82,7 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
         }                                               \
     } while(0)
 
-void optimizeConstants(struct VM *vm, struct NKExpressionAstNode **node)
+void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
 {
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't

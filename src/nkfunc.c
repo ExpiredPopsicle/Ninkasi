@@ -1,7 +1,7 @@
 #include "common.h"
 
 bool vmFunctionCallbackCheckArgCount(
-    struct VMFunctionCallbackData *data,
+    struct NKVMFunctionCallbackData *data,
     uint32_t argCount,
     const char *functionName)
 {

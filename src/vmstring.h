@@ -36,8 +36,8 @@ struct NKVMStringTable
     uint32_t stringTableCapacity;
 };
 
-void nkiVmStringTableInit(struct VM *vm);
-void nkiVmStringTableDestroy(struct VM *vm);
+void nkiVmStringTableInit(struct NKVM *vm);
+void nkiVmStringTableDestroy(struct NKVM *vm);
 
 struct NKVMString *vmStringTableGetEntryById(
     struct NKVMStringTable *table,
@@ -48,13 +48,13 @@ const char *vmStringTableGetStringById(
     uint32_t index);
 
 uint32_t vmStringTableFindOrAddString(
-    struct VM *vm,
+    struct NKVM *vm,
     const char *str);
 
 void vmStringTableDump(struct NKVMStringTable *table);
 
 void vmStringTableCleanOldStrings(
-    struct VM *vm,
+    struct NKVM *vm,
     uint32_t lastGCPass);
 
 #endif // NINKASI_VMSTRING_H

@@ -1,8 +1,8 @@
 #include "common.h"
 
-void vmStackInit(struct VM *vm)
+void vmStackInit(struct NKVM *vm)
 {
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
     stack->values = nkiMalloc(vm, sizeof(struct Value));
     memset(stack->values, 0, sizeof(struct Value));
     stack->size = 0;
@@ -10,16 +10,16 @@ void vmStackInit(struct VM *vm)
     stack->indexMask = 0;
 }
 
-void vmStackDestroy(struct VM *vm)
+void vmStackDestroy(struct NKVM *vm)
 {
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
     nkiFree(vm, stack->values);
-    memset(stack, 0, sizeof(struct VMStack));
+    memset(stack, 0, sizeof(struct NKVMStack));
 }
 
-struct Value *vmStackPush_internal(struct VM *vm)
+struct Value *vmStackPush_internal(struct NKVM *vm)
 {
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
 
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
@@ -73,7 +73,7 @@ struct Value *vmStackPush_internal(struct VM *vm)
     }
 }
 
-bool vmStackPushInt(struct VM *vm, int32_t value)
+bool vmStackPushInt(struct NKVM *vm, int32_t value)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
@@ -84,7 +84,7 @@ bool vmStackPushInt(struct VM *vm, int32_t value)
     return false;
 }
 
-bool vmStackPushFloat(struct VM *vm, float value)
+bool vmStackPushFloat(struct NKVM *vm, float value)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
@@ -95,7 +95,7 @@ bool vmStackPushFloat(struct VM *vm, float value)
     return false;
 }
 
-bool vmStackPushString(struct VM *vm, const char *str)
+bool vmStackPushString(struct NKVM *vm, const char *str)
 {
     struct Value *data = vmStackPush_internal(vm);
     if(data) {
@@ -108,9 +108,9 @@ bool vmStackPushString(struct VM *vm, const char *str)
     return false;
 }
 
-struct Value *vmStackPop(struct VM *vm)
+struct Value *vmStackPop(struct NKVM *vm)
 {
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
 
     // TODO: Shrink the stack if we can?
 
@@ -126,9 +126,9 @@ struct Value *vmStackPop(struct VM *vm)
     return &stack->values[stack->size];
 }
 
-void vmStackPopN(struct VM *vm, uint32_t count)
+void vmStackPopN(struct NKVM *vm, uint32_t count)
 {
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
 
     // TODO: Shrink the stack if we can?
 
@@ -146,10 +146,10 @@ void vmStackPopN(struct VM *vm, uint32_t count)
     stack->size -= count;
 }
 
-void vmStackDump(struct VM *vm)
+void vmStackDump(struct NKVM *vm)
 {
     uint32_t i;
-    struct VMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
         value_dump(vm, vmStackPeek(vm, i));
@@ -157,7 +157,7 @@ void vmStackDump(struct VM *vm)
     }
 }
 
-struct Value *vmStackPeek(struct VM *vm, uint32_t index)
+struct Value *vmStackPeek(struct NKVM *vm, uint32_t index)
 {
     return &vm->stack.values[index & vm->stack.indexMask];
 }

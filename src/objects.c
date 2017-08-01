@@ -1,31 +1,31 @@
 #include "common.h"
 
-void vmObjectTableInit(struct VM *vm)
+void vmObjectTableInit(struct NKVM *vm)
 {
-    struct VMObjectTable *table = &vm->objectTable;
+    struct NKVMObjectTable *table = &vm->objectTable;
 
     table->tableHoles = NULL;
 
     // Create a table of one empty entry.
-    table->objectTable = nkiMalloc(vm, sizeof(struct VMObject*));
+    table->objectTable = nkiMalloc(vm, sizeof(struct NKVMObject*));
     table->objectTableCapacity = 1;
     table->objectTable[0] = NULL;
 
     // Create the hole object that goes with the empty space.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct VMObjectTableHole));
+    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 
     table->objectsWithExternalHandles = NULL;
 }
 
-void vmObjectDelete(struct VM *vm, struct VMObject *ob)
+void vmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
 {
     uint32_t i;
     for(i = 0; i < VMObjectHashBucketCount; i++) {
-        struct VMObjectElement *el = ob->hashBuckets[i];
+        struct NKVMObjectElement *el = ob->hashBuckets[i];
         while(el) {
-            struct VMObjectElement *next = el->next;
+            struct NKVMObjectElement *next = el->next;
             nkiFree(vm, el);
             el = next;
         }
@@ -33,9 +33,9 @@ void vmObjectDelete(struct VM *vm, struct VMObject *ob)
     nkiFree(vm, ob);
 }
 
-void vmObjectTableDestroy(struct VM *vm)
+void vmObjectTableDestroy(struct NKVM *vm)
 {
-    struct VMObjectTable *table = &vm->objectTable;
+    struct NKVMObjectTable *table = &vm->objectTable;
 
     // Clear out the main table.
     uint32_t i;
@@ -50,9 +50,9 @@ void vmObjectTableDestroy(struct VM *vm)
 
     // Clear out the holes list.
     {
-        struct VMObjectTableHole *th = table->tableHoles;
+        struct NKVMObjectTableHole *th = table->tableHoles;
         while(th) {
-            struct VMObjectTableHole *next = th->next;
+            struct NKVMObjectTableHole *next = th->next;
             nkiFree(vm, th);
             th = next;
         }
@@ -60,8 +60,8 @@ void vmObjectTableDestroy(struct VM *vm)
     }
 }
 
-struct VMObject *vmObjectTableGetEntryById(
-    struct VMObjectTable *table,
+struct NKVMObject *vmObjectTableGetEntryById(
+    struct NKVMObjectTable *table,
     uint32_t index)
 {
     if(index >= table->objectTableCapacity) {
@@ -72,18 +72,18 @@ struct VMObject *vmObjectTableGetEntryById(
 }
 
 uint32_t vmObjectTableCreateObject(
-    struct VM *vm)
+    struct NKVM *vm)
 {
-    struct VMObjectTable *table = &vm->objectTable;
+    struct NKVMObjectTable *table = &vm->objectTable;
     uint32_t index = ~0;
-    struct VMObject *newObject = nkiMalloc(vm, sizeof(struct VMObject));
+    struct NKVMObject *newObject = nkiMalloc(vm, sizeof(struct NKVMObject));
     memset(newObject, 0, sizeof(*newObject));
 
     if(table->tableHoles) {
 
         // We can use an existing gap.
 
-        struct VMObjectTableHole *hole = table->tableHoles;
+        struct NKVMObjectTableHole *hole = table->tableHoles;
         table->tableHoles = hole->next;
         index = hole->index;
         nkiFree(vm, hole);
@@ -109,15 +109,15 @@ uint32_t vmObjectTableCreateObject(
         table->objectTable = nkiRealloc(
             vm,
             table->objectTable,
-            sizeof(struct VMObject *) * newCapacity);
+            sizeof(struct NKVMObject *) * newCapacity);
 
         // Create hole objects for all our empty new space. Not
         // that we don't create one on the border between the old
         // and new space because that's where our new entry will
         // be going.
         for(i = oldCapacity + 1; i < newCapacity; i++) {
-            struct VMObjectTableHole *hole =
-                nkiMalloc(vm, sizeof(struct VMObjectTableHole));
+            struct NKVMObjectTableHole *hole =
+                nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
             hole->index = i;
             hole->next = table->tableHoles;
             table->tableHoles = hole;
@@ -143,10 +143,10 @@ uint32_t vmObjectTableCreateObject(
 }
 
 void vmObjectTableCleanOldObjects(
-    struct VM *vm,
+    struct NKVM *vm,
     uint32_t lastGCPass)
 {
-    struct VMObjectTable *table = &vm->objectTable;
+    struct NKVMObjectTable *table = &vm->objectTable;
     uint32_t i;
 
     dbgWriteLine("Purging unused objects...");
@@ -154,14 +154,14 @@ void vmObjectTableCleanOldObjects(
 
     for(i = 0; i < table->objectTableCapacity; i++) {
 
-        struct VMObject *ob = table->objectTable[i];
+        struct NKVMObject *ob = table->objectTable[i];
 
         if(ob) {
 
             if(lastGCPass != ob->lastGCPass) {
 
-                struct VMObjectTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct VMObjectTableHole));
+                struct NKVMObjectTableHole *hole =
+                    nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
 
                 dbgWriteLine("Purging object at index %u", i);
 
@@ -181,14 +181,14 @@ void vmObjectTableCleanOldObjects(
 }
 
 void vmObjectClearEntry(
-    struct VM *vm,
-    struct VMObject *ob,
+    struct NKVM *vm,
+    struct NKVMObject *ob,
     struct Value *key)
 {
-    struct VMObjectElement **obList =
+    struct NKVMObjectElement **obList =
         &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
 
-    struct VMObjectElement **elPtr = obList;
+    struct NKVMObjectElement **elPtr = obList;
     while(*elPtr) {
         if(value_compare(vm, key, &(*elPtr)->key, true) == 0) {
             break;
@@ -197,7 +197,7 @@ void vmObjectClearEntry(
     }
 
     if(*elPtr) {
-        struct VMObjectElement *el = *elPtr;
+        struct NKVMObjectElement *el = *elPtr;
         *elPtr = (*elPtr)->next;
         nkiFree(vm, el);
 
@@ -207,15 +207,15 @@ void vmObjectClearEntry(
 }
 
 struct Value *vmObjectFindOrAddEntry(
-    struct VM *vm,
-    struct VMObject *ob,
+    struct NKVM *vm,
+    struct NKVMObject *ob,
     struct Value *key,
     bool noAdd)
 {
-    struct VMObjectElement **obList =
+    struct NKVMObjectElement **obList =
         &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
 
-    struct VMObjectElement *el = *obList;
+    struct NKVMObjectElement *el = *obList;
     while(el) {
         if(value_compare(vm, key, &el->key, true) == 0) {
             break;
@@ -243,8 +243,8 @@ struct Value *vmObjectFindOrAddEntry(
             return NULL;
         }
 
-        el = nkiMalloc(vm, sizeof(struct VMObjectElement));
-        memset(el, 0, sizeof(struct VMObjectElement));
+        el = nkiMalloc(vm, sizeof(struct NKVMObjectElement));
+        memset(el, 0, sizeof(struct NKVMObjectElement));
         el->next = *obList;
         el->key = *key;
         *obList = el;
@@ -253,14 +253,14 @@ struct Value *vmObjectFindOrAddEntry(
     return &el->value;
 }
 
-void vmObjectTableDump(struct VM *vm)
+void vmObjectTableDump(struct NKVM *vm)
 {
     uint32_t index;
     printf("Object table dump...\n");
     for(index = 0; index < vm->objectTable.objectTableCapacity; index++) {
         if(vm->objectTable.objectTable[index]) {
 
-            struct VMObject *ob = vm->objectTable.objectTable[index];
+            struct NKVMObject *ob = vm->objectTable.objectTable[index];
             uint32_t bucket;
 
             printf("%4u ", index);
@@ -268,7 +268,7 @@ void vmObjectTableDump(struct VM *vm)
 
             for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
                 printf("      Hash bucket %u\n", bucket);
-                struct VMObjectElement *el = ob->hashBuckets[bucket];
+                struct NKVMObjectElement *el = ob->hashBuckets[bucket];
                 while(el) {
                     printf("        ");
                     value_dump(vm, &el->key);
@@ -283,11 +283,11 @@ void vmObjectTableDump(struct VM *vm)
     }
 }
 
-void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
+void vmObjectAcquireHandle(struct NKVM *vm, struct Value *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
-        struct VMObject *ob = vmObjectTableGetEntryById(
+        struct NKVMObject *ob = vmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
 
         // Make sure we actually got an object.
@@ -328,11 +328,11 @@ void vmObjectAcquireHandle(struct VM *vm, struct Value *value)
     }
 }
 
-void vmObjectReleaseHandle(struct VM *vm, struct Value *value)
+void vmObjectReleaseHandle(struct NKVM *vm, struct Value *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
-        struct VMObject *ob = vmObjectTableGetEntryById(
+        struct NKVMObject *ob = vmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
 
         // Make sure we actually got an object.

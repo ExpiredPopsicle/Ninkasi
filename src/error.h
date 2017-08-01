@@ -3,7 +3,7 @@
 
 #include "basetype.h"
 
-struct VM;
+struct NKVM;
 
 struct NKError
 {
@@ -23,19 +23,19 @@ struct NKErrorState
     bool allocationFailure;
 };
 
-void nkiErrorStateInit(struct VM *vm);
-void nkiErrorStateDestroy(struct VM *vm);
+void nkiErrorStateInit(struct NKVM *vm);
+void nkiErrorStateDestroy(struct NKVM *vm);
 
 void nkiAddError(
-    struct VM *vm,
+    struct NKVM *vm,
     int32_t lineNumber,
     const char *str);
 
 void nkiErrorStateSetAllocationFailFlag(
-    struct VM *vm);
+    struct NKVM *vm);
 
 /// Get whether or not an error has occurred (faster than
 /// vmGetErrorCount).
-bool nkiVmHasErrors(struct VM *vm);
+bool nkiVmHasErrors(struct NKVM *vm);
 
 #endif

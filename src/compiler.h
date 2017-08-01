@@ -43,7 +43,7 @@ struct NKCompilerStateContext
 
 struct NKCompilerState
 {
-    struct VM *vm;
+    struct NKVM *vm;
 
     uint32_t instructionWriteIndex;
 

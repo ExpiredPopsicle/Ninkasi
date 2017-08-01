@@ -15,7 +15,7 @@ static uint32_t stringHash(const char *in)
     return (b << 16) | a;
 }
 
-void nkiVmStringTableInit(struct VM *vm)
+void nkiVmStringTableInit(struct NKVM *vm)
 {
     struct NKVMStringTable *table = &vm->stringTable;
 
@@ -34,7 +34,7 @@ void nkiVmStringTableInit(struct VM *vm)
     table->tableHoles->next = NULL;
 }
 
-void nkiVmStringTableDestroy(struct VM *vm)
+void nkiVmStringTableDestroy(struct NKVM *vm)
 {
     struct NKVMStringTable *table = &vm->stringTable;
 
@@ -81,7 +81,7 @@ const char *vmStringTableGetStringById(
 }
 
 uint32_t vmStringTableFindOrAddString(
-    struct VM *vm,
+    struct NKVM *vm,
     const char *str)
 {
     struct NKVMStringTable *table = &vm->stringTable;
@@ -205,7 +205,7 @@ void vmStringTableDump(struct NKVMStringTable *table)
 }
 
 void vmStringTableCleanOldStrings(
-    struct VM *vm,
+    struct NKVM *vm,
     uint32_t lastGCPass)
 {
     struct NKVMStringTable *table = &vm->stringTable;

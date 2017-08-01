@@ -3,7 +3,7 @@
 
 #include "enums.h"
 
-struct VM;
+struct NKVM;
 
 struct NKToken
 {
@@ -20,14 +20,14 @@ struct NKTokenList
 };
 
 void deleteToken(
-    struct VM *vm, struct NKToken *token);
-void destroyTokenList(struct VM *vm, struct NKTokenList *tokenList);
+    struct NKVM *vm, struct NKToken *token);
+void destroyTokenList(struct NKVM *vm, struct NKTokenList *tokenList);
 void addToken(
-    struct VM *vm,
+    struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
     int32_t lineNumber,
     struct NKTokenList *tokenList);
-bool tokenize(struct VM *vm, const char *str, struct NKTokenList *tokenList);
+bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
 
 #endif
