@@ -15,7 +15,7 @@ bool value_dump(
             break;
 
         case NK_VALUETYPE_STRING: {
-            const char *str = vmStringTableGetStringById(
+            const char *str = nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
             printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
@@ -145,7 +145,7 @@ const char *valueToString(struct NKVM *vm, struct Value *value)
     switch(value->type) {
 
         case NK_VALUETYPE_STRING:
-            return vmStringTableGetStringById(
+            return nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
 
@@ -155,11 +155,11 @@ const char *valueToString(struct NKVM *vm, struct Value *value)
 
             nkiDynStrAppendInt32(dynStr, value->intData);
 
-            id = vmStringTableFindOrAddString(
+            id = nkiVmStringTableFindOrAddString(
                 vm, dynStr->data);
             nkiDynStrDelete(dynStr);
 
-            return vmStringTableGetStringById(
+            return nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 id);
         }
@@ -170,11 +170,11 @@ const char *valueToString(struct NKVM *vm, struct Value *value)
 
             nkiDynStrAppendFloat(dynStr, value->floatData);
 
-            id = vmStringTableFindOrAddString(
+            id = nkiVmStringTableFindOrAddString(
                 vm, dynStr->data);
             nkiDynStrDelete(dynStr);
 
-            return vmStringTableGetStringById(
+            return nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 id);
         }
@@ -188,11 +188,11 @@ const char *valueToString(struct NKVM *vm, struct Value *value)
             nkiDynStrAppendInt32(dynStr, valueHash(vm, value));
             nkiDynStrAppend(dynStr, ">");
 
-            id = vmStringTableFindOrAddString(
+            id = nkiVmStringTableFindOrAddString(
                 vm, dynStr->data);
             nkiDynStrDelete(dynStr);
 
-            return vmStringTableGetStringById(
+            return nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 id);
         }
@@ -313,7 +313,7 @@ uint32_t valueHash(struct NKVM *vm, struct Value *value)
 
         case NK_VALUETYPE_STRING: {
 
-            struct NKVMString *vmStr = vmStringTableGetEntryById(
+            struct NKVMString *vmStr = nkiVmStringTableGetEntryById(
                 &vm->stringTable,
                 value->stringTableEntry);
 
@@ -349,7 +349,7 @@ void vmValueSetString(struct NKVM *vm, struct Value *value, const char *str)
 {
     value->type = NK_VALUETYPE_STRING;
     value->stringTableEntry =
-        vmStringTableFindOrAddString(
+        nkiVmStringTableFindOrAddString(
             vm, str);
 }
 

@@ -92,7 +92,7 @@ void dumpListing(struct NKVM *vm, const char *script)
                 i++;
                 printf(" %u", maybeParams->opData_functionId);
             } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
-                const char *str = vmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
+                const char *str = nkiVmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
                 i++;
                 // TODO: Escape string before showing here.
                 printf(" %d:\"%s\"", maybeParams->opData_string, str ? str : "<bad string>");
@@ -376,35 +376,35 @@ int main(int argc, char *argv[])
             // printf("  String table crap\n");
             // printf("----------------------------------------------------------------------\n");
 
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
 
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "bladgh");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "foom");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "dicks");
-            // vmStringTableFindOrAddString(
+            // nkiVmStringTableFindOrAddString(
             //     vm->stringTable, "sadf");
 
-            // vmStringTableDump(vm->stringTable);
+            // nkiVmStringTableDump(vm->stringTable);
 
-            // vmStringTableGetEntryById(
+            // nkiVmStringTableGetEntryById(
             //     vm->stringTable,
-            //     vmStringTableFindOrAddString(vm->stringTable, "sadf"))->lastGCPass = 1234;
+            //     nkiVmStringTableFindOrAddString(vm->stringTable, "sadf"))->lastGCPass = 1234;
 
-            // vmStringTableCleanOldStrings(vm->stringTable, 1234);
+            // nkiVmStringTableCleanOldStrings(vm->stringTable, 1234);
 
-            // vmStringTableDump(vm->stringTable);
+            // nkiVmStringTableDump(vm->stringTable);
 
             // vmRescanProgramStrings(vm);
 

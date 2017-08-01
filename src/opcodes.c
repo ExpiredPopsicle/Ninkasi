@@ -29,7 +29,7 @@ void opcode_add(struct NKVM *vm)
             // Start with a DynString of the first one.
             struct NKDynString *dynStr =
                 nkiDynStrCreate(vm,
-                    vmStringTableGetStringById(
+                    nkiVmStringTableGetStringById(
                         &vm->stringTable,
                         in1->stringTableEntry));
 

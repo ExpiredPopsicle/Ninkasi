@@ -294,7 +294,7 @@ void vmGarbageCollect_markReferenced(
 
                 case NK_VALUETYPE_STRING: {
 
-                    struct NKVMString *str = vmStringTableGetEntryById(
+                    struct NKVMString *str = nkiVmStringTableGetEntryById(
                         &gcState->vm->stringTable,
                         value->stringTableEntry);
 
@@ -371,7 +371,7 @@ void vmGarbageCollect(struct NKVM *vm)
     vmGarbageCollect_markReferenced(&gcState);
 
     // Delete unmarked strings.
-    vmStringTableCleanOldStrings(
+    nkiVmStringTableCleanOldStrings(
         vm, gcState.currentGCPass);
 
     // Delete unmarked (and not externally-referenced) objects.
@@ -417,7 +417,7 @@ void vmRescanProgramStrings(struct NKVM *vm)
             i++;
             {
                 struct NKVMString *entry =
-                    vmStringTableGetEntryById(
+                    nkiVmStringTableGetEntryById(
                         &vm->stringTable,
                         vm->instructions[i].opData_string);
 

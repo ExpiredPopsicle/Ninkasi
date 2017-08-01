@@ -211,14 +211,14 @@ void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
     // Add string table entry data as op parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_string =
-        vmStringTableFindOrAddString(
+        nkiVmStringTableFindOrAddString(
             cs->vm,
             str);
     addInstruction(cs, &inst);
 
     // Mark this string as not garbage-collected.
     {
-        struct NKVMString *entry = vmStringTableGetEntryById(
+        struct NKVMString *entry = nkiVmStringTableGetEntryById(
             &cs->vm->stringTable, inst.opData_string);
         if(entry) {
             entry->dontGC = true;

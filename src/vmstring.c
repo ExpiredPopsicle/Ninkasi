@@ -62,7 +62,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
     memset(table->stringsByHash, 0, sizeof(table->stringsByHash));
 }
 
-struct NKVMString *vmStringTableGetEntryById(
+struct NKVMString *nkiVmStringTableGetEntryById(
     struct NKVMStringTable *table, uint32_t index)
 {
     if(index >= table->stringTableCapacity) {
@@ -72,15 +72,15 @@ struct NKVMString *vmStringTableGetEntryById(
     return table->stringTable[index];
 }
 
-const char *vmStringTableGetStringById(
+const char *nkiVmStringTableGetStringById(
     struct NKVMStringTable *table,
     uint32_t index)
 {
-    struct NKVMString *vmstr = vmStringTableGetEntryById(table, index);
+    struct NKVMString *vmstr = nkiVmStringTableGetEntryById(table, index);
     return vmstr ? vmstr->str : NULL;
 }
 
-uint32_t vmStringTableFindOrAddString(
+uint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str)
 {
@@ -181,7 +181,7 @@ uint32_t vmStringTableFindOrAddString(
     }
 }
 
-void vmStringTableDump(struct NKVMStringTable *table)
+void nkiVmStringTableDump(struct NKVMStringTable *table)
 {
     uint32_t i;
     printf("String table dump...\n");
@@ -204,7 +204,7 @@ void vmStringTableDump(struct NKVMStringTable *table)
     }
 }
 
-void vmStringTableCleanOldStrings(
+void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     uint32_t lastGCPass)
 {

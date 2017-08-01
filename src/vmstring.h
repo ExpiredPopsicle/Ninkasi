@@ -39,21 +39,21 @@ struct NKVMStringTable
 void nkiVmStringTableInit(struct NKVM *vm);
 void nkiVmStringTableDestroy(struct NKVM *vm);
 
-struct NKVMString *vmStringTableGetEntryById(
+struct NKVMString *nkiVmStringTableGetEntryById(
     struct NKVMStringTable *table,
     uint32_t index);
 
-const char *vmStringTableGetStringById(
+const char *nkiVmStringTableGetStringById(
     struct NKVMStringTable *table,
     uint32_t index);
 
-uint32_t vmStringTableFindOrAddString(
+uint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str);
 
-void vmStringTableDump(struct NKVMStringTable *table);
+void nkiVmStringTableDump(struct NKVMStringTable *table);
 
-void vmStringTableCleanOldStrings(
+void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     uint32_t lastGCPass);
 

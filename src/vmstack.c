@@ -101,7 +101,7 @@ bool vmStackPushString(struct NKVM *vm, const char *str)
     if(data) {
         data->type = NK_VALUETYPE_STRING;
         data->stringTableEntry =
-            vmStringTableFindOrAddString(
+            nkiVmStringTableFindOrAddString(
                 vm, str);
         return true;
     }
