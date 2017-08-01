@@ -43,11 +43,14 @@ struct VM
 
     struct NKVMStringTable stringTable;
     struct VMObjectTable objectTable;
+
     // TODO: External data table.
 
     uint32_t lastGCPass;
-    uint32_t gcInterval;
+    uint32_t gcInterval; // TODO: Move to VMLimits, maybe.
     uint32_t gcCountdown;
+    uint32_t gcNewObjectInterval; // TODO: Move to VMLimits, maybe.
+    uint32_t gcNewObjectCountdown;
 
     uint32_t functionCount;
     struct VMFunction *functionTable;

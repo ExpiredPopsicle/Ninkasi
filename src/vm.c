@@ -114,8 +114,10 @@ void vmInit(struct VM *vm)
     nkiVmStringTableInit(vm);
 
     vm->lastGCPass = 0;
-    vm->gcInterval = 1000;
+    vm->gcInterval = 1024;
     vm->gcCountdown = vm->gcInterval;
+    vm->gcNewObjectInterval = 256;
+    vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
 
     vm->functionCount = 0;
     vm->functionTable = NULL;
@@ -181,7 +183,10 @@ void vmIterate(struct VM *vm)
 
     vm->gcCountdown--;
     if(!vm->gcCountdown) {
-        vmGarbageCollect(vm);
+        if(!vm->gcNewObjectCountdown) {
+            vmGarbageCollect(vm);
+            vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
+        }
         vm->gcCountdown = vm->gcInterval;
     }
 }

@@ -131,4 +131,4 @@ another catastrophe if we need to.
 * DONE Make errorStateAddError take a VM as a param
 Mostly about cleaning up every single call in the code.
 Name it nkiVmAddError.
-* TODO Garbage collector should only fire off if enough objects have been created since the last tun
+* DONE Garbage collector should only fire off if enough objects have been created since the last run

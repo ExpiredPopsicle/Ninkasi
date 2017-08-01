@@ -132,6 +132,13 @@ uint32_t vmObjectTableCreateObject(
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
     table->objectTable[index] = newObject;
+
+    // Tick the garbage collector so we eventually do another GC pass
+    // when we have enough new objects.
+    if(vm->gcNewObjectCountdown) {
+        vm->gcNewObjectCountdown--;
+    }
+
     return newObject->objectTableIndex;
 }
 
