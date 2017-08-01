@@ -1,5 +1,5 @@
-#ifndef BASETYPE_H
-#define BASETYPE_H
+#ifndef NINKASI_BASETYPE_H
+#define NINKASI_BASETYPE_H
 
 // TODO: Get all this crap from common.h in the engine.
 typedef unsigned int uint32_t;
@@ -8,4 +8,5 @@ typedef unsigned char bool;
 #define false ((bool)0)
 #define true ((bool)1)
 
-#endif
+#endif // NINKASI_BASETYPE_H
+
