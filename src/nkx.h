@@ -103,6 +103,15 @@ bool nkxFunctionCallbackCheckArgCount(
     uint32_t argCount,
     const char *functionName);
 
+/// Increment the reference count for an object. This keeps it (and
+/// everything referenced from it) from being garbage collected.
+void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
+
+/// Decrement the reference count for an object. Objects that reach
+/// zero references and have no owning references inside the VM will
+/// be deleted next garbage collection pass.
+void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

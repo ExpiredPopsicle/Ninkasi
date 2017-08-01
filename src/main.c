@@ -173,14 +173,14 @@ void testHandle1(struct NKVMFunctionCallbackData *data)
 {
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "testHandle1")) return;
 
-    vmObjectAcquireHandle(data->vm, &data->arguments[0]);
+    nkxVmObjectAcquireHandle(data->vm, &data->arguments[0]);
 }
 
 void testHandle2(struct NKVMFunctionCallbackData *data)
 {
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "testHandle2")) return;
 
-    vmObjectReleaseHandle(data->vm, &data->arguments[0]);
+    nkxVmObjectReleaseHandle(data->vm, &data->arguments[0]);
 }
 
 

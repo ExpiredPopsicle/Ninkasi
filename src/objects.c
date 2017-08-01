@@ -283,7 +283,7 @@ void vmObjectTableDump(struct NKVM *vm)
     }
 }
 
-void vmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
+void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
@@ -293,7 +293,7 @@ void vmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
         // Make sure we actually got an object.
         if(!ob) {
             nkiAddError(
-                vm, -1, "Bad object ID in vmObjectAcquireHandle.");
+                vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
             return;
         }
 
@@ -328,7 +328,7 @@ void vmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
     }
 }
 
-void vmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
+void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
@@ -338,7 +338,7 @@ void vmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
         // Make sure we actually got an object.
         if(!ob) {
             nkiAddError(
-                vm, -1, "Bad object ID in vmObjectAcquireHandle.");
+                vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
             return;
         }
 

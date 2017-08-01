@@ -224,7 +224,6 @@ void nkxForceCatastrophicFailure(struct NKVM *vm)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-
 bool nkxFunctionCallbackCheckArgCount(
     struct NKVMFunctionCallbackData *data,
     uint32_t argCount,
@@ -248,3 +247,20 @@ bool nkxFunctionCallbackCheckArgCount(
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
+
+void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectAcquireHandle(vm, value);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectReleaseHandle(vm, value);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+

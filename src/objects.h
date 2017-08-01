@@ -1,23 +1,5 @@
-#ifndef OBJECTS_H
-#define OBJECTS_H
-
-// ----------------------------------------------------------------------
-// Public interface
-
-// Note: This should mainly deal with struct NKValue pointers and not
-// VMObject pointers directly.
-
-/// Increment the reference count for an object. This keeps it (and
-/// everything referenced from it) from being garbage collected.
-void vmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
-
-/// Decrement the reference count for an object. Objects that reach
-/// zero references and have no owning references inside the VM will
-/// be deleted next garbage collection pass.
-void vmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
-
-// ----------------------------------------------------------------------
-// Internals
+#ifndef NINKASI_OBJECTS_H
+#define NINKASI_OBJECTS_H
 
 // Dumb linked-list for object data. We should replace this some day.
 struct NKVMObjectElement
@@ -91,4 +73,10 @@ void vmObjectClearEntry(
 
 void vmObjectTableDump(struct NKVM *vm);
 
-#endif
+// Internal version of nkxVmObjectAcquireHandle.
+void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
+
+// Internal version of nkxVmObjectReleaseHandle.
+void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
+
+#endif // NINKASI_OBJECTS_H
