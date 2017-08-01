@@ -223,3 +223,28 @@ void nkxForceCatastrophicFailure(struct NKVM *vm)
     NK_CATASTROPHE();
     NK_CLEAR_FAILURE_RECOVERY();
 }
+
+
+bool nkxFunctionCallbackCheckArgCount(
+    struct NKVMFunctionCallbackData *data,
+    uint32_t argCount,
+    const char *functionName)
+{
+    bool ret = true;
+    struct NKVM *vm = data->vm;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(false);
+
+    if(data->argumentCount != 1) {
+        struct NKDynString *dynStr = nkiDynStrCreate(
+            data->vm, "Bad argument count in ");
+        nkiDynStrAppend(dynStr, functionName);
+        nkiAddError(
+            data->vm, -1, dynStr->data);
+        nkiDynStrDelete(dynStr);
+        ret = false;
+    }
+
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}

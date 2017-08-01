@@ -161,7 +161,7 @@ void testVMCatastrophe(struct NKVMFunctionCallbackData *data)
 
 void getHash(struct NKVMFunctionCallbackData *data)
 {
-    if(!vmFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
 
     vmValueSetInt(
         data->vm,
@@ -171,14 +171,14 @@ void getHash(struct NKVMFunctionCallbackData *data)
 
 void testHandle1(struct NKVMFunctionCallbackData *data)
 {
-    if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle1")) return;
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "testHandle1")) return;
 
     vmObjectAcquireHandle(data->vm, &data->arguments[0]);
 }
 
 void testHandle2(struct NKVMFunctionCallbackData *data)
 {
-    if(!vmFunctionCallbackCheckArgCount(data, 1, "testHandle2")) return;
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "testHandle2")) return;
 
     vmObjectReleaseHandle(data->vm, &data->arguments[0]);
 }

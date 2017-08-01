@@ -83,6 +83,26 @@ void nkxVmCreateCFunction(
 struct NKValue *nkxVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
+/// Convert a value to a string. This will return a pointer to an
+/// internal string table entry (which it may have to create), and the
+/// address returned may be freed in the next garbage collection pass.
+/// So do not free it yourself, and save a copy of it if you wish to
+/// hold onto it.
+const char *nkxValueToString(struct NKVM *vm, struct NKValue *value);
+
+/// Force a catastrophic failure. This is mainly to test error
+/// recovery by C functions and callbacks.
+void nkxForceCatastrophicFailure(struct NKVM *vm);
+
+/// Convenience function for C function callbacks. Check the argument
+/// count that a function was called with. If it does not match, an
+/// error will be added and this function will return false. Otherwise
+/// it will return true.
+bool nkxFunctionCallbackCheckArgCount(
+    struct NKVMFunctionCallbackData *data,
+    uint32_t argCount,
+    const char *functionName);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 
@@ -116,10 +136,6 @@ bool nkxVmCompilerCompileScriptFile(
 void nkxVmCompilerFinalize(
     struct NKCompilerState *cs);
 
-const char *nkxValueToString(struct NKVM *vm, struct NKValue *value);
 
-/// Force a catastrophic failure. This is mainly to test error
-/// recovery by C functions and callbacks.
-void nkxForceCatastrophicFailure(struct NKVM *vm);
 
 #endif // NINKASI_NKX
