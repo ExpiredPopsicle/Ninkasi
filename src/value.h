@@ -5,7 +5,7 @@
 
 struct NKVM;
 
-struct Value
+struct NKValue
 {
     enum NKValueType type;
     uint32_t lastGCPass;
@@ -23,18 +23,18 @@ struct Value
     };
 };
 
-bool value_dump(struct NKVM *vm, struct Value *value);
+bool value_dump(struct NKVM *vm, struct NKValue *value);
 
 const char *valueTypeGetName(enum NKValueType type);
 
-int32_t valueToInt(struct NKVM *vm, struct Value *value);
+int32_t valueToInt(struct NKVM *vm, struct NKValue *value);
 
-float valueToFloat(struct NKVM *vm, struct Value *value);
+float valueToFloat(struct NKVM *vm, struct NKValue *value);
 
 // Returns a string for a value, possibly converting internally.
 // Values are only guaranteed to be valid until the next garbage
 // collection pass.
-const char *valueToString(struct NKVM *vm, struct Value *value);
+const char *valueToString(struct NKVM *vm, struct NKValue *value);
 
 // The return of this value is like strcmp(). -1 for less, 0 for
 // equal, 1 for greater-than. Set strictType to true to force a
@@ -42,14 +42,14 @@ const char *valueToString(struct NKVM *vm, struct Value *value);
 // like binary trees to ensure things have a consistent order.
 int32_t value_compare(
     struct NKVM *vm,
-    struct Value *in1,
-    struct Value *in2,
+    struct NKValue *in1,
+    struct NKValue *in2,
     bool strictType);
 
-uint32_t valueHash(struct NKVM *vm, struct Value *value);
+uint32_t valueHash(struct NKVM *vm, struct NKValue *value);
 
-void vmValueSetInt(struct NKVM *vm, struct Value *value, int32_t intData);
-void vmValueSetFloat(struct NKVM *vm, struct Value *value, float floatData);
-void vmValueSetString(struct NKVM *vm, struct Value *value, const char *str);
+void vmValueSetInt(struct NKVM *vm, struct NKValue *value, int32_t intData);
+void vmValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
+void vmValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 
 #endif

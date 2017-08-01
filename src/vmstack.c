@@ -3,8 +3,8 @@
 void vmStackInit(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
-    stack->values = nkiMalloc(vm, sizeof(struct Value));
-    memset(stack->values, 0, sizeof(struct Value));
+    stack->values = nkiMalloc(vm, sizeof(struct NKValue));
+    memset(stack->values, 0, sizeof(struct NKValue));
     stack->size = 0;
     stack->capacity = 1;
     stack->indexMask = 0;
@@ -17,7 +17,7 @@ void vmStackDestroy(struct NKVM *vm)
     memset(stack, 0, sizeof(struct NKVMStack));
 }
 
-struct Value *vmStackPush_internal(struct NKVM *vm)
+struct NKValue *vmStackPush_internal(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -59,15 +59,15 @@ struct Value *vmStackPush_internal(struct NKVM *vm)
         stack->values = nkiRealloc(
             vm,
             stack->values,
-            stack->capacity * sizeof(struct Value));
+            stack->capacity * sizeof(struct NKValue));
 
         memset(
             &stack->values[stack->size], 0,
-            sizeof(struct Value) * (stack->capacity - stack->size));
+            sizeof(struct NKValue) * (stack->capacity - stack->size));
     }
 
     {
-        struct Value *ret = &stack->values[stack->size];
+        struct NKValue *ret = &stack->values[stack->size];
         stack->size++;
         return ret;
     }
@@ -75,7 +75,7 @@ struct Value *vmStackPush_internal(struct NKVM *vm)
 
 bool vmStackPushInt(struct NKVM *vm, int32_t value)
 {
-    struct Value *data = vmStackPush_internal(vm);
+    struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_INT;
         data->intData = value;
@@ -86,7 +86,7 @@ bool vmStackPushInt(struct NKVM *vm, int32_t value)
 
 bool vmStackPushFloat(struct NKVM *vm, float value)
 {
-    struct Value *data = vmStackPush_internal(vm);
+    struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_FLOAT;
         data->floatData = value;
@@ -97,7 +97,7 @@ bool vmStackPushFloat(struct NKVM *vm, float value)
 
 bool vmStackPushString(struct NKVM *vm, const char *str)
 {
-    struct Value *data = vmStackPush_internal(vm);
+    struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_STRING;
         data->stringTableEntry =
@@ -108,7 +108,7 @@ bool vmStackPushString(struct NKVM *vm, const char *str)
     return false;
 }
 
-struct Value *vmStackPop(struct NKVM *vm)
+struct NKValue *vmStackPop(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -157,7 +157,7 @@ void vmStackDump(struct NKVM *vm)
     }
 }
 
-struct Value *vmStackPeek(struct NKVM *vm, uint32_t index)
+struct NKValue *vmStackPeek(struct NKVM *vm, uint32_t index)
 {
     return &vm->stack.values[index & vm->stack.indexMask];
 }

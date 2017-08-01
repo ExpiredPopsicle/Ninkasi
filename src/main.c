@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
 
 
                 {
-                    struct Value *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
+                    struct NKValue *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
                     if(v) {
                         printf("Value found: %s\n", nkxValueToString(vm, v));
                     } else {
@@ -354,7 +354,7 @@ int main(int argc, char *argv[])
 
             // // Function call test.
             // if(!vm->errorState.firstError) {
-            //     struct Value retVal;
+            //     struct NKValue retVal;
             //     memset(&retVal, 0, sizeof(retVal));
             //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
             // }

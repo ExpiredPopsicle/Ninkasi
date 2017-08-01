@@ -196,7 +196,7 @@ void vmIterate(struct NKVM *vm)
 
 struct NKVMValueGCEntry
 {
-    struct Value *value;
+    struct NKValue *value;
     struct NKVMValueGCEntry *next;
 };
 
@@ -244,7 +244,7 @@ void vmGarbageCollect_markObject(
 
             uint32_t k;
             for(k = 0; k < 2; k++) {
-                struct Value *v = k ? &el->value : &el->key;
+                struct NKValue *v = k ? &el->value : &el->key;
 
                 if(v->type == NK_VALUETYPE_STRING ||
                     v->type == NK_VALUETYPE_OBJECTID)
@@ -263,7 +263,7 @@ void vmGarbageCollect_markObject(
 // FIXME: Find a way to do this without tons of allocations.
 void vmGarbageCollect_markValue(
     struct NKVMGCState *gcState,
-    struct Value *v)
+    struct NKValue *v)
 {
     if(v->lastGCPass == gcState->currentGCPass) {
         return;
@@ -285,7 +285,7 @@ void vmGarbageCollect_markReferenced(
         gcState->openList = gcState->openList->next;
 
         if(currentEntry->value->lastGCPass != gcState->currentGCPass) {
-            struct Value *value = currentEntry->value;
+            struct NKValue *value = currentEntry->value;
             value->lastGCPass = gcState->currentGCPass;
 
             // Add all references from this value to openList.
@@ -357,7 +357,7 @@ void vmGarbageCollect(struct NKVM *vm)
     // Iterate through the current stack.
     {
         uint32_t i;
-        struct Value *values = vm->stack.values;
+        struct NKValue *values = vm->stack.values;
         for(i = 0; i < vm->stack.size; i++) {
             vmGarbageCollect_markValue(
                 &gcState, &values[i]);
@@ -462,7 +462,7 @@ struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId)
 void vmCreateCFunction(
     struct NKVM *vm,
     VMFunctionCallback func,
-    struct Value *output)
+    struct NKValue *output)
 {
     // TODO: Lookup function first, to make sure we aren't making
     // duplicate functions.
@@ -483,10 +483,10 @@ void vmCreateCFunction(
 
 void vmCallFunction(
     struct NKVM *vm,
-    struct Value *functionValue,
+    struct NKValue *functionValue,
     uint32_t argumentCount,
-    struct Value *arguments,
-    struct Value *returnValue)
+    struct NKValue *arguments,
+    struct NKValue *returnValue)
 {
     if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
         nkiAddError(
@@ -562,7 +562,7 @@ uint32_t vmGetErrorCount(struct NKVM *vm)
     return count;
 }
 
-struct Value *vmFindGlobalVariable(
+struct NKValue *vmFindGlobalVariable(
     struct NKVM *vm, const char *name)
 {
     uint32_t i;

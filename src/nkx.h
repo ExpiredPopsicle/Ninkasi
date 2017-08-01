@@ -19,7 +19,7 @@
 struct NKVM;
 struct NKVMFunctionCallbackData;
 typedef void (*VMFunctionCallback)(struct NKVMFunctionCallbackData *data);
-struct Value;
+struct NKValue;
 
 // ----------------------------------------------------------------------
 // Public VM interface
@@ -58,10 +58,10 @@ void nkxVmGarbageCollect(struct NKVM *vm);
 ///   return value from the function call.
 void nkxVmCallFunction(
     struct NKVM *vm,
-    struct Value *functionValue,
+    struct NKValue *functionValue,
     uint32_t argumentCount,
-    struct Value *arguments,
-    struct Value *returnValue);
+    struct NKValue *arguments,
+    struct NKValue *returnValue);
 
 /// Create a C function and write it to some Value.
 ///
@@ -71,7 +71,7 @@ void nkxVmCallFunction(
 void nkxVmCreateCFunction(
     struct NKVM *vm,
     VMFunctionCallback func,
-    struct Value *output);
+    struct NKValue *output);
 
 /// Look up a global variable. Do not use this before executing the
 /// program at least once, or only accessing global variables that
@@ -80,7 +80,7 @@ void nkxVmCreateCFunction(
 /// point where they are declared, and until that point, the stack
 /// area they occupy may be used by other things, or may not exist at
 /// all.)
-struct Value *nkxVmFindGlobalVariable(
+struct NKValue *nkxVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
 // ----------------------------------------------------------------------
@@ -116,7 +116,7 @@ bool nkxVmCompilerCompileScriptFile(
 void nkxVmCompilerFinalize(
     struct NKCompilerState *cs);
 
-const char *nkxValueToString(struct NKVM *vm, struct Value *value);
+const char *nkxValueToString(struct NKVM *vm, struct NKValue *value);
 
 /// Force a catastrophic failure. This is mainly to test error
 /// recovery by C functions and callbacks.

@@ -183,7 +183,7 @@ void vmObjectTableCleanOldObjects(
 void vmObjectClearEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
-    struct Value *key)
+    struct NKValue *key)
 {
     struct NKVMObjectElement **obList =
         &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
@@ -206,10 +206,10 @@ void vmObjectClearEntry(
     }
 }
 
-struct Value *vmObjectFindOrAddEntry(
+struct NKValue *vmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
-    struct Value *key,
+    struct NKValue *key,
     bool noAdd)
 {
     struct NKVMObjectElement **obList =
@@ -283,7 +283,7 @@ void vmObjectTableDump(struct NKVM *vm)
     }
 }
 
-void vmObjectAcquireHandle(struct NKVM *vm, struct Value *value)
+void vmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
@@ -328,7 +328,7 @@ void vmObjectAcquireHandle(struct NKVM *vm, struct Value *value)
     }
 }
 
-void vmObjectReleaseHandle(struct NKVM *vm, struct Value *value)
+void vmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 

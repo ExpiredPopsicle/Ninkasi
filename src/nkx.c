@@ -88,10 +88,10 @@ void nkxVmGarbageCollect(struct NKVM *vm)
 // FIXME: Add max iteration count param.
 void nkxVmCallFunction(
     struct NKVM *vm,
-    struct Value *functionValue,
+    struct NKValue *functionValue,
     uint32_t argumentCount,
-    struct Value *arguments,
-    struct Value *returnValue)
+    struct NKValue *arguments,
+    struct NKValue *returnValue)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
@@ -102,7 +102,7 @@ void nkxVmCallFunction(
 void nkxVmCreateCFunction(
     struct NKVM *vm,
     VMFunctionCallback func,
-    struct Value *output)
+    struct NKValue *output)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
@@ -110,11 +110,11 @@ void nkxVmCreateCFunction(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-struct Value *nkxVmFindGlobalVariable(
+struct NKValue *nkxVmFindGlobalVariable(
     struct NKVM *vm, const char *name)
 {
     NK_FAILURE_RECOVERY_DECL();
-    struct Value *ret;
+    struct NKValue *ret;
     NK_SET_FAILURE_RECOVERY(NULL);
     ret = vmFindGlobalVariable(vm, name);
     NK_CLEAR_FAILURE_RECOVERY();
@@ -206,7 +206,7 @@ void nkxVmCompilerFinalize(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-const char *nkxValueToString(struct NKVM *vm, struct Value *value)
+const char *nkxValueToString(struct NKVM *vm, struct NKValue *value)
 {
     NK_FAILURE_RECOVERY_DECL();
     const char *ret = NULL;
