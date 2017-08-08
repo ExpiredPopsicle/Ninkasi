@@ -57,10 +57,10 @@ struct NKCompilerState
 
 extern int32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
-void nkiAddInstructionSimple(
+void nkiCompilerAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
     bool adjustStackFrame);
-void nkiAddInstruction(
+void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     bool adjustStackFrame);
 

@@ -690,7 +690,7 @@ bool emitFetchVariable(
         dbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
 
-    nkiAddInstructionSimple(
+    nkiCompilerAddInstructionSimple(
         cs, NK_OP_STACKPEEK, false);
 
     dbgWriteLine("GET VAR: %s", name);
@@ -725,7 +725,7 @@ bool emitSetVariable(
 
     }
 
-    nkiAddInstructionSimple(cs, NK_OP_STACKPOKE, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_STACKPOKE, true);
 
     dbgWriteLine("SET VAR: %s", name);
 
@@ -777,7 +777,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
             emitExpression(cs, node->children[0]->children[0]); // Object id
             emitExpression(cs, node->children[0]->children[1]); // Index
 
-            nkiAddInstructionSimple(cs, NK_OP_OBJECTFIELDSET, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_OBJECTFIELDSET, true);
         } break;
 
         default: {
@@ -840,7 +840,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
             break;
 
         case NK_TOKENTYPE_NEWOBJECT:
-            nkiAddInstructionSimple(cs, NK_OP_CREATEOBJECT, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_CREATEOBJECT, true);
             break;
 
         case NK_TOKENTYPE_NIL:
@@ -848,59 +848,59 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
             break;
 
         case NK_TOKENTYPE_PLUS:
-            nkiAddInstructionSimple(cs, NK_OP_ADD, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_ADD, true);
             break;
 
         case NK_TOKENTYPE_MINUS:
             if(!node->children[1]) {
-                nkiAddInstructionSimple(cs, NK_OP_NEGATE, true);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_NEGATE, true);
             } else {
-                nkiAddInstructionSimple(cs, NK_OP_SUBTRACT, true);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_SUBTRACT, true);
             }
             break;
 
         case NK_TOKENTYPE_MULTIPLY:
-            nkiAddInstructionSimple(cs, NK_OP_MULTIPLY, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_MULTIPLY, true);
             break;
 
         case NK_TOKENTYPE_DIVIDE:
-            nkiAddInstructionSimple(cs, NK_OP_DIVIDE, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_DIVIDE, true);
             break;
 
         case NK_TOKENTYPE_MODULO:
-            nkiAddInstructionSimple(cs, NK_OP_MODULO, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_MODULO, true);
             break;
 
         case NK_TOKENTYPE_GREATERTHAN:
-            nkiAddInstructionSimple(cs, NK_OP_GREATERTHAN, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_GREATERTHAN, true);
             break;
 
         case NK_TOKENTYPE_LESSTHAN:
-            nkiAddInstructionSimple(cs, NK_OP_LESSTHAN, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_LESSTHAN, true);
             break;
 
         case NK_TOKENTYPE_GREATERTHANOREQUAL:
-            nkiAddInstructionSimple(cs, NK_OP_GREATERTHANOREQUAL, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_GREATERTHANOREQUAL, true);
             break;
 
         case NK_TOKENTYPE_LESSTHANOREQUAL:
-            nkiAddInstructionSimple(cs, NK_OP_LESSTHANOREQUAL, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_LESSTHANOREQUAL, true);
             break;
 
         case NK_TOKENTYPE_EQUAL:
-            nkiAddInstructionSimple(cs, NK_OP_EQUAL, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_EQUAL, true);
             break;
 
         case NK_TOKENTYPE_NOTEQUAL:
-            nkiAddInstructionSimple(cs, NK_OP_NOTEQUAL, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_NOTEQUAL, true);
             break;
 
         case NK_TOKENTYPE_EQUALWITHSAMETYPE:
-            nkiAddInstructionSimple(cs, NK_OP_EQUALWITHSAMETYPE, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_EQUALWITHSAMETYPE, true);
             break;
 
         case NK_TOKENTYPE_NOT:
-            nkiAddInstructionSimple(cs, NK_OP_NOT, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_NOT, true);
             break;
 
         case NK_TOKENTYPE_IDENTIFIER:
@@ -908,15 +908,15 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
             break;
 
         case NK_TOKENTYPE_AND:
-            nkiAddInstructionSimple(cs, NK_OP_AND, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_AND, true);
             break;
 
         case NK_TOKENTYPE_OR:
-            nkiAddInstructionSimple(cs, NK_OP_OR, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_OR, true);
             break;
 
         case NK_TOKENTYPE_BRACKET_OPEN:
-            nkiAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET, true);
             break;
 
         case NK_TOKENTYPE_PAREN_OPEN:
@@ -938,11 +938,11 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
                 nkiCompilerEmitPushLiteralInt(cs, argumentCount, false);
 
                 if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
-                    nkiAddInstructionSimple(cs, NK_OP_PREPARESELFCALL, false);
+                    nkiCompilerAddInstructionSimple(cs, NK_OP_PREPARESELFCALL, false);
                     argumentCount++;
                 }
 
-                nkiAddInstructionSimple(cs, NK_OP_CALL, false);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_CALL, false);
 
                 cs->context->stackFrameOffset -= argumentCount;
             }
@@ -950,7 +950,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
         } break;
 
         case NK_TOKENTYPE_INDEXINTO_NOPOP:
-            nkiAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP, true);
+            nkiCompilerAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP, true);
             break;
 
         default: {

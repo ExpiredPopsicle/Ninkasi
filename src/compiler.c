@@ -1,6 +1,6 @@
 #include "common.h"
 
-void nkiAddInstruction(
+void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     bool adjustStackFrame)
 {
@@ -50,14 +50,14 @@ void nkiAddInstruction(
 }
 
 // FIXME: "nkiCompilerAdd..."
-void nkiAddInstructionSimple(
+void nkiCompilerAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
     bool adjustStackFrame)
 {
     struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
     inst.opcode = opcode;
-    nkiAddInstruction(cs, &inst, adjustStackFrame);
+    nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 }
 
 void nkiCompilerPushContext(struct NKCompilerState *cs)
@@ -146,7 +146,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
                 // anything to pop.)
                 if(popCount) {
                     nkiCompilerEmitPushLiteralInt(cs, popCount, false);
-                    nkiAddInstructionSimple(cs, NK_OP_POPN, false);
+                    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, false);
                 }
 
             // }
@@ -171,12 +171,12 @@ void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bo
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_INT;
-    nkiAddInstruction(cs, &inst, adjustStackFrame);
+    nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_int = value;
-    nkiAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, false);
 }
 
 void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame)
@@ -186,12 +186,12 @@ void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t f
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FUNCTIONID;
-    nkiAddInstruction(cs, &inst, adjustStackFrame);
+    nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_functionId = functionId;
-    nkiAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, false);
 }
 
 void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame)
@@ -201,12 +201,12 @@ void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bo
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FLOAT;
-    nkiAddInstruction(cs, &inst, adjustStackFrame);
+    nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_float = value;
-    nkiAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, false);
 }
 
 void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame)
@@ -216,7 +216,7 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_STRING;
-    nkiAddInstruction(cs, &inst, adjustStackFrame);
+    nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add string table entry data as op parameter.
     memset(&inst, 0, sizeof(inst));
@@ -224,7 +224,7 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
         nkiVmStringTableFindOrAddString(
             cs->vm,
             str);
-    nkiAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, false);
 
     // Mark this string as not garbage-collected.
     {
@@ -238,7 +238,7 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
 
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame)
 {
-    nkiAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
 }
 
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
@@ -374,7 +374,7 @@ bool compileStatement(struct NKCompilerState *cs)
             if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
                 // a NK_OP_POP.
-                nkiAddInstructionSimple(cs, NK_OP_DUMP, true);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_DUMP, true);
             }
 
             EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
@@ -545,7 +545,7 @@ void emitReturn(struct NKCompilerState *cs)
         dbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
         nkiCompilerEmitPushLiteralInt(cs, throwAwayContext, false);
-        nkiAddInstructionSimple(cs, NK_OP_RETURN, false);
+        nkiCompilerAddInstructionSimple(cs, NK_OP_RETURN, false);
     }
 }
 
@@ -622,7 +622,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     // will only happen once per function so whatever.
     nkiCompilerEmitPushLiteralInt(cs, 0, false);
     skipOffset = cs->instructionWriteIndex - 1;
-    nkiAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, false);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, false);
 
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
@@ -921,7 +921,7 @@ void vmCompilerFinalize(
     }
 
     // Add a single end instruction.
-    nkiAddInstructionSimple(cs, NK_OP_END, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_END, true);
 
     nkiFree(cs->vm, cs);
 }
@@ -1017,7 +1017,7 @@ uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
-    nkiAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, true);
     return instructionWriteIndex;
 }
 
@@ -1026,7 +1026,7 @@ uint32_t emitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
-    nkiAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, true);
     return instructionWriteIndex;
 }
 
@@ -1293,7 +1293,7 @@ bool compileForStatement(struct NKCompilerState *cs)
         nkiCompilerPopRecursion(cs);
         return false;
     }
-    nkiAddInstructionSimple(cs, NK_OP_POP, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_POP, true);
 
     // Emit jump back to start.
     emitJump(cs, loopStartAddress);
@@ -1348,7 +1348,7 @@ bool compileBreakStatement(struct NKCompilerState *cs)
     // Pop off every context's data between the break statement and
     // the loop context.
     nkiCompilerEmitPushLiteralInt(cs, contextLevel - loopContextLevel, false);
-    nkiAddInstructionSimple(cs, NK_OP_POPN, false);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, false);
 
     {
         uint32_t jumpFixup = emitJump(cs, 0);
