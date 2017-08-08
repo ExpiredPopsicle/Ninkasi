@@ -142,7 +142,7 @@ int32_t getPrecedence(enum NKTokenType t)
 }
 
 #define PARSE_ERROR(x)                          \
-    vmCompilerAddError(                         \
+    nkiCompilerAddError(                        \
         cs,                                     \
         (x))
 
@@ -741,14 +741,14 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
     }
 
     if(!node->children[1]) {
-        vmCompilerAddError(
+        nkiCompilerAddError(
             cs, "No RValue to assign in assignment.");
         nkiCompilerPopRecursion(cs);
         return false;
     }
 
     if(!node->children[0]) {
-        vmCompilerAddError(
+        nkiCompilerAddError(
             cs, "No LValue to assign in assignment.");
         nkiCompilerPopRecursion(cs);
         return false;
@@ -784,7 +784,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
             struct NKDynString *dynStr =
                 nkiDynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
             nkiDynStrAppend(dynStr, node->children[0]->opOrValue->str);
-            vmCompilerAddError(
+            nkiCompilerAddError(
                 cs, dynStr->data);
             nkiDynStrDelete(dynStr);
             nkiCompilerPopRecursion(cs);

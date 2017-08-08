@@ -171,7 +171,7 @@ bool nkxVmCompilerCompileScriptFile(
     if(!in) {
         NK_FAILURE_RECOVERY_DECL();
         NK_SET_FAILURE_RECOVERY(false);
-        vmCompilerAddError(cs, "Cannot open script file.");
+        nkiCompilerAddError(cs, "Cannot open script file.");
         NK_CLEAR_FAILURE_RECOVERY();
         return false;
     }

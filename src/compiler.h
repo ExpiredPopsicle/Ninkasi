@@ -102,7 +102,8 @@ const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs);
 bool nkiCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t);
 
-void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
+// Compiler-specific version of nkiAddError. Adds in line number.
+void nkiCompilerAddError(struct NKCompilerState *cs, const char *error);
 
 bool nkiCompilerPushRecursion(struct NKCompilerState *cs);
 void nkiCompilerPopRecursion(struct NKCompilerState *cs);

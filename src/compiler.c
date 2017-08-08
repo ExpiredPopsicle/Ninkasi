@@ -11,7 +11,7 @@ void nkiAddInstruction(
 
         // FIXME: Add a dynamic or settable memory limit.
         if(cs->vm->instructionAddressMask >= 0xfffff) {
-            vmCompilerAddError(cs, "Too many instructions.");
+            nkiCompilerAddError(cs, "Too many instructions.");
         }
 
         {
@@ -275,7 +275,7 @@ bool nkiCompilerExpectAndSkipToken(
         nkiDynStrAppend(
             errStr,
             nkiCompilerCurrentTokenString(cs));
-        vmCompilerAddError(cs, errStr->data);
+        nkiCompilerAddError(cs, errStr->data);
         nkiDynStrDelete(errStr);
         return false;
     } else {
@@ -309,7 +309,7 @@ bool compileStatement(struct NKCompilerState *cs)
         cs->context->stackFrameOffset);
 
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_INVALID) {
-        vmCompilerAddError(cs, "Ran out of tokens to parse.");
+        nkiCompilerAddError(cs, "Ran out of tokens to parse.");
         return false;
     }
 
@@ -413,7 +413,7 @@ struct NKCompilerStateContextVariable *lookupVariable(
         struct NKDynString *dynStr =
             nkiDynStrCreate(cs->vm, "Cannot find variable: ");
         nkiDynStrAppend(dynStr, name);
-        vmCompilerAddError(cs, dynStr->data);
+        nkiCompilerAddError(cs, dynStr->data);
         nkiDynStrDelete(dynStr);
         return NULL;
     }
@@ -469,7 +469,7 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
 
     if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
-        vmCompilerAddError(cs, "Expected identifier in variable declaration.");
+        nkiCompilerAddError(cs, "Expected identifier in variable declaration.");
         nkiCompilerPopRecursion(cs);
         return false;
     }
@@ -517,13 +517,13 @@ void emitReturn(struct NKCompilerState *cs)
     }
 
     if(!ctx) {
-        vmCompilerAddError(
+        nkiCompilerAddError(
             cs, "return statement outside of function.");
         return;
     }
 
     if(ctx->currentFunctionId >= cs->vm->functionCount) {
-        vmCompilerAddError(
+        nkiCompilerAddError(
             cs, "Bad function id when attempting to emit return.");
         return;
     }
@@ -645,7 +645,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
         nkiCompilerNextToken(cs);
     } else {
-        vmCompilerAddError(cs, "Expected '('.");
+        nkiCompilerAddError(cs, "Expected '('.");
     }
 
     // Read variable names and skip commas until we get to a closing
@@ -670,7 +670,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
         } else if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_PAREN_CLOSE) {
 
-            vmCompilerAddError(
+            nkiCompilerAddError(
                 cs, "Expected identifier for function argument name.");
             ret = false;
             break;
@@ -683,7 +683,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
         if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_COMMA) {
             nkiCompilerNextToken(cs);
         } else {
-            vmCompilerAddError(cs, "Expected ')' or ','.");
+            nkiCompilerAddError(cs, "Expected ')' or ','.");
         }
     }
 
@@ -718,7 +718,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
         nkiCompilerNextToken(cs);
     } else {
-        vmCompilerAddError(cs, "Expected ')'.");
+        nkiCompilerAddError(cs, "Expected ')'.");
     }
 
     // Parse and emit actual function code.
@@ -794,7 +794,7 @@ const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs)
     return "<invalid token>";
 }
 
-void vmCompilerAddError(struct NKCompilerState *cs, const char *error)
+void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
 {
     nkiAddError(
         cs->vm,
@@ -867,7 +867,7 @@ void vmCompilerFinalize(
 {
     // We MUST end up on the global context at the end.
     if(!cs->context || cs->context->parent) {
-        vmCompilerAddError(cs, "Context mismatch at compilation end!");
+        nkiCompilerAddError(cs, "Context mismatch at compilation end!");
     }
 
     // Pop everything up to the global context.
@@ -983,7 +983,7 @@ bool vmCompilerCompileScript(
 //         struct NKDynString *errStr =
 //             nkiDynStrCreate(cs->vm, "Cannot open script file: ");
 //         nkiDynStrAppend(errStr, scriptFilename);
-//         vmCompilerAddError(cs, errStr->data);
+//         nkiCompilerAddError(cs, errStr->data);
 //         nkiDynStrDelete(errStr);
 //         return false;
 //     }
@@ -1329,13 +1329,13 @@ bool compileBreakStatement(struct NKCompilerState *cs)
     }
 
     if(!searchContext) {
-        vmCompilerAddError(cs, "Cannot break outside of a loop.");
+        nkiCompilerAddError(cs, "Cannot break outside of a loop.");
         nkiCompilerPopRecursion(cs);
         return false;
     }
 
     if(!searchContext->parent) {
-        vmCompilerAddError(cs, "Cannot break out of the root context.");
+        nkiCompilerAddError(cs, "Cannot break out of the root context.");
         nkiCompilerPopRecursion(cs);
         return false;
     }
@@ -1373,7 +1373,7 @@ bool nkiCompilerPushRecursion(struct NKCompilerState *cs)
 {
     // TODO: Make this limit configurable.
     if(cs->recursionCount > 64) {
-        vmCompilerAddError(cs, "Reached recursion limit during compilation.");
+        nkiCompilerAddError(cs, "Reached recursion limit during compilation.");
         return false;
     }
     cs->recursionCount++;
