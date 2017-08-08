@@ -127,7 +127,7 @@ struct NKCompilerState *nkxCompilerCreate(
     NK_FAILURE_RECOVERY_DECL();
     struct NKCompilerState *ret;
     NK_SET_FAILURE_RECOVERY(NULL);
-    ret = vmCompilerCreate(vm);
+    ret = nkiCompilerCreate(vm);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -202,7 +202,7 @@ void nkxCompilerFinalize(
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
     NK_SET_FAILURE_RECOVERY_VOID();
-    vmCompilerFinalize(cs);
+    nkiCompilerFinalize(cs);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 

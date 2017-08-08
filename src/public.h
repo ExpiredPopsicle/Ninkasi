@@ -77,7 +77,7 @@ struct NKCompilerState;
 struct NKVM;
 
 /// Create a compiler.
-struct NKCompilerState *vmCompilerCreate(
+struct NKCompilerState *nkiCompilerCreate(
     struct NKVM *vm);
 
 /// This can be done multiple times. It'll just be the equivalent of
@@ -93,7 +93,7 @@ bool vmCompilerCompileScript(
 
 /// Destroy a compiler. This will also finish off any remaining tasks
 /// like setting up the global variable list in the VM.
-void vmCompilerFinalize(
+void nkiCompilerFinalize(
     struct NKCompilerState *cs);
 
 // ----------------------------------------------------------------------

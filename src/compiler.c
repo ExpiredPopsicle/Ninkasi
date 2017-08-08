@@ -835,7 +835,7 @@ void nkiCompilerCreateCFunctionVariable(
     nkiCompilerAddVariable(cs, name, false);
 }
 
-struct NKCompilerState *vmCompilerCreate(
+struct NKCompilerState *nkiCompilerCreate(
     struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
@@ -861,7 +861,7 @@ struct NKCompilerState *vmCompilerCreate(
     return cs;
 }
 
-void vmCompilerFinalize(
+void nkiCompilerFinalize(
     struct NKCompilerState *cs)
 {
     // We MUST end up on the global context at the end.
