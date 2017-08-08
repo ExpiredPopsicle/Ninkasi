@@ -433,6 +433,8 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
         nkiCompilerPushContext(cs);
     }
 
+    // Keep compiling statements until we see a curly brace or have an
+    // error.
     while(
         nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_CURLYBRACE_CLOSE &&
         nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_INVALID)
@@ -443,7 +445,6 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
                 nkiCompilerPopContext(cs);
             }
 
-            // assert(startContext == cs->context);
             nkiCompilerPopRecursion(cs);
             return false;
         }
@@ -982,7 +983,7 @@ uint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
     return instructionWriteIndex;
 }
 
-struct NKInstruction *vmCompilerGetInstruction(struct NKCompilerState *cs, uint32_t address)
+struct NKInstruction *nkiCompilerGetInstruction(struct NKCompilerState *cs, uint32_t address)
 {
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
@@ -993,16 +994,16 @@ void nkiCompilerModifyJump(
     uint32_t target)
 {
     struct NKInstruction *pushLitInst =
-        vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
+        nkiCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
     struct NKInstruction *jumpInst =
-        vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
+        nkiCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 2);
 
     assert(pushLitInst->opcode == NK_OP_PUSHLITERAL_INT);
     assert(
         jumpInst->opcode == NK_OP_JUMP_RELATIVE ||
         jumpInst->opcode == NK_OP_JUMP_IF_ZERO);
 
-    vmCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 1)->opData_int =
+    nkiCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress + 1)->opData_int =
         (target - pushLiteralBeforeJumpAddress) - 3;
 }
 
@@ -1076,7 +1077,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     return true;
 }
 
-void fixupBreakJumpForContext(struct NKCompilerState *cs)
+void nkiCompilerFixupBreakJumpForContext(struct NKCompilerState *cs)
 {
     while(cs->context->loopContextFixupCount) {
         uint32_t fixupLocation =
@@ -1152,7 +1153,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
     nkiCompilerPopContext(cs);
-    fixupBreakJumpForContext(cs);
+    nkiCompilerFixupBreakJumpForContext(cs);
     nkiCompilerPopContext(cs);
 
     nkiCompilerPopRecursion(cs);
@@ -1256,7 +1257,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     deleteExpressionNode(cs->vm, incrementExpression);
 
     nkiCompilerPopContext(cs);
-    fixupBreakJumpForContext(cs);
+    nkiCompilerFixupBreakJumpForContext(cs);
     nkiCompilerPopContext(cs);
     nkiCompilerPopRecursion(cs);
     return true;
