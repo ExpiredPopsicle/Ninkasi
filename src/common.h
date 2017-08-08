@@ -17,7 +17,7 @@
 #include "enums.h"
 #include "vmstack.h"
 #include "value.h"
-#include "opcodes.h"
+#include "nkopcode.h"
 #include "expressn.h"
 #include "optimize.h"
 #include "tokenize.h"

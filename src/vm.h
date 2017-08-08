@@ -5,7 +5,7 @@
 
 #include "error.h"
 #include "vmstack.h"
-#include "opcodes.h"
+#include "nkopcode.h"
 #include "nkstring.h"
 #include "nkfunc.h"
 #include "objects.h"
