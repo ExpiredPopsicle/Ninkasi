@@ -266,19 +266,6 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     return var;
 }
 
-// FIXME: Remove this.
-struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
-    struct NKCompilerState *cs, const char *name)
-{
-    return nkiCompilerAddVariable(cs, name, false);
-}
-
-// FIXME: Remove this.
-void addVariable(struct NKCompilerState *cs, const char *name)
-{
-    nkiCompilerAddVariable(cs, name, true);
-}
-
 bool vmCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t)
 {
@@ -504,13 +491,13 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
                 return false;
             }
 
-            addVariableWithoutStackAllocation(cs, variableName);
+            nkiCompilerAddVariable(cs, variableName, false);
 
         } else {
 
             // Something in the form of "var foo;"
 
-            addVariable(cs, variableName);
+            nkiCompilerAddVariable(cs, variableName, true);
         }
     }
 
@@ -626,7 +613,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     // cannot refer to itself before it's finished being fully
     // created.
     nkiEmitPushLiteralFunctionId(cs, functionId, true);
-    addVariableWithoutStackAllocation(cs, functionName);
+    nkiCompilerAddVariable(cs, functionName, false);
 
     // Add some instructions to skip around this function. This is
     // kind of a weird way to do it, but it means that we can just
@@ -673,7 +660,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
             // FIXME: Some day, figure out why the heck the variables
             // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
-            varTmp = addVariableWithoutStackAllocation(cs, argumentName);
+            varTmp = nkiCompilerAddVariable(cs, argumentName, false);
 
             varTmp->doNotPopWhenOutOfScope = true;
 
@@ -711,20 +698,20 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
-    varTmp = addVariableWithoutStackAllocation(cs, "_functionId");
+    varTmp = nkiCompilerAddVariable(cs, "_functionId", false);
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
-    varTmp = addVariableWithoutStackAllocation(cs, "_argumentCount");
+    varTmp = nkiCompilerAddVariable(cs, "_argumentCount", false);
     varTmp->doNotPopWhenOutOfScope = true;
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
-    varTmp = addVariableWithoutStackAllocation(cs, "_returnPointer");
+    varTmp = nkiCompilerAddVariable(cs, "_returnPointer", false);
     varTmp->doNotPopWhenOutOfScope = true;
 
     // Skip ')'.
@@ -847,7 +834,7 @@ void vmCompilerCreateCFunctionVariable(
 
     // Add the variable.
     nkiEmitPushLiteralFunctionId(cs, functionId, true);
-    addVariableWithoutStackAllocation(cs, name);
+    nkiCompilerAddVariable(cs, name, false);
 }
 
 struct NKCompilerState *vmCompilerCreate(

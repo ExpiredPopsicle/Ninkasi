@@ -74,12 +74,6 @@ void nkiCompilerPopContext(struct NKCompilerState *cs);
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name, bool allocateStackSpace);
 
-// FIXME: Remove this.
-void addVariable(struct NKCompilerState *cs, const char *name);
-// FIXME: Remove this.
-struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
-    struct NKCompilerState *cs, const char *name);
-
 struct NKCompilerStateContextVariable *lookupVariable(
     struct NKCompilerState *cs,
     const char *name);
