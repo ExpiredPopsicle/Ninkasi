@@ -43,7 +43,7 @@ void nkiAddInstruction(
 
   #if VM_DEBUG
     cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
-        vmCompilerGetLinenumber(cs);
+        nkiCompilerCurrentTokenLinenumber(cs);
   #endif
 
     cs->instructionWriteIndex++;
@@ -274,7 +274,7 @@ bool vmCompilerExpectAndSkipToken(
             nkiDynStrCreate(cs->vm, "Unexpected token: ");
         nkiDynStrAppend(
             errStr,
-            vmCompilerTokenString(cs));
+            nkiCompilerCurrentTokenString(cs));
         vmCompilerAddError(cs, errStr->data);
         nkiDynStrDelete(errStr);
         return false;
@@ -475,7 +475,7 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
     }
 
     {
-        const char *variableName = vmCompilerTokenString(cs);
+        const char *variableName = nkiCompilerCurrentTokenString(cs);
 
         EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IDENTIFIER);
 
@@ -596,12 +596,12 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
     // Read the function name.
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
-        functionName = vmCompilerTokenString(cs);
+        functionName = nkiCompilerCurrentTokenString(cs);
         nkiCompilerNextToken(cs);
     } else {
         nkiAddError(
             cs->vm,
-            vmCompilerGetLinenumber(cs),
+            nkiCompilerCurrentTokenLinenumber(cs),
             "Expected identifier for function name.");
         nkiCompilerPopRecursion(cs);
         return false;
@@ -655,7 +655,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
         // Add each of them as a local variable to the new context.
         if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
-            const char *argumentName = vmCompilerTokenString(cs);
+            const char *argumentName = nkiCompilerCurrentTokenString(cs);
 
             // FIXME: Some day, figure out why the heck the variables
             // are offset +1 in the stack.
@@ -778,7 +778,7 @@ enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs)
     return NK_TOKENTYPE_INVALID;
 }
 
-uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs)
+uint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->lineNumber;
@@ -786,7 +786,7 @@ uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs)
     return cs->currentLineNumber;
 }
 
-const char *vmCompilerTokenString(struct NKCompilerState *cs)
+const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->str;
@@ -798,7 +798,7 @@ void vmCompilerAddError(struct NKCompilerState *cs, const char *error)
 {
     nkiAddError(
         cs->vm,
-        vmCompilerGetLinenumber(cs),
+        nkiCompilerCurrentTokenLinenumber(cs),
         error);
 }
 

@@ -175,7 +175,7 @@ int32_t getPrecedence(enum NKTokenType t)
                 nkiDynStrCreate(cs->vm, "Unexpected token: ");  \
             nkiDynStrAppend(                                    \
                 errStr,                                         \
-                vmCompilerTokenString(cs));                     \
+                nkiCompilerCurrentTokenString(cs));             \
             PARSE_ERROR(errStr->data);                          \
             nkiDynStrDelete(errStr);                            \
             CLEANUP_INLOOP();                                   \
@@ -528,7 +528,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                 struct NKDynString *str =
                     nkiDynStrCreate(cs->vm, "Unknown postfix operator: ");
-                nkiDynStrAppend(str, vmCompilerTokenString(cs));
+                nkiDynStrAppend(str, nkiCompilerCurrentTokenString(cs));
                 PARSE_ERROR(str->data);
                 nkiDynStrDelete(str);
                 CLEANUP_INLOOP();
@@ -563,13 +563,13 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         }
 
         // Not done yet. Parse the next operator.
-        dbgWriteLine("Parse operator: %s", vmCompilerTokenString(cs));
+        dbgWriteLine("Parse operator: %s", nkiCompilerCurrentTokenString(cs));
 
         // Make sure this is even something valid.
         if(getPrecedence((*currentToken)->type) == -1) {
             struct NKDynString *str =
                 nkiDynStrCreate(cs->vm, "Unknown operator: ");
-            nkiDynStrAppend(str, vmCompilerTokenString(cs));
+            nkiDynStrAppend(str, nkiCompilerCurrentTokenString(cs));
             PARSE_ERROR(str->data);
             nkiDynStrDelete(str);
             CLEANUP_INLOOP();
@@ -593,7 +593,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             } else {
                 dbgWriteLine(
                     "We should NOT reduce! %s <= %s",
-                    vmCompilerTokenString(cs),
+                    nkiCompilerCurrentTokenString(cs),
                     opStack->opOrValue->str);
             }
         }

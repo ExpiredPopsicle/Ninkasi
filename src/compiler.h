@@ -94,10 +94,11 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
 void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame);
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
 
+// Token traversal state stuff.
 struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
-uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs);
-const char *vmCompilerTokenString(struct NKCompilerState *cs);
+uint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs);
+const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs);
 void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
 bool vmCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t);
