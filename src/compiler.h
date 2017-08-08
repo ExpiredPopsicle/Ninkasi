@@ -67,7 +67,16 @@ void nkiAddInstruction(
 void nkiCompilerPushContext(struct NKCompilerState *cs);
 void nkiCompilerPopContext(struct NKCompilerState *cs);
 
+/// Adds a variable to the current context. Emits code on-the-spot to
+/// make room for the stack if asked to, and points to the current
+/// stack offset. TL;DR: You cannot use this to add variables at any
+/// time.
+struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
+    struct NKCompilerState *cs, const char *name, bool allocateStackSpace);
+
+// FIXME: Remove this.
 void addVariable(struct NKCompilerState *cs, const char *name);
+// FIXME: Remove this.
 struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
     struct NKCompilerState *cs, const char *name);
 

@@ -241,12 +241,18 @@ void nkiEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame)
     nkiAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
 }
 
-struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
-    struct NKCompilerState *cs, const char *name)
+struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
+    struct NKCompilerState *cs, const char *name, bool allocateStackSpace)
 {
     struct NKCompilerStateContextVariable *var =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
+
+    // Add an instruction to make some stack space for this variable,
+    // if needed.
+    if(allocateStackSpace) {
+        nkiEmitPushLiteralInt(cs, 0, true);
+    }
 
     var->next = cs->context->variables;
     var->isGlobal = !cs->context->parent;
@@ -260,11 +266,17 @@ struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
     return var;
 }
 
+// FIXME: Remove this.
+struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
+    struct NKCompilerState *cs, const char *name)
+{
+    return nkiCompilerAddVariable(cs, name, false);
+}
+
+// FIXME: Remove this.
 void addVariable(struct NKCompilerState *cs, const char *name)
 {
-    // Add an instruction to make some stack space for this variable.
-    nkiEmitPushLiteralInt(cs, 0, true);
-    addVariableWithoutStackAllocation(cs, name);
+    nkiCompilerAddVariable(cs, name, true);
 }
 
 bool vmCompilerExpectAndSkipToken(
