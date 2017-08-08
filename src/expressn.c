@@ -676,7 +676,7 @@ bool emitFetchVariable(
 
         // Positive values for global variables (absolute stack
         // position).
-        nkiEmitPushLiteralInt(cs, var->stackPos, true);
+        nkiCompilerEmitPushLiteralInt(cs, var->stackPos, true);
 
         dbgWriteLine("Looked up %s: Global at %d", name, var->stackPos);
 
@@ -685,7 +685,7 @@ bool emitFetchVariable(
         // Negative values for local variables (stack position -
         // value).
         int32_t fetchStackPos = var->stackPos - cs->context->stackFrameOffset;
-        nkiEmitPushLiteralInt(cs, fetchStackPos, true);
+        nkiCompilerEmitPushLiteralInt(cs, fetchStackPos, true);
 
         dbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
@@ -714,13 +714,13 @@ bool emitSetVariable(
 
         // Positive values for global variables (absolute stack
         // position).
-        nkiEmitPushLiteralInt(cs, var->stackPos, true);
+        nkiCompilerEmitPushLiteralInt(cs, var->stackPos, true);
 
     } else {
 
         // Negative values for local variables (stack position -
         // value).
-        nkiEmitPushLiteralInt(cs,
+        nkiCompilerEmitPushLiteralInt(cs,
             var->stackPos - cs->context->stackFrameOffset, true);
 
     }
@@ -828,15 +828,15 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
     switch(node->opOrValue->type) {
 
         case NK_TOKENTYPE_INTEGER:
-            nkiEmitPushLiteralInt(cs, atoi(node->opOrValue->str), true);
+            nkiCompilerEmitPushLiteralInt(cs, atoi(node->opOrValue->str), true);
             break;
 
         case NK_TOKENTYPE_FLOAT:
-            nkiEmitPushLiteralFloat(cs, atof(node->opOrValue->str), true);
+            nkiCompilerEmitPushLiteralFloat(cs, atof(node->opOrValue->str), true);
             break;
 
         case NK_TOKENTYPE_STRING:
-            nkiEmitPushLiteralString(cs, node->opOrValue->str, true);
+            nkiCompilerEmitPushLiteralString(cs, node->opOrValue->str, true);
             break;
 
         case NK_TOKENTYPE_NEWOBJECT:
@@ -844,7 +844,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
             break;
 
         case NK_TOKENTYPE_NIL:
-            nkiEmitPushNil(cs, true);
+            nkiCompilerEmitPushNil(cs, true);
             break;
 
         case NK_TOKENTYPE_PLUS:
@@ -935,7 +935,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
                 }
 
                 dbgWriteLine("Emitting function call with arguments: %u", argumentCount);
-                nkiEmitPushLiteralInt(cs, argumentCount, false);
+                nkiCompilerEmitPushLiteralInt(cs, argumentCount, false);
 
                 if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
                     nkiAddInstructionSimple(cs, NK_OP_PREPARESELFCALL, false);

@@ -88,11 +88,11 @@ bool compileWhileStatement(struct NKCompilerState *cs);
 bool compileForStatement(struct NKCompilerState *cs);
 bool compileBreakStatement(struct NKCompilerState *cs);
 
-void nkiEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
-void nkiEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame);
-void nkiEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame);
-void nkiEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame);
-void nkiEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
+void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
+void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame);
+void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame);
+void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame);
+void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
 
 struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs);
 enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs);
