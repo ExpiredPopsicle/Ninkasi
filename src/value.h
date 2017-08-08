@@ -1,5 +1,5 @@
-#ifndef VALUE_H
-#define VALUE_H
+#ifndef NINKASI_VALUE_H
+#define NINKASI_VALUE_H
 
 #include "enums.h"
 
@@ -52,4 +52,5 @@ void vmValueSetInt(struct NKVM *vm, struct NKValue *value, int32_t intData);
 void vmValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
 void vmValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 
-#endif
+#endif // NINKASI_VALUE_H
+

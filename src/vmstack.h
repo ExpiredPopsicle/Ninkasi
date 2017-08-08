@@ -1,5 +1,5 @@
-#ifndef VMSTACK_H
-#define VMSTACK_H
+#ifndef NINKASI_VMSTACK_H
+#define NINKASI_VMSTACK_H
 
 struct NKValue;
 struct NKVM;
@@ -42,4 +42,5 @@ void vmStackDestroy(struct NKVM *vm);
 /// fill it in).
 struct NKValue *vmStackPush_internal(struct NKVM *vm);
 
-#endif
+#endif // NINKASI_VMSTACK_H
+

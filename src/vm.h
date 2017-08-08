@@ -1,5 +1,5 @@
-#ifndef VM_H
-#define VM_H
+#ifndef NINKASI_VM_H
+#define NINKASI_VM_H
 
 #include <setjmp.h>
 
@@ -98,5 +98,5 @@ const char *vmGetOpcodeName(enum NKOpcode op);
 /// for that.
 struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId);
 
+#endif // NINKASI_VM_H
 
-#endif

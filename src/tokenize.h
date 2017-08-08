@@ -1,5 +1,5 @@
-#ifndef TOKENIZE_H
-#define TOKENIZE_H
+#ifndef NINKASI_TOKENIZE_H
+#define NINKASI_TOKENIZE_H
 
 #include "enums.h"
 
@@ -30,4 +30,5 @@ void addToken(
     struct NKTokenList *tokenList);
 bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
 
-#endif
+#endif // NINKASI_TOKENIZE_H
+
