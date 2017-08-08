@@ -400,6 +400,57 @@ print(nil, "\n");
 
 print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
 
+{
+    {
+        {
+            {
+                {
+                    {
+                        {
+                            {
+                                {
+                                    {
+                                        {
+                                            {
+                                                {
+                                                    {
+                                                        {
+                                                            {
+                                                                {
+                                                                    {
+                                                                        {
+                                                                            {
+                                                                                {
+                                                                                    {
+                                                                                        {
+                                                                                            {
+                                                                                                {
+                                                                                                    print("adsfgasdfasdfsadf\n");
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 
 // function causeCatastrophe()
 // {
@@ -407,5 +458,27 @@ print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
 // }
 // cfunc(causeCatastrophe);
 
+function spaces(x)
+{
+    var ret = "";
+    for(var i = 0; i < x; ++i) {
+        ret = ret + "  ";
+    }
+    return ret;
+}
+
+function selfRecursionTest(x, y)
+{
+    if(x > 0) {
+        print(spaces(y), "Recursing! ", x, " ", y, "\n");
+        var ret = x * selfRecursionTest(x - 1, y + 1);
+        print(spaces(y), "Un-recursing! ", ret, "\n");
+        return ret;
+    }
+    print(spaces(y), "Final recursion! ", x, " ", y, "\n");
+    return 1;
+}
+
+print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 
 
