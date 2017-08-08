@@ -166,7 +166,7 @@ int32_t getPrecedence(enum NKTokenType t)
         deleteExpressionNode(cs->vm, firstPrefixOp);    \
         deleteExpressionNode(cs->vm, lastPostfixOp);    \
         deleteExpressionNode(cs->vm, valueNode);        \
-        } while(0)
+    } while(0)
 
 #define EXPECT_AND_SKIP(x)                                      \
     do {                                                        \
@@ -279,7 +279,7 @@ bool parseFunctioncall(
     }
     dbgPop();
 
-    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         nkiCompilerPopRecursion(cs);
         return false;
     }

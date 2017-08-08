@@ -266,7 +266,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     return var;
 }
 
-bool vmCompilerExpectAndSkipToken(
+bool nkiCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t)
 {
     if(nkiCompilerCurrentTokenType(cs) != t) {
@@ -285,10 +285,10 @@ bool vmCompilerExpectAndSkipToken(
 }
 
 // TODO: Remove instances of this and replace them with
-// vmCompilerExpectAndSkipToken().
+// nkiCompilerExpectAndSkipToken().
 #define EXPECT_AND_SKIP_STATEMENT(x)                \
     do {                                            \
-        if(!vmCompilerExpectAndSkipToken(cs, x)) {  \
+        if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
             nkiCompilerPopRecursion(cs);            \
             return false;                           \
         }                                           \
@@ -1158,8 +1158,8 @@ bool compileWhileStatement(struct NKCompilerState *cs)
     nkiCompilerPushContext(cs);
 
     // Skip "while("
-    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_WHILE) ||
-        !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_WHILE) ||
+        !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
     {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
@@ -1178,7 +1178,7 @@ bool compileWhileStatement(struct NKCompilerState *cs)
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
-    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return false;
@@ -1225,8 +1225,8 @@ bool compileForStatement(struct NKCompilerState *cs)
     nkiCompilerPushContext(cs);
 
     // Skip "for("
-    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_FOR) ||
-        !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_FOR) ||
+        !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
     {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
@@ -1258,7 +1258,7 @@ bool compileForStatement(struct NKCompilerState *cs)
     }
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
-    if(!vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return false;
@@ -1269,7 +1269,7 @@ bool compileForStatement(struct NKCompilerState *cs)
     incrementExpression = compileExpressionWithoutEmit(cs); // FIXME: Check return value.
 
     // Skip ")"
-    if(!incrementExpression || !vmCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
+    if(!incrementExpression || !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         deleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);

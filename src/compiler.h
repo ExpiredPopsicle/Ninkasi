@@ -99,9 +99,10 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
 uint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs);
 const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs);
-void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
-bool vmCompilerExpectAndSkipToken(
+bool nkiCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t);
+
+void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
 
 bool nkiCompilerPushRecursion(struct NKCompilerState *cs);
 void nkiCompilerPopRecursion(struct NKCompilerState *cs);
