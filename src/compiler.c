@@ -49,21 +49,6 @@ void nkiAddInstruction(
     cs->instructionWriteIndex++;
 }
 
-// FIXME: Remove this.
-void addInstruction(
-    struct NKCompilerState *cs, struct NKInstruction *inst)
-{
-    nkiAddInstruction(cs, inst, false);
-}
-
-void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode)
-{
-    struct NKInstruction inst;
-    memset(&inst, 0, sizeof(inst));
-    inst.opcode = opcode;
-    nkiAddInstruction(cs, &inst, false);
-}
-
 // FIXME: "nkiCompilerAdd..."
 void nkiAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,

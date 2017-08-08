@@ -57,12 +57,6 @@ struct NKCompilerState
 
 extern int32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
-// FIXME: Remove this.
-void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst);
-
-// FIXME: Rename this.
-void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode);
-
 void nkiAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
     bool adjustStackFrame);
