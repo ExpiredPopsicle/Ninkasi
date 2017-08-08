@@ -38,7 +38,7 @@ void dumpListing(struct NKVM *vm, const char *script)
 {
     uint32_t i;
 
-  #if VM_DEBUG
+  #if NK_VM_DEBUG
     uint32_t lastLine = 0;
   #endif
 
@@ -56,7 +56,7 @@ void dumpListing(struct NKVM *vm, const char *script)
                 break;
             }
 
-          #if VM_DEBUG
+          #if NK_VM_DEBUG
 
             // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
             //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);

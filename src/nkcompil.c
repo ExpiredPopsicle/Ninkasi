@@ -41,7 +41,7 @@ void nkiCompilerAddInstruction(
             nkiCompilerStackOffsetTable[inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1)];
     }
 
-  #if VM_DEBUG
+  #if NK_VM_DEBUG
     cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
         nkiCompilerCurrentTokenLinenumber(cs);
   #endif

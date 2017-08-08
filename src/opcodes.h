@@ -18,7 +18,7 @@ struct NKInstruction
         uint32_t opData_functionId;
     };
 
-  #if VM_DEBUG
+  #if NK_VM_DEBUG
     uint32_t lineNumber;
   #endif
 };

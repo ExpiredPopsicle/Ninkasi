@@ -1,6 +1,6 @@
-#ifndef VMCONFIG_H
-#define VMCONFIG_H
+#ifndef NINKASI_VMCONFIG_H
+#define NINKASI_VMCONFIG_H
 
-#define VM_DEBUG 1
+#define NK_VM_DEBUG 1
 
-#endif
+#endif // NINKASI_VMCONFIG_H
