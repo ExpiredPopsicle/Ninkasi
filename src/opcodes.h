@@ -4,6 +4,9 @@
 #include "nkconfig.h"
 #include "value.h"
 
+// ----------------------------------------------------------------------
+// Types.
+
 struct NKVMStack;
 struct NKVM;
 
@@ -23,6 +26,8 @@ struct NKInstruction
   #endif
 };
 
+// ----------------------------------------------------------------------
+// Individual opcode functions.
 
 void nkiOpcode_add(struct NKVM *vm);
 void nkiOpcode_subtract(struct NKVM *vm);
