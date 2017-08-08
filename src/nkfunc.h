@@ -1,5 +1,5 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef NINKASI_FUNCTION_H
+#define NINKASI_FUNCTION_H
 
 #include "value.h"
 #include "public.h"
@@ -15,4 +15,5 @@ struct NKVMFunction
     void *CFunctionCallbackUserdata;
 };
 
-#endif
+#endif // NINKASI_FUNCTION_H
+

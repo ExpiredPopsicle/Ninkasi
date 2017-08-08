@@ -1,5 +1,5 @@
-#ifndef EXPRESSN_H
-#define EXPRESSN_H
+#ifndef NINKASI_EXPRESSN_H
+#define NINKASI_EXPRESSN_H
 
 #include "basetype.h"
 
@@ -47,4 +47,5 @@ bool nkiCompilerCompileExpression(struct NKCompilerState *cs);
 struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs);
 bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
-#endif
+#endif // NINKASI_EXPRESSN_H
+

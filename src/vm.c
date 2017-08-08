@@ -248,7 +248,7 @@ void vmGarbageCollect_markObject(
 
     ob->lastGCPass = gcState->currentGCPass;
 
-    for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
+    for(bucket = 0; bucket < nkiVMObjectHashBucketCount; bucket++) {
 
         struct NKVMObjectElement *el = ob->hashBuckets[bucket];
 

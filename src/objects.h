@@ -9,7 +9,7 @@ struct NKVMObjectElement
     struct NKVMObjectElement *next;
 };
 
-#define VMObjectHashBucketCount 16
+#define nkiVMObjectHashBucketCount 16
 
 struct NKVMObject
 {
@@ -19,7 +19,7 @@ struct NKVMObject
     // Cached count of number of entries.
     uint32_t size;
 
-    struct NKVMObjectElement *hashBuckets[VMObjectHashBucketCount];
+    struct NKVMObjectElement *hashBuckets[nkiVMObjectHashBucketCount];
 
     // External handle stuff.
     struct NKVMObject *nextObjectWithExternalHandles;

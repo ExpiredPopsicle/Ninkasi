@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef NINKASI_COMMON_H
+#define NINKASI_COMMON_H
 
 #include <stdio.h>
 #include <assert.h>
@@ -33,4 +33,4 @@
 #include "nkmem.h"
 #include "failure.h"
 
-#endif
+#endif // NINKASI_COMMON_H

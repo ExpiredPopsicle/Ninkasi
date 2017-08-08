@@ -22,7 +22,7 @@ void vmObjectTableInit(struct NKVM *vm)
 void vmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
 {
     uint32_t i;
-    for(i = 0; i < VMObjectHashBucketCount; i++) {
+    for(i = 0; i < nkiVMObjectHashBucketCount; i++) {
         struct NKVMObjectElement *el = ob->hashBuckets[i];
         while(el) {
             struct NKVMObjectElement *next = el->next;
@@ -186,7 +186,7 @@ void vmObjectClearEntry(
     struct NKValue *key)
 {
     struct NKVMObjectElement **obList =
-        &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
+        &ob->hashBuckets[valueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
 
     struct NKVMObjectElement **elPtr = obList;
     while(*elPtr) {
@@ -213,7 +213,7 @@ struct NKValue *vmObjectFindOrAddEntry(
     bool noAdd)
 {
     struct NKVMObjectElement **obList =
-        &ob->hashBuckets[valueHash(vm, key) & (VMObjectHashBucketCount - 1)];
+        &ob->hashBuckets[valueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
 
     struct NKVMObjectElement *el = *obList;
     while(el) {
@@ -266,7 +266,7 @@ void vmObjectTableDump(struct NKVM *vm)
             printf("%4u ", index);
             printf("Object\n");
 
-            for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
+            for(bucket = 0; bucket < nkiVMObjectHashBucketCount; bucket++) {
                 struct NKVMObjectElement *el = ob->hashBuckets[bucket];
                 printf("      Hash bucket %u\n", bucket);
                 while(el) {

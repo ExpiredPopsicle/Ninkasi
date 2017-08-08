@@ -1,5 +1,5 @@
-#ifndef ENUMS_H
-#define ENUMS_H
+#ifndef NINKASI_ENUMS_H
+#define NINKASI_ENUMS_H
 
 // ISO C doesn't allow forward declarations for enums, so we're just
 // jamming all the enums for this system into this one file. It also
@@ -135,4 +135,5 @@ enum NKTokenType
     NK_TOKENTYPE_INVALID,
 };
 
-#endif
+#endif // NINKASI_ENUMS_H
+
