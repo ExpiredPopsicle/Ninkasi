@@ -17,3 +17,6 @@ test : a
 
 clean :
 	-rm $(OBJECTS)
+	-rm *.OBJ
+	-rm *.EXE
+	-rm *.ERR

@@ -44,12 +44,12 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
     do {                                                \
         switch((*node)->opOrValue->type) {              \
                                                         \
-            case NK_TOKENTYPE_PLUS:                        \
+            case NK_TOKENTYPE_PLUS:                     \
                 /* Addition. */                         \
                 val = c0Val + c1Val;                    \
                 break;                                  \
                                                         \
-            case NK_TOKENTYPE_MINUS:                       \
+            case NK_TOKENTYPE_MINUS:                    \
                 if(!(*node)->children[1]) {             \
                     /* Unary negation. */               \
                     val = -c0Val;                       \
@@ -59,12 +59,12 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
                 }                                       \
                 break;                                  \
                                                         \
-            case NK_TOKENTYPE_MULTIPLY:                    \
+            case NK_TOKENTYPE_MULTIPLY:                 \
                 /* Multiplication. */                   \
                 val = c0Val * c1Val;                    \
                 break;                                  \
                                                         \
-            case NK_TOKENTYPE_DIVIDE:                      \
+            case NK_TOKENTYPE_DIVIDE:                   \
                 /* Division. */                         \
                 if(c1Val == 0) {                        \
                     deleteExpressionNode(vm, newNode);  \

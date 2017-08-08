@@ -26,7 +26,7 @@
 #include "error.h"
 #include "dynstr.h"
 #include "vm.h"
-#include "compiler.h"
+#include "nkcompil.h"
 #include "nkstring.h"
 #include "nkfunc.h"
 #include "objects.h"
