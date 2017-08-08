@@ -338,7 +338,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_FUNCTION:
             // "function" = Function definition.
             if(!compileFunctionDefinition(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -350,7 +349,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
             if(!compileBlock(cs, false)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -358,7 +356,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_IF:
             // "if" statements.
             if(!compileIfStatement(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -366,7 +363,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_WHILE:
             // "while" statements.
             if(!compileWhileStatement(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -374,7 +370,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_FOR:
             // "for" statements.
             if(!compileForStatement(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -382,7 +377,6 @@ bool compileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_BREAK:
             // "break" statements.
             if(!compileBreakStatement(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
             break;
@@ -390,15 +384,13 @@ bool compileStatement(struct NKCompilerState *cs)
         default:
             // Fall back to just parsing an expression.
             if(!compileExpression(cs)) {
-                // assert(cs->context == startContext);
                 return false;
             }
 
             if(vmCompilerTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
                 // a NK_OP_POP.
-                addInstructionSimple(cs, NK_OP_DUMP);
-                cs->context->stackFrameOffset--;
+                nkiAddInstructionSimple(cs, NK_OP_DUMP, true);
             }
 
             EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
@@ -569,7 +561,7 @@ void emitReturn(struct NKCompilerState *cs)
         dbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
         nkiEmitPushLiteralInt(cs, throwAwayContext, false);
-        addInstructionSimple(cs, NK_OP_RETURN);
+        nkiAddInstructionSimple(cs, NK_OP_RETURN, false);
     }
 }
 
@@ -646,7 +638,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     // will only happen once per function so whatever.
     nkiEmitPushLiteralInt(cs, 0, false);
     skipOffset = cs->instructionWriteIndex - 1;
-    addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
+    nkiAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, false);
 
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
@@ -946,7 +938,7 @@ void vmCompilerFinalize(
     }
 
     // Add a single end instruction.
-    addInstructionSimple(cs, NK_OP_END);
+    nkiAddInstructionSimple(cs, NK_OP_END, true);
 
     nkiFree(cs->vm, cs);
 }
@@ -1041,8 +1033,8 @@ bool vmCompilerCompileScript(
 uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, false);
-    addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
+    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
+    nkiAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, true);
     return instructionWriteIndex;
 }
 
@@ -1050,10 +1042,8 @@ uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 uint32_t emitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, false);
-    cs->context->stackFrameOffset += 1;
-    nkiAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, false);
-    cs->context->stackFrameOffset -= 2;
+    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
+    nkiAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, true);
     return instructionWriteIndex;
 }
 
@@ -1324,8 +1314,7 @@ bool compileForStatement(struct NKCompilerState *cs)
         nkiCompilerPopRecursion(cs);
         return false;
     }
-    addInstructionSimple(cs, NK_OP_POP);
-    cs->context->stackFrameOffset--;
+    nkiAddInstructionSimple(cs, NK_OP_POP, true);
 
     // Emit jump back to start.
     emitJump(cs, loopStartAddress);
