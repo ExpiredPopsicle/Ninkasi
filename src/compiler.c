@@ -269,7 +269,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
 bool vmCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t)
 {
-    if(vmCompilerTokenType(cs) != t) {
+    if(nkiCompilerCurrentTokenType(cs) != t) {
         struct NKDynString *errStr =
             nkiDynStrCreate(cs->vm, "Unexpected token: ");
         nkiDynStrAppend(
@@ -279,7 +279,7 @@ bool vmCompilerExpectAndSkipToken(
         nkiDynStrDelete(errStr);
         return false;
     } else {
-        vmCompilerNextToken(cs);
+        nkiCompilerNextToken(cs);
     }
     return true;
 }
@@ -308,12 +308,12 @@ bool compileStatement(struct NKCompilerState *cs)
         "Entering compileStatement with stackFrameOffset: %u",
         cs->context->stackFrameOffset);
 
-    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_INVALID) {
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_INVALID) {
         vmCompilerAddError(cs, "Ran out of tokens to parse.");
         return false;
     }
 
-    switch(vmCompilerTokenType(cs)) {
+    switch(nkiCompilerCurrentTokenType(cs)) {
 
         case NK_TOKENTYPE_VAR:
             // "var" = Variable declaration.
@@ -371,7 +371,7 @@ bool compileStatement(struct NKCompilerState *cs)
                 return false;
             }
 
-            if(vmCompilerTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
+            if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
                 // a NK_OP_POP.
                 nkiAddInstructionSimple(cs, NK_OP_DUMP, true);
@@ -435,8 +435,8 @@ bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
     }
 
     while(
-        vmCompilerTokenType(cs) != NK_TOKENTYPE_CURLYBRACE_CLOSE &&
-        vmCompilerTokenType(cs) != NK_TOKENTYPE_INVALID)
+        nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_CURLYBRACE_CLOSE &&
+        nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_INVALID)
     {
         if(!compileStatement(cs)) {
 
@@ -468,7 +468,7 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
 
     EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
 
-    if(vmCompilerTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
+    if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
         vmCompilerAddError(cs, "Expected identifier in variable declaration.");
         nkiCompilerPopRecursion(cs);
         return false;
@@ -479,7 +479,7 @@ bool compileVariableDeclaration(struct NKCompilerState *cs)
 
         EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IDENTIFIER);
 
-        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_ASSIGNMENT) {
+        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_ASSIGNMENT) {
 
             // Something in the form of "var foo = expression;" We'll just
             // treat the "foo = expression;" part as a separate thing.
@@ -595,9 +595,9 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
 
     // Read the function name.
-    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
         functionName = vmCompilerTokenString(cs);
-        vmCompilerNextToken(cs);
+        nkiCompilerNextToken(cs);
     } else {
         nkiAddError(
             cs->vm,
@@ -642,18 +642,18 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     cs->context = functionLocalContext;
 
     // Skip '('.
-    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
-        vmCompilerNextToken(cs);
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
+        nkiCompilerNextToken(cs);
     } else {
         vmCompilerAddError(cs, "Expected '('.");
     }
 
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
-    while(vmCompilerTokenType(cs) != NK_TOKENTYPE_INVALID) {
+    while(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_INVALID) {
 
         // Add each of them as a local variable to the new context.
-        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
+        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
             const char *argumentName = vmCompilerTokenString(cs);
 
@@ -666,9 +666,9 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
             functionArgumentCount++;
 
-            vmCompilerNextToken(cs);
+            nkiCompilerNextToken(cs);
 
-        } else if(vmCompilerTokenType(cs) != NK_TOKENTYPE_PAREN_CLOSE) {
+        } else if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_PAREN_CLOSE) {
 
             vmCompilerAddError(
                 cs, "Expected identifier for function argument name.");
@@ -676,12 +676,12 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
             break;
         }
 
-        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
+        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
             break;
         }
 
-        if(vmCompilerTokenType(cs) == NK_TOKENTYPE_COMMA) {
-            vmCompilerNextToken(cs);
+        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_COMMA) {
+            nkiCompilerNextToken(cs);
         } else {
             vmCompilerAddError(cs, "Expected ')' or ','.");
         }
@@ -715,8 +715,8 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     varTmp->doNotPopWhenOutOfScope = true;
 
     // Skip ')'.
-    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
-        vmCompilerNextToken(cs);
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
+        nkiCompilerNextToken(cs);
     } else {
         vmCompilerAddError(cs, "Expected ')'.");
     }
@@ -759,7 +759,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     return ret;
 }
 
-struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs)
+struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         cs->currentToken = cs->currentToken->next;
@@ -770,7 +770,7 @@ struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs)
     return cs->currentToken;
 }
 
-enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs)
+enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->type;
@@ -1091,7 +1091,7 @@ bool compileIfStatement(struct NKCompilerState *cs)
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
-    if(vmCompilerTokenType(cs) == NK_TOKENTYPE_ELSE) {
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_ELSE) {
 
         uint32_t skipAddressWritePtrElse = 0;
 

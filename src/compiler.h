@@ -94,8 +94,8 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
 void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame);
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
 
-struct NKToken *vmCompilerNextToken(struct NKCompilerState *cs);
-enum NKTokenType vmCompilerTokenType(struct NKCompilerState *cs);
+struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
+enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
 uint32_t vmCompilerGetLinenumber(struct NKCompilerState *cs);
 const char *vmCompilerTokenString(struct NKCompilerState *cs);
 void vmCompilerAddError(struct NKCompilerState *cs, const char *error);
