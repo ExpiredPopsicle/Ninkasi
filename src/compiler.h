@@ -64,8 +64,8 @@ void nkiAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     bool adjustStackFrame);
 
-void pushContext(struct NKCompilerState *cs);
-void popContext(struct NKCompilerState *cs);
+void nkiCompilerPushContext(struct NKCompilerState *cs);
+void nkiCompilerPopContext(struct NKCompilerState *cs);
 
 void addVariable(struct NKCompilerState *cs, const char *name);
 struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
