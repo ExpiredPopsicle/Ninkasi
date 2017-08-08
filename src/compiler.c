@@ -285,7 +285,7 @@ bool nkiCompilerExpectAndSkipToken(
 
 // TODO: Remove instances of this and replace them with
 // nkiCompilerExpectAndSkipToken().
-#define EXPECT_AND_SKIP_STATEMENT(x)                \
+#define NK_EXPECT_AND_SKIP_STATEMENT(x)             \
     do {                                            \
         if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
             nkiCompilerPopRecursion(cs);            \
@@ -376,7 +376,7 @@ bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
                 nkiCompilerAddInstructionSimple(cs, NK_OP_DUMP, true);
             }
 
-            EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
+            NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
             break;
     }
@@ -429,7 +429,7 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
     }
 
     if(!noBracesOrContext) {
-        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_OPEN);
+        NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_OPEN);
         nkiCompilerPushContext(cs);
     }
 
@@ -451,7 +451,7 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
 
     if(!noBracesOrContext) {
         nkiCompilerPopContext(cs);
-        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_CLOSE);
+        NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_CURLYBRACE_CLOSE);
     }
 
     assert(startContext == cs->context);
@@ -465,7 +465,7 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
         return false;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
 
     if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
         nkiCompilerAddError(cs, "Expected identifier in variable declaration.");
@@ -476,14 +476,14 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
     {
         const char *variableName = nkiCompilerCurrentTokenString(cs);
 
-        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IDENTIFIER);
+        NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IDENTIFIER);
 
         if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_ASSIGNMENT) {
 
             // Something in the form of "var foo = expression;" We'll just
             // treat the "foo = expression;" part as a separate thing.
 
-            EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ASSIGNMENT);
+            NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ASSIGNMENT);
 
             if(!nkiCompilerCompileExpression(cs)) {
                 nkiCompilerPopRecursion(cs);
@@ -500,7 +500,7 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
         }
     }
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
     return true;
@@ -554,7 +554,7 @@ bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
         return false;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_RETURN);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_RETURN);
 
     if(!nkiCompilerCompileExpression(cs)) {
         nkiCompilerPopRecursion(cs);
@@ -563,7 +563,7 @@ bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
 
     nkiCompilerEmitReturn(cs);
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
 
@@ -591,7 +591,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     functionObject = vmCreateFunction(
         cs->vm, &functionId);
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
 
     // Read the function name.
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
@@ -1062,8 +1062,8 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     }
 
     // Skip "if("
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IF);
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_OPEN);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_IF);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
     if(!nkiCompilerCompileExpression(cs)) {
@@ -1076,7 +1076,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     skipAddressWritePtr = emitJumpIfZero(cs, 0);
 
     // Skip ")"
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_CLOSE);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_CLOSE);
 
     // Generate code to execute if test passes.
     nkiCompilerPushContext(cs);
@@ -1094,7 +1094,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
 
         uint32_t skipAddressWritePtrElse = 0;
 
-        EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ELSE);
+        NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ELSE);
 
         // Emit instructions to skip past the contents of the "else"
         // block. Keep the index of the relative offset here so we can
@@ -1244,7 +1244,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     // If we ever go back to using expressions for the init thing,
     // we'll have to remember to pop the value it leaves behind,
     // decrement the stack frame offset, and then
-    // EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON).
+    // NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON).
 
     // Save the address we want to jump back to for the loop.
     loopStartAddress = cs->instructionWriteIndex;
@@ -1361,8 +1361,8 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
             jumpFixup;
     }
 
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_BREAK);
-    EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_BREAK);
+    NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
     return true;
@@ -1384,3 +1384,6 @@ void nkiCompilerPopRecursion(struct NKCompilerState *cs)
     assert(cs->recursionCount != 0);
     cs->recursionCount--;
 }
+
+#undef NK_EXPECT_AND_SKIP_STATEMENT
+
