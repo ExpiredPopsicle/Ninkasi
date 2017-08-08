@@ -74,7 +74,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs);
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name, bool allocateStackSpace);
 
-struct NKCompilerStateContextVariable *lookupVariable(
+struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
     const char *name);
 
@@ -105,6 +105,8 @@ bool nkiCompilerExpectAndSkipToken(
 // Compiler-specific version of nkiAddError. Adds in line number.
 void nkiCompilerAddError(struct NKCompilerState *cs, const char *error);
 
+// Recursion counter to prevent the stack from getting too big. (DOS
+// compatibility.)
 bool nkiCompilerPushRecursion(struct NKCompilerState *cs);
 void nkiCompilerPopRecursion(struct NKCompilerState *cs);
 

@@ -387,7 +387,7 @@ bool compileStatement(struct NKCompilerState *cs)
     return true;
 }
 
-struct NKCompilerStateContextVariable *lookupVariable(
+struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
     const char *name)
 {

@@ -168,21 +168,13 @@ int32_t getPrecedence(enum NKTokenType t)
         deleteExpressionNode(cs->vm, valueNode);        \
     } while(0)
 
-#define EXPECT_AND_SKIP(x)                                      \
-    do {                                                        \
-        if(nkiCompilerCurrentTokenType(cs) != (x)) {            \
-            struct NKDynString *errStr =                        \
-                nkiDynStrCreate(cs->vm, "Unexpected token: ");  \
-            nkiDynStrAppend(                                    \
-                errStr,                                         \
-                nkiCompilerCurrentTokenString(cs));             \
-            PARSE_ERROR(errStr->data);                          \
-            nkiDynStrDelete(errStr);                            \
-            CLEANUP_INLOOP();                                   \
-            nkiCompilerPopRecursion(cs);                        \
-            return NULL;                                        \
-        }                                                       \
-        nkiCompilerNextToken(cs);                               \
+#define NK_EXPECT_AND_SKIP(x)                       \
+    do {                                            \
+        if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
+            CLEANUP_INLOOP();                       \
+            nkiCompilerPopRecursion(cs);            \
+            return NULL;                            \
+        }                                           \
     } while(0)
 
 bool reduce(
@@ -411,7 +403,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                 // Handle index-into, or function call with "self" param.
 
-                EXPECT_AND_SKIP(NK_TOKENTYPE_DOT);
+                NK_EXPECT_AND_SKIP(NK_TOKENTYPE_DOT);
 
                 if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
@@ -436,7 +428,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                     indexIntoNode->ownedToken = true;
                     indexIntoNode->children[1] = identifierStringNode;
 
-                    EXPECT_AND_SKIP(NK_TOKENTYPE_IDENTIFIER);
+                    NK_EXPECT_AND_SKIP(NK_TOKENTYPE_IDENTIFIER);
 
                     // Now see if this is a function call.
                     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
@@ -511,7 +503,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                     return NULL;
                 }
 
-                EXPECT_AND_SKIP(NK_TOKENTYPE_BRACKET_CLOSE);
+                NK_EXPECT_AND_SKIP(NK_TOKENTYPE_BRACKET_CLOSE);
 
                 dbgWriteLine("Index-into operator complete.");
 
@@ -666,7 +658,7 @@ bool emitFetchVariable(
     struct NKExpressionAstNode *node)
 {
     struct NKCompilerStateContextVariable *var =
-        lookupVariable(cs, name);
+        nkiCompilerLookupVariable(cs, name);
 
     if(!var) {
         return false;
@@ -704,7 +696,7 @@ bool emitSetVariable(
     struct NKExpressionAstNode *node)
 {
     struct NKCompilerStateContextVariable *var =
-        lookupVariable(cs, name);
+        nkiCompilerLookupVariable(cs, name);
 
     if(!var) {
         return false;
