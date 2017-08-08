@@ -190,7 +190,8 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
     uint32_t i;
 
     for(i = 0; i < data->argumentCount; i++) {
-        printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
+        // printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
+        printf("%s", nkxValueToString(data->vm, &data->arguments[i]));
     }
 
     (*(int*)data->userData)++;
@@ -212,7 +213,7 @@ int main(int argc, char *argv[])
     maxRam = 1;
     // maxRam = 158000;
     maxRam = 15800000;
-    maxMaxRam = maxRam + 100;
+    maxMaxRam = maxRam + 2; // + 100;
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
