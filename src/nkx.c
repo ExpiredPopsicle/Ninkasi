@@ -153,7 +153,7 @@ bool nkxCompilerCompileScript(
     struct NKVM *vm = cs->vm;
     bool ret;
     NK_SET_FAILURE_RECOVERY(false);
-    ret = vmCompilerCompileScript(cs, script);
+    ret = nkiCompilerCompileScript(cs, script);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }

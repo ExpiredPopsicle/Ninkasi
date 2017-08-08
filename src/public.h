@@ -76,25 +76,9 @@ struct NKValue *vmFindGlobalVariable(
 struct NKCompilerState;
 struct NKVM;
 
-/// Create a compiler.
-struct NKCompilerState *nkiCompilerCreate(
-    struct NKVM *vm);
-
-/// This can be done multiple times. It'll just be the equivalent of
-/// appending each script onto the end, except for the line number
-/// counts.
-bool vmCompilerCompileScript(
-    struct NKCompilerState *cs,
-    const char *script);
-
-// bool vmCompilerCompileScriptFile(
+// bool nkiCompilerCompileScriptFile(
 //     struct NKCompilerState *cs,
 //     const char *scriptFilename);
-
-/// Destroy a compiler. This will also finish off any remaining tasks
-/// like setting up the global variable list in the VM.
-void nkiCompilerFinalize(
-    struct NKCompilerState *cs);
 
 // ----------------------------------------------------------------------
 // Public types

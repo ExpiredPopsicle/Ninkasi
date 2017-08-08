@@ -57,9 +57,35 @@ struct NKCompilerState
 
 extern int32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
+// ----------------------------------------------------------------------
+// Creation and cleanup.
+
+/// Create a compiler.
+struct NKCompilerState *nkiCompilerCreate(
+    struct NKVM *vm);
+
+/// Destroy a compiler. This will also finish off any remaining tasks
+/// like setting up the global variable list in the VM.
+void nkiCompilerFinalize(
+    struct NKCompilerState *cs);
+
+// ----------------------------------------------------------------------
+// Basic compiling.
+
+/// This can be done multiple times. It'll just be the equivalent of
+/// appending each script onto the end, except for the line number
+/// counts.
+bool nkiCompilerCompileScript(
+    struct NKCompilerState *cs,
+    const char *script);
+
+// ----------------------------------------------------------------------
+// Basic instruction writing.
+
 void nkiCompilerAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
     bool adjustStackFrame);
+
 void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     bool adjustStackFrame);

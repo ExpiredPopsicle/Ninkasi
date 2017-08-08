@@ -925,7 +925,7 @@ void nkiCompilerFinalize(
     nkiFree(cs->vm, cs);
 }
 
-bool vmCompilerCompileScript(
+bool nkiCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script)
 {
@@ -965,7 +965,7 @@ bool vmCompilerCompileScript(
     return success;
 }
 
-// bool vmCompilerCompileScriptFile(
+// bool nkiCompilerCompileScriptFile(
 //     struct NKCompilerState *cs,
 //     const char *scriptFilename)
 // {
@@ -1003,7 +1003,7 @@ bool vmCompilerCompileScript(
 
 //     fclose(in);
 
-//     success = vmCompilerCompileScript(cs, buf);
+//     success = nkiCompilerCompileScript(cs, buf);
 
 //     free(buf);
 

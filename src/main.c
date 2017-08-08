@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
                 nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
-                // vmCompilerCompileScript(cs, script);
+                // nkiCompilerCompileScript(cs, script);
                 nkxCompilerCompileScriptFile(cs, "test.txt");
                 nkxCompilerFinalize(cs);
             }
