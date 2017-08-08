@@ -141,7 +141,7 @@ int32_t getPrecedence(enum NKTokenType t)
     }
 }
 
-#define CLEANUP_OUTER()                                                 \
+#define NK_CLEANUP_OUTER()                                                 \
     do {                                                                \
         while(opStack) {                                                \
             struct NKExpressionAstNode *next = opStack->stackNext;      \
@@ -155,9 +155,9 @@ int32_t getPrecedence(enum NKTokenType t)
         }                                                               \
     } while(0)
 
-#define CLEANUP_INLOOP()                                \
+#define NK_CLEANUP_INLOOP()                                \
     do {                                                \
-        CLEANUP_OUTER();                                \
+        NK_CLEANUP_OUTER();                                \
         deleteExpressionNode(cs->vm, firstPrefixOp);    \
         deleteExpressionNode(cs->vm, lastPostfixOp);    \
         deleteExpressionNode(cs->vm, valueNode);        \
@@ -166,7 +166,7 @@ int32_t getPrecedence(enum NKTokenType t)
 #define NK_EXPECT_AND_SKIP(x)                       \
     do {                                            \
         if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
-            CLEANUP_INLOOP();                       \
+            NK_CLEANUP_INLOOP();                       \
             nkiCompilerPopRecursion(cs);            \
             return NULL;                            \
         }                                           \
@@ -332,7 +332,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             // Error check.
             if(!valueNode) {
                 nkiCompilerAddError(cs, "Subexpression parse failure.");
-                CLEANUP_INLOOP();
+                NK_CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
                 return NULL;
             }
@@ -340,7 +340,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             // Make sure we ended on a closing parenthesis.
             if(!(*currentToken) || !isSubexpressionEndingToken(*currentToken)) {
                 nkiCompilerAddError(cs, "Bad expression end.");
-                CLEANUP_INLOOP();
+                NK_CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
                 return NULL;
             }
@@ -367,7 +367,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                 // Prefix operator with no value. Why?
                 // TODO: Raise error flag.
                 nkiCompilerAddError(cs, "Prefix with no value.");
-                CLEANUP_INLOOP();
+                NK_CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
                 return NULL;
             }
@@ -445,7 +445,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                         {
                             nkiFree(cs->vm, functionCallNode->opOrValue->str);
                             nkiFree(cs->vm, functionCallNode);
-                            CLEANUP_INLOOP();
+                            NK_CLEANUP_INLOOP();
                             nkiCompilerPopRecursion(cs);
                             return NULL;
                         }
@@ -475,7 +475,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                 } else {
                     nkiCompilerAddError(cs, "Expected identifier after '.'.");
-                    CLEANUP_INLOOP();
+                    NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
                 }
@@ -493,7 +493,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                 // Error-check.
                 if(!postfixNode->children[1]) {
                     nkiCompilerAddError(cs, "Index subexpression parse failure.");
-                    CLEANUP_INLOOP();
+                    NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
                 }
@@ -506,7 +506,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
                 // Handle function call "operator".
                 if(!parseFunctioncall(postfixNode, cs)) {
-                    CLEANUP_INLOOP();
+                    NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
                 }
@@ -518,7 +518,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                 nkiDynStrAppend(str, nkiCompilerCurrentTokenString(cs));
                 nkiCompilerAddError(cs, str->data);
                 nkiDynStrDelete(str);
-                CLEANUP_INLOOP();
+                NK_CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
                 return NULL;
             }
@@ -559,7 +559,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             nkiDynStrAppend(str, nkiCompilerCurrentTokenString(cs));
             nkiCompilerAddError(cs, str->data);
             nkiDynStrDelete(str);
-            CLEANUP_INLOOP();
+            NK_CLEANUP_INLOOP();
             nkiCompilerPopRecursion(cs);
             return NULL;
         }
@@ -572,7 +572,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             {
                 if(!reduce(&opStack, &valueStack)) {
                     nkiCompilerAddError(cs, "Expression parse failure.");
-                    CLEANUP_INLOOP();
+                    NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
                 }
@@ -603,7 +603,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
     while(opStack) {
         if(!reduce(&opStack, &valueStack)) {
             nkiCompilerAddError(cs, "Expression parse failure.");
-            CLEANUP_OUTER();
+            NK_CLEANUP_OUTER();
             nkiCompilerPopRecursion(cs);
             return NULL;
         }
@@ -612,7 +612,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
 
     if(!valueStack) {
         nkiCompilerAddError(cs, "No value to parse in expression.");
-        CLEANUP_OUTER();
+        NK_CLEANUP_OUTER();
         nkiCompilerPopRecursion(cs);
         return NULL;
     }
@@ -646,6 +646,10 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
     nkiCompilerPopRecursion(cs);
     return valueStack;
 }
+
+#undef NK_EXPECT_AND_SKIP
+#undef NK_CLEANUP_OUTER
+#undef NK_CLEANUP_INLOOP
 
 bool emitFetchVariable(
     struct NKCompilerState *cs,
@@ -1130,4 +1134,3 @@ bool compileExpression(struct NKCompilerState *cs)
     nkiCompilerPopRecursion(cs);
     return false;
 }
-
