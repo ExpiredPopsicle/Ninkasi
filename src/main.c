@@ -1,6 +1,7 @@
 #include "public.h"
 #include "nkx.h"
 
+#include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
@@ -215,6 +216,9 @@ int main(int argc, char *argv[])
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
+        uint32_t lineCount = 0;
+        char **lines = NULL;
+
         uint32_t instructionCountMax = 1024*1024*1024;
         struct NKVM *vm = nkxVmCreate();
         if(!vm) continue;
@@ -223,8 +227,8 @@ int main(int argc, char *argv[])
             continue;
         }
 
-        uint32_t lineCount = 0;
-        char **lines = splitLines(script, &lineCount);
+        lineCount = 0;
+        lines = splitLines(script, &lineCount);
         assert(script);
 
         // vmInit(&vm);

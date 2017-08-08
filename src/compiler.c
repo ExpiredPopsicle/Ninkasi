@@ -1266,13 +1266,14 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
 {
     uint32_t contextLevel = cs->context->stackFrameOffset;
     uint32_t loopContextLevel = 0;
+    struct NKCompilerStateContext *searchContext;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return false;
     }
 
     // Find a loop context we can break out of.
-    struct NKCompilerStateContext *searchContext = cs->context;
+    searchContext = cs->context;
     while(searchContext) {
         if(searchContext->isLoopContext) {
             break;

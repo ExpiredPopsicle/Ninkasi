@@ -1,3 +1,5 @@
+#if 0
+
 #include <execinfo.h>
 #include <signal.h>
 #include <stdio.h>
@@ -20,3 +22,11 @@ void stackdump(void)
 
     free(symbols);
 }
+
+#else
+
+void stackdump(void)
+{
+}
+
+#endif

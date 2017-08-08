@@ -267,8 +267,8 @@ void vmObjectTableDump(struct NKVM *vm)
             printf("Object\n");
 
             for(bucket = 0; bucket < VMObjectHashBucketCount; bucket++) {
-                printf("      Hash bucket %u\n", bucket);
                 struct NKVMObjectElement *el = ob->hashBuckets[bucket];
+                printf("      Hash bucket %u\n", bucket);
                 while(el) {
                     printf("        ");
                     value_dump(vm, &el->key);

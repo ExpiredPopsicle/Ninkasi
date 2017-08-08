@@ -3,6 +3,7 @@
 
 #include "value.h"
 #include "public.h"
+#include "nkx.h"
 
 struct NKVMFunction
 {

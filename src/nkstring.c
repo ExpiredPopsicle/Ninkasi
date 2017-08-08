@@ -86,6 +86,7 @@ uint32_t nkiVmStringTableFindOrAddString(
 {
     struct NKVMStringTable *table = &vm->stringTable;
     uint32_t hash = nkiStringHash(str);
+    uint32_t len = 0;
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
@@ -100,7 +101,7 @@ uint32_t nkiVmStringTableFindOrAddString(
     }
 
     // Check our length.
-    uint32_t len = strlen(str);
+    len = strlen(str);
     if(len > vm->limits.maxStringLength) {
         nkiAddError(
             vm, -1, "Reached string length limit.");
