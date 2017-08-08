@@ -61,7 +61,7 @@ void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode)
     struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
     inst.opcode = opcode;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, false);
 }
 
 // FIXME: "nkiCompilerAdd..."
@@ -253,7 +253,7 @@ void nkiEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool 
 
 void nkiEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame)
 {
-    addInstructionSimple(cs, NK_OP_PUSHNIL);
+    nkiAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
 }
 
 struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
@@ -278,10 +278,7 @@ struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
 void addVariable(struct NKCompilerState *cs, const char *name)
 {
     // Add an instruction to make some stack space for this variable.
-    nkiEmitPushLiteralInt(cs, 0, false);
-
-    cs->context->stackFrameOffset++;
-
+    nkiEmitPushLiteralInt(cs, 0, true);
     addVariableWithoutStackAllocation(cs, name);
 }
 

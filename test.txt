@@ -1,3 +1,36 @@
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+
+{
+    nil;
+    nil;
+    var asdfasdf;
+    asdfasdf = 12355;
+    nil;
+    nil;
+    nil;
+    asdfasdf = nil;
+    asdfasdf = 12355;
+    nil;
+    nil;
+}
+
 for(var n = 0; n < 10; ++n) {
 
     var k = 0;
@@ -366,7 +399,6 @@ print(nil, "\n");
 
 
 print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
-
 
 
 // function causeCatastrophe()

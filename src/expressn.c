@@ -777,8 +777,7 @@ bool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAst
             emitExpression(cs, node->children[0]->children[0]); // Object id
             emitExpression(cs, node->children[0]->children[1]); // Index
 
-            addInstructionSimple(cs, NK_OP_OBJECTFIELDSET);
-            cs->context->stackFrameOffset -= 2;
+            nkiAddInstructionSimple(cs, NK_OP_OBJECTFIELDSET, true);
         } break;
 
         default: {
@@ -939,11 +938,11 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
                 nkiEmitPushLiteralInt(cs, argumentCount, false);
 
                 if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
-                    addInstructionSimple(cs, NK_OP_PREPARESELFCALL);
+                    nkiAddInstructionSimple(cs, NK_OP_PREPARESELFCALL, false);
                     argumentCount++;
                 }
 
-                addInstructionSimple(cs, NK_OP_CALL);
+                nkiAddInstructionSimple(cs, NK_OP_CALL, false);
 
                 cs->context->stackFrameOffset -= argumentCount;
             }
@@ -951,7 +950,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
         } break;
 
         case NK_TOKENTYPE_INDEXINTO_NOPOP:
-            addInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP);
+            nkiAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET_NOPOP, true);
             break;
 
         default: {
