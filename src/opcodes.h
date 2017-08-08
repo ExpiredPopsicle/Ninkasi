@@ -1,7 +1,7 @@
 #ifndef NINKASI_OPCODE_H
 #define NINKASI_OPCODE_H
 
-#include "config.h"
+#include "nkconfig.h"
 #include "value.h"
 
 struct NKVMStack;
@@ -84,4 +84,4 @@ void opcode_objectFieldGet_noPop(struct NKVM *vm);
 
 void opcode_pushNil(struct NKVM *vm);
 
-#endif
+#endif // NINKASI_OPCODE_H

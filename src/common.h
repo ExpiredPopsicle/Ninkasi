@@ -11,7 +11,7 @@
 
 #include "public.h"
 
-#include "config.h"
+#include "nkconfig.h"
 
 #include "basetype.h"
 #include "enums.h"
