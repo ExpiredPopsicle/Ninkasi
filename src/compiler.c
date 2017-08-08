@@ -965,54 +965,7 @@ bool nkiCompilerCompileScript(
     return success;
 }
 
-// bool nkiCompilerCompileScriptFile(
-//     struct NKCompilerState *cs,
-//     const char *scriptFilename)
-// {
-//     NK_FAILURE_RECOVERY_DECL();
-//     struct NKVM *vm = cs->vm;
-//     FILE *in = fopen(scriptFilename, "rb");
-//     uint32_t len;
-//     char *buf;
-//     bool success;
-
-//     NK_SET_FAILURE_RECOVERY(false);
-
-//     if(!in) {
-//         struct NKDynString *errStr =
-//             nkiDynStrCreate(cs->vm, "Cannot open script file: ");
-//         nkiDynStrAppend(errStr, scriptFilename);
-//         nkiCompilerAddError(cs, errStr->data);
-//         nkiDynStrDelete(errStr);
-//         return false;
-//     }
-
-//     fseek(in, 0, SEEK_END);
-//     len = ftell(in);
-//     fseek(in, 0, SEEK_SET);
-
-//     buf = malloc(len + 1);
-//     if(!buf) {
-//         fclose(in);
-//         nkiErrorStateSetAllocationFailFlag(vm);
-//         NK_CLEAR_FAILURE_RECOVERY();
-//         return false;
-//     }
-//     fread(buf, len, 1, in);
-//     buf[len] = 0;
-
-//     fclose(in);
-
-//     success = nkiCompilerCompileScript(cs, buf);
-
-//     free(buf);
-
-//     NK_CLEAR_FAILURE_RECOVERY();
-
-//     return success;
-// }
-
-uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
+uint32_t nkiCompilerEmitJump(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
@@ -1021,7 +974,7 @@ uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 }
 
 // Note: Pops +1 item off the stack.
-uint32_t emitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
+uint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
     nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
@@ -1073,7 +1026,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
 
     // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
-    skipAddressWritePtr = emitJumpIfZero(cs, 0);
+    skipAddressWritePtr = nkiCompilerEmitJumpIfZero(cs, 0);
 
     // Skip ")"
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_CLOSE);
@@ -1099,7 +1052,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
         // Emit instructions to skip past the contents of the "else"
         // block. Keep the index of the relative offset here so we can
         // go back and modify it after the inner code is complete.
-        skipAddressWritePtrElse = emitJump(cs, 0);
+        skipAddressWritePtrElse = nkiCompilerEmitJump(cs, 0);
 
         // Increase our skip amount to account for the
         // NK_OP_PUSHLITERAL_INT and NK_OP_JUMP_RELATIVE we added to skip
@@ -1174,7 +1127,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
 
     // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
     // fill it in after we know how much we're going to have to skip.
-    skipAddressWritePtr = emitJumpIfZero(cs, 0);
+    skipAddressWritePtr = nkiCompilerEmitJumpIfZero(cs, 0);
 
     // Skip ")"
     if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
@@ -1193,7 +1146,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     nkiCompilerPopContext(cs);
 
     // Emit jump back to start.
-    emitJump(cs, startAddress);
+    nkiCompilerEmitJump(cs, startAddress);
 
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
@@ -1255,7 +1208,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
         nkiCompilerPopRecursion(cs);
         return false;
     }
-    skipAddressWritePtr = emitJumpIfZero(cs, 0);
+    skipAddressWritePtr = nkiCompilerEmitJumpIfZero(cs, 0);
 
     if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
         nkiCompilerPopContextCount(cs, 2);
@@ -1295,7 +1248,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     nkiCompilerAddInstructionSimple(cs, NK_OP_POP, true);
 
     // Emit jump back to start.
-    emitJump(cs, loopStartAddress);
+    nkiCompilerEmitJump(cs, loopStartAddress);
 
     // Fixup skip offset.
     modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
@@ -1350,7 +1303,7 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
     nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, false);
 
     {
-        uint32_t jumpFixup = emitJump(cs, 0);
+        uint32_t jumpFixup = nkiCompilerEmitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
             nkiRealloc(cs->vm, searchContext->loopContextFixups,

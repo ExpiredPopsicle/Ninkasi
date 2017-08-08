@@ -133,9 +133,11 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs);
 bool nkiCompilerCompileForStatement(struct NKCompilerState *cs);
 bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs);
 
+// ----------------------------------------------------------------------
 // Bytecode output functions. Sometimes we need something a little
 // more complicated than a single nkiCompilerAddInstruction, in a
 // place that we'll use it many times.
+
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame);
@@ -143,7 +145,17 @@ void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t f
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
 void nkiCompilerEmitReturn(struct NKCompilerState *cs);
 
+/// Emit a jump instruction. Return value is the index of the jump
+/// address in the instructions list, so we can go back and patch
+/// stuff up later.
+uint32_t nkiCompilerEmitJump(struct NKCompilerState *cs, uint32_t target);
+
+/// Emit conditional jump.
+uint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, uint32_t target);
+
+// ----------------------------------------------------------------------
 // Token traversal state stuff.
+
 struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
 uint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs);
