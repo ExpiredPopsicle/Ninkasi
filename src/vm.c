@@ -28,55 +28,55 @@ static void vmInitOpcodeTable(void)
 {
     assert(NK_OPCODE_PADDEDCOUNT >= NK_OPCODE_REALCOUNT);
 
-    SETUP_OP(NK_OP_ADD,                    opcode_add,                    -1);
-    SETUP_OP(NK_OP_SUBTRACT,               opcode_subtract,               -1);
-    SETUP_OP(NK_OP_MULTIPLY,               opcode_multiply,               -1);
-    SETUP_OP(NK_OP_DIVIDE,                 opcode_divide,                 -1);
-    SETUP_OP(NK_OP_MODULO,                 opcode_modulo,                 -1);
-    SETUP_OP(NK_OP_NEGATE,                 opcode_negate,                 0);
-    SETUP_OP(NK_OP_PUSHLITERAL_INT,        opcode_pushLiteral_int,        1);
-    SETUP_OP(NK_OP_PUSHLITERAL_FLOAT,      opcode_pushLiteral_float,      1);
-    SETUP_OP(NK_OP_PUSHLITERAL_STRING,     opcode_pushLiteral_string,     1);
-    SETUP_OP(NK_OP_PUSHLITERAL_FUNCTIONID, opcode_pushLiteral_functionId, 1);
-    SETUP_OP(NK_OP_NOP,                    opcode_nop,                    0);
-    SETUP_OP(NK_OP_POP,                    opcode_pop,                    -1);
-    SETUP_OP(NK_OP_POPN,                   opcode_popN,                   0);
+    SETUP_OP(NK_OP_ADD,                    nkiOpcode_add,                    -1);
+    SETUP_OP(NK_OP_SUBTRACT,               nkiOpcode_subtract,               -1);
+    SETUP_OP(NK_OP_MULTIPLY,               nkiOpcode_multiply,               -1);
+    SETUP_OP(NK_OP_DIVIDE,                 nkiOpcode_divide,                 -1);
+    SETUP_OP(NK_OP_MODULO,                 nkiOpcode_modulo,                 -1);
+    SETUP_OP(NK_OP_NEGATE,                 nkiOpcode_negate,                 0);
+    SETUP_OP(NK_OP_PUSHLITERAL_INT,        nkiOpcode_pushLiteral_int,        1);
+    SETUP_OP(NK_OP_PUSHLITERAL_FLOAT,      nkiOpcode_pushLiteral_float,      1);
+    SETUP_OP(NK_OP_PUSHLITERAL_STRING,     nkiOpcode_pushLiteral_string,     1);
+    SETUP_OP(NK_OP_PUSHLITERAL_FUNCTIONID, nkiOpcode_pushLiteral_functionId, 1);
+    SETUP_OP(NK_OP_NOP,                    nkiOpcode_nop,                    0);
+    SETUP_OP(NK_OP_POP,                    nkiOpcode_pop,                    -1);
+    SETUP_OP(NK_OP_POPN,                   nkiOpcode_popN,                   0);
 
-    SETUP_OP(NK_OP_DUMP,                   opcode_dump,                   -1);
+    SETUP_OP(NK_OP_DUMP,                   nkiOpcode_dump,                   -1);
 
-    SETUP_OP(NK_OP_STACKPEEK,              opcode_stackPeek,              0);
-    SETUP_OP(NK_OP_STACKPOKE,              opcode_stackPoke,              -1);
+    SETUP_OP(NK_OP_STACKPEEK,              nkiOpcode_stackPeek,              0);
+    SETUP_OP(NK_OP_STACKPOKE,              nkiOpcode_stackPoke,              -1);
 
-    SETUP_OP(NK_OP_JUMP_RELATIVE,          opcode_jumpRelative,           -1);
+    SETUP_OP(NK_OP_JUMP_RELATIVE,          nkiOpcode_jumpRelative,           -1);
 
-    SETUP_OP(NK_OP_CALL,                   opcode_call,                   0);
-    SETUP_OP(NK_OP_RETURN,                 opcode_return,                 0);
+    SETUP_OP(NK_OP_CALL,                   nkiOpcode_call,                   0);
+    SETUP_OP(NK_OP_RETURN,                 nkiOpcode_return,                 0);
 
-    SETUP_OP(NK_OP_END,                    opcode_end,                    0);
+    SETUP_OP(NK_OP_END,                    nkiOpcode_end,                    0);
 
-    SETUP_OP(NK_OP_JUMP_IF_ZERO,           opcode_jz,                     -2);
+    SETUP_OP(NK_OP_JUMP_IF_ZERO,           nkiOpcode_jz,                     -2);
 
-    SETUP_OP(NK_OP_GREATERTHAN,            opcode_gt,                     -1);
-    SETUP_OP(NK_OP_LESSTHAN,               opcode_lt,                     -1);
-    SETUP_OP(NK_OP_GREATERTHANOREQUAL,     opcode_ge,                     -1);
-    SETUP_OP(NK_OP_LESSTHANOREQUAL,        opcode_le,                     -1);
-    SETUP_OP(NK_OP_EQUAL,                  opcode_eq,                     -1);
-    SETUP_OP(NK_OP_NOTEQUAL,               opcode_ne,                     -1);
-    SETUP_OP(NK_OP_EQUALWITHSAMETYPE,      opcode_eqsametype,             -1);
-    SETUP_OP(NK_OP_NOT,                    opcode_not,                    0);
+    SETUP_OP(NK_OP_GREATERTHAN,            nkiOpcode_gt,                     -1);
+    SETUP_OP(NK_OP_LESSTHAN,               nkiOpcode_lt,                     -1);
+    SETUP_OP(NK_OP_GREATERTHANOREQUAL,     nkiOpcode_ge,                     -1);
+    SETUP_OP(NK_OP_LESSTHANOREQUAL,        nkiOpcode_le,                     -1);
+    SETUP_OP(NK_OP_EQUAL,                  nkiOpcode_eq,                     -1);
+    SETUP_OP(NK_OP_NOTEQUAL,               nkiOpcode_ne,                     -1);
+    SETUP_OP(NK_OP_EQUALWITHSAMETYPE,      nkiOpcode_eqsametype,             -1);
+    SETUP_OP(NK_OP_NOT,                    nkiOpcode_not,                    0);
 
-    SETUP_OP(NK_OP_AND,                    opcode_and,                    -1);
-    SETUP_OP(NK_OP_OR,                     opcode_or,                     -1);
+    SETUP_OP(NK_OP_AND,                    nkiOpcode_and,                    -1);
+    SETUP_OP(NK_OP_OR,                     nkiOpcode_or,                     -1);
 
-    SETUP_OP(NK_OP_OBJECTFIELDGET,         opcode_objectFieldGet,         -1);
-    SETUP_OP(NK_OP_OBJECTFIELDSET,         opcode_objectFieldSet,         -2);
+    SETUP_OP(NK_OP_OBJECTFIELDGET,         nkiOpcode_objectFieldGet,         -1);
+    SETUP_OP(NK_OP_OBJECTFIELDSET,         nkiOpcode_objectFieldSet,         -2);
 
-    SETUP_OP(NK_OP_CREATEOBJECT,           opcode_createObject,           1);
+    SETUP_OP(NK_OP_CREATEOBJECT,           nkiOpcode_createObject,           1);
 
-    SETUP_OP(NK_OP_PREPARESELFCALL,        opcode_prepareSelfCall,        0);
-    SETUP_OP(NK_OP_OBJECTFIELDGET_NOPOP,   opcode_objectFieldGet_noPop,   0);
+    SETUP_OP(NK_OP_PREPARESELFCALL,        nkiOpcode_prepareSelfCall,        0);
+    SETUP_OP(NK_OP_OBJECTFIELDGET_NOPOP,   nkiOpcode_objectFieldGet_noPop,   0);
 
-    SETUP_OP(NK_OP_PUSHNIL,                opcode_pushNil,                1);
+    SETUP_OP(NK_OP_PUSHNIL,                nkiOpcode_pushNil,                1);
 
     // Fill in the rest of the opcode table with no-ops. We just want
     // to pad up to a power of two so we can easily mask instructions
@@ -84,7 +84,7 @@ static void vmInitOpcodeTable(void)
     {
         uint32_t i;
         for(i = NK_OPCODE_REALCOUNT; i < NK_OPCODE_PADDEDCOUNT; i++) {
-            opcodeTable[i] = opcode_nop;
+            opcodeTable[i] = nkiOpcode_nop;
             nkiCompilerStackOffsetTable[i] = 0;
         }
     }
@@ -519,7 +519,7 @@ void vmCallFunction(
 
         vm->instructionPointer = (~(uint32_t)0 - 1);
 
-        opcode_call(vm);
+        nkiOpcode_call(vm);
         if(vm->errorState.firstError) {
             return;
         }
