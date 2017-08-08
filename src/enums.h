@@ -1,9 +1,10 @@
 #ifndef NINKASI_ENUMS_H
 #define NINKASI_ENUMS_H
 
-// ISO C doesn't allow forward declarations for enums, so we're just
-// jamming all the enums for this system into this one file. It also
-// doesn't allow C++ style comments but fuck it, whatever.
+// Some compilers don't allow forward declarations for enums, so we're
+// just jamming all the enums for this system into this one file. The
+// older standards also don't allow C++ style comments but fuck it,
+// whatever.
 
 enum NKValueType
 {
@@ -17,8 +18,9 @@ enum NKValueType
 
 enum NKOpcode
 {
-    NK_OP_NOP = 0, // Leave this at zero so we can memset() sections of
-                // code to zero.
+    // Leave this at zero so we can memset() sections of code to zero
+    // and have it turn into no-ops.
+    NK_OP_NOP = 0,
 
     NK_OP_ADD,
     NK_OP_SUBTRACT,
