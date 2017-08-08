@@ -24,7 +24,7 @@
 #include "parse.h"
 #include "vmdbg.h"
 #include "error.h"
-#include "dynstr.h"
+#include "nkdynstr.h"
 #include "vm.h"
 #include "nkcompil.h"
 #include "nkstring.h"
