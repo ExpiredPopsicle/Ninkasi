@@ -194,50 +194,44 @@ void nkiEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjus
     nkiAddInstruction(cs, &inst, false);
 }
 
-// FIXME: Remove this.
-void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value)
-{
-    nkiEmitPushLiteralInt(cs, value, false);
-}
-
-void emitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId)
+void nkiEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame)
 {
     struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FUNCTIONID;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_functionId = functionId;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, false);
 }
 
-void emitPushLiteralFloat(struct NKCompilerState *cs, float value)
+void nkiEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame)
 {
     struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FLOAT;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_float = value;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, false);
 }
 
-void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
+void nkiEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame)
 {
     struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_STRING;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add string table entry data as op parameter.
     memset(&inst, 0, sizeof(inst));
@@ -245,7 +239,7 @@ void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
         nkiVmStringTableFindOrAddString(
             cs->vm,
             str);
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, false);
 
     // Mark this string as not garbage-collected.
     {
@@ -257,7 +251,7 @@ void emitPushLiteralString(struct NKCompilerState *cs, const char *str)
     }
 }
 
-void emitPushNil(struct NKCompilerState *cs)
+void nkiEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame)
 {
     addInstructionSimple(cs, NK_OP_PUSHNIL);
 }
@@ -645,8 +639,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     // Recursive function calls will not be possible if the function
     // cannot refer to itself before it's finished being fully
     // created.
-    emitPushLiteralFunctionId(cs, functionId);
-    cs->context->stackFrameOffset++;
+    nkiEmitPushLiteralFunctionId(cs, functionId, true);
     addVariableWithoutStackAllocation(cs, functionName);
 
     // Add some instructions to skip around this function. This is
@@ -867,8 +860,7 @@ void vmCompilerCreateCFunctionVariable(
     }
 
     // Add the variable.
-    emitPushLiteralFunctionId(cs, functionId);
-    cs->context->stackFrameOffset++;
+    nkiEmitPushLiteralFunctionId(cs, functionId, true);
     addVariableWithoutStackAllocation(cs, name);
 }
 
@@ -1388,8 +1380,11 @@ bool compileBreakStatement(struct NKCompilerState *cs)
     printf("Stack frame difference: %u\n", contextLevel - loopContextLevel);
     // assert(0);
 
-    emitPushLiteralInt(cs, contextLevel - loopContextLevel);
-    addInstructionSimple(cs, NK_OP_POPN);
+    // Pop off every context's data between the break statement and
+    // the loop context.
+    nkiEmitPushLiteralInt(cs, contextLevel - loopContextLevel, false);
+    nkiAddInstructionSimple(cs, NK_OP_POPN, false);
+
     {
         uint32_t jumpFixup = emitJump(cs, 0);
         searchContext->loopContextFixupCount++;

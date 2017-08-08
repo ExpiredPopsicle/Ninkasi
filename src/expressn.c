@@ -836,29 +836,25 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
         } break;
 
         case NK_TOKENTYPE_FLOAT: {
-            emitPushLiteralFloat(cs, atof(node->opOrValue->str));
-            cs->context->stackFrameOffset++;
+            nkiEmitPushLiteralFloat(cs, atof(node->opOrValue->str), true);
 
             dbgWriteLine("PUSH FLOAT: %s", node->opOrValue->str);
 
         } break;
 
         case NK_TOKENTYPE_STRING: {
-            emitPushLiteralString(cs, node->opOrValue->str);
-            cs->context->stackFrameOffset++;
+            nkiEmitPushLiteralString(cs, node->opOrValue->str, true);
 
             dbgWriteLine("PUSH STRING: %s", node->opOrValue->str);
 
         } break;
 
         case NK_TOKENTYPE_NEWOBJECT: {
-            addInstructionSimple(cs, NK_OP_CREATEOBJECT);
-            cs->context->stackFrameOffset++;
+            nkiAddInstructionSimple(cs, NK_OP_CREATEOBJECT, true);
         } break;
 
         case NK_TOKENTYPE_NIL: {
-            addInstructionSimple(cs, NK_OP_PUSHNIL);
-            cs->context->stackFrameOffset++;
+            nkiEmitPushNil(cs, true);
         } break;
 
         case NK_TOKENTYPE_PLUS: {
