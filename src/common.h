@@ -21,7 +21,6 @@
 #include "expressn.h"
 #include "optimize.h"
 #include "tokenize.h"
-#include "parse.h"
 #include "vmdbg.h"
 #include "error.h"
 #include "nkdynstr.h"

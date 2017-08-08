@@ -40,7 +40,7 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
     return newNode;
 }
 
-#define APPLY_MATH()                                    \
+#define NK_APPLY_MATH()                                 \
     do {                                                \
         switch((*node)->opOrValue->type) {              \
                                                         \
@@ -136,7 +136,7 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
                     char tmp[32];
 
                     // Do the actual operation.
-                    APPLY_MATH();
+                    NK_APPLY_MATH();
 
                     // TODO: Use sprintf_s.
 
@@ -159,7 +159,7 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
                     char tmp[32];
 
                     // Do the actual operation.
-                    APPLY_MATH();
+                    NK_APPLY_MATH();
 
                     // TODO: Use sprintf_s.
 

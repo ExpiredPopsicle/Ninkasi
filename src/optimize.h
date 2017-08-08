@@ -1,5 +1,5 @@
-#ifndef OPTIMIZE_H
-#define OPTIMIZE_H
+#ifndef NINKASI_OPTIMIZE_H
+#define NINKASI_OPTIMIZE_H
 
 struct NKExpressionAstNode;
 
@@ -7,4 +7,5 @@ struct NKExpressionAstNode;
 // bool isImmediateValue(struct NKExpressionAstNode *node);
 void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node);
 
-#endif
+#endif // NINKASI_OPTIMIZE_H
+
