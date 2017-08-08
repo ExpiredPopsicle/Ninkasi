@@ -121,7 +121,7 @@ struct NKValue *nkxVmFindGlobalVariable(
     return ret;
 }
 
-struct NKCompilerState *nkxVmCompilerCreate(
+struct NKCompilerState *nkxCompilerCreate(
     struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
@@ -132,7 +132,7 @@ struct NKCompilerState *nkxVmCompilerCreate(
     return ret;
 }
 
-void nkxVmCompilerCreateCFunctionVariable(
+void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,
@@ -141,11 +141,11 @@ void nkxVmCompilerCreateCFunctionVariable(
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
     NK_SET_FAILURE_RECOVERY_VOID();
-    vmCompilerCreateCFunctionVariable(cs, name, func, userData);
+    nkiCompilerCreateCFunctionVariable(cs, name, func, userData);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-bool nkxVmCompilerCompileScript(
+bool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script)
 {
@@ -158,7 +158,7 @@ bool nkxVmCompilerCompileScript(
     return ret;
 }
 
-bool nkxVmCompilerCompileScriptFile(
+bool nkxCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename)
 {
@@ -190,13 +190,13 @@ bool nkxVmCompilerCompileScriptFile(
     buf[len] = 0;
 
     fclose(in);
-    success = nkxVmCompilerCompileScript(cs, buf);
+    success = nkxCompilerCompileScript(cs, buf);
     free(buf);
 
     return success;
 }
 
-void nkxVmCompilerFinalize(
+void nkxCompilerFinalize(
     struct NKCompilerState *cs)
 {
     NK_FAILURE_RECOVERY_DECL();

@@ -49,7 +49,6 @@ void nkiCompilerAddInstruction(
     cs->instructionWriteIndex++;
 }
 
-// FIXME: "nkiCompilerAdd..."
 void nkiCompilerAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
     bool adjustStackFrame)
@@ -507,7 +506,7 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
     return true;
 }
 
-void emitReturn(struct NKCompilerState *cs)
+void nkiCompilerEmitReturn(struct NKCompilerState *cs)
 {
     // Find the function we're in.
     struct NKCompilerStateContext *ctx = cs->context;
@@ -562,7 +561,7 @@ bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
         return false;
     }
 
-    emitReturn(cs);
+    nkiCompilerEmitReturn(cs);
 
     EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
@@ -738,7 +737,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     if(cs->context) {
         cs->context->stackFrameOffset++;
     }
-    emitReturn(cs);
+    nkiCompilerEmitReturn(cs);
 
     // Go back and fix up our relative jump that skips this
     // function now that we know how long it is.
@@ -802,7 +801,7 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
         error);
 }
 
-void vmCompilerCreateCFunctionVariable(
+void nkiCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,

@@ -236,18 +236,18 @@ int main(int argc, char *argv[])
         vm->limits.maxAllocatedMemory = maxRam;
 
         {
-            struct NKCompilerState *cs = nkxVmCompilerCreate(vm);
+            struct NKCompilerState *cs = nkxCompilerCreate(vm);
             if(cs) {
-                nkxVmCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
-                nkxVmCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe, NULL);
-                nkxVmCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
-                nkxVmCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
-                nkxVmCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
-                nkxVmCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
-                nkxVmCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
+                nkxCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
                 // vmCompilerCompileScript(cs, script);
-                nkxVmCompilerCompileScriptFile(cs, "test.txt");
-                nkxVmCompilerFinalize(cs);
+                nkxCompilerCompileScriptFile(cs, "test.txt");
+                nkxCompilerFinalize(cs);
             }
 
             // Dump errors.

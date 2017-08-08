@@ -64,8 +64,14 @@ void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     bool adjustStackFrame);
 
+// ----------------------------------------------------------------------
+// Context manipulation.
+
 void nkiCompilerPushContext(struct NKCompilerState *cs);
 void nkiCompilerPopContext(struct NKCompilerState *cs);
+
+// ----------------------------------------------------------------------
+// Variables.
 
 /// Adds a variable to the current context. Emits code on-the-spot to
 /// make room for the stack if asked to, and points to the current
@@ -78,6 +84,19 @@ struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
     const char *name);
 
+/// Create a C function and assign it a variable name at the current
+/// scope. Use this to make a globally defined C function at
+/// compile-time. Do this before script compilation, so the script
+/// itself can access it.
+void nkiCompilerCreateCFunctionVariable(
+    struct NKCompilerState *cs,
+    const char *name,
+    VMFunctionCallback func,
+    void *userData);
+
+// ----------------------------------------------------------------------
+// Recursive-descent compiler functions.
+
 bool nkiCompilerCompileStatement(struct NKCompilerState *cs);
 bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext);
 bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs);
@@ -88,11 +107,15 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs);
 bool nkiCompilerCompileForStatement(struct NKCompilerState *cs);
 bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs);
 
+// Bytecode output functions. Sometimes we need something a little
+// more complicated than a single nkiCompilerAddInstruction, in a
+// place that we'll use it many times.
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame);
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame);
+void nkiCompilerEmitReturn(struct NKCompilerState *cs);
 
 // Token traversal state stuff.
 struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);

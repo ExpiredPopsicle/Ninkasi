@@ -80,16 +80,6 @@ struct NKVM;
 struct NKCompilerState *vmCompilerCreate(
     struct NKVM *vm);
 
-/// Create a C function and assign it a variable name at the current
-/// scope. Use this to make a globally defined C function at
-/// compile-time. Do this before script compilation, so the script
-/// itself can access it.
-void vmCompilerCreateCFunctionVariable(
-    struct NKCompilerState *cs,
-    const char *name,
-    VMFunctionCallback func,
-    void *userData);
-
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number
 /// counts.

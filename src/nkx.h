@@ -116,14 +116,14 @@ void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 // Public compiler interface
 
 /// Create a compiler.
-struct NKCompilerState *nkxVmCompilerCreate(
+struct NKCompilerState *nkxCompilerCreate(
     struct NKVM *vm);
 
 /// Create a C function and assign it a variable name at the current
 /// scope. Use this to make a globally defined C function at
 /// compile-time. Do this before script compilation, so the script
 /// itself can access it.
-void nkxVmCompilerCreateCFunctionVariable(
+void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
     VMFunctionCallback func,
@@ -132,17 +132,17 @@ void nkxVmCompilerCreateCFunctionVariable(
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number
 /// counts.
-bool nkxVmCompilerCompileScript(
+bool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script);
 
-bool nkxVmCompilerCompileScriptFile(
+bool nkxCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename);
 
 /// Destroy a compiler. This will also finish off any remaining tasks
 /// like setting up the global variable list in the VM.
-void nkxVmCompilerFinalize(
+void nkxCompilerFinalize(
     struct NKCompilerState *cs);
 
 
