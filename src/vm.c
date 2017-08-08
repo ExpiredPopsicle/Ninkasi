@@ -44,8 +44,8 @@ static void vmInitOpcodeTable(void)
 
     SETUP_OP(NK_OP_DUMP,                   opcode_dump,                   -1);
 
-    SETUP_OP(NK_OP_STACKPEEK,              opcode_stackPeek,              1);
-    SETUP_OP(NK_OP_STACKPOKE,              opcode_stackPoke,              0);
+    SETUP_OP(NK_OP_STACKPEEK,              opcode_stackPeek,              0);
+    SETUP_OP(NK_OP_STACKPOKE,              opcode_stackPoke,              -1);
 
     SETUP_OP(NK_OP_JUMP_RELATIVE,          opcode_jumpRelative,           -1);
 

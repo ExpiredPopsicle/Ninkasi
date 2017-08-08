@@ -676,7 +676,7 @@ bool emitFetchVariable(
 
         // Positive values for global variables (absolute stack
         // position).
-        emitPushLiteralInt(cs, var->stackPos);
+        nkiEmitPushLiteralInt(cs, var->stackPos, true);
 
         dbgWriteLine("Looked up %s: Global at %d", name, var->stackPos);
 
@@ -684,14 +684,14 @@ bool emitFetchVariable(
 
         // Negative values for local variables (stack position -
         // value).
-        emitPushLiteralInt(cs,
-            var->stackPos - cs->context->stackFrameOffset);
+        int32_t fetchStackPos = var->stackPos - cs->context->stackFrameOffset;
+        nkiEmitPushLiteralInt(cs, fetchStackPos, true);
 
         dbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
 
-    addInstructionSimple(cs, NK_OP_STACKPEEK);
-    cs->context->stackFrameOffset++;
+    nkiAddInstructionSimple(
+        cs, NK_OP_STACKPEEK, false);
 
     dbgWriteLine("GET VAR: %s", name);
 
@@ -714,18 +714,18 @@ bool emitSetVariable(
 
         // Positive values for global variables (absolute stack
         // position).
-        emitPushLiteralInt(cs, var->stackPos);
+        nkiEmitPushLiteralInt(cs, var->stackPos, true);
 
     } else {
 
         // Negative values for local variables (stack position -
         // value).
-        emitPushLiteralInt(cs,
-            var->stackPos - cs->context->stackFrameOffset);
+        nkiEmitPushLiteralInt(cs,
+            var->stackPos - cs->context->stackFrameOffset, true);
 
     }
 
-    addInstructionSimple(cs, NK_OP_STACKPOKE);
+    nkiAddInstructionSimple(cs, NK_OP_STACKPOKE, true);
 
     dbgWriteLine("SET VAR: %s", name);
 
@@ -829,8 +829,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
     switch(node->opOrValue->type) {
 
         case NK_TOKENTYPE_INTEGER: {
-            emitPushLiteralInt(cs, atoi(node->opOrValue->str));
-            cs->context->stackFrameOffset++;
+            nkiEmitPushLiteralInt(cs, atoi(node->opOrValue->str), true);
 
             dbgWriteLine("PUSH INTEGER: %s", node->opOrValue->str);
 
@@ -973,7 +972,7 @@ bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node
                 }
 
                 dbgWriteLine("Emitting function call with arguments: %u", argumentCount);
-                emitPushLiteralInt(cs, argumentCount);
+                nkiEmitPushLiteralInt(cs, argumentCount, false);
 
                 if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
                     addInstructionSimple(cs, NK_OP_PREPARESELFCALL);
