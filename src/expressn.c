@@ -1088,7 +1088,7 @@ void expandIncrementsAndDecrements(
     nkiCompilerPopRecursion(cs);
 }
 
-struct NKExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs)
+struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs)
 {
     struct NKExpressionAstNode *node;
 
@@ -1113,7 +1113,7 @@ struct NKExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState 
     return node;
 }
 
-bool compileExpression(struct NKCompilerState *cs)
+bool nkiCompilerCompileExpression(struct NKCompilerState *cs)
 {
     struct NKExpressionAstNode *node;
 
@@ -1121,7 +1121,7 @@ bool compileExpression(struct NKCompilerState *cs)
         return false;
     }
 
-    node = compileExpressionWithoutEmit(cs);
+    node = nkiCompilerCompileExpressionWithoutEmit(cs);
 
     if(node) {
         bool ret;

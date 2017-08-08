@@ -78,15 +78,15 @@ struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
     const char *name);
 
-bool compileStatement(struct NKCompilerState *cs);
-bool compileBlock(struct NKCompilerState *cs, bool noBracesOrContext);
-bool compileVariableDeclaration(struct NKCompilerState *cs);
-bool compileFunctionDefinition(struct NKCompilerState *cs);
-bool compileReturnStatement(struct NKCompilerState *cs);
-bool compileIfStatement(struct NKCompilerState *cs);
-bool compileWhileStatement(struct NKCompilerState *cs);
-bool compileForStatement(struct NKCompilerState *cs);
-bool compileBreakStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext);
+bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs);
+bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs);
+bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileForStatement(struct NKCompilerState *cs);
+bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs);
 
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
 void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame);

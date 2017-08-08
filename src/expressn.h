@@ -43,8 +43,8 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node);
 struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs);
 
 
-bool compileExpression(struct NKCompilerState *cs);
-struct NKExpressionAstNode *compileExpressionWithoutEmit(struct NKCompilerState *cs);
+bool nkiCompilerCompileExpression(struct NKCompilerState *cs);
+struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs);
 bool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
 #endif
