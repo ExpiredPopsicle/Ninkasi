@@ -37,6 +37,9 @@ bool nkxVmExecuteProgram(struct NKVM *vm);
 /// runtime errors are both stored here.
 uint32_t nkxVmGetErrorCount(struct NKVM *vm);
 
+/// Get whether or not the VM has any errors.
+bool nkxVmHasErrors(struct NKVM *vm);
+
 /// Run some number of instructions inside the VM and advance the
 /// program counter.
 void nkxVmIterate(struct NKVM *vm, uint32_t count);

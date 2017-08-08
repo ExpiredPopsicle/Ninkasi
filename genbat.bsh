@@ -3,8 +3,8 @@
 echo "del *.OBJ" > build.bat
 echo "del *.EXE" > build.bat
 
-find src -iname "*.c" | sed -e "s/^/wcc386 /" | sed -e "s/\\//\\\\/" >> build.bat
-echo "wcl386 *.OBJ" >> build.bat
+find src -iname "*.c" | sed -e "s/^/wcc -ml /" | sed -e "s/\\//\\\\/" >> build.bat
+echo "wcl *.OBJ -mh -fe=a.exe" >> build.bat
 
 dos2unix build.bat
 

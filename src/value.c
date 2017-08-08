@@ -7,7 +7,7 @@ bool value_dump(
     switch(value->type) {
 
         case NK_VALUETYPE_INT:
-            printf("%d", value->intData);
+            printf(NK_PRINTF_INT32, value->intData);
             break;
 
         case NK_VALUETYPE_FLOAT:

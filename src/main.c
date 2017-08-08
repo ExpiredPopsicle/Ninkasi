@@ -203,7 +203,7 @@ int main(int argc, char *argv[])
     char *script = loadScript("test.txt");
     int shitCounter = 0;
     uint32_t maxRam = 19880;
-    uint32_t maxMaxRam = 1024*1024;
+    uint32_t maxMaxRam = (uint32_t)1024*(uint32_t)1024;
     maxRam = 60522;
     maxRam = 61818;
     maxRam = 89049;
@@ -215,12 +215,16 @@ int main(int argc, char *argv[])
     maxRam = 15800000;
     maxMaxRam = maxRam + 2; // + 100;
 
+    if(!script) {
+        printf("Script failed to even load.\n");
+    }
+
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         uint32_t lineCount = 0;
         char **lines = NULL;
 
-        uint32_t instructionCountMax = 1024*1024*1024;
+        uint32_t instructionCountMax = (uint32_t)1024*(uint32_t)1024*(uint32_t)1024;
         struct NKVM *vm = nkxVmCreate();
         if(!vm) continue;
         if(vmGetErrorCount(vm)) {
@@ -265,7 +269,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if(!vm->errorState.firstError) {
+        if(!nkxVmHasErrors(vm)) {
 
             // printf("----------------------------------------------------------------------\n");
             // printf("  Original script\n");
@@ -338,10 +342,11 @@ int main(int argc, char *argv[])
             //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);
             //     vmIterate(vm);
 
-            if(vm->errorState.firstError) {
+            if(nkxVmHasErrors(vm)) {
                 struct NKError *err = vm->errorState.firstError;
+                printf("Errors detected...\n");
                 while(err) {
-                    printf("error: %s\n", err->errorText);
+                    printf("  error: %s\n", err->errorText);
                     err = err->next;
                 }
             }
@@ -363,6 +368,11 @@ int main(int argc, char *argv[])
             //     memset(&retVal, 0, sizeof(retVal));
             //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
             // }
+
+        } else {
+
+            printf("*** AN ERROR WAS DETECTED ***\n");
+
         }
 
         printf("----------------------------------------------------------------------\n");
@@ -427,8 +437,8 @@ int main(int argc, char *argv[])
         printf("Final object table dump...\n");
         vmObjectTableDump(vm);
 
-        printf("Peak memory usage:    %u\n", vm->peakMemoryUsage);
-        printf("Current memory usage: %u\n", vm->currentMemoryUsage);
+        printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
+        printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
         // vmDestroy(&vm);
         nkxVmDelete(vm);
@@ -442,10 +452,10 @@ int main(int argc, char *argv[])
 
         // script[strlen(script) - 1] = 0;
         maxRam++;
-        printf("maxRam: %u\n", maxRam);
+        printf("maxRam: " NK_PRINTF_UINT32 "\n", maxRam);
 
         // fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
-        fprintf(stderr, "maxRam: %u\n", (uint32_t)maxRam);
+        fprintf(stderr, "maxRam: " NK_PRINTF_UINT32 "\n", (uint32_t)maxRam);
     }
 
     free(script);

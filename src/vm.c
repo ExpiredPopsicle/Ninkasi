@@ -88,6 +88,11 @@ static void vmInitOpcodeTable(void)
             nkiCompilerStackOffsetTable[i] = 0;
         }
     }
+
+    // Quick sanity check.
+    assert(sizeof(uint32_t) == 4);
+    assert(sizeof(int32_t) == 4);
+    assert(sizeof(bool) == 1);
 }
 
 // ----------------------------------------------------------------------

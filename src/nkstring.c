@@ -8,8 +8,8 @@ static uint32_t nkiStringHash(const char *in)
     uint32_t i;
 
     for(i = 0; i < len; i++) {
-        a = (a + in[i]) % 65521;
-        b = (b + a) % 65521;
+        a = (a + in[i]) % (uint32_t)65521;
+        b = (b + a) % (uint32_t)65521;
     }
 
     return (b << 16) | a;

@@ -50,6 +50,11 @@ uint32_t nkxVmGetErrorCount(struct NKVM *vm)
     return ret;
 }
 
+bool nkxVmHasErrors(struct NKVM *vm)
+{
+    return nkiVmHasErrors(vm);
+}
+
 void nkxVmIterate(struct NKVM *vm, uint32_t count)
 {
     NK_FAILURE_RECOVERY_DECL();
