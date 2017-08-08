@@ -147,11 +147,19 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs);
 
 /// Emit a jump instruction. Return value is the index of the jump
 /// address in the instructions list, so we can go back and patch
-/// stuff up later.
+/// stuff up later. This way we can write a jump statement for a
+/// conditional block or loop and set the jump address when we're done
+/// parsing the loop.
 uint32_t nkiCompilerEmitJump(struct NKCompilerState *cs, uint32_t target);
 
 /// Emit conditional jump.
 uint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, uint32_t target);
+
+/// Go back and fix up a jump address with a new target.
+void nkiCompilerModifyJump(
+    struct NKCompilerState *cs,
+    uint32_t pushLiteralBeforeJumpAddress,
+    uint32_t target);
 
 // ----------------------------------------------------------------------
 // Token traversal state stuff.

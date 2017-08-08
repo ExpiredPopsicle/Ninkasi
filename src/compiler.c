@@ -987,7 +987,7 @@ struct NKInstruction *vmCompilerGetInstruction(struct NKCompilerState *cs, uint3
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
 
-void modifyJump(
+void nkiCompilerModifyJump(
     struct NKCompilerState *cs,
     uint32_t pushLiteralBeforeJumpAddress,
     uint32_t target)
@@ -1041,7 +1041,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     nkiCompilerPopContext(cs);
 
     // Fixup skip offset.
-    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+    nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_ELSE) {
 
@@ -1057,7 +1057,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
         // Increase our skip amount to account for the
         // NK_OP_PUSHLITERAL_INT and NK_OP_JUMP_RELATIVE we added to skip
         // past the "else" clause.
-        modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+        nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
         // Generate code to execute if test fails.
         nkiCompilerPushContext(cs);
@@ -1069,7 +1069,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
         nkiCompilerPopContext(cs);
 
         // Fixup "else" skip offset.
-        modifyJump(cs, skipAddressWritePtrElse, cs->instructionWriteIndex);
+        nkiCompilerModifyJump(cs, skipAddressWritePtrElse, cs->instructionWriteIndex);
     }
 
     nkiCompilerPopRecursion(cs);
@@ -1081,7 +1081,7 @@ void fixupBreakJumpForContext(struct NKCompilerState *cs)
     while(cs->context->loopContextFixupCount) {
         uint32_t fixupLocation =
             cs->context->loopContextFixups[--cs->context->loopContextFixupCount];
-        modifyJump(cs, fixupLocation, cs->instructionWriteIndex);
+        nkiCompilerModifyJump(cs, fixupLocation, cs->instructionWriteIndex);
     }
     nkiFree(cs->vm, cs->context->loopContextFixups);
     cs->context->loopContextFixups = NULL;
@@ -1149,7 +1149,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     nkiCompilerEmitJump(cs, startAddress);
 
     // Fixup skip offset.
-    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+    nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
     nkiCompilerPopContext(cs);
     fixupBreakJumpForContext(cs);
@@ -1251,7 +1251,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     nkiCompilerEmitJump(cs, loopStartAddress);
 
     // Fixup skip offset.
-    modifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
+    nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
     deleteExpressionNode(cs->vm, incrementExpression);
 
