@@ -1,6 +1,8 @@
 #include "common.h"
 
-void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst)
+void nkiAddInstruction(
+    struct NKCompilerState *cs, struct NKInstruction *inst,
+    bool adjustStackFrame)
 {
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
@@ -33,6 +35,12 @@ void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst)
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;
 
+    // Adjust stack frame offset, if necessary.
+    if(adjustStackFrame && cs->context) {
+        cs->context->stackFrameOffset +=
+            nkiCompilerStackOffsetTable[inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1)];
+    }
+
   #if VM_DEBUG
     cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
         vmCompilerGetLinenumber(cs);
@@ -41,12 +49,30 @@ void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst)
     cs->instructionWriteIndex++;
 }
 
+// FIXME: Remove this.
+void addInstruction(
+    struct NKCompilerState *cs, struct NKInstruction *inst)
+{
+    nkiAddInstruction(cs, inst, false);
+}
+
 void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode)
 {
     struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
     inst.opcode = opcode;
     addInstruction(cs, &inst);
+}
+
+// FIXME: "nkiCompilerAdd..."
+void nkiAddInstructionSimple(
+    struct NKCompilerState *cs, enum NKOpcode opcode,
+    bool adjustStackFrame)
+{
+    struct NKInstruction inst;
+    memset(&inst, 0, sizeof(inst));
+    inst.opcode = opcode;
+    nkiAddInstruction(cs, &inst, adjustStackFrame);
 }
 
 void pushContext(struct NKCompilerState *cs)
@@ -134,8 +160,8 @@ void popContext(struct NKCompilerState *cs)
                 // new set of instructions here. (Assuming there's
                 // anything to pop.)
                 if(popCount) {
-                    emitPushLiteralInt(cs, popCount);
-                    addInstructionSimple(cs, NK_OP_POPN);
+                    nkiEmitPushLiteralInt(cs, popCount, false);
+                    nkiAddInstructionSimple(cs, NK_OP_POPN, false);
                 }
 
             // }
@@ -153,20 +179,25 @@ void popContext(struct NKCompilerState *cs)
     dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
 }
 
-
-void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value)
+void nkiEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame)
 {
     struct NKInstruction inst;
 
     // Add instruction.
     memset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_INT;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_int = value;
-    addInstruction(cs, &inst);
+    nkiAddInstruction(cs, &inst, false);
+}
+
+// FIXME: Remove this.
+void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value)
+{
+    nkiEmitPushLiteralInt(cs, value, false);
 }
 
 void emitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId)
@@ -253,7 +284,7 @@ struct NKCompilerStateContextVariable *addVariableWithoutStackAllocation(
 void addVariable(struct NKCompilerState *cs, const char *name)
 {
     // Add an instruction to make some stack space for this variable.
-    emitPushLiteralInt(cs, 0);
+    nkiEmitPushLiteralInt(cs, 0, false);
 
     cs->context->stackFrameOffset++;
 
@@ -546,7 +577,7 @@ void emitReturn(struct NKCompilerState *cs)
         dbgWriteLine("argumentCount:    %d", func->argumentCount);
         dbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
-        emitPushLiteralInt(cs, throwAwayContext);
+        nkiEmitPushLiteralInt(cs, throwAwayContext, false);
         addInstructionSimple(cs, NK_OP_RETURN);
     }
 }
@@ -623,7 +654,7 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
     // start programs at instruction 0 and not worry about
     // functions in the middle. If declared at global scope, this
     // will only happen once per function so whatever.
-    emitPushLiteralInt(cs, 0);
+    nkiEmitPushLiteralInt(cs, 0, false);
     skipOffset = cs->instructionWriteIndex - 1;
     addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
 
@@ -736,8 +767,9 @@ bool compileFunctionDefinition(struct NKCompilerState *cs)
 
     // Add a RETURN instruction just in case the function reaches the
     // end without returning.
-    emitPushLiteralInt(cs, 0); // Return value (zero is probably fine
-                               // as a default).
+    nkiEmitPushLiteralInt(cs, 0, false); // Return value (zero is
+                                         // probably fine as a
+                                         // default).
     if(cs->context) {
         cs->context->stackFrameOffset++;
     }
@@ -1020,7 +1052,7 @@ bool vmCompilerCompileScript(
 uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
+    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, false);
     addInstructionSimple(cs, NK_OP_JUMP_RELATIVE);
     return instructionWriteIndex;
 }
@@ -1029,9 +1061,10 @@ uint32_t emitJump(struct NKCompilerState *cs, uint32_t target)
 uint32_t emitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
 {
     uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    emitPushLiteralInt(cs, (target - instructionWriteIndex) - 3);
-    addInstructionSimple(cs, NK_OP_JUMP_IF_ZERO);
-    cs->context->stackFrameOffset--;
+    nkiEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, false);
+    cs->context->stackFrameOffset += 1;
+    nkiAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, false);
+    cs->context->stackFrameOffset -= 2;
     return instructionWriteIndex;
 }
 

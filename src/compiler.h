@@ -55,8 +55,20 @@ struct NKCompilerState
     uint32_t recursionCount;
 };
 
+extern int32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
+
+// FIXME: Remove this.
 void addInstruction(struct NKCompilerState *cs, struct NKInstruction *inst);
+
+// FIXME: Rename this.
 void addInstructionSimple(struct NKCompilerState *cs, enum NKOpcode opcode);
+
+void nkiAddInstructionSimple(
+    struct NKCompilerState *cs, enum NKOpcode opcode,
+    bool adjustStackFrame);
+void nkiAddInstruction(
+    struct NKCompilerState *cs, struct NKInstruction *inst,
+    bool adjustStackFrame);
 
 void pushContext(struct NKCompilerState *cs);
 void popContext(struct NKCompilerState *cs);
@@ -79,6 +91,8 @@ bool compileWhileStatement(struct NKCompilerState *cs);
 bool compileForStatement(struct NKCompilerState *cs);
 bool compileBreakStatement(struct NKCompilerState *cs);
 
+void nkiEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame);
+// FIXME: Remove this.
 void emitPushLiteralInt(struct NKCompilerState *cs, int32_t value);
 void emitPushLiteralFloat(struct NKCompilerState *cs, float value);
 void emitPushLiteralString(struct NKCompilerState *cs, const char *str);
