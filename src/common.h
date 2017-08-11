@@ -14,7 +14,7 @@
 #include "nkconfig.h"
 
 #include "basetype.h"
-#include "enums.h"
+#include "nkenums.h"
 #include "vmstack.h"
 #include "value.h"
 #include "nkopcode.h"
