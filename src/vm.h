@@ -24,12 +24,12 @@ struct NKVMLimits
     // expand (double) its memory usage. So only powers of two are
     // meaningful numbers for string count, stack size, and object
     // count.
-    uint32_t maxStrings;
-    uint32_t maxStringLength;
-    uint32_t maxStacksize;
-    uint32_t maxObjects;
-    uint32_t maxFieldsPerObject;
-    uint32_t maxAllocatedMemory;
+    nkuint32_t maxStrings;
+    nkuint32_t maxStringLength;
+    nkuint32_t maxStacksize;
+    nkuint32_t maxObjects;
+    nkuint32_t maxFieldsPerObject;
+    nkuint32_t maxAllocatedMemory;
 };
 
 struct NKVM
@@ -38,21 +38,21 @@ struct NKVM
     struct NKVMStack stack;
 
     struct NKInstruction *instructions;
-    uint32_t instructionAddressMask;
-    uint32_t instructionPointer;
+    nkuint32_t instructionAddressMask;
+    nkuint32_t instructionPointer;
 
     struct NKVMStringTable stringTable;
     struct NKVMObjectTable objectTable;
 
     // TODO: External data table.
 
-    uint32_t lastGCPass;
-    uint32_t gcInterval; // TODO: Move to VMLimits, maybe.
-    uint32_t gcCountdown;
-    uint32_t gcNewObjectInterval; // TODO: Move to VMLimits, maybe.
-    uint32_t gcNewObjectCountdown;
+    nkuint32_t lastGCPass;
+    nkuint32_t gcInterval; // TODO: Move to VMLimits, maybe.
+    nkuint32_t gcCountdown;
+    nkuint32_t gcNewObjectInterval; // TODO: Move to VMLimits, maybe.
+    nkuint32_t gcNewObjectCountdown;
 
-    uint32_t functionCount;
+    nkuint32_t functionCount;
     struct NKVMFunction *functionTable;
 
     // NOTE: When you add the object table, you will need to add
@@ -70,15 +70,15 @@ struct NKVM
     // so we don't have to keep the compiler around.
     struct GlobalVariableRecord
     {
-        uint32_t stackPosition;
+        nkuint32_t stackPosition;
         const char *name;
     } *globalVariables;
     char *globalVariableNameStorage;
-    uint32_t globalVariableCount;
+    nkuint32_t globalVariableCount;
 
     struct NKVMLimits limits;
-    uint32_t currentMemoryUsage;
-    uint32_t peakMemoryUsage;
+    nkuint32_t currentMemoryUsage;
+    nkuint32_t peakMemoryUsage;
 
     struct NKMemoryHeader *allocations;
 
@@ -96,7 +96,7 @@ const char *vmGetOpcodeName(enum NKOpcode op);
 
 /// Compiler internal function creation. Don't use this outside. Not
 /// for that.
-struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId);
+struct NKVMFunction *vmCreateFunction(struct NKVM *vm, nkuint32_t *functionId);
 
 #endif // NINKASI_VM_H
 

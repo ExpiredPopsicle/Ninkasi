@@ -31,18 +31,18 @@ struct NKVM *nkxVmCreate(void);
 void nkxVmDelete(struct NKVM *vm);
 
 /// Run the compiled program.
-bool nkxVmExecuteProgram(struct NKVM *vm);
+nkbool nkxVmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-uint32_t nkxVmGetErrorCount(struct NKVM *vm);
+nkuint32_t nkxVmGetErrorCount(struct NKVM *vm);
 
 /// Get whether or not the VM has any errors.
-bool nkxVmHasErrors(struct NKVM *vm);
+nkbool nkxVmHasErrors(struct NKVM *vm);
 
 /// Run some number of instructions inside the VM and advance the
 /// program counter.
-void nkxVmIterate(struct NKVM *vm, uint32_t count);
+void nkxVmIterate(struct NKVM *vm, nkuint32_t count);
 
 /// Force a garbage collection pass.
 void nkxVmGarbageCollect(struct NKVM *vm);
@@ -62,7 +62,7 @@ void nkxVmGarbageCollect(struct NKVM *vm);
 void nkxVmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
-    uint32_t argumentCount,
+    nkuint32_t argumentCount,
     struct NKValue *arguments,
     struct NKValue *returnValue);
 
@@ -100,10 +100,10 @@ void nkxForceCatastrophicFailure(struct NKVM *vm);
 /// Convenience function for C function callbacks. Check the argument
 /// count that a function was called with. If it does not match, an
 /// error will be added and this function will return false. Otherwise
-/// it will return true.
-bool nkxFunctionCallbackCheckArgCount(
+/// it will return nktrue.
+nkbool nkxFunctionCallbackCheckArgCount(
     struct NKVMFunctionCallbackData *data,
-    uint32_t argCount,
+    nkuint32_t argCount,
     const char *functionName);
 
 /// Increment the reference count for an object. This keeps it (and
@@ -135,11 +135,11 @@ void nkxCompilerCreateCFunctionVariable(
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number
 /// counts.
-bool nkxCompilerCompileScript(
+nkbool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script);
 
-bool nkxCompilerCompileScriptFile(
+nkbool nkxCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename);
 

@@ -30,19 +30,19 @@ void nkxVmDelete(struct NKVM *vm)
     free(vm);
 }
 
-bool nkxVmExecuteProgram(struct NKVM *vm)
+nkbool nkxVmExecuteProgram(struct NKVM *vm)
 {
-    bool ret;
+    nkbool ret;
     NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY(false);
+    NK_SET_FAILURE_RECOVERY(nkfalse);
     ret = vmExecuteProgram(vm);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
 
-uint32_t nkxVmGetErrorCount(struct NKVM *vm)
+nkuint32_t nkxVmGetErrorCount(struct NKVM *vm)
 {
-    uint32_t ret;
+    nkuint32_t ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(1);
     ret = vmGetErrorCount(vm);
@@ -50,15 +50,15 @@ uint32_t nkxVmGetErrorCount(struct NKVM *vm)
     return ret;
 }
 
-bool nkxVmHasErrors(struct NKVM *vm)
+nkbool nkxVmHasErrors(struct NKVM *vm)
 {
     return nkiVmHasErrors(vm);
 }
 
-void nkxVmIterate(struct NKVM *vm, uint32_t count)
+void nkxVmIterate(struct NKVM *vm, nkuint32_t count)
 {
     NK_FAILURE_RECOVERY_DECL();
-    uint32_t i;
+    nkuint32_t i;
 
     NK_SET_FAILURE_RECOVERY_VOID();
     for(i = 0; i < count; i++) {
@@ -94,7 +94,7 @@ void nkxVmGarbageCollect(struct NKVM *vm)
 void nkxVmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
-    uint32_t argumentCount,
+    nkuint32_t argumentCount,
     struct NKValue *arguments,
     struct NKValue *returnValue)
 {
@@ -150,35 +150,35 @@ void nkxCompilerCreateCFunctionVariable(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-bool nkxCompilerCompileScript(
+nkbool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
-    bool ret;
-    NK_SET_FAILURE_RECOVERY(false);
+    nkbool ret;
+    NK_SET_FAILURE_RECOVERY(nkfalse);
     ret = nkiCompilerCompileScript(cs, script);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
 
-bool nkxCompilerCompileScriptFile(
+nkbool nkxCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename)
 {
     struct NKVM *vm = cs->vm;
     FILE *in = fopen(scriptFilename, "rb");
-    uint32_t len;
+    nkuint32_t len;
     char *buf;
-    bool success;
+    nkbool success;
 
     if(!in) {
         NK_FAILURE_RECOVERY_DECL();
-        NK_SET_FAILURE_RECOVERY(false);
+        NK_SET_FAILURE_RECOVERY(nkfalse);
         nkiCompilerAddError(cs, "Cannot open script file.");
         NK_CLEAR_FAILURE_RECOVERY();
-        return false;
+        return nkfalse;
     }
 
     fseek(in, 0, SEEK_END);
@@ -189,7 +189,7 @@ bool nkxCompilerCompileScriptFile(
     if(!buf) {
         fclose(in);
         nkiErrorStateSetAllocationFailFlag(vm);
-        return false;
+        return nkfalse;
     }
     fread(buf, len, 1, in);
     buf[len] = 0;
@@ -229,15 +229,15 @@ void nkxForceCatastrophicFailure(struct NKVM *vm)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-bool nkxFunctionCallbackCheckArgCount(
+nkbool nkxFunctionCallbackCheckArgCount(
     struct NKVMFunctionCallbackData *data,
-    uint32_t argCount,
+    nkuint32_t argCount,
     const char *functionName)
 {
-    bool ret = true;
+    nkbool ret = nktrue;
     struct NKVM *vm = data->vm;
     NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY(false);
+    NK_SET_FAILURE_RECOVERY(nkfalse);
 
     if(data->argumentCount != 1) {
         struct NKDynString *dynStr = nkiDynStrCreate(
@@ -246,7 +246,7 @@ bool nkxFunctionCallbackCheckArgCount(
         nkiAddError(
             data->vm, -1, dynStr->data);
         nkiDynStrDelete(dynStr);
-        ret = false;
+        ret = nkfalse;
     }
 
     NK_CLEAR_FAILURE_RECOVERY();

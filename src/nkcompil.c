@@ -2,7 +2,7 @@
 
 void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
-    bool adjustStackFrame)
+    nkbool adjustStackFrame)
 {
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
@@ -15,8 +15,8 @@ void nkiCompilerAddInstruction(
         }
 
         {
-            uint32_t oldSize = cs->vm->instructionAddressMask + 1;
-            uint32_t newSize = oldSize << 1;
+            nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
+            nkuint32_t newSize = oldSize << 1;
 
             cs->vm->instructionAddressMask <<= 1;
             cs->vm->instructionAddressMask |= 1;
@@ -51,7 +51,7 @@ void nkiCompilerAddInstruction(
 
 void nkiCompilerAddInstructionSimple(
     struct NKCompilerState *cs, enum NKOpcode opcode,
-    bool adjustStackFrame)
+    nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
     memset(&inst, 0, sizeof(inst));
@@ -64,7 +64,7 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
     struct NKCompilerStateContext *newContext =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
-    newContext->currentFunctionId = ~(uint32_t)0;
+    newContext->currentFunctionId = ~(nkuint32_t)0;
     newContext->parent = cs->context;
 
     // Set stack frame offset.
@@ -89,7 +89,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
         struct NKCompilerStateContextVariable *var =
             oldContext->variables;
 
-        uint32_t popCount = 0;
+        nkuint32_t popCount = 0;
 
         while(var) {
             struct NKCompilerStateContextVariable *next =
@@ -124,11 +124,11 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
             // are no longer in scope. First attempt to add onto
             // existing instructions that do this for the context.
 
-            // uint32_t maybePushIntAddr =
+            // nkuint32_t maybePushIntAddr =
             //     (cs->instructionWriteIndex - 3) & cs->vm->instructionAddressMask;
-            // uint32_t maybeIntAddr =
+            // nkuint32_t maybeIntAddr =
             //     (cs->instructionWriteIndex - 2) & cs->vm->instructionAddressMask;
-            // uint32_t maybePopNAddr =
+            // nkuint32_t maybePopNAddr =
             //     (cs->instructionWriteIndex - 1) & cs->vm->instructionAddressMask;
 
             // if(cs->vm->instructions[maybePushIntAddr].opcode == NK_OP_PUSHLITERAL_INT &&
@@ -144,8 +144,8 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
                 // new set of instructions here. (Assuming there's
                 // anything to pop.)
                 if(popCount) {
-                    nkiCompilerEmitPushLiteralInt(cs, popCount, false);
-                    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, false);
+                    nkiCompilerEmitPushLiteralInt(cs, popCount, nkfalse);
+                    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
                 }
 
             // }
@@ -163,7 +163,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
     dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
 }
 
-void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bool adjustStackFrame)
+void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
 
@@ -175,10 +175,10 @@ void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, int32_t value, bo
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_int = value;
-    nkiCompilerAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
 
-void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t functionId, bool adjustStackFrame)
+void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, nkuint32_t functionId, nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
 
@@ -190,10 +190,10 @@ void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, uint32_t f
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_functionId = functionId;
-    nkiCompilerAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
 
-void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bool adjustStackFrame)
+void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
 
@@ -205,10 +205,10 @@ void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, bo
     // Add parameter.
     memset(&inst, 0, sizeof(inst));
     inst.opData_float = value;
-    nkiCompilerAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
 
-void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, bool adjustStackFrame)
+void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
 
@@ -223,25 +223,25 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
         nkiVmStringTableFindOrAddString(
             cs->vm,
             str);
-    nkiCompilerAddInstruction(cs, &inst, false);
+    nkiCompilerAddInstruction(cs, &inst, nkfalse);
 
     // Mark this string as not garbage-collected.
     {
         struct NKVMString *entry = nkiVmStringTableGetEntryById(
             &cs->vm->stringTable, inst.opData_string);
         if(entry) {
-            entry->dontGC = true;
+            entry->dontGC = nktrue;
         }
     }
 }
 
-void nkiCompilerEmitPushNil(struct NKCompilerState *cs, bool adjustStackFrame)
+void nkiCompilerEmitPushNil(struct NKCompilerState *cs, nkbool adjustStackFrame)
 {
     nkiCompilerAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
 }
 
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
-    struct NKCompilerState *cs, const char *name, bool allocateStackSpace)
+    struct NKCompilerState *cs, const char *name, nkbool allocateStackSpace)
 {
     struct NKCompilerStateContextVariable *var =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
@@ -250,7 +250,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     // Add an instruction to make some stack space for this variable,
     // if needed.
     if(allocateStackSpace) {
-        nkiCompilerEmitPushLiteralInt(cs, 0, true);
+        nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
     }
 
     var->next = cs->context->variables;
@@ -265,7 +265,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     return var;
 }
 
-bool nkiCompilerExpectAndSkipToken(
+nkbool nkiCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t)
 {
     if(nkiCompilerCurrentTokenType(cs) != t) {
@@ -276,11 +276,11 @@ bool nkiCompilerExpectAndSkipToken(
             nkiCompilerCurrentTokenString(cs));
         nkiCompilerAddError(cs, errStr->data);
         nkiDynStrDelete(errStr);
-        return false;
+        return nkfalse;
     } else {
         nkiCompilerNextToken(cs);
     }
-    return true;
+    return nktrue;
 }
 
 // TODO: Remove instances of this and replace them with
@@ -289,17 +289,17 @@ bool nkiCompilerExpectAndSkipToken(
     do {                                            \
         if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
             nkiCompilerPopRecursion(cs);            \
-            return false;                           \
+            return nkfalse;                           \
         }                                           \
     } while(0)
 
 
-bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 {
     struct NKCompilerStateContext *startContext = cs->context;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     // FIXME: Remove this.
@@ -309,7 +309,7 @@ bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_INVALID) {
         nkiCompilerAddError(cs, "Ran out of tokens to parse.");
-        return false;
+        return nkfalse;
     }
 
     switch(nkiCompilerCurrentTokenType(cs)) {
@@ -321,7 +321,7 @@ bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
         case NK_TOKENTYPE_FUNCTION:
             // "function" = Function definition.
             if(!nkiCompilerCompileFunctionDefinition(cs)) {
-                return false;
+                return nkfalse;
             }
             break;
 
@@ -331,49 +331,49 @@ bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 
         case NK_TOKENTYPE_CURLYBRACE_OPEN:
             // Curly braces mean we need to parse a block.
-            if(!nkiCompilerCompileBlock(cs, false)) {
-                return false;
+            if(!nkiCompilerCompileBlock(cs, nkfalse)) {
+                return nkfalse;
             }
             break;
 
         case NK_TOKENTYPE_IF:
             // "if" statements.
             if(!nkiCompilerCompileIfStatement(cs)) {
-                return false;
+                return nkfalse;
             }
             break;
 
         case NK_TOKENTYPE_WHILE:
             // "while" statements.
             if(!nkiCompilerCompileWhileStatement(cs)) {
-                return false;
+                return nkfalse;
             }
             break;
 
         case NK_TOKENTYPE_FOR:
             // "for" statements.
             if(!nkiCompilerCompileForStatement(cs)) {
-                return false;
+                return nkfalse;
             }
             break;
 
         case NK_TOKENTYPE_BREAK:
             // "break" statements.
             if(!nkiCompilerCompileBreakStatement(cs)) {
-                return false;
+                return nkfalse;
             }
             break;
 
         default:
             // Fall back to just parsing an expression.
             if(!nkiCompilerCompileExpression(cs)) {
-                return false;
+                return nkfalse;
             }
 
             if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
                 // TODO: Remove this. (Debugging output.) Replace it with
                 // a NK_OP_POP.
-                nkiCompilerAddInstructionSimple(cs, NK_OP_DUMP, true);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_DUMP, nktrue);
             }
 
             NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
@@ -383,7 +383,7 @@ bool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 
     assert(cs->context == startContext);
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
 struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
@@ -420,12 +420,12 @@ struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     return var;
 }
 
-bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
+nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrContext)
 {
     struct NKCompilerStateContext *startContext = cs->context;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     if(!noBracesOrContext) {
@@ -446,7 +446,7 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
             }
 
             nkiCompilerPopRecursion(cs);
-            return false;
+            return nkfalse;
         }
     }
 
@@ -457,13 +457,13 @@ bool nkiCompilerCompileBlock(struct NKCompilerState *cs, bool noBracesOrContext)
 
     assert(startContext == cs->context);
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
-bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_VAR);
@@ -471,7 +471,7 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
     if(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_IDENTIFIER) {
         nkiCompilerAddError(cs, "Expected identifier in variable declaration.");
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     {
@@ -488,23 +488,23 @@ bool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
 
             if(!nkiCompilerCompileExpression(cs)) {
                 nkiCompilerPopRecursion(cs);
-                return false;
+                return nkfalse;
             }
 
-            nkiCompilerAddVariable(cs, variableName, false);
+            nkiCompilerAddVariable(cs, variableName, nkfalse);
 
         } else {
 
             // Something in the form of "var foo;"
 
-            nkiCompilerAddVariable(cs, variableName, true);
+            nkiCompilerAddVariable(cs, variableName, nktrue);
         }
     }
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
 void nkiCompilerEmitReturn(struct NKCompilerState *cs)
@@ -512,7 +512,7 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
     // Find the function we're in.
     struct NKCompilerStateContext *ctx = cs->context;
     struct NKVMFunction *func;
-    while(ctx && ctx->currentFunctionId == ~(uint32_t)0) {
+    while(ctx && ctx->currentFunctionId == ~(nkuint32_t)0) {
         ctx = ctx->parent;
     }
 
@@ -536,7 +536,7 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
         //   The return pointer. (-1)
         //   The argument list.  (-func->argumentCount)
         //   This thing we're about pushing right now. (-1)
-        uint32_t throwAwayContext =
+        nkuint32_t throwAwayContext =
             cs->context->stackFrameOffset - func->argumentCount - 3;
 
         // FIXME: Remove these.
@@ -544,22 +544,22 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
         dbgWriteLine("argumentCount:    %d", func->argumentCount);
         dbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
-        nkiCompilerEmitPushLiteralInt(cs, throwAwayContext, false);
-        nkiCompilerAddInstructionSimple(cs, NK_OP_RETURN, false);
+        nkiCompilerEmitPushLiteralInt(cs, throwAwayContext, nkfalse);
+        nkiCompilerAddInstructionSimple(cs, NK_OP_RETURN, nkfalse);
     }
 }
 
-bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
 {
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_RETURN);
 
     if(!nkiCompilerCompileExpression(cs)) {
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     nkiCompilerEmitReturn(cs);
@@ -568,25 +568,25 @@ bool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
 
     nkiCompilerPopRecursion(cs);
 
-    return true;
+    return nktrue;
 }
 
-bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 {
-    bool ret = true;
+    nkbool ret = nktrue;
     const char *functionName = NULL;
-    uint32_t skipOffset;
+    nkuint32_t skipOffset;
     struct NKCompilerStateContext *functionLocalContext;
     struct NKCompilerStateContext *savedContext;
     struct NKCompilerStateContext *searchContext;
     struct NKCompilerStateContextVariable *varTmp;
-    uint32_t functionArgumentCount = 0;
+    nkuint32_t functionArgumentCount = 0;
 
-    uint32_t functionId = 0;
+    nkuint32_t functionId = 0;
     struct NKVMFunction *functionObject;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     functionObject = vmCreateFunction(
@@ -604,7 +604,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
             nkiCompilerCurrentTokenLinenumber(cs),
             "Expected identifier for function name.");
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // At the parent scope, create a variable with the name of the
@@ -612,17 +612,17 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // Recursive function calls will not be possible if the function
     // cannot refer to itself before it's finished being fully
     // created.
-    nkiCompilerEmitPushLiteralFunctionId(cs, functionId, true);
-    nkiCompilerAddVariable(cs, functionName, false);
+    nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
+    nkiCompilerAddVariable(cs, functionName, nkfalse);
 
     // Add some instructions to skip around this function. This is
     // kind of a weird way to do it, but it means that we can just
     // start programs at instruction 0 and not worry about
     // functions in the middle. If declared at global scope, this
     // will only happen once per function so whatever.
-    nkiCompilerEmitPushLiteralInt(cs, 0, false);
+    nkiCompilerEmitPushLiteralInt(cs, 0, nkfalse);
     skipOffset = cs->instructionWriteIndex - 1;
-    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, false);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, nkfalse);
 
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
@@ -660,9 +660,9 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
             // FIXME: Some day, figure out why the heck the variables
             // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
-            varTmp = nkiCompilerAddVariable(cs, argumentName, false);
+            varTmp = nkiCompilerAddVariable(cs, argumentName, nkfalse);
 
-            varTmp->doNotPopWhenOutOfScope = true;
+            varTmp->doNotPopWhenOutOfScope = nktrue;
 
             functionArgumentCount++;
 
@@ -672,7 +672,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
             nkiCompilerAddError(
                 cs, "Expected identifier for function argument name.");
-            ret = false;
+            ret = nkfalse;
             break;
         }
 
@@ -698,21 +698,21 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
-    varTmp = nkiCompilerAddVariable(cs, "_functionId", false);
-    varTmp->doNotPopWhenOutOfScope = true;
+    varTmp = nkiCompilerAddVariable(cs, "_functionId", nkfalse);
+    varTmp->doNotPopWhenOutOfScope = nktrue;
     cs->context->stackFrameOffset++;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
-    varTmp = nkiCompilerAddVariable(cs, "_argumentCount", false);
-    varTmp->doNotPopWhenOutOfScope = true;
+    varTmp = nkiCompilerAddVariable(cs, "_argumentCount", nkfalse);
+    varTmp->doNotPopWhenOutOfScope = nktrue;
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
-    varTmp = nkiCompilerAddVariable(cs, "_returnPointer", false);
-    varTmp->doNotPopWhenOutOfScope = true;
+    varTmp = nkiCompilerAddVariable(cs, "_returnPointer", nkfalse);
+    varTmp->doNotPopWhenOutOfScope = nktrue;
 
     // Skip ')'.
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {
@@ -723,7 +723,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
     // Parse and emit actual function code.
     if(!nkiCompilerCompileStatement(cs)) {
-        ret = false;
+        ret = nkfalse;
     }
 
     // functionObject pointer may have been invalidated in the
@@ -734,7 +734,7 @@ bool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // Add a RETURN instruction just in case the function reaches the
     // end without returning. (Zero is probably fine as a default
     // return value).
-    nkiCompilerEmitPushLiteralInt(cs, 0, false);
+    nkiCompilerEmitPushLiteralInt(cs, 0, nkfalse);
     if(cs->context) {
         cs->context->stackFrameOffset++;
     }
@@ -778,7 +778,7 @@ enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs)
     return NK_TOKENTYPE_INVALID;
 }
 
-uint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs)
+nkuint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
         return cs->currentToken->lineNumber;
@@ -808,7 +808,7 @@ void nkiCompilerCreateCFunctionVariable(
     VMFunctionCallback func,
     void *userData)
 {
-    uint32_t functionId = 0;
+    nkuint32_t functionId = 0;
     struct NKVM *vm = cs->vm;
 
     // Lookup function first, to make sure we aren't making duplicate
@@ -825,15 +825,15 @@ void nkiCompilerCreateCFunctionVariable(
     if(functionId == cs->vm->functionCount) {
         struct NKVMFunction *vmfunc =
             vmCreateFunction(cs->vm, &functionId);
-        vmfunc->argumentCount = ~(uint32_t)0;
-        vmfunc->isCFunction = true;
+        vmfunc->argumentCount = ~(nkuint32_t)0;
+        vmfunc->isCFunction = nktrue;
         vmfunc->CFunctionCallback = func;
         vmfunc->CFunctionCallbackUserdata = userData;
     }
 
     // Add the variable.
-    nkiCompilerEmitPushLiteralFunctionId(cs, functionId, true);
-    nkiCompilerAddVariable(cs, name, false);
+    nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
+    nkiCompilerAddVariable(cs, name, nkfalse);
 }
 
 struct NKCompilerState *nkiCompilerCreate(
@@ -879,8 +879,8 @@ void nkiCompilerFinalize(
     {
         // Run through the variable list once and count up how much
         // memory we need.
-        uint32_t count = 0;
-        uint32_t nameStorageNeeded = 0;
+        nkuint32_t count = 0;
+        nkuint32_t nameStorageNeeded = 0;
         struct NKCompilerStateContextVariable *var =
             cs->context->variables;
         while(var) {
@@ -921,20 +921,20 @@ void nkiCompilerFinalize(
     }
 
     // Add a single end instruction.
-    nkiCompilerAddInstructionSimple(cs, NK_OP_END, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_END, nktrue);
 
     nkiFree(cs->vm, cs);
 }
 
-bool nkiCompilerCompileScript(
+nkbool nkiCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script)
 {
     struct NKTokenList tokenList;
-    bool success;
+    nkbool success;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     // Tokenize.
@@ -947,7 +947,7 @@ bool nkiCompilerCompileScript(
     if(!success) {
         destroyTokenList(cs->vm, &tokenList);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Compile.
@@ -956,7 +956,7 @@ bool nkiCompilerCompileScript(
     cs->currentLineNumber =
         cs->currentToken ? cs->currentToken->lineNumber : 0;
 
-    success = nkiCompilerCompileBlock(cs, true);
+    success = nkiCompilerCompileBlock(cs, nktrue);
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
@@ -966,32 +966,32 @@ bool nkiCompilerCompileScript(
     return success;
 }
 
-uint32_t nkiCompilerEmitJump(struct NKCompilerState *cs, uint32_t target)
+nkuint32_t nkiCompilerEmitJump(struct NKCompilerState *cs, nkuint32_t target)
 {
-    uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, true);
+    nkuint32_t instructionWriteIndex = cs->instructionWriteIndex;
+    nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, nktrue);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_RELATIVE, nktrue);
     return instructionWriteIndex;
 }
 
 // Note: Pops +1 item off the stack.
-uint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, uint32_t target)
+nkuint32_t nkiCompilerEmitJumpIfZero(struct NKCompilerState *cs, nkuint32_t target)
 {
-    uint32_t instructionWriteIndex = cs->instructionWriteIndex;
-    nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, true);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, true);
+    nkuint32_t instructionWriteIndex = cs->instructionWriteIndex;
+    nkiCompilerEmitPushLiteralInt(cs, (target - instructionWriteIndex) - 3, nktrue);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_JUMP_IF_ZERO, nktrue);
     return instructionWriteIndex;
 }
 
-struct NKInstruction *nkiCompilerGetInstruction(struct NKCompilerState *cs, uint32_t address)
+struct NKInstruction *nkiCompilerGetInstruction(struct NKCompilerState *cs, nkuint32_t address)
 {
     return &cs->vm->instructions[cs->vm->instructionAddressMask & address];
 }
 
 void nkiCompilerModifyJump(
     struct NKCompilerState *cs,
-    uint32_t pushLiteralBeforeJumpAddress,
-    uint32_t target)
+    nkuint32_t pushLiteralBeforeJumpAddress,
+    nkuint32_t target)
 {
     struct NKInstruction *pushLitInst =
         nkiCompilerGetInstruction(cs, pushLiteralBeforeJumpAddress);
@@ -1007,12 +1007,12 @@ void nkiCompilerModifyJump(
         (target - pushLiteralBeforeJumpAddress) - 3;
 }
 
-bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
 {
-    uint32_t skipAddressWritePtr = 0;
+    nkuint32_t skipAddressWritePtr = 0;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     // Skip "if("
@@ -1022,7 +1022,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     // Generate the expression code.
     if(!nkiCompilerCompileExpression(cs)) {
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
@@ -1037,7 +1037,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     if(!nkiCompilerCompileStatement(cs)) {
         nkiCompilerPopContext(cs);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
     nkiCompilerPopContext(cs);
 
@@ -1046,7 +1046,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
 
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_ELSE) {
 
-        uint32_t skipAddressWritePtrElse = 0;
+        nkuint32_t skipAddressWritePtrElse = 0;
 
         NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ELSE);
 
@@ -1065,7 +1065,7 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
         if(!nkiCompilerCompileStatement(cs)) {
             nkiCompilerPopContext(cs);
             nkiCompilerPopRecursion(cs);
-            return false;
+            return nkfalse;
         }
         nkiCompilerPopContext(cs);
 
@@ -1074,13 +1074,13 @@ bool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     }
 
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
 void nkiCompilerFixupBreakJumpForContext(struct NKCompilerState *cs)
 {
     while(cs->context->loopContextFixupCount) {
-        uint32_t fixupLocation =
+        nkuint32_t fixupLocation =
             cs->context->loopContextFixups[--cs->context->loopContextFixupCount];
         nkiCompilerModifyJump(cs, fixupLocation, cs->instructionWriteIndex);
     }
@@ -1089,25 +1089,25 @@ void nkiCompilerFixupBreakJumpForContext(struct NKCompilerState *cs)
 }
 
 
-void nkiCompilerPopContextCount(struct NKCompilerState *cs, uint32_t n)
+void nkiCompilerPopContextCount(struct NKCompilerState *cs, nkuint32_t n)
 {
-    uint32_t k;
+    nkuint32_t k;
     for(k = 0; k < n; k++) {
         nkiCompilerPopContext(cs);
     }
 }
 
-bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
 {
-    uint32_t skipAddressWritePtr = 0;
-    uint32_t startAddress = cs->instructionWriteIndex;
+    nkuint32_t skipAddressWritePtr = 0;
+    nkuint32_t startAddress = cs->instructionWriteIndex;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     nkiCompilerPushContext(cs);
-    cs->context->isLoopContext = true;
+    cs->context->isLoopContext = nktrue;
     nkiCompilerPushContext(cs);
 
     // Skip "while("
@@ -1116,14 +1116,14 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Generate the expression code.
     if(!nkiCompilerCompileExpression(cs)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Add the NK_OP_JUMP_IF_ZERO, and save the literal address so we can
@@ -1134,7 +1134,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Generate code to execute if test passes.
@@ -1142,7 +1142,7 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     if(!nkiCompilerCompileStatement(cs)) {
         nkiCompilerPopContextCount(cs, 3);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
     nkiCompilerPopContext(cs);
 
@@ -1157,21 +1157,21 @@ bool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     nkiCompilerPopContext(cs);
 
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
-bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
 {
-    uint32_t skipAddressWritePtr = 0;
-    uint32_t loopStartAddress = 0;
+    nkuint32_t skipAddressWritePtr = 0;
+    nkuint32_t loopStartAddress = 0;
     struct NKExpressionAstNode *incrementExpression = NULL;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     nkiCompilerPushContext(cs);
-    cs->context->isLoopContext = true;
+    cs->context->isLoopContext = nktrue;
 
     // Just in case we want to declare a variable inline in the init
     // code.
@@ -1183,7 +1183,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Generate the init expression code. Technically the first thing
@@ -1193,7 +1193,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     if(!nkiCompilerCompileStatement(cs)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
     // If we ever go back to using expressions for the init thing,
     // we'll have to remember to pop the value it leaves behind,
@@ -1207,14 +1207,14 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     if(!nkiCompilerCompileExpression(cs)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
     skipAddressWritePtr = nkiCompilerEmitJumpIfZero(cs, 0);
 
     if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Parse the increment expression, but don't emit yet (we'll do
@@ -1226,7 +1226,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
         deleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     // Generate code to execute if test passes.
@@ -1235,7 +1235,7 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
         deleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 3);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
     nkiCompilerPopContext(cs);
 
@@ -1244,9 +1244,9 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
         deleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
-    nkiCompilerAddInstructionSimple(cs, NK_OP_POP, true);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_POP, nktrue);
 
     // Emit jump back to start.
     nkiCompilerEmitJump(cs, loopStartAddress);
@@ -1260,17 +1260,17 @@ bool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     nkiCompilerFixupBreakJumpForContext(cs);
     nkiCompilerPopContext(cs);
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
-bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
 {
-    uint32_t contextLevel = cs->context->stackFrameOffset;
-    uint32_t loopContextLevel = 0;
+    nkuint32_t contextLevel = cs->context->stackFrameOffset;
+    nkuint32_t loopContextLevel = 0;
     struct NKCompilerStateContext *searchContext;
 
     if(!nkiCompilerPushRecursion(cs)) {
-        return false;
+        return nkfalse;
     }
 
     // Find a loop context we can break out of.
@@ -1285,13 +1285,13 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
     if(!searchContext) {
         nkiCompilerAddError(cs, "Cannot break outside of a loop.");
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     if(!searchContext->parent) {
         nkiCompilerAddError(cs, "Cannot break out of the root context.");
         nkiCompilerPopRecursion(cs);
-        return false;
+        return nkfalse;
     }
 
     loopContextLevel = searchContext->stackFrameOffset;
@@ -1301,11 +1301,11 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
 
     // Pop off every context's data between the break statement and
     // the loop context.
-    nkiCompilerEmitPushLiteralInt(cs, contextLevel - loopContextLevel, false);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, false);
+    nkiCompilerEmitPushLiteralInt(cs, contextLevel - loopContextLevel, nkfalse);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
 
     {
-        uint32_t jumpFixup = nkiCompilerEmitJump(cs, 0);
+        nkuint32_t jumpFixup = nkiCompilerEmitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
             nkiRealloc(cs->vm, searchContext->loopContextFixups,
@@ -1320,18 +1320,18 @@ bool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);
 
     nkiCompilerPopRecursion(cs);
-    return true;
+    return nktrue;
 }
 
-bool nkiCompilerPushRecursion(struct NKCompilerState *cs)
+nkbool nkiCompilerPushRecursion(struct NKCompilerState *cs)
 {
     // TODO: Make this limit configurable.
     if(cs->recursionCount > 128) {
         nkiCompilerAddError(cs, "Reached recursion limit during compilation.");
-        return false;
+        return nkfalse;
     }
     cs->recursionCount++;
-    return true;
+    return nktrue;
 }
 
 void nkiCompilerPopRecursion(struct NKCompilerState *cs)

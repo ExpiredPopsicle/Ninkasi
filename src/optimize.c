@@ -1,31 +1,31 @@
 #include "common.h"
 
-bool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
+nkbool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == NK_TOKENTYPE_PLUS ||
         node->opOrValue->type == NK_TOKENTYPE_MINUS ||
         node->opOrValue->type == NK_TOKENTYPE_MULTIPLY ||
         node->opOrValue->type == NK_TOKENTYPE_DIVIDE)
     {
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
-bool isImmediateValue(struct NKExpressionAstNode *node)
+nkbool isImmediateValue(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == NK_TOKENTYPE_INTEGER ||
         node->opOrValue->type == NK_TOKENTYPE_FLOAT)
     {
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
 struct NKExpressionAstNode *makeImmediateExpressionNode(
     struct NKVM *vm,
     enum NKTokenType type,
-    uint32_t lineNumber)
+    nkuint32_t lineNumber)
 {
     struct NKExpressionAstNode *newNode =
         nkiMalloc(vm, sizeof(struct NKExpressionAstNode));
@@ -33,7 +33,7 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
         nkiMalloc(vm, sizeof(struct NKToken));
     memset(newNode, 0, sizeof(*newNode));
     memset(newToken, 0, sizeof(*newToken));
-    newNode->ownedToken = true;
+    newNode->ownedToken = nktrue;
     newNode->opOrValue = newToken;
     newToken->type = type;
     newToken->lineNumber = lineNumber;
@@ -102,15 +102,15 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
     if(canOptimizeOperationWithConstants((*node))) {
 
         // Make sure we have two immediate values to work with.
-        bool canOptimize = true;
+        nkbool canOptimize = nktrue;
         if((*node)->children[0] && !isImmediateValue((*node)->children[0])) {
-            canOptimize = false;
+            canOptimize = nkfalse;
         } else if((*node)->children[1] && !isImmediateValue((*node)->children[1])) {
-            canOptimize = false;
+            canOptimize = nkfalse;
         }
 
         if(!(*node)->children[0]) {
-            canOptimize = false;
+            canOptimize = nkfalse;
         }
 
         if(canOptimize) {
@@ -130,9 +130,9 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
                 case NK_TOKENTYPE_INTEGER: {
 
                     // Fetch original values.
-                    int32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
-                    int32_t c1Val = (*node)->children[1] ? atoi((*node)->children[1]->opOrValue->str) : 0;
-                    int32_t val = 0;
+                    nkint32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
+                    nkint32_t c1Val = (*node)->children[1] ? atoi((*node)->children[1]->opOrValue->str) : 0;
+                    nkint32_t val = 0;
                     char tmp[32];
 
                     // Do the actual operation.

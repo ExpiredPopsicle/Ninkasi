@@ -7,10 +7,10 @@
 
 struct NKVMFunction
 {
-    uint32_t argumentCount;
-    uint32_t firstInstructionIndex;
+    nkuint32_t argumentCount;
+    nkuint32_t firstInstructionIndex;
 
-    bool isCFunction;
+    nkbool isCFunction;
     VMFunctionCallback CFunctionCallback;
     void *CFunctionCallbackUserdata;
 };

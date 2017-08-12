@@ -56,7 +56,7 @@
     } while(0)
 
 #define NK_CHECK_CATASTROPHE() \
-    (vm ? vm->errorState.allocationFailure : true)
+    (vm ? vm->errorState.allocationFailure : nktrue)
 
 void stackdump(void);
 

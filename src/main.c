@@ -6,15 +6,15 @@
 #include <malloc.h>
 #include <string.h>
 
-char **splitLines(const char *str, uint32_t *lineCount)
+char **splitLines(const char *str, nkuint32_t *lineCount)
 {
     char **lines = NULL;
 
-    uint32_t len = strlen(str);
+    nkuint32_t len = strlen(str);
     char *workStr = strdup(str);
 
-    uint32_t i = 0;
-    uint32_t lineStart = 0;
+    nkuint32_t i = 0;
+    nkuint32_t lineStart = 0;
 
     *lineCount = 0;
 
@@ -36,13 +36,13 @@ char **splitLines(const char *str, uint32_t *lineCount)
 
 void dumpListing(struct NKVM *vm, const char *script)
 {
-    uint32_t i;
+    nkuint32_t i;
 
   #if NK_VM_DEBUG
-    uint32_t lastLine = 0;
+    nkuint32_t lastLine = 0;
   #endif
 
-    uint32_t lineCount = 0;
+    nkuint32_t lineCount = 0;
     char **lines = script ? splitLines(script, &lineCount) : NULL;
 
     if(vm->instructions) {
@@ -112,7 +112,7 @@ void dumpListing(struct NKVM *vm, const char *script)
 char *loadScript(const char *filename)
 {
     FILE *in = fopen(filename, "rb");
-    uint32_t len;
+    nkuint32_t len;
     char *buf;
 
     if(!in) {
@@ -134,7 +134,7 @@ char *loadScript(const char *filename)
 
 void testVMFunc(struct NKVMFunctionCallbackData *data)
 {
-    // uint32_t i;
+    // nkuint32_t i;
     printf("testVMFunc hit!\n");
     // for(i = 0; i < data->argumentCount; i++) {
     //     printf("Argument %d: %s\n", i,
@@ -187,7 +187,7 @@ void testHandle2(struct NKVMFunctionCallbackData *data)
 
 void vmFuncPrint(struct NKVMFunctionCallbackData *data)
 {
-    uint32_t i;
+    nkuint32_t i;
 
     for(i = 0; i < data->argumentCount; i++) {
         // printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
@@ -202,8 +202,8 @@ int main(int argc, char *argv[])
 {
     char *script = loadScript("test.txt");
     int shitCounter = 0;
-    uint32_t maxRam = 19880;
-    uint32_t maxMaxRam = (uint32_t)1024*(uint32_t)1024;
+    nkuint32_t maxRam = 19880;
+    nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
     maxRam = 60522;
     maxRam = 61818;
     maxRam = 89049;
@@ -221,10 +221,10 @@ int main(int argc, char *argv[])
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
-        uint32_t lineCount = 0;
+        nkuint32_t lineCount = 0;
         char **lines = NULL;
 
-        uint32_t instructionCountMax = (uint32_t)1024*(uint32_t)1024*(uint32_t)1024;
+        nkuint32_t instructionCountMax = (nkuint32_t)1024*(nkuint32_t)1024*(nkuint32_t)1024;
         struct NKVM *vm = nkxVmCreate();
         if(!vm) continue;
         if(vmGetErrorCount(vm)) {
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
             // printf("----------------------------------------------------------------------\n");
 
             // {
-            //     uint32_t i;
+            //     nkuint32_t i;
             //     for(i = 0; i < lineCount; i++) {
             //         printf("%4u : %s\n", i, lines[i]);
             //     }
@@ -454,8 +454,8 @@ int main(int argc, char *argv[])
         maxRam++;
         printf("maxRam: " NK_PRINTF_UINT32 "\n", maxRam);
 
-        // fprintf(stderr, "Iterations: %u\n", (uint32_t)strlen(script));
-        fprintf(stderr, "maxRam: " NK_PRINTF_UINT32 "\n", (uint32_t)maxRam);
+        // fprintf(stderr, "Iterations: %u\n", (nkuint32_t)strlen(script));
+        fprintf(stderr, "maxRam: " NK_PRINTF_UINT32 "\n", (nkuint32_t)maxRam);
     }
 
     free(script);

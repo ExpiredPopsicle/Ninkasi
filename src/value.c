@@ -1,6 +1,6 @@
 #include "common.h"
 
-bool value_dump(
+nkbool value_dump(
     struct NKVM *vm, struct NKValue *value)
 {
     // TODO: Function pointer table here?
@@ -37,9 +37,9 @@ bool value_dump(
             printf(
                 "value_dump unimplemented for type %s",
                 valueTypeGetName(value->type));
-            return false;
+            return nkfalse;
     }
-    return true;
+    return nktrue;
 }
 
 const char *valueTypeGetName(enum NKValueType type)
@@ -71,7 +71,7 @@ const char *valueTypeGetName(enum NKValueType type)
     }
 }
 
-int32_t valueToInt(struct NKVM *vm, struct NKValue *value)
+nkint32_t valueToInt(struct NKVM *vm, struct NKValue *value)
 {
     // TODO: De-reference references here.
 
@@ -151,7 +151,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
 
         case NK_VALUETYPE_INT: {
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
-            uint32_t id;
+            nkuint32_t id;
 
             nkiDynStrAppendInt32(dynStr, value->intData);
 
@@ -166,7 +166,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
 
         case NK_VALUETYPE_FLOAT: {
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "");
-            uint32_t id;
+            nkuint32_t id;
 
             nkiDynStrAppendFloat(dynStr, value->floatData);
 
@@ -181,7 +181,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
 
         default: {
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "<");
-            uint32_t id;
+            nkuint32_t id;
 
             nkiDynStrAppend(dynStr, valueTypeGetName(value->type));
             nkiDynStrAppend(dynStr, ":");
@@ -199,7 +199,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
     }
 }
 
-int32_t value_compareType(
+nkint32_t value_compareType(
     struct NKValue *in1,
     struct NKValue *in2)
 {
@@ -211,16 +211,16 @@ int32_t value_compareType(
     return 0;
 }
 
-int32_t value_compare(
+nkint32_t value_compare(
     struct NKVM *vm,
     struct NKValue *in1,
     struct NKValue *in2,
-    bool strictType)
+    nkbool strictType)
 {
     enum NKValueType type = in1->type;
 
     if(strictType) {
-        int32_t typeDiff = value_compareType(in1, in2);
+        nkint32_t typeDiff = value_compareType(in1, in2);
         if(typeDiff) {
             return typeDiff;
         }
@@ -229,7 +229,7 @@ int32_t value_compare(
     switch(type) {
 
         case NK_VALUETYPE_INT: {
-            int32_t other = valueToInt(vm, in2);
+            nkint32_t other = valueToInt(vm, in2);
             if(in1->intData > other) {
                 return 1;
             } else if(in1->intData == other) {
@@ -298,9 +298,9 @@ int32_t value_compare(
     return ~0;
 }
 
-uint32_t valueHash(struct NKVM *vm, struct NKValue *value)
+nkuint32_t valueHash(struct NKVM *vm, struct NKValue *value)
 {
-    uint32_t ret = 0;
+    nkuint32_t ret = 0;
 
     switch(value->type) {
 
@@ -333,7 +333,7 @@ uint32_t valueHash(struct NKVM *vm, struct NKValue *value)
     return ret;
 }
 
-void vmValueSetInt(struct NKVM *vm, struct NKValue *value, int32_t intData)
+void vmValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
 {
     value->type = NK_VALUETYPE_INT;
     value->intData = intData;

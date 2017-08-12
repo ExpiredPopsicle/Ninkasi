@@ -28,10 +28,10 @@ void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
     strcat(dynStr->data, str);
 }
 
-void nkiDynStrAppendInt32(struct NKDynString *dynStr, int32_t value)
+void nkiDynStrAppendInt32(struct NKDynString *dynStr, nkint32_t value)
 {
     // +1 for terminator, +1 for '-'.
-    char tmp[sizeof(int32_t) * 8 + 2];
+    char tmp[sizeof(nkint32_t) * 8 + 2];
     sprintf(tmp,
         NK_PRINTF_INT32,
         value);

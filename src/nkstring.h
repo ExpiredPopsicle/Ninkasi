@@ -6,10 +6,10 @@
 struct NKVMString
 {
     struct NKVMString *nextInHashBucket;
-    uint32_t stringTableIndex;
-    uint32_t lastGCPass;
-    bool dontGC;
-    uint32_t hash;
+    nkuint32_t stringTableIndex;
+    nkuint32_t lastGCPass;
+    nkbool dontGC;
+    nkuint32_t hash;
 
     // Must be last. We're going to allocated VMStrings with enough
     // extra space that we can treat this array as an
@@ -21,7 +21,7 @@ struct NKVMString
 struct NKVMStringTableHole
 {
     struct NKVMStringTableHole *next;
-    uint32_t index;
+    nkuint32_t index;
 };
 
 #define nkiVmStringHashTableSize 256
@@ -33,7 +33,7 @@ struct NKVMStringTable
     struct NKVMStringTableHole *tableHoles;
 
     struct NKVMString **stringTable;
-    uint32_t stringTableCapacity;
+    nkuint32_t stringTableCapacity;
 };
 
 void nkiVmStringTableInit(struct NKVM *vm);
@@ -41,13 +41,13 @@ void nkiVmStringTableDestroy(struct NKVM *vm);
 
 struct NKVMString *nkiVmStringTableGetEntryById(
     struct NKVMStringTable *table,
-    uint32_t index);
+    nkuint32_t index);
 
 const char *nkiVmStringTableGetStringById(
     struct NKVMStringTable *table,
-    uint32_t index);
+    nkuint32_t index);
 
-uint32_t nkiVmStringTableFindOrAddString(
+nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str);
 
@@ -55,7 +55,7 @@ void nkiVmStringTableDump(struct NKVMStringTable *table);
 
 void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
-    uint32_t lastGCPass);
+    nkuint32_t lastGCPass);
 
 #endif // NINKASI_VMSTRING_H
 

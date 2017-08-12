@@ -19,11 +19,11 @@ void vmInit(struct NKVM *vm);
 void vmDestroy(struct NKVM *vm);
 
 /// Run the compiled program.
-bool vmExecuteProgram(struct NKVM *vm);
+nkbool vmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-uint32_t vmGetErrorCount(struct NKVM *vm);
+nkuint32_t vmGetErrorCount(struct NKVM *vm);
 
 // TODO: Error string functions.
 
@@ -47,7 +47,7 @@ void vmGarbageCollect(struct NKVM *vm);
 void vmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
-    uint32_t argumentCount,
+    nkuint32_t argumentCount,
     struct NKValue *arguments,
     struct NKValue *returnValue);
 
@@ -77,7 +77,7 @@ struct NKValue *vmFindGlobalVariable(
 struct NKCompilerState;
 struct NKVM;
 
-// bool nkiCompilerCompileScriptFile(
+// nkbool nkiCompilerCompileScriptFile(
 //     struct NKCompilerState *cs,
 //     const char *scriptFilename);
 
@@ -89,7 +89,7 @@ struct NKVMFunctionCallbackData
     struct NKVM *vm;
 
     struct NKValue *arguments;
-    uint32_t argumentCount;
+    nkuint32_t argumentCount;
 
     // Set this to something to return a value.
     struct NKValue returnValue;

@@ -15,14 +15,14 @@ struct NKInstruction
     union {
         enum NKOpcode opcode;
 
-        int32_t opData_int;
+        nkint32_t opData_int;
         float opData_float;
-        uint32_t opData_string;
-        uint32_t opData_functionId;
+        nkuint32_t opData_string;
+        nkuint32_t opData_functionId;
     };
 
   #if NK_VM_DEBUG
-    uint32_t lineNumber;
+    nkuint32_t lineNumber;
   #endif
 };
 

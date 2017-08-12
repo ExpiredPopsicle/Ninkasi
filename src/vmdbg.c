@@ -2,7 +2,7 @@
 
 #define DEBUG_SPAM 0
 
-// static int32_t dbgIndentLevel = 0;
+// static nkint32_t dbgIndentLevel = 0;
 
 int dbgWriteLine(const char *fmt, ...)
 {
@@ -11,7 +11,7 @@ int dbgWriteLine(const char *fmt, ...)
     int ret;
     va_start(args, fmt);
     {
-        int32_t i;
+        nkint32_t i;
         for(i = 0; i < dbgIndentLevel; i++) {
             printf("  ");
         }

@@ -15,7 +15,7 @@ static const char *opcodeNameTable[NK_OPCODE_PADDEDCOUNT];
 // code, and have a value of zero here. Some instructions do weird
 // shit to the stack, like RETURN. That's also got zero stack offset
 // here.
-int32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
+nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
 #define NK_SETUP_OP(x, y, z)                       \
     do {                                        \
@@ -82,7 +82,7 @@ static void vmInitOpcodeTable(void)
     // to pad up to a power of two so we can easily mask instructions
     // instead of branching to make sure they're valid.
     {
-        uint32_t i;
+        nkuint32_t i;
         for(i = NK_OPCODE_REALCOUNT; i < NK_OPCODE_PADDEDCOUNT; i++) {
             opcodeTable[i] = nkiOpcode_nop;
             nkiCompilerStackOffsetTable[i] = 0;
@@ -90,9 +90,9 @@ static void vmInitOpcodeTable(void)
     }
 
     // Quick sanity check.
-    assert(sizeof(uint32_t) == 4);
-    assert(sizeof(int32_t) == 4);
-    assert(sizeof(bool) == 1);
+    assert(sizeof(nkuint32_t) == 4);
+    assert(sizeof(nkint32_t) == 4);
+    assert(sizeof(nkbool) == 1);
 }
 
 // ----------------------------------------------------------------------
@@ -110,12 +110,12 @@ void vmInit(struct NKVM *vm)
     vm->peakMemoryUsage = 0;
     vm->allocations = NULL;
 
-    vm->limits.maxStrings = ~(uint32_t)0;
-    vm->limits.maxStringLength = ~(uint32_t)0;
-    vm->limits.maxStacksize = ~(uint32_t)0;
-    vm->limits.maxObjects = ~(uint32_t)0;
-    vm->limits.maxFieldsPerObject = ~(uint32_t)0;
-    vm->limits.maxAllocatedMemory = ~(uint32_t)0;
+    vm->limits.maxStrings = ~(nkuint32_t)0;
+    vm->limits.maxStringLength = ~(nkuint32_t)0;
+    vm->limits.maxStacksize = ~(nkuint32_t)0;
+    vm->limits.maxObjects = ~(nkuint32_t)0;
+    vm->limits.maxFieldsPerObject = ~(nkuint32_t)0;
+    vm->limits.maxAllocatedMemory = ~(nkuint32_t)0;
 
     vmInitOpcodeTable();
 
@@ -189,7 +189,7 @@ void vmIterate(struct NKVM *vm)
 {
     struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
-    uint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
+    nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 
     dbgWriteLine("Executing: %s", vmGetOpcodeName(opcodeId));
 
@@ -220,7 +220,7 @@ struct NKVMValueGCEntry
 struct NKVMGCState
 {
     struct NKVM *vm;
-    uint32_t currentGCPass;
+    nkuint32_t currentGCPass;
     struct NKVMValueGCEntry *openList;
     struct NKVMValueGCEntry *closedList; // We'll keep this just for re-using allocations.
 };
@@ -245,7 +245,7 @@ void vmGarbageCollect_markObject(
     struct NKVMGCState *gcState,
     struct NKVMObject *ob)
 {
-    uint32_t bucket;
+    nkuint32_t bucket;
 
     if(ob->lastGCPass == gcState->currentGCPass) {
         return;
@@ -259,7 +259,7 @@ void vmGarbageCollect_markObject(
 
         while(el) {
 
-            uint32_t k;
+            nkuint32_t k;
             for(k = 0; k < 2; k++) {
                 struct NKValue *v = k ? &el->value : &el->key;
 
@@ -373,7 +373,7 @@ void vmGarbageCollect(struct NKVM *vm)
 
     // Iterate through the current stack.
     {
-        uint32_t i;
+        nkuint32_t i;
         struct NKValue *values = vm->stack.values;
         for(i = 0; i < vm->stack.size; i++) {
             vmGarbageCollect_markValue(
@@ -401,7 +401,7 @@ void vmGarbageCollect(struct NKVM *vm)
     // Clean up.
     assert(!gcState.openList);
     {
-        uint32_t count = 0;
+        nkuint32_t count = 0;
         while(gcState.closedList) {
             struct NKVMValueGCEntry *next = gcState.closedList->next;
             nkiFree(vm, gcState.closedList);
@@ -418,11 +418,11 @@ void vmRescanProgramStrings(struct NKVM *vm)
     // would clutter stuff up permanently.
 
     // Unmark dontGC on everything.
-    uint32_t i;
+    nkuint32_t i;
     for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
         struct NKVMString *str = vm->stringTable.stringTable[i];
         if(str) {
-            str->dontGC = false;
+            str->dontGC = nkfalse;
         }
     }
 
@@ -439,7 +439,7 @@ void vmRescanProgramStrings(struct NKVM *vm)
                         vm->instructions[i].opData_string);
 
                 if(entry) {
-                    entry->dontGC = true;
+                    entry->dontGC = nktrue;
 
                     dbgWriteLine("Marked string as in-use by program: %s", entry->str);
                 }
@@ -457,7 +457,7 @@ const char *vmGetOpcodeName(enum NKOpcode op)
     return opcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
 }
 
-struct NKVMFunction *vmCreateFunction(struct NKVM *vm, uint32_t *functionId)
+struct NKVMFunction *vmCreateFunction(struct NKVM *vm, nkuint32_t *functionId)
 {
     if(functionId) {
         *functionId = vm->functionCount++;
@@ -486,12 +486,12 @@ void vmCreateCFunction(
 
     // TODO: Test this stupid thing.
 
-    uint32_t functionId = 0;
+    nkuint32_t functionId = 0;
     struct NKVMFunction *vmfunc =
         vmCreateFunction(vm, &functionId);
 
-    vmfunc->argumentCount = ~(uint32_t)0;
-    vmfunc->isCFunction = true;
+    vmfunc->argumentCount = ~(nkuint32_t)0;
+    vmfunc->isCFunction = nktrue;
     vmfunc->CFunctionCallback = func;
 
     output->type = NK_VALUETYPE_FUNCTIONID;
@@ -501,7 +501,7 @@ void vmCreateCFunction(
 void vmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
-    uint32_t argumentCount,
+    nkuint32_t argumentCount,
     struct NKValue *arguments,
     struct NKValue *returnValue)
 {
@@ -513,8 +513,8 @@ void vmCallFunction(
     }
 
     {
-        uint32_t oldInstructionPtr = vm->instructionPointer;
-        uint32_t i;
+        nkuint32_t oldInstructionPtr = vm->instructionPointer;
+        nkuint32_t i;
 
         *vmStackPush_internal(vm) = *functionValue;
         for(i = 0; i < argumentCount; i++) {
@@ -522,7 +522,7 @@ void vmCallFunction(
         }
         vmStackPushInt(vm, argumentCount);
 
-        vm->instructionPointer = (~(uint32_t)0 - 1);
+        vm->instructionPointer = (~(nkuint32_t)0 - 1);
 
         nkiOpcode_call(vm);
         if(vm->errorState.firstError) {
@@ -531,7 +531,7 @@ void vmCallFunction(
 
         vm->instructionPointer++;
 
-        while(vm->instructionPointer != ~(uint32_t)0 &&
+        while(vm->instructionPointer != ~(nkuint32_t)0 &&
             !vm->errorState.firstError)
         {
             dbgWriteLine("In vmCallFunction %u", vm->instructionPointer);
@@ -546,7 +546,7 @@ void vmCallFunction(
     }
 }
 
-bool vmExecuteProgram(struct NKVM *vm)
+nkbool vmExecuteProgram(struct NKVM *vm)
 {
     while(vm->instructions[
             vm->instructionPointer &
@@ -555,16 +555,16 @@ bool vmExecuteProgram(struct NKVM *vm)
         vmIterate(vm);
 
         if(vm->errorState.firstError) {
-            return false;
+            return nkfalse;
         }
     }
 
-    return true;
+    return nktrue;
 }
 
-uint32_t vmGetErrorCount(struct NKVM *vm)
+nkuint32_t vmGetErrorCount(struct NKVM *vm)
 {
-    uint32_t count = 0;
+    nkuint32_t count = 0;
     struct NKError *error = vm->errorState.firstError;
 
     while(error) {
@@ -582,7 +582,7 @@ uint32_t vmGetErrorCount(struct NKVM *vm)
 struct NKValue *vmFindGlobalVariable(
     struct NKVM *vm, const char *name)
 {
-    uint32_t i;
+    nkuint32_t i;
     for(i = 0; i < vm->globalVariableCount; i++) {
         if(!strcmp(vm->globalVariables[i].name, name)) {
             return &vm->stack.values[vm->stack.indexMask & vm->globalVariables[i].stackPosition];

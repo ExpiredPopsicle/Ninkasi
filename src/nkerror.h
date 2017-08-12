@@ -20,7 +20,7 @@ struct NKErrorState
     // because if we're in a situation where an allocation has failed,
     // we might not be in a situation where we can allocate memory for
     // any more error messages at all.
-    bool allocationFailure;
+    nkbool allocationFailure;
 };
 
 void nkiErrorStateInit(struct NKVM *vm);
@@ -28,7 +28,7 @@ void nkiErrorStateDestroy(struct NKVM *vm);
 
 void nkiAddError(
     struct NKVM *vm,
-    int32_t lineNumber,
+    nkint32_t lineNumber,
     const char *str);
 
 void nkiErrorStateSetAllocationFailFlag(
@@ -36,6 +36,6 @@ void nkiErrorStateSetAllocationFailFlag(
 
 /// Get whether or not an error has occurred (faster than
 /// vmGetErrorCount).
-bool nkiVmHasErrors(struct NKVM *vm);
+nkbool nkiVmHasErrors(struct NKVM *vm);
 
 #endif

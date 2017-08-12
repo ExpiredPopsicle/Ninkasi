@@ -13,31 +13,31 @@ struct NKVMObjectElement
 
 struct NKVMObject
 {
-    uint32_t objectTableIndex;
-    uint32_t lastGCPass;
+    nkuint32_t objectTableIndex;
+    nkuint32_t lastGCPass;
 
     // Cached count of number of entries.
-    uint32_t size;
+    nkuint32_t size;
 
     struct NKVMObjectElement *hashBuckets[nkiVMObjectHashBucketCount];
 
     // External handle stuff.
     struct NKVMObject *nextObjectWithExternalHandles;
     struct NKVMObject **previousExternalHandleListPtr;
-    uint32_t externalHandleCount;
+    nkuint32_t externalHandleCount;
 };
 
 struct NKVMObjectTableHole
 {
     struct NKVMObjectTableHole *next;
-    uint32_t index;
+    nkuint32_t index;
 };
 
 struct NKVMObjectTable
 {
     struct NKVMObjectTableHole *tableHoles;
     struct NKVMObject **objectTable;
-    uint32_t objectTableCapacity;
+    nkuint32_t objectTableCapacity;
 
     struct NKVMObject *objectsWithExternalHandles;
 };
@@ -47,14 +47,14 @@ void vmObjectTableDestroy(struct NKVM *vm);
 
 struct NKVMObject *vmObjectTableGetEntryById(
     struct NKVMObjectTable *table,
-    uint32_t index);
+    nkuint32_t index);
 
-uint32_t vmObjectTableCreateObject(
+nkuint32_t vmObjectTableCreateObject(
     struct NKVM *vm);
 
 void vmObjectTableCleanOldObjects(
     struct NKVM *vm,
-    uint32_t lastGCPass);
+    nkuint32_t lastGCPass);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.
@@ -62,7 +62,7 @@ struct NKValue *vmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key,
-    bool noAdd);
+    nkbool noAdd);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.

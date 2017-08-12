@@ -21,7 +21,7 @@ void vmObjectTableInit(struct NKVM *vm)
 
 void vmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
 {
-    uint32_t i;
+    nkuint32_t i;
     for(i = 0; i < nkiVMObjectHashBucketCount; i++) {
         struct NKVMObjectElement *el = ob->hashBuckets[i];
         while(el) {
@@ -38,7 +38,7 @@ void vmObjectTableDestroy(struct NKVM *vm)
     struct NKVMObjectTable *table = &vm->objectTable;
 
     // Clear out the main table.
-    uint32_t i;
+    nkuint32_t i;
     for(i = 0; i < table->objectTableCapacity; i++) {
         if(table->objectTable[i]) {
             vmObjectDelete(vm, table->objectTable[i]);
@@ -62,7 +62,7 @@ void vmObjectTableDestroy(struct NKVM *vm)
 
 struct NKVMObject *vmObjectTableGetEntryById(
     struct NKVMObjectTable *table,
-    uint32_t index)
+    nkuint32_t index)
 {
     if(index >= table->objectTableCapacity) {
         return NULL;
@@ -71,11 +71,11 @@ struct NKVMObject *vmObjectTableGetEntryById(
     return table->objectTable[index];
 }
 
-uint32_t vmObjectTableCreateObject(
+nkuint32_t vmObjectTableCreateObject(
     struct NKVM *vm)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
-    uint32_t index = ~0;
+    nkuint32_t index = ~0;
     struct NKVMObject *newObject = nkiMalloc(vm, sizeof(struct NKVMObject));
     memset(newObject, 0, sizeof(*newObject));
 
@@ -94,16 +94,16 @@ uint32_t vmObjectTableCreateObject(
 
         // Looks like we have to re-size the object table.
 
-        uint32_t oldCapacity = table->objectTableCapacity;
-        uint32_t newCapacity = oldCapacity << 1;
-        uint32_t i;
+        nkuint32_t oldCapacity = table->objectTableCapacity;
+        nkuint32_t newCapacity = oldCapacity << 1;
+        nkuint32_t i;
 
         // If we're going to have to allocate more space in our table, we
         // need to check against our VM's string limit.
         if((newCapacity > vm->limits.maxObjects || !newCapacity)) {
             nkiAddError(
                 vm, -1, "Reached object table capacity limit.");
-            return ~(uint32_t)0;
+            return ~(nkuint32_t)0;
         }
 
         table->objectTable = nkiRealloc(
@@ -144,10 +144,10 @@ uint32_t vmObjectTableCreateObject(
 
 void vmObjectTableCleanOldObjects(
     struct NKVM *vm,
-    uint32_t lastGCPass)
+    nkuint32_t lastGCPass)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
-    uint32_t i;
+    nkuint32_t i;
 
     dbgWriteLine("Purging unused objects...");
     dbgPush();
@@ -190,7 +190,7 @@ void vmObjectClearEntry(
 
     struct NKVMObjectElement **elPtr = obList;
     while(*elPtr) {
-        if(value_compare(vm, key, &(*elPtr)->key, true) == 0) {
+        if(value_compare(vm, key, &(*elPtr)->key, nktrue) == 0) {
             break;
         }
         elPtr = &(*elPtr)->next;
@@ -210,14 +210,14 @@ struct NKValue *vmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key,
-    bool noAdd)
+    nkbool noAdd)
 {
     struct NKVMObjectElement **obList =
         &ob->hashBuckets[valueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
 
     struct NKVMObjectElement *el = *obList;
     while(el) {
-        if(value_compare(vm, key, &el->key, true) == 0) {
+        if(value_compare(vm, key, &el->key, nktrue) == 0) {
             break;
         }
         el = el->next;
@@ -255,13 +255,13 @@ struct NKValue *vmObjectFindOrAddEntry(
 
 void vmObjectTableDump(struct NKVM *vm)
 {
-    uint32_t index;
+    nkuint32_t index;
     printf("Object table dump...\n");
     for(index = 0; index < vm->objectTable.objectTableCapacity; index++) {
         if(vm->objectTable.objectTable[index]) {
 
             struct NKVMObject *ob = vm->objectTable.objectTable[index];
-            uint32_t bucket;
+            nkuint32_t bucket;
 
             printf("%4u ", index);
             printf("Object\n");

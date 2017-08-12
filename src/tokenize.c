@@ -1,14 +1,14 @@
 #include "common.h"
 
-static bool isWhitespace(char c)
+static nkbool isWhitespace(char c)
 {
     if(c == ' ' || c == '\n' || c == '\t' || c == '\r') {
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
-static bool isNumber(char c)
+static nkbool isNumber(char c)
 {
     return (c >= '0' && c <= '9');
 }
@@ -38,7 +38,7 @@ void addToken(
     struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
-    int32_t lineNumber,
+    nkint32_t lineNumber,
     struct NKTokenList *tokenList)
 {
     struct NKToken *newToken =
@@ -67,9 +67,9 @@ char *tokenizerUnescapeString(
     // +2 for weird backslash-before null-terminator, and the regular
     // null terminator.
     char *out = nkiMalloc(vm, strlen(in) + 2);
-    uint32_t len = strlen(in);
-    uint32_t readIndex;
-    uint32_t writeIndex = 0;
+    nkuint32_t len = strlen(in);
+    nkuint32_t readIndex;
+    nkuint32_t writeIndex = 0;
 
     for(readIndex = 0; readIndex < len; readIndex++) {
 
@@ -152,26 +152,26 @@ void consolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
     }
 }
 
-bool isValidIdentifierCharacter(char c, bool isFirstCharacter)
+nkbool isValidIdentifierCharacter(char c, nkbool isFirstCharacter)
 {
     if(!isFirstCharacter) {
         if(c >= '0' && c <= '9') {
-            return true;
+            return nktrue;
         }
     }
 
-    if(c == '_') return true;
-    if(c >= 'a' && c <= 'z') return true;
-    if(c >= 'A' && c <= 'Z') return true;
+    if(c == '_') return nktrue;
+    if(c >= 'a' && c <= 'z') return nktrue;
+    if(c >= 'A' && c <= 'Z') return nktrue;
 
-    return false;
+    return nkfalse;
 }
 
-bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
+nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 {
-    uint32_t len = strlen(str);
-    uint32_t i = 0;
-    int32_t lineNumber = 1;
+    nkuint32_t len = strlen(str);
+    nkuint32_t i = 0;
+    nkint32_t lineNumber = 1;
 
     while(i < len) {
 
@@ -319,8 +319,8 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
             const char *strEnd   = &str[i+1];
             char *strTmp         = NULL;
             char *strUnescaped   = NULL;
-            uint32_t len         = 0;
-            bool skipNextQuote   = false;
+            nkuint32_t len         = 0;
+            nkbool skipNextQuote   = nkfalse;
 
             while(*strEnd != 0 && (skipNextQuote || *strEnd != '\"')) {
 
@@ -329,14 +329,14 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
                 if(*strEnd == '\\') {
                     skipNextQuote = !skipNextQuote;
                 } else {
-                    skipNextQuote = false;
+                    skipNextQuote = nkfalse;
                 }
 
                 // In order to not mess up line counting, we're just
                 // going to make newlines inside strings a bad thing.
                 if(*strEnd == '\n') {
                     nkiAddError(vm, lineNumber, "Newline inside of quoted string.");
-                    return false;
+                    return nkfalse;
                 }
 
                 strEnd++;
@@ -361,8 +361,8 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
         } else if(isNumber(str[i])) {
 
             // Scan until we find the end of the number.
-            uint32_t numberStart = i;
-            bool isFloat = false;
+            nkuint32_t numberStart = i;
+            nkbool isFloat = nkfalse;
             char tmp[256];
 
             while(i < len &&
@@ -371,7 +371,7 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
             {
                 tmp[i - numberStart] = str[i];
                 if(str[i] == '.') {
-                    isFloat = true;
+                    isFloat = nktrue;
                 }
                 i++;
             }
@@ -390,13 +390,13 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
                 lineNumber,
                 tokenList);
 
-        } else if(isValidIdentifierCharacter(str[i], true)) {
+        } else if(isValidIdentifierCharacter(str[i], nktrue)) {
 
-            uint32_t startIndex = i;
+            nkuint32_t startIndex = i;
             char *tmp;
 
             i++;
-            while(isValidIdentifierCharacter(str[i], false)) {
+            while(isValidIdentifierCharacter(str[i], nkfalse)) {
                 i++;
             }
 
@@ -442,7 +442,7 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
             nkiAddError(
                 vm, lineNumber, "Unknown token.");
 
-            return false;
+            return nkfalse;
         }
 
         i++;
@@ -450,5 +450,5 @@ bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 
     consolidateStringLiterals(vm, tokenList);
 
-    return true;
+    return nktrue;
 }

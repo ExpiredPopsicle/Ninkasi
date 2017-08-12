@@ -3,14 +3,14 @@
 void nkiErrorStateSetAllocationFailFlag(
     struct NKVM *vm)
 {
-    vm->errorState.allocationFailure = true;
+    vm->errorState.allocationFailure = nktrue;
 }
 
 void nkiErrorStateInit(struct NKVM *vm)
 {
     vm->errorState.firstError = NULL;
     vm->errorState.lastError = NULL;
-    vm->errorState.allocationFailure = false;
+    vm->errorState.allocationFailure = nkfalse;
 }
 
 void nkiErrorStateDestroy(struct NKVM *vm)
@@ -25,14 +25,14 @@ void nkiErrorStateDestroy(struct NKVM *vm)
     vm->errorState.firstError = NULL;
 }
 
-bool nkiVmHasErrors(struct NKVM *vm)
+nkbool nkiVmHasErrors(struct NKVM *vm)
 {
     return vm->errorState.firstError || vm->errorState.allocationFailure;
 }
 
 void nkiAddError(
     struct NKVM *vm,
-    int32_t lineNumber,
+    nkint32_t lineNumber,
     const char *str)
 {
     struct NKError *newError = nkiMalloc(

@@ -9,17 +9,17 @@ struct NKVMStack;
 // Public API
 // ----------------------------------------------------------------------
 
-bool vmStackPushInt(struct NKVM *vm, int32_t value);
-bool vmStackPushFloat(struct NKVM *vm, float value);
-bool vmStackPushString(struct NKVM *vm, const char *str);
+nkbool vmStackPushInt(struct NKVM *vm, nkint32_t value);
+nkbool vmStackPushFloat(struct NKVM *vm, float value);
+nkbool vmStackPushString(struct NKVM *vm, const char *str);
 
 /// Pop something off the stack and return it. NOTE: Returns a pointer
 /// to the object on the stack, which will be overwritten the next
 /// time you push something!
 struct NKValue *vmStackPop(struct NKVM *vm);
-void vmStackPopN(struct NKVM *vm, uint32_t count);
+void vmStackPopN(struct NKVM *vm, nkuint32_t count);
 
-struct NKValue *vmStackPeek(struct NKVM *vm, uint32_t index);
+struct NKValue *vmStackPeek(struct NKVM *vm, nkuint32_t index);
 
 void vmStackDump(struct NKVM *vm);
 
@@ -30,9 +30,9 @@ void vmStackDump(struct NKVM *vm);
 struct NKVMStack
 {
     struct NKValue *values;
-    uint32_t size;
-    uint32_t capacity;
-    uint32_t indexMask;
+    nkuint32_t size;
+    nkuint32_t capacity;
+    nkuint32_t indexMask;
 };
 
 void vmStackInit(struct NKVM *vm);

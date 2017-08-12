@@ -191,7 +191,7 @@ void nkiOpcode_divide(struct NKVM *vm)
     switch(type) {
 
         case NK_VALUETYPE_INT: {
-            int32_t val2 = valueToInt(vm, in2);
+            nkint32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
                 nkiAddError(
                     vm, -1,
@@ -234,7 +234,7 @@ void nkiOpcode_modulo(struct NKVM *vm)
     switch(type) {
 
         case NK_VALUETYPE_INT: {
-            int32_t val2 = valueToInt(vm, in2);
+            nkint32_t val2 = valueToInt(vm, in2);
             if(val2 == 0) {
                 nkiAddError(
                     vm, -1,
@@ -327,7 +327,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
     if(v->intData >= 0) {
 
         // Absolute stack address. Probably a global variable.
-        uint32_t stackAddress = v->intData;
+        nkuint32_t stackAddress = v->intData;
         struct NKValue *vIn = vmStackPeek(vm, v->intData);
         struct NKValue *vOut = vmStackPush_internal(vm);
         *vOut = *vIn;
@@ -337,7 +337,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
     } else {
 
         // Negative stack address. Probably a local variable.
-        uint32_t stackAddress = vm->stack.size + v->intData;
+        nkuint32_t stackAddress = vm->stack.size + v->intData;
         struct NKValue *vIn = vmStackPeek(
             vm, stackAddress);
         struct NKValue *vOut = vmStackPush_internal(vm);
@@ -362,7 +362,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
     if(stackAddrValue->intData >= 0) {
 
         // Absolute stack address. Probably a global variable.
-        uint32_t stackAddress = stackAddrValue->intData;
+        nkuint32_t stackAddress = stackAddrValue->intData;
         struct NKValue *vIn = vmStackPeek(vm, (vm->stack.size - 1));
         struct NKValue *vOut = vmStackPeek(vm, stackAddrValue->intData);
         *vOut = *vIn;
@@ -371,7 +371,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
 
     } else {
         // Negative stack address. Probably a local variable.
-        uint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
+        nkuint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
         struct NKValue *vIn = vmStackPeek(vm, (vm->stack.size - 1));
         struct NKValue *vOut = vmStackPeek(vm, stackAddress);
         *vOut = *vIn;
@@ -393,8 +393,8 @@ void nkiOpcode_call(struct NKVM *vm)
     //   <_argumentCount number of arguments>
     //   function id
 
-    uint32_t argumentCount = 0;
-    uint32_t functionId = 0;
+    nkuint32_t argumentCount = 0;
+    nkuint32_t functionId = 0;
     struct NKVMFunction *funcOb = NULL;
 
     // PEEK at the top of the stack. That's _argumentCount.
@@ -431,7 +431,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
     // Compare _argumentCount to the stored function object's
     // _argumentCount. Throw an error if they mismatch.
-    if(funcOb->argumentCount != ~(uint32_t)0 &&
+    if(funcOb->argumentCount != ~(nkuint32_t)0 &&
         funcOb->argumentCount != argumentCount)
     {
         nkiAddError(
@@ -468,7 +468,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
         // Copy arguments over.
         {
-            uint32_t i;
+            nkuint32_t i;
             for(i = 0; i < argumentCount; i++) {
                 data.arguments[i] =
                     vm->stack.values[
@@ -532,8 +532,8 @@ void nkiOpcode_return(struct NKVM *vm)
 
     struct NKValue *returnValue = NULL;
     struct NKValue *contextCountValue = NULL;
-    uint32_t returnAddress = 0;
-    uint32_t argumentCount = 0;
+    nkuint32_t returnAddress = 0;
+    nkuint32_t argumentCount = 0;
 
     // Pop a value, contextCount, off the stack.
     contextCountValue = vmStackPop(vm);
@@ -595,59 +595,59 @@ void nkiOpcode_jz(struct NKVM *vm)
     }
 }
 
-int32_t nkiOpcode_internal_compare(struct NKVM *vm)
+nkint32_t nkiOpcode_internal_compare(struct NKVM *vm)
 {
     struct NKValue *in2 = vmStackPop(vm);
     struct NKValue *in1 = vmStackPop(vm);
 
-    return value_compare(vm, in1, in2, false);
+    return value_compare(vm, in1, in2, nkfalse);
 }
 
 void nkiOpcode_gt(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 1);
 }
 
 void nkiOpcode_lt(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == -1);
 }
 
 void nkiOpcode_ge(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0 || comparison == 1);
 }
 
 void nkiOpcode_le(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0 || comparison == -1);
 }
 
 void nkiOpcode_eq(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison == 0);
 }
 
 void nkiOpcode_ne(struct NKVM *vm)
 {
-    int32_t comparison = nkiOpcode_internal_compare(vm);
+    nkint32_t comparison = nkiOpcode_internal_compare(vm);
     vmStackPushInt(vm, comparison != 0);
 }
 
 void nkiOpcode_eqsametype(struct NKVM *vm)
 {
-    uint32_t stackSize = vm->stack.size;
-    bool sameTypes =
+    nkuint32_t stackSize = vm->stack.size;
+    nkbool sameTypes =
         vmStackPeek(vm, stackSize - 1)->type ==
         vmStackPeek(vm, stackSize - 2)->type;
 
     if(sameTypes) {
-        int32_t comparison = nkiOpcode_internal_compare(vm);
+        nkint32_t comparison = nkiOpcode_internal_compare(vm);
         vmStackPushInt(vm, comparison == 0);
     } else {
         vmStackPopN(vm, 2);
@@ -664,8 +664,8 @@ void nkiOpcode_and(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
-    bool in1 = valueToInt(vm, vmStackPop(vm));
-    bool in2 = valueToInt(vm, vmStackPop(vm));
+    nkbool in1 = valueToInt(vm, vmStackPop(vm));
+    nkbool in2 = valueToInt(vm, vmStackPop(vm));
     vmStackPushInt(vm, in1 && in2);
 }
 
@@ -673,8 +673,8 @@ void nkiOpcode_or(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
-    bool in1 = valueToInt(vm, vmStackPop(vm));
-    bool in2 = valueToInt(vm, vmStackPop(vm));
+    nkbool in1 = valueToInt(vm, vmStackPop(vm));
+    nkbool in2 = valueToInt(vm, vmStackPop(vm));
     vmStackPushInt(vm, in1 || in2);
 }
 
@@ -685,7 +685,7 @@ void nkiOpcode_createObject(struct NKVM *vm)
     v->objectId = vmObjectTableCreateObject(vm);
 }
 
-void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, bool popObject)
+void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
 {
     struct NKValue *indexToGet = vmStackPop(vm);
     struct NKValue *objectToGet;
@@ -720,7 +720,7 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, bool popObject)
     output = vmStackPush_internal(vm);
 
     objectValue =
-        vmObjectFindOrAddEntry(vm, ob, indexToGet, true);
+        vmObjectFindOrAddEntry(vm, ob, indexToGet, nktrue);
 
     if(objectValue) {
         *output = *objectValue;
@@ -732,12 +732,12 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, bool popObject)
 
 void nkiOpcode_objectFieldGet(struct NKVM *vm)
 {
-    nkiOpcode_objectFieldGet_internal(vm, true);
+    nkiOpcode_objectFieldGet_internal(vm, nktrue);
 }
 
 void nkiOpcode_objectFieldGet_noPop(struct NKVM *vm)
 {
-    nkiOpcode_objectFieldGet_internal(vm, false);
+    nkiOpcode_objectFieldGet_internal(vm, nkfalse);
 }
 
 void nkiOpcode_objectFieldSet(struct NKVM *vm)
@@ -779,7 +779,7 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
         // For non-nil values, set or create the field.
 
         objectValue =
-            vmObjectFindOrAddEntry(vm, ob, indexToSet, false);
+            vmObjectFindOrAddEntry(vm, ob, indexToSet, nkfalse);
 
         if(objectValue) {
             *objectValue = *valueToSet;
@@ -793,7 +793,7 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
 void nkiOpcode_prepareSelfCall(struct NKVM *vm)
 {
     struct NKValue *argumentCount = vmStackPeek(vm, vm->stack.size - 1);
-    uint32_t stackOffset = valueToInt(vm, argumentCount);
+    nkuint32_t stackOffset = valueToInt(vm, argumentCount);
     struct NKValue *function = vmStackPeek(vm, vm->stack.size - (stackOffset + 3));
     struct NKValue *object = vmStackPeek(vm, vm->stack.size - (stackOffset + 2));
     struct NKValue tmp;

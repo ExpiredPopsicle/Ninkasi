@@ -10,7 +10,7 @@ struct NKToken
     enum NKTokenType type;
     char *str;
     struct NKToken *next;
-    int32_t lineNumber;
+    nkint32_t lineNumber;
 };
 
 struct NKTokenList
@@ -26,9 +26,9 @@ void addToken(
     struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
-    int32_t lineNumber,
+    nkint32_t lineNumber,
     struct NKTokenList *tokenList);
-bool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
+nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
 
 #endif // NINKASI_TOKENIZE_H
 

@@ -73,29 +73,29 @@ struct NKValue *vmStackPush_internal(struct NKVM *vm)
     }
 }
 
-bool vmStackPushInt(struct NKVM *vm, int32_t value)
+nkbool vmStackPushInt(struct NKVM *vm, nkint32_t value)
 {
     struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_INT;
         data->intData = value;
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
-bool vmStackPushFloat(struct NKVM *vm, float value)
+nkbool vmStackPushFloat(struct NKVM *vm, float value)
 {
     struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_FLOAT;
         data->floatData = value;
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
-bool vmStackPushString(struct NKVM *vm, const char *str)
+nkbool vmStackPushString(struct NKVM *vm, const char *str)
 {
     struct NKValue *data = vmStackPush_internal(vm);
     if(data) {
@@ -103,9 +103,9 @@ bool vmStackPushString(struct NKVM *vm, const char *str)
         data->stringTableEntry =
             nkiVmStringTableFindOrAddString(
                 vm, str);
-        return true;
+        return nktrue;
     }
-    return false;
+    return nkfalse;
 }
 
 struct NKValue *vmStackPop(struct NKVM *vm)
@@ -126,7 +126,7 @@ struct NKValue *vmStackPop(struct NKVM *vm)
     return &stack->values[stack->size];
 }
 
-void vmStackPopN(struct NKVM *vm, uint32_t count)
+void vmStackPopN(struct NKVM *vm, nkuint32_t count)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -148,7 +148,7 @@ void vmStackPopN(struct NKVM *vm, uint32_t count)
 
 void vmStackDump(struct NKVM *vm)
 {
-    uint32_t i;
+    nkuint32_t i;
     struct NKVMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
@@ -157,7 +157,7 @@ void vmStackDump(struct NKVM *vm)
     }
 }
 
-struct NKValue *vmStackPeek(struct NKVM *vm, uint32_t index)
+struct NKValue *vmStackPeek(struct NKVM *vm, nkuint32_t index)
 {
     return &vm->stack.values[index & vm->stack.indexMask];
 }

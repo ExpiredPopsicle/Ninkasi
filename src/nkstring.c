@@ -1,15 +1,15 @@
 #include "common.h"
 
-static uint32_t nkiStringHash(const char *in)
+static nkuint32_t nkiStringHash(const char *in)
 {
-    uint32_t len = strlen(in);
-    uint32_t a = 1;
-    uint32_t b = 0;
-    uint32_t i;
+    nkuint32_t len = strlen(in);
+    nkuint32_t a = 1;
+    nkuint32_t b = 0;
+    nkuint32_t i;
 
     for(i = 0; i < len; i++) {
-        a = (a + in[i]) % (uint32_t)65521;
-        b = (b + a) % (uint32_t)65521;
+        a = (a + in[i]) % (nkuint32_t)65521;
+        b = (b + a) % (nkuint32_t)65521;
     }
 
     return (b << 16) | a;
@@ -39,7 +39,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
     struct NKVMStringTable *table = &vm->stringTable;
 
     // Clear out the main table.
-    uint32_t i;
+    nkuint32_t i;
     for(i = 0; i < table->stringTableCapacity; i++) {
         nkiFree(vm, table->stringTable[i]);
         table->stringTable[i] = NULL;
@@ -63,7 +63,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
 }
 
 struct NKVMString *nkiVmStringTableGetEntryById(
-    struct NKVMStringTable *table, uint32_t index)
+    struct NKVMStringTable *table, nkuint32_t index)
 {
     if(index >= table->stringTableCapacity) {
         return NULL;
@@ -74,19 +74,19 @@ struct NKVMString *nkiVmStringTableGetEntryById(
 
 const char *nkiVmStringTableGetStringById(
     struct NKVMStringTable *table,
-    uint32_t index)
+    nkuint32_t index)
 {
     struct NKVMString *vmstr = nkiVmStringTableGetEntryById(table, index);
     return vmstr ? vmstr->str : NULL;
 }
 
-uint32_t nkiVmStringTableFindOrAddString(
+nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str)
 {
     struct NKVMStringTable *table = &vm->stringTable;
-    uint32_t hash = nkiStringHash(str);
-    uint32_t len = 0;
+    nkuint32_t hash = nkiStringHash(str);
+    nkuint32_t len = 0;
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
@@ -105,7 +105,7 @@ uint32_t nkiVmStringTableFindOrAddString(
     if(len > vm->limits.maxStringLength) {
         nkiAddError(
             vm, -1, "Reached string length limit.");
-        return ~(uint32_t)0;
+        return ~(nkuint32_t)0;
     }
 
     // If we've reach this point, then we don't have the string yet,
@@ -113,7 +113,7 @@ uint32_t nkiVmStringTableFindOrAddString(
     {
         struct NKVMString *newString =
             nkiMalloc(vm, sizeof(struct NKVMString) + len + 1);
-        uint32_t index = 0;
+        nkuint32_t index = 0;
 
         if(table->tableHoles) {
 
@@ -131,16 +131,16 @@ uint32_t nkiVmStringTableFindOrAddString(
 
             // Looks like we have to re-size the string table.
 
-            uint32_t oldCapacity = table->stringTableCapacity;
-            uint32_t newCapacity = oldCapacity << 1;
-            uint32_t i;
+            nkuint32_t oldCapacity = table->stringTableCapacity;
+            nkuint32_t newCapacity = oldCapacity << 1;
+            nkuint32_t i;
 
             // If we're going to have to allocate more space in our table, we
             // need to check against our VM's string limit.
             if((newCapacity > vm->limits.maxStrings || !newCapacity)) {
                 nkiAddError(
                     vm, -1, "Reached string table capacity limit.");
-                return ~(uint32_t)0;
+                return ~(nkuint32_t)0;
             }
 
             table->stringTable = nkiRealloc(
@@ -171,7 +171,7 @@ uint32_t nkiVmStringTableFindOrAddString(
 
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
-        newString->dontGC = false;
+        newString->dontGC = nkfalse;
         newString->hash = nkiStringHash(str);
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
@@ -184,7 +184,7 @@ uint32_t nkiVmStringTableFindOrAddString(
 
 void nkiVmStringTableDump(struct NKVMStringTable *table)
 {
-    uint32_t i;
+    nkuint32_t i;
     printf("String table dump...\n");
 
     printf("  Hash table...\n");
@@ -207,10 +207,10 @@ void nkiVmStringTableDump(struct NKVMStringTable *table)
 
 void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
-    uint32_t lastGCPass)
+    nkuint32_t lastGCPass)
 {
     struct NKVMStringTable *table = &vm->stringTable;
-    uint32_t i;
+    nkuint32_t i;
 
     dbgWriteLine("Purging unused strings...");
     dbgPush();
@@ -224,7 +224,7 @@ void nkiVmStringTableCleanOldStrings(
 
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
-                uint32_t index = str->stringTableIndex;
+                nkuint32_t index = str->stringTableIndex;
                 struct NKVMStringTableHole *hole =
                     nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
 

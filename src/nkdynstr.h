@@ -13,7 +13,7 @@ struct NKDynString *nkiDynStrCreate(struct NKVM *vm, const char *str);
 void nkiDynStrDelete(struct NKDynString *dynStr);
 
 void nkiDynStrAppend(struct NKDynString *dynStr, const char *str);
-void nkiDynStrAppendInt32(struct NKDynString *dynStr, int32_t value);
+void nkiDynStrAppendInt32(struct NKDynString *dynStr, nkint32_t value);
 void nkiDynStrAppendFloat(struct NKDynString *dynStr, float value);
 
 #endif // NINKASI_DYNSTR_H

@@ -1,8 +1,8 @@
 #include "common.h"
 
-// static uint32_t killCounter = 2;
+// static nkuint32_t killCounter = 2;
 
-void *nkiMalloc(struct NKVM *vm, uint32_t size)
+void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
 {
     // if(rand() % 2048 == 0) {
     //     nkiErrorStateSetAllocationFailFlag(vm);
@@ -15,7 +15,7 @@ void *nkiMalloc(struct NKVM *vm, uint32_t size)
         struct NKMemoryHeader *header = NULL;
 
         // Check size against memory limit.
-        uint32_t newChunkSize = size + sizeof(struct NKMemoryHeader);
+        nkuint32_t newChunkSize = size + sizeof(struct NKMemoryHeader);
         if(vm->currentMemoryUsage > vm->limits.maxAllocatedMemory ||
             newChunkSize > vm->limits.maxAllocatedMemory - vm->currentMemoryUsage)
         {
@@ -81,13 +81,13 @@ void nkiFree(struct NKVM *vm, void *data)
     }
 }
 
-void *nkiRealloc(struct NKVM *vm, void *data, uint32_t size)
+void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)
 {
     if(!data) {
         return nkiMalloc(vm, size);
     } else {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
-        uint32_t copySize = size < header->size ? size : header->size;
+        nkuint32_t copySize = size < header->size ? size : header->size;
         void *newData = nkiMalloc(vm, size);
         if(newData) {
             memcpy(newData, data, copySize);
@@ -101,7 +101,7 @@ void *nkiRealloc(struct NKVM *vm, void *data, uint32_t size)
 char *nkiStrdup(struct NKVM *vm, const char *str)
 {
     if(str) {
-        uint32_t len = strlen(str) + 1;
+        nkuint32_t len = strlen(str) + 1;
         if(len) {
             char *copyData = nkiMalloc(vm, len);
             if(copyData) {
