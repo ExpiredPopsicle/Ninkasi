@@ -6,7 +6,7 @@ struct NKVMFunctionCallbackData;
 // typedef void (*VMFunctionCallback)(struct NKVMFunctionCallbackData *data);
 struct NKValue;
 
-#include "basetype.h"
+#include "nktypes.h"
 #include "value.h"
 #include "vm.h" // FIXME: Get rid of this
 #include "nkx.h"

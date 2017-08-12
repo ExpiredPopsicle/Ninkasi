@@ -13,7 +13,7 @@
 #ifndef NINKASI_NKX
 #define NINKASI_NKX
 
-#include "basetype.h"
+#include "nktypes.h"
 #include "value.h"
 
 struct NKVM;

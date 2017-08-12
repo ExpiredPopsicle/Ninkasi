@@ -1,7 +1,7 @@
 #ifndef NINKASI_ERROR_H
 #define NINKASI_ERROR_H
 
-#include "basetype.h"
+#include "nktypes.h"
 
 struct NKVM;
 

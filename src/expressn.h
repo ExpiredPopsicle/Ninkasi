@@ -1,7 +1,7 @@
 #ifndef NINKASI_EXPRESSN_H
 #define NINKASI_EXPRESSN_H
 
-#include "basetype.h"
+#include "nktypes.h"
 
 struct NKToken;
 struct NKVM;

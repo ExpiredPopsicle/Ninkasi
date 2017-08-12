@@ -13,7 +13,7 @@
 
 #include "nkconfig.h"
 
-#include "basetype.h"
+#include "nktypes.h"
 #include "nkenums.h"
 #include "vmstack.h"
 #include "value.h"

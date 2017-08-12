@@ -1,7 +1,7 @@
 #ifndef NINKASI_VMSTRING_H
 #define NINKASI_VMSTRING_H
 
-#include "basetype.h"
+#include "nktypes.h"
 
 struct NKVMString
 {

@@ -1,7 +1,7 @@
 #ifndef NINKASI_DYNSTR_H
 #define NINKASI_DYNSTR_H
 
-#include "basetype.h"
+#include "nktypes.h"
 
 struct NKDynString
 {
