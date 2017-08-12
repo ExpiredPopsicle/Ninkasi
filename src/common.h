@@ -22,7 +22,7 @@
 #include "optimize.h"
 #include "tokenize.h"
 #include "vmdbg.h"
-#include "error.h"
+#include "nkerror.h"
 #include "nkdynstr.h"
 #include "vm.h"
 #include "nkcompil.h"

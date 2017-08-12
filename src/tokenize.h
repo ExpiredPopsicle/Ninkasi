@@ -1,7 +1,7 @@
 #ifndef NINKASI_TOKENIZE_H
 #define NINKASI_TOKENIZE_H
 
-#include "enums.h"
+#include "nkenums.h"
 
 struct NKVM;
 

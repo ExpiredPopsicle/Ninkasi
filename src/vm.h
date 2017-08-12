@@ -3,7 +3,7 @@
 
 #include <setjmp.h>
 
-#include "error.h"
+#include "nkerror.h"
 #include "vmstack.h"
 #include "nkopcode.h"
 #include "nkstring.h"

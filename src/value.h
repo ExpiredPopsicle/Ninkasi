@@ -1,7 +1,7 @@
 #ifndef NINKASI_VALUE_H
 #define NINKASI_VALUE_H
 
-#include "enums.h"
+#include "nkenums.h"
 
 struct NKVM;
 
