@@ -24,18 +24,18 @@ struct NKCompilerState;
 // ----------------------------------------------------------------------
 // Public types
 
-struct NKVMFunctionCallbackData
-{
-    struct NKVM *vm;
+// struct NKVMFunctionCallbackData
+// {
+//     struct NKVM *vm;
 
-    struct NKValue *arguments;
-    nkuint32_t argumentCount;
+//     struct NKValue *arguments;
+//     nkuint32_t argumentCount;
 
-    // Set this to something to return a value.
-    struct NKValue returnValue;
+//     // Set this to something to return a value.
+//     struct NKValue returnValue;
 
-    void *userData;
-};
+//     void *userData;
+// };
 
 #endif
 

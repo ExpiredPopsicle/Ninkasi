@@ -89,7 +89,7 @@ struct NKVM
 void nkiVmInit(struct NKVM *vm);
 
 /// De-initialize a VM. Does not deallocate the VM structure.
-void vmDestroy(struct NKVM *vm);
+void nkiVmDestroy(struct NKVM *vm);
 
 /// Re-check all strings in the string table to see if they're in-use
 /// by any program code. If program code has been removed that

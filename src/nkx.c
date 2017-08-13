@@ -25,7 +25,7 @@ struct NKVM *nkxVmCreate(void)
 void nkxVmDelete(struct NKVM *vm)
 {
     if(vm) {
-        vmDestroy(vm);
+        nkiVmDestroy(vm);
     }
     free(vm);
 }

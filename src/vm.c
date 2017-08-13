@@ -146,7 +146,7 @@ void nkiVmInit(struct NKVM *vm)
     vmObjectTableInit(vm);
 }
 
-void vmDestroy(struct NKVM *vm)
+void nkiVmDestroy(struct NKVM *vm)
 {
     if(vm->errorState.allocationFailure) {
 

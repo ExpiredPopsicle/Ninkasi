@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
-        // vmDestroy(&vm);
+        // nkiVmDestroy(&vm);
         nkxVmDelete(vm);
 
         // printf("Post-cleanup memory usage: %u\n", vm->currentMemoryUsage);
