@@ -157,6 +157,5 @@ void nkiVmCreateCFunction(
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
-
 #endif // NINKASI_VM_H
 

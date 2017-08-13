@@ -3,10 +3,9 @@
 // ----------------------------------------------------------------------
 // Static opcode table setup.
 
-// TODO: Rename all of these.
 typedef void (*NKVMOpcodeCall)(struct NKVM *vm);
-static NKVMOpcodeCall opcodeTable[NK_OPCODE_PADDEDCOUNT];
-static const char *opcodeNameTable[NK_OPCODE_PADDEDCOUNT];
+static NKVMOpcodeCall nkiOpcodeTable[NK_OPCODE_PADDEDCOUNT];
+static const char *nkiOpcodeNameTable[NK_OPCODE_PADDEDCOUNT];
 
 // Change to the stack offset for each instruction. For example, POP
 // will be -1. PUSHLITERAL_* will be +1. Be aware that some opcodes
@@ -19,8 +18,8 @@ nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
 #define NK_SETUP_OP(x, y, z)                       \
     do {                                        \
-        opcodeNameTable[(x)] = #x;              \
-        opcodeTable[(x)] = (y);                 \
+        nkiOpcodeNameTable[(x)] = #x;              \
+        nkiOpcodeTable[(x)] = (y);                 \
         nkiCompilerStackOffsetTable[(x)] = (z); \
     } while(0);
 
@@ -84,7 +83,7 @@ static void nkiVmInitOpcodeTable(void)
     {
         nkuint32_t i;
         for(i = NK_OPCODE_REALCOUNT; i < NK_OPCODE_PADDEDCOUNT; i++) {
-            opcodeTable[i] = nkiOpcode_nop;
+            nkiOpcodeTable[i] = nkiOpcode_nop;
             nkiCompilerStackOffsetTable[i] = 0;
         }
     }
@@ -193,7 +192,7 @@ void nkiVmIterate(struct NKVM *vm)
 
     dbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
 
-    opcodeTable[opcodeId](vm);
+    nkiOpcodeTable[opcodeId](vm);
     vm->instructionPointer++;
 
     // Handle periodic garbage collection.
@@ -454,7 +453,7 @@ void nkiVmRescanProgramStrings(struct NKVM *vm)
 
 const char *nkiVmGetOpcodeName(enum NKOpcode op)
 {
-    return opcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
+    return nkiOpcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
 }
 
 struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId)

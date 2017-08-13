@@ -213,9 +213,9 @@ int main(int argc, char *argv[])
     maxRam = 115200;
     maxRam = 130000;
     maxRam = 1;
-    // maxRam = 158000;
-    maxRam = 15800000;
-    maxMaxRam = maxRam + 2; // + 100;
+    maxRam = 158000;
+    // maxRam = 15800000;
+    // maxMaxRam = maxRam + 1024;
 
     if(!script) {
         printf("Script failed to even load.\n");
@@ -463,6 +463,9 @@ int main(int argc, char *argv[])
     free(script);
 
     printf("Shitcounter: %d\n", shitCounter);
+
+
+    printf("%u\n", sizeof(jmp_buf));
 
     return 0;
 }
