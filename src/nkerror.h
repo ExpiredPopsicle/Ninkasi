@@ -35,7 +35,7 @@ void nkiErrorStateSetAllocationFailFlag(
     struct NKVM *vm);
 
 /// Get whether or not an error has occurred (faster than
-/// vmGetErrorCount).
+/// nkiVmGetErrorCount).
 nkbool nkiVmHasErrors(struct NKVM *vm);
 
 #endif

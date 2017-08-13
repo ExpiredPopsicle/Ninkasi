@@ -66,7 +66,7 @@ void dumpListing(struct NKVM *vm, const char *script)
             // }
 
             // // Output opcode.
-            // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, vmGetOpcodeName(opcode));
+            // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, nkiVmGetOpcodeName(opcode));
 
             // Line-number-less version for diff.
             if(lines) {
@@ -75,12 +75,12 @@ void dumpListing(struct NKVM *vm, const char *script)
                     lastLine++;
                 }
             }
-            printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, vmGetOpcodeName(opcode));
+            printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, nkiVmGetOpcodeName(opcode));
 
           #else
 
             // Output opcode.
-            printf("%.4u: %s", i, vmGetOpcodeName(opcode));
+            printf("%.4u: %s", i, nkiVmGetOpcodeName(opcode));
 
           #endif
 
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
         nkuint32_t instructionCountMax = (nkuint32_t)1024*(nkuint32_t)1024*(nkuint32_t)1024;
         struct NKVM *vm = nkxVmCreate();
         if(!vm) continue;
-        if(vmGetErrorCount(vm)) {
+        if(nkiVmGetErrorCount(vm)) {
             nkxVmDelete(vm);
             continue;
         }
@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
             }
 
             // Dump errors.
-            if(vmGetErrorCount(vm)) {
+            if(nkiVmGetErrorCount(vm)) {
                 struct NKError *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
@@ -294,9 +294,9 @@ int main(int argc, char *argv[])
             printf("  Execution\n");
             printf("----------------------------------------------------------------------\n");
 
-            if(!vmGetErrorCount(vm)) {
+            if(!nkiVmGetErrorCount(vm)) {
 
-                // vmExecuteProgram(vm);
+                // nkiVmExecuteProgram(vm);
 
                 while(
                     vm->instructions[
@@ -342,7 +342,7 @@ int main(int argc, char *argv[])
 
             //     // printf("instruction %d: %d\n", vm->instructionPointer, vm->instructions[vm->instructionPointer].opcode);
             //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);
-            //     vmIterate(vm);
+            //     nkiVmIterate(vm);
 
             if(nkxVmHasErrors(vm)) {
                 struct NKError *err = vm->errorState.firstError;
@@ -361,14 +361,14 @@ int main(int argc, char *argv[])
             //     printf("next instruction %d: %d = %s\n",
             //         vm->instructionPointer,
             //         vm->instructions[vm->instructionPointer].opcode,
-            //         vmGetOpcodeName(vm->instructions[vm->instructionPointer].opcode));
+            //         nkiVmGetOpcodeName(vm->instructions[vm->instructionPointer].opcode));
             // }
 
             // // Function call test.
             // if(!vm->errorState.firstError) {
             //     struct NKValue retVal;
             //     memset(&retVal, 0, sizeof(retVal));
-            //     vmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
+            //     nkiVmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
             // }
 
         } else {
@@ -423,13 +423,13 @@ int main(int argc, char *argv[])
 
             // nkiVmStringTableDump(vm->stringTable);
 
-            // vmRescanProgramStrings(vm);
+            // nkiVmRescanProgramStrings(vm);
 
 
-            // vmIterate(vm);
-            // vmIterate(vm);
-            // vmIterate(vm);
-            // vmIterate(vm);
+            // nkiVmIterate(vm);
+            // nkiVmIterate(vm);
+            // nkiVmIterate(vm);
+            // nkiVmIterate(vm);
             printf("Final stack dump...\n");
             vmStackDump(vm);
 

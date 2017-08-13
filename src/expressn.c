@@ -1103,7 +1103,7 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
         optimizeConstants(cs->vm, &node);
     }
 
-    if(vmGetErrorCount(cs->vm)) {
+    if(nkiVmGetErrorCount(cs->vm)) {
         deleteExpressionNode(cs->vm, node);
         nkiCompilerPopRecursion(cs);
         return NULL;

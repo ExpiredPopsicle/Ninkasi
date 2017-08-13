@@ -94,31 +94,31 @@ void nkiVmDestroy(struct NKVM *vm);
 /// Re-check all strings in the string table to see if they're in-use
 /// by any program code. If program code has been removed that
 /// references strings, then they can be made garbage-collectible.
-void vmRescanProgramStrings(struct NKVM *vm);
+void nkiVmRescanProgramStrings(struct NKVM *vm);
 
-const char *vmGetOpcodeName(enum NKOpcode op);
+const char *nkiVmGetOpcodeName(enum NKOpcode op);
 
 // ----------------------------------------------------------------------
 
 /// Compiler internal function creation. Don't use this outside. Not
 /// for that.
-struct NKVMFunction *vmCreateFunction(struct NKVM *vm, nkuint32_t *functionId);
+struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId);
 
 /// Run the compiled program.
-nkbool vmExecuteProgram(struct NKVM *vm);
+nkbool nkiVmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-nkuint32_t vmGetErrorCount(struct NKVM *vm);
+nkuint32_t nkiVmGetErrorCount(struct NKVM *vm);
 
 // TODO: Error string functions.
 
 /// Run a single instruction inside the VM and advance the program
 /// counter.
-void vmIterate(struct NKVM *vm);
+void nkiVmIterate(struct NKVM *vm);
 
 /// Force a garbage collection pass.
-void vmGarbageCollect(struct NKVM *vm);
+void nkiVmGarbageCollect(struct NKVM *vm);
 
 /// Call a function inside the VM. This does not do any kind of
 /// iteration control, and will simply keep iterating until the
@@ -130,7 +130,7 @@ void vmGarbageCollect(struct NKVM *vm);
 ///
 /// returnValue is an output pointing to the Value to fill with the
 ///   return value from the function call.
-void vmCallFunction(
+void nkiVmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
     nkuint32_t argumentCount,
@@ -142,7 +142,7 @@ void vmCallFunction(
 /// func is the C function pointer itself.
 ///
 /// output is the Value to write the pointer to.
-void vmCreateCFunction(
+void nkiVmCreateCFunction(
     struct NKVM *vm,
     VMFunctionCallback func,
     struct NKValue *output);
@@ -154,7 +154,7 @@ void vmCreateCFunction(
 /// point where they are declared, and until that point, the stack
 /// area they occupy may be used by other things, or may not exist at
 /// all.)
-struct NKValue *vmFindGlobalVariable(
+struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
 

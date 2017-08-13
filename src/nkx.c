@@ -35,7 +35,7 @@ nkbool nkxVmExecuteProgram(struct NKVM *vm)
     nkbool ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(nkfalse);
-    ret = vmExecuteProgram(vm);
+    ret = nkiVmExecuteProgram(vm);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -45,7 +45,7 @@ nkuint32_t nkxVmGetErrorCount(struct NKVM *vm)
     nkuint32_t ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(1);
-    ret = vmGetErrorCount(vm);
+    ret = nkiVmGetErrorCount(vm);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -76,7 +76,7 @@ void nkxVmIterate(struct NKVM *vm, nkuint32_t count)
             break;
         }
 
-        vmIterate(vm);
+        nkiVmIterate(vm);
 
     }
     NK_CLEAR_FAILURE_RECOVERY();
@@ -86,7 +86,7 @@ void nkxVmGarbageCollect(struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    vmGarbageCollect(vm);
+    nkiVmGarbageCollect(vm);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
@@ -100,7 +100,7 @@ void nkxVmCallFunction(
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    vmCallFunction(vm, functionValue, argumentCount, arguments, returnValue);
+    nkiVmCallFunction(vm, functionValue, argumentCount, arguments, returnValue);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
@@ -111,7 +111,7 @@ void nkxVmCreateCFunction(
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    vmCreateCFunction(vm, func, output);
+    nkiVmCreateCFunction(vm, func, output);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
@@ -121,7 +121,7 @@ struct NKValue *nkxVmFindGlobalVariable(
     NK_FAILURE_RECOVERY_DECL();
     struct NKValue *ret;
     NK_SET_FAILURE_RECOVERY(NULL);
-    ret = vmFindGlobalVariable(vm, name);
+    ret = nkiVmFindGlobalVariable(vm, name);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }

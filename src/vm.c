@@ -185,13 +185,13 @@ void nkiVmDestroy(struct NKVM *vm)
 // ----------------------------------------------------------------------
 // Iteration
 
-void vmIterate(struct NKVM *vm)
+void nkiVmIterate(struct NKVM *vm)
 {
     struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 
-    dbgWriteLine("Executing: %s", vmGetOpcodeName(opcodeId));
+    dbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
 
     opcodeTable[opcodeId](vm);
     vm->instructionPointer++;
@@ -201,7 +201,7 @@ void vmIterate(struct NKVM *vm)
     vm->gcCountdown--;
     if(!vm->gcCountdown) {
         if(!vm->gcNewObjectCountdown) {
-            vmGarbageCollect(vm);
+            nkiVmGarbageCollect(vm);
             vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
         }
         vm->gcCountdown = vm->gcInterval;
@@ -241,7 +241,7 @@ struct NKVMValueGCEntry *vmGcStateMakeEntry(struct NKVMGCState *state)
     return ret;
 }
 
-void vmGarbageCollect_markObject(
+void nkiVmGarbageCollect_markObject(
     struct NKVMGCState *gcState,
     struct NKVMObject *ob)
 {
@@ -278,7 +278,7 @@ void vmGarbageCollect_markObject(
 }
 
 // FIXME: Find a way to do this without tons of allocations.
-void vmGarbageCollect_markValue(
+void nkiVmGarbageCollect_markValue(
     struct NKVMGCState *gcState,
     struct NKValue *v)
 {
@@ -292,7 +292,7 @@ void vmGarbageCollect_markValue(
     }
 }
 
-void vmGarbageCollect_markReferenced(
+void nkiVmGarbageCollect_markReferenced(
     struct NKVMGCState *gcState)
 {
     while(gcState->openList) {
@@ -332,7 +332,7 @@ void vmGarbageCollect_markReferenced(
 
                     if(ob) {
 
-                        vmGarbageCollect_markObject(gcState, ob);
+                        nkiVmGarbageCollect_markObject(gcState, ob);
 
                     } else {
                         nkiAddError(
@@ -351,7 +351,7 @@ void vmGarbageCollect_markReferenced(
     }
 }
 
-void vmGarbageCollect(struct NKVM *vm)
+void nkiVmGarbageCollect(struct NKVM *vm)
 {
     struct NKVMGCState gcState;
     memset(&gcState, 0, sizeof(gcState));
@@ -359,7 +359,7 @@ void vmGarbageCollect(struct NKVM *vm)
     gcState.vm = vm;
 
     // TODO: Remove this.
-    dbgWriteLine("vmGarbageCollect");
+    dbgWriteLine("nkiVmGarbageCollect");
 
     // Iterate through objects with external handles.
     {
@@ -367,7 +367,7 @@ void vmGarbageCollect(struct NKVM *vm)
         for(ob = vm->objectTable.objectsWithExternalHandles; ob;
             ob = ob->nextObjectWithExternalHandles)
         {
-            vmGarbageCollect_markObject(&gcState, ob);
+            nkiVmGarbageCollect_markObject(&gcState, ob);
         }
     }
 
@@ -376,7 +376,7 @@ void vmGarbageCollect(struct NKVM *vm)
         nkuint32_t i;
         struct NKValue *values = vm->stack.values;
         for(i = 0; i < vm->stack.size; i++) {
-            vmGarbageCollect_markValue(
+            nkiVmGarbageCollect_markValue(
                 &gcState, &values[i]);
         }
     }
@@ -385,7 +385,7 @@ void vmGarbageCollect(struct NKVM *vm)
 
     // Now go and mark everything that the things in the open list
     // reference.
-    vmGarbageCollect_markReferenced(&gcState);
+    nkiVmGarbageCollect_markReferenced(&gcState);
 
     // Delete unmarked strings.
     nkiVmStringTableCleanOldStrings(
@@ -412,7 +412,7 @@ void vmGarbageCollect(struct NKVM *vm)
     }
 }
 
-void vmRescanProgramStrings(struct NKVM *vm)
+void nkiVmRescanProgramStrings(struct NKVM *vm)
 {
     // This is needed for REPL support. Without it, string literals
     // would clutter stuff up permanently.
@@ -452,12 +452,12 @@ void vmRescanProgramStrings(struct NKVM *vm)
     }
 }
 
-const char *vmGetOpcodeName(enum NKOpcode op)
+const char *nkiVmGetOpcodeName(enum NKOpcode op)
 {
     return opcodeNameTable[op & (NK_OPCODE_PADDEDCOUNT - 1)];
 }
 
-struct NKVMFunction *vmCreateFunction(struct NKVM *vm, nkuint32_t *functionId)
+struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId)
 {
     if(functionId) {
         *functionId = vm->functionCount++;
@@ -476,7 +476,7 @@ struct NKVMFunction *vmCreateFunction(struct NKVM *vm, nkuint32_t *functionId)
     return &vm->functionTable[vm->functionCount - 1];
 }
 
-void vmCreateCFunction(
+void nkiVmCreateCFunction(
     struct NKVM *vm,
     VMFunctionCallback func,
     struct NKValue *output)
@@ -488,7 +488,7 @@ void vmCreateCFunction(
 
     nkuint32_t functionId = 0;
     struct NKVMFunction *vmfunc =
-        vmCreateFunction(vm, &functionId);
+        nkiVmCreateFunction(vm, &functionId);
 
     vmfunc->argumentCount = ~(nkuint32_t)0;
     vmfunc->isCFunction = nktrue;
@@ -498,7 +498,7 @@ void vmCreateCFunction(
     output->functionId = functionId;
 }
 
-void vmCallFunction(
+void nkiVmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,
     nkuint32_t argumentCount,
@@ -508,7 +508,7 @@ void vmCallFunction(
     if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
         nkiAddError(
             vm, -1,
-            "Tried to call a non-function with vmCallFunction.");
+            "Tried to call a non-function with nkiVmCallFunction.");
         return;
     }
 
@@ -534,8 +534,8 @@ void vmCallFunction(
         while(vm->instructionPointer != ~(nkuint32_t)0 &&
             !vm->errorState.firstError)
         {
-            dbgWriteLine("In vmCallFunction %u", vm->instructionPointer);
-            vmIterate(vm);
+            dbgWriteLine("In nkiVmCallFunction %u", vm->instructionPointer);
+            nkiVmIterate(vm);
         }
 
         // Save return value.
@@ -546,13 +546,13 @@ void vmCallFunction(
     }
 }
 
-nkbool vmExecuteProgram(struct NKVM *vm)
+nkbool nkiVmExecuteProgram(struct NKVM *vm)
 {
     while(vm->instructions[
             vm->instructionPointer &
             vm->instructionAddressMask].opcode != NK_OP_END)
     {
-        vmIterate(vm);
+        nkiVmIterate(vm);
 
         if(vm->errorState.firstError) {
             return nkfalse;
@@ -562,7 +562,7 @@ nkbool vmExecuteProgram(struct NKVM *vm)
     return nktrue;
 }
 
-nkuint32_t vmGetErrorCount(struct NKVM *vm)
+nkuint32_t nkiVmGetErrorCount(struct NKVM *vm)
 {
     nkuint32_t count = 0;
     struct NKError *error = vm->errorState.firstError;
@@ -579,7 +579,7 @@ nkuint32_t vmGetErrorCount(struct NKVM *vm)
     return count;
 }
 
-struct NKValue *vmFindGlobalVariable(
+struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name)
 {
     nkuint32_t i;

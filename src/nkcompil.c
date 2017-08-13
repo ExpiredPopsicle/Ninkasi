@@ -589,7 +589,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
         return nkfalse;
     }
 
-    functionObject = vmCreateFunction(
+    functionObject = nkiVmCreateFunction(
         cs->vm, &functionId);
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
@@ -824,7 +824,7 @@ void nkiCompilerCreateCFunctionVariable(
     // Add a new one if we haven't found an existing one.
     if(functionId == cs->vm->functionCount) {
         struct NKVMFunction *vmfunc =
-            vmCreateFunction(cs->vm, &functionId);
+            nkiVmCreateFunction(cs->vm, &functionId);
         vmfunc->argumentCount = ~(nkuint32_t)0;
         vmfunc->isCFunction = nktrue;
         vmfunc->CFunctionCallback = func;
