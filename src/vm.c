@@ -275,7 +275,6 @@ void nkiVmGarbageCollect_markObject(
 
 }
 
-// FIXME: Find a way to do this without tons of allocations.
 void nkiVmGarbageCollect_markValue(
     struct NKVMGCState *gcState,
     struct NKValue *v)
@@ -481,8 +480,6 @@ void nkiVmCreateCFunction(
 {
     // TODO: Lookup function first, to make sure we aren't making
     // duplicate functions.
-
-    // TODO: Test this stupid thing.
 
     nkuint32_t functionId = 0;
     struct NKVMFunction *vmfunc =
