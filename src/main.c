@@ -1,7 +1,7 @@
 #include "nkx.h"
 
 // FIXME: Get rid of this.
-#include "vm.h"
+#include "nkvm.h"
 
 #include <stdio.h>
 #include <assert.h>

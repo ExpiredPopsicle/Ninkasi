@@ -22,7 +22,7 @@
 #include "vmdbg.h"
 #include "nkerror.h"
 #include "nkdynstr.h"
-#include "vm.h"
+#include "nkvm.h"
 #include "nkcompil.h"
 #include "nkstring.h"
 #include "nkfunc.h"
