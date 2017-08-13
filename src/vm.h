@@ -82,7 +82,7 @@ struct NKVM
 
     struct NKMemoryHeader *allocations;
 
-    jmp_buf catastrophicFailureJmpBuf;
+    jmp_buf *catastrophicFailureJmpBuf;
 };
 
 /// Initialize an already-allocated VM.

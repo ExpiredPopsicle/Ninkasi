@@ -5,6 +5,7 @@ struct NKVM *nkxVmCreate(void)
 {
     NK_FAILURE_RECOVERY_DECL();
 
+    // FIXME: Use specified malloc replacement here.
     struct NKVM *vm = malloc(sizeof(struct NKVM));
 
     if(!vm) {

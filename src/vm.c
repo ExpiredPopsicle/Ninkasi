@@ -99,10 +99,9 @@ static void nkiVmInitOpcodeTable(void)
 
 void nkiVmInit(struct NKVM *vm)
 {
-    // FIXME: Don't do this here.
-    // memset(
-    //     &vm->catastrophicFailureJmpBuf,
-    //     0, sizeof(vm->catastrophicFailureJmpBuf));
+    // NOTE: By the time this function is called, the
+    // catastrophicFailureJmpBuf field should already be set. Do not
+    // overwrite it.
 
     // Init memory management before almost anything else.
     vm->currentMemoryUsage = 0;
