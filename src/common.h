@@ -9,8 +9,6 @@
 #include <stdlib.h>
 #include <setjmp.h>
 
-#include "public.h"
-
 #include "nkconfig.h"
 
 #include "nktypes.h"
