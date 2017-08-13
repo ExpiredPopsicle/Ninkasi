@@ -15,7 +15,7 @@ struct NKVM *nkxVmCreate(void)
 
     NK_SET_FAILURE_RECOVERY(vm);
 
-    vmInit(vm);
+    nkiVmInit(vm);
 
     NK_CLEAR_FAILURE_RECOVERY();
 

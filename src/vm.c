@@ -24,7 +24,7 @@ nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
         nkiCompilerStackOffsetTable[(x)] = (z); \
     } while(0);
 
-static void vmInitOpcodeTable(void)
+static void nkiVmInitOpcodeTable(void)
 {
     assert(NK_OPCODE_PADDEDCOUNT >= NK_OPCODE_REALCOUNT);
 
@@ -98,7 +98,7 @@ static void vmInitOpcodeTable(void)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
-void vmInit(struct NKVM *vm)
+void nkiVmInit(struct NKVM *vm)
 {
     // FIXME: Don't do this here.
     // memset(
@@ -117,7 +117,7 @@ void vmInit(struct NKVM *vm)
     vm->limits.maxFieldsPerObject = ~(nkuint32_t)0;
     vm->limits.maxAllocatedMemory = ~(nkuint32_t)0;
 
-    vmInitOpcodeTable();
+    nkiVmInitOpcodeTable();
 
     nkiErrorStateInit(vm);
     vmStackInit(vm);

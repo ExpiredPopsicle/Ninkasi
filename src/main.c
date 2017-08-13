@@ -1,6 +1,9 @@
 #include "public.h"
 #include "nkx.h"
 
+// FIXME: Get rid of this.
+#include "vm.h"
+
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
@@ -236,7 +239,7 @@ int main(int argc, char *argv[])
         lines = splitLines(script, &lineCount);
         assert(script);
 
-        // vmInit(&vm);
+        // nkiVmInit(&vm);
         // vm->limits.maxStrings = 256;
         // vm->limits.maxStringLength = 10;
         // vm->limits.maxStacksize = 5;

@@ -116,6 +116,25 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
 // ----------------------------------------------------------------------
+// Native C function call interface.
+
+/// This structure is passed into C functions called from inside the
+/// VM, as a pointer. The C functions are expected to take no other
+/// parameters, and decode the arguments from the list.
+struct NKVMFunctionCallbackData
+{
+    struct NKVM *vm;
+
+    struct NKValue *arguments;
+    nkuint32_t argumentCount;
+
+    // Set this to something to return a value.
+    struct NKValue returnValue;
+
+    void *userData;
+};
+
+// ----------------------------------------------------------------------
 // Public compiler interface
 
 /// Create a compiler.
@@ -147,7 +166,5 @@ nkbool nkxCompilerCompileScriptFile(
 /// like setting up the global variable list in the VM.
 void nkxCompilerFinalize(
     struct NKCompilerState *cs);
-
-
 
 #endif // NINKASI_NKX
