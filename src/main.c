@@ -377,6 +377,8 @@ int main(int argc, char *argv[])
 
         }
 
+        assert(!vm->catastrophicFailureJmpBuf);
+
         printf("----------------------------------------------------------------------\n");
         printf("  Finish\n");
         printf("----------------------------------------------------------------------\n");
@@ -465,7 +467,6 @@ int main(int argc, char *argv[])
     printf("Shitcounter: %d\n", shitCounter);
 
 
-    printf("%u\n", sizeof(jmp_buf));
 
     return 0;
 }
