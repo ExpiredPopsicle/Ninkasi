@@ -687,7 +687,7 @@ nkbool nkiCompilerEmitFetchVariable(
     return nktrue;
 }
 
-nkbool emitSetVariable(
+nkbool nkiCompilerExpressionEmitSetVariable(
     struct NKCompilerState *cs,
     const char *name,
     struct NKExpressionAstNode *node)
@@ -753,7 +753,7 @@ nkbool nkiCompilerEmitExpressionAssignment(struct NKCompilerState *cs, struct NK
 
         // Variable assignment.
         case NK_TOKENTYPE_IDENTIFIER: {
-            emitSetVariable(
+            nkiCompilerExpressionEmitSetVariable(
                 cs,
                 node->children[0]->opOrValue->str,
                 node);
@@ -960,7 +960,7 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
     return nktrue;
 }
 
-struct NKExpressionAstNode *cloneExpressionTree(
+struct NKExpressionAstNode *nkiCompilerCloneExpressionTree(
     struct NKCompilerState *cs,
     struct NKExpressionAstNode *node)
 {
@@ -986,13 +986,13 @@ struct NKExpressionAstNode *cloneExpressionTree(
 
     newNode->isRootFunctionCallNode = node->isRootFunctionCallNode;
 
-    newNode->children[0] = cloneExpressionTree(cs, node->children[0]);
-    newNode->children[1] = cloneExpressionTree(cs, node->children[1]);
+    newNode->children[0] = nkiCompilerCloneExpressionTree(cs, node->children[0]);
+    newNode->children[1] = nkiCompilerCloneExpressionTree(cs, node->children[1]);
 
     return newNode;
 }
 
-void expandIncrementsAndDecrements(
+void nkiCompilerExpressionExpandIncrementsAndDecrements(
     struct NKCompilerState *cs,
     struct NKExpressionAstNode *node)
 {
@@ -1013,7 +1013,7 @@ void expandIncrementsAndDecrements(
         {
             struct NKExpressionAstNode *lvalueNode = node->children[0];
             struct NKExpressionAstNode *rvalueNode1 =
-                cloneExpressionTree(cs, node->children[0]);
+                nkiCompilerCloneExpressionTree(cs, node->children[0]);
             struct NKExpressionAstNode *additionNode =
                 nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
             struct NKExpressionAstNode *literalOneNode =
@@ -1075,11 +1075,13 @@ void expandIncrementsAndDecrements(
     } else {
 
         if(node->children[0]) {
-            expandIncrementsAndDecrements(cs, node->children[0]);
+            nkiCompilerExpressionExpandIncrementsAndDecrements(
+                cs, node->children[0]);
         }
 
         if(node->children[1]) {
-            expandIncrementsAndDecrements(cs, node->children[1]);
+            nkiCompilerExpressionExpandIncrementsAndDecrements(
+                cs, node->children[1]);
         }
     }
 
@@ -1097,7 +1099,8 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
     node = nkiCompilerParseExpression(cs);
 
     if(node) {
-        expandIncrementsAndDecrements(cs, node);
+        nkiCompilerExpressionExpandIncrementsAndDecrements(
+            cs, node);
         optimizeConstants(cs->vm, &node);
     }
 
