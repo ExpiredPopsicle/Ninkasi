@@ -19,11 +19,6 @@ Quick Tutorial
 
 TODO
 
-Sandboxing
-----------
-
-TODO
-
 Installing/Compiling
 --------------------
 
@@ -32,7 +27,30 @@ TODO
 Documentation
 =============
 
-What the Prefixes Mean
+The Language Itself
+-------------------
+
+### Variable declarations
+
+TODO
+
+### "if" statements
+
+TODO
+
+### "while" and "for" loops
+
+TODO
+
+### Function declarations
+
+TODO
+
+### Function calls
+
+TODO
+
+What the API Prefixes Mean
 ----------------------
 
 1. nki* = Ninkasi internal
@@ -50,11 +68,10 @@ What the Prefixes Mean
     - Calling from inside the VM will cause the error handlers to be
       setup twice.
 
-
 Error handling
 --------------
 
-### Normal errors
+### Normal error handling
 
 In the event of a "normal" error, the VM's state can be considered
 valid in that there will be no dangling pointers, corrupted memory, or
@@ -65,6 +82,8 @@ The state may be inspected through many of the public API functions,
 but attempting to resume operation on the program running in the VM
 will probably not succeed. (And even if it did, the program will
 probably have some unexpected state as a result of the error.)
+
+TODO: Example code showing how to detect and deal with an error.
 
 ### Catastrophic error handling
 
@@ -90,7 +109,11 @@ should happen.
 - The allocation list is the only set of guaranteed valid pointers.
 - The VM may be safely deleted with nkxVmDelete().
 
-### Detecting catastrophic failures
+TODO: Example code showing how to detect and deal with a catastrophic
+error.
+
+Sandboxing
+----------
 
 TODO
 
