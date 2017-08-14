@@ -258,7 +258,7 @@ int main(int argc, char *argv[])
     maxRam = 1;
     maxRam = 158000;
     // maxRam = 15800000;
-    // maxMaxRam = maxRam + 1024;
+    maxMaxRam = maxRam + 1;
 
     if(!script) {
         printf("Script failed to even load.\n");

@@ -45,7 +45,7 @@
 #define NINKASI_OPTIMIZE_H
 
 struct NKExpressionAstNode;
-struct NKVM *vm;
+struct NKVM;
 
 void nkiCompilerOptimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node);
 

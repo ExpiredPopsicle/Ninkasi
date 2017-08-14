@@ -3,11 +3,11 @@
 echo "del *.OBJ" > build.bat
 echo "del *.EXE" > build.bat
 
-CFLAGS="-ml"
-LFLAGS="-ml"
+# CFLAGS="-ml"
+# LFLAGS="-ml"
 
-find src -iname "*.c" | sed -e "s/^/wcc ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
-echo "wcl *.OBJ ${LFLAGS} -fe=a.exe" >> build.bat
+find src -iname "*.c" | sed -e "s/^/wcc386 ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
+echo "wcl386 *.OBJ ${LFLAGS} -fe=a.exe" >> build.bat
 
 dos2unix build.bat
 
