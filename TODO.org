@@ -109,7 +109,7 @@ x.a(b, c) is...
 - Make sure we don't go outside the function while moving up the context stack!
 
 
-* TODO Get rid of dump opcode.
+* DONE Get rid of dump opcode.
 
 * TODO Get rid of all the asserts that were ensuring contexts line up.
 * TODO Make sure the error system has a standard way of reporting errors.
