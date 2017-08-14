@@ -18,7 +18,7 @@
 #include "nkopcode.h"
 #include "nkexpr.h"
 #include "nkopt.h"
-#include "tokenize.h"
+#include "nktoken.h"
 #include "vmdbg.h"
 #include "nkerror.h"
 #include "nkdynstr.h"
