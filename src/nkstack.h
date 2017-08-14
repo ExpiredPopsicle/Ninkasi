@@ -3,7 +3,14 @@
 
 struct NKValue;
 struct NKVM;
-struct NKVMStack;
+
+struct NKVMStack
+{
+    struct NKValue *values;
+    nkuint32_t size;
+    nkuint32_t capacity;
+    nkuint32_t indexMask;
+};
 
 /// Push an integer onto the stack.
 nkbool nkiVmStackPushInt(struct NKVM *vm, nkint32_t value);
@@ -26,14 +33,6 @@ struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index);
 
 /// Dump the contents of the stack to stdout for debugging.
 void nkiVmStackDump(struct NKVM *vm);
-
-struct NKVMStack
-{
-    struct NKValue *values;
-    nkuint32_t size;
-    nkuint32_t capacity;
-    nkuint32_t indexMask;
-};
 
 /// Init the stack on the VM object.
 void nkiVmStackInit(struct NKVM *vm);
