@@ -124,7 +124,7 @@ void nkiCompilerOptimizeConstants(
                     (*node)->children[0]->opOrValue->type,
                     (*node)->children[0]->opOrValue->lineNumber);
 
-            dbgWriteLine("Optimizing operator: %s", (*node)->opOrValue->str);
+            nkiDbgWriteLine("Optimizing operator: %s", (*node)->opOrValue->str);
 
             switch((*node)->children[0]->opOrValue->type) {
 
@@ -180,15 +180,15 @@ void nkiCompilerOptimizeConstants(
 
         } else {
 
-            dbgWriteLine("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
+            nkiDbgWriteLine("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
 
-            dbgWriteLine("  Child1: ");
+            nkiDbgWriteLine("  Child1: ");
             nkiCompilerDumpExpressionAstNode((*node)->children[0]);
-            dbgWriteLine("\n");
+            nkiDbgWriteLine("\n");
 
-            dbgWriteLine("  Child2: ");
+            nkiDbgWriteLine("  Child2: ");
             nkiCompilerDumpExpressionAstNode((*node)->children[1]);
-            dbgWriteLine("\n");
+            nkiDbgWriteLine("\n");
 
         }
     }

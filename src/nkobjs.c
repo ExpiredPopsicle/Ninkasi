@@ -149,8 +149,8 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVMObjectTable *table = &vm->objectTable;
     nkuint32_t i;
 
-    dbgWriteLine("Purging unused objects...");
-    dbgPush();
+    nkiDbgWriteLine("Purging unused objects...");
+    nkiDbgPush();
 
     for(i = 0; i < table->objectTableCapacity; i++) {
 
@@ -163,7 +163,7 @@ void nkiVmObjectTableCleanOldObjects(
                 struct NKVMObjectTableHole *hole =
                     nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
 
-                dbgWriteLine("Purging object at index %u", i);
+                nkiDbgWriteLine("Purging object at index %u", i);
 
                 table->objectTable[i] = NULL;
                 nkiVmObjectDelete(vm, ob);
@@ -177,7 +177,7 @@ void nkiVmObjectTableCleanOldObjects(
         }
     }
 
-    dbgPop();
+    nkiDbgPop();
 }
 
 void nkiVmObjectClearEntry(

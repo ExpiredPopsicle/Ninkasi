@@ -189,7 +189,7 @@ void nkiVmIterate(struct NKVM *vm)
         vm->instructionPointer & vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 
-    dbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
+    nkiDbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
 
     nkiOpcodeTable[opcodeId](vm);
     vm->instructionPointer++;
@@ -356,7 +356,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
     gcState.vm = vm;
 
     // TODO: Remove this.
-    dbgWriteLine("nkiVmGarbageCollect");
+    nkiDbgWriteLine("nkiVmGarbageCollect");
 
     // Iterate through objects with external handles.
     {
@@ -405,7 +405,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
             gcState.closedList = next;
             count++;
         }
-        dbgWriteLine("Closed list grew to: %u\n", count);
+        nkiDbgWriteLine("Closed list grew to: %u\n", count);
     }
 }
 
@@ -438,7 +438,7 @@ void nkiVmRescanProgramStrings(struct NKVM *vm)
                 if(entry) {
                     entry->dontGC = nktrue;
 
-                    dbgWriteLine("Marked string as in-use by program: %s", entry->str);
+                    nkiDbgWriteLine("Marked string as in-use by program: %s", entry->str);
                 }
             }
         } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
@@ -529,7 +529,7 @@ void nkiVmCallFunction(
         while(vm->instructionPointer != ~(nkuint32_t)0 &&
             !vm->errorState.firstError)
         {
-            dbgWriteLine("In nkiVmCallFunction %u", vm->instructionPointer);
+            nkiDbgWriteLine("In nkiVmCallFunction %u", vm->instructionPointer);
             nkiVmIterate(vm);
         }
 

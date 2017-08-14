@@ -125,7 +125,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
             nkiFree(vm, hole);
 
             // TODO: Remove.
-            dbgWriteLine("Filled a string table hole at index %d", index);
+            nkiDbgWriteLine("Filled a string table hole at index %d", index);
 
         } else {
 
@@ -166,7 +166,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
             index = oldCapacity;
 
             // TODO: Remove.
-            dbgWriteLine("Expanded string table to make room for index %d", index);
+            nkiDbgWriteLine("Expanded string table to make room for index %d", index);
         }
 
         newString->stringTableIndex = index;
@@ -212,8 +212,8 @@ void nkiVmStringTableCleanOldStrings(
     struct NKVMStringTable *table = &vm->stringTable;
     nkuint32_t i;
 
-    dbgWriteLine("Purging unused strings...");
-    dbgPush();
+    nkiDbgWriteLine("Purging unused strings...");
+    nkiDbgPush();
 
     for(i = 0; i < nkiVmStringHashTableSize; i++) {
 
@@ -229,7 +229,7 @@ void nkiVmStringTableCleanOldStrings(
                     nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
 
                 // TODO: Remove this.
-                dbgWriteLine("Purging unused string: %s", str->str);
+                nkiDbgWriteLine("Purging unused string: %s", str->str);
 
                 *lastPtr = str->nextInHashBucket;
                 table->stringTable[str->stringTableIndex] = NULL;
@@ -245,7 +245,7 @@ void nkiVmStringTableCleanOldStrings(
 
             // FIXME: Remove this.
             if(str) {
-                dbgWriteLine("NOT purging string: %s", str->str);
+                nkiDbgWriteLine("NOT purging string: %s", str->str);
             }
 
             if(str) {
@@ -255,5 +255,5 @@ void nkiVmStringTableCleanOldStrings(
         }
     }
 
-    dbgPop();
+    nkiDbgPop();
 }

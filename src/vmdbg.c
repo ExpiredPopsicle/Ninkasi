@@ -2,9 +2,9 @@
 
 #define DEBUG_SPAM 0
 
-// static nkint32_t dbgIndentLevel = 0;
+// static nkint32_t nkiDbgIndentLevel = 0;
 
-int dbgWriteLine(const char *fmt, ...)
+int nkiDbgWriteLine(const char *fmt, ...)
 {
   #if DEBUG_SPAM
     va_list args;
@@ -12,7 +12,7 @@ int dbgWriteLine(const char *fmt, ...)
     va_start(args, fmt);
     {
         nkint32_t i;
-        for(i = 0; i < dbgIndentLevel; i++) {
+        for(i = 0; i < nkiDbgIndentLevel; i++) {
             printf("  ");
         }
         printf("\033[2m");
@@ -27,14 +27,14 @@ int dbgWriteLine(const char *fmt, ...)
   #endif
 }
 
-void dbgPush_real(const char *func)
+void nkiDbgPush_real(const char *func)
 {
-    // dbgIndentLevel++;
+    // nkiDbgIndentLevel++;
 }
 
-void dbgPop_real(const char *func)
+void nkiDbgPop_real(const char *func)
 {
-    // assert(dbgIndentLevel > 0);
-    // dbgIndentLevel--;
+    // assert(nkiDbgIndentLevel > 0);
+    // nkiDbgIndentLevel--;
 }
 

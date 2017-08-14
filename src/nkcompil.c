@@ -7,7 +7,7 @@ void nkiCompilerAddInstruction(
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
         // TODO: Remove this.
-        dbgWriteLine("Expanding VM instruction space.");
+        nkiDbgWriteLine("Expanding VM instruction space.");
 
         // FIXME: Add a dynamic or settable memory limit.
         if(cs->vm->instructionAddressMask >= 0xfffff) {
@@ -74,8 +74,8 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
 
     cs->context = newContext;
 
-    dbgWriteLine("Pushed context: %p", cs->context);
-    dbgPush();
+    nkiDbgWriteLine("Pushed context: %p", cs->context);
+    nkiDbgPush();
 }
 
 void nkiCompilerPopContext(struct NKCompilerState *cs)
@@ -106,7 +106,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
             nkiFree(cs->vm, var);
             var = next;
 
-            dbgWriteLine("Variable removed.");
+            nkiDbgWriteLine("Variable removed.");
         }
 
         {
@@ -159,8 +159,8 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
     // Free the context itself.
     nkiFree(cs->vm, oldContext);
 
-    dbgPop();
-    dbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
+    nkiDbgPop();
+    nkiDbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
 }
 
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, nkbool adjustStackFrame)
@@ -260,7 +260,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
 
     cs->context->variables = var;
 
-    dbgWriteLine("Variable added.");
+    nkiDbgWriteLine("Variable added.");
 
     return var;
 }
@@ -303,7 +303,7 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
     }
 
     // FIXME: Remove this.
-    dbgWriteLine(
+    nkiDbgWriteLine(
         "Entering nkiCompilerCompileStatement with stackFrameOffset: %u",
         cs->context->stackFrameOffset);
 
@@ -540,9 +540,9 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
             cs->context->stackFrameOffset - func->argumentCount - 3;
 
         // FIXME: Remove these.
-        dbgWriteLine("stackFrameOffset: %d", cs->context->stackFrameOffset);
-        dbgWriteLine("argumentCount:    %d", func->argumentCount);
-        dbgWriteLine("throwAwayContext: %d", throwAwayContext);
+        nkiDbgWriteLine("stackFrameOffset: %d", cs->context->stackFrameOffset);
+        nkiDbgWriteLine("argumentCount:    %d", func->argumentCount);
+        nkiDbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
         nkiCompilerEmitPushLiteralInt(cs, throwAwayContext, nkfalse);
         nkiCompilerAddInstructionSimple(cs, NK_OP_RETURN, nkfalse);
@@ -691,7 +691,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     functionObject->argumentCount = functionArgumentCount;
 
     // FIXME: Remove this.
-    dbgWriteLine("Function argument count is: %d", functionArgumentCount);
+    nkiDbgWriteLine("Function argument count is: %d", functionArgumentCount);
 
     // Store the function start address on the function object.
     functionObject->firstInstructionIndex = cs->instructionWriteIndex;
@@ -748,7 +748,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     }
 
     // Restore the "real" context back to the parent.
-    dbgPush(); // FIXME: To counter the push inside nkiCompilerPopContext.
+    nkiDbgPush(); // FIXME: To counter the push inside nkiCompilerPopContext.
 
     // assert(cs->context == functionLocalContext);
 

@@ -91,7 +91,7 @@ void nkiOpcode_pushLiteral_string(struct NKVM *vm)
     stackVal->stringTableEntry =
         vm->instructions[vm->instructionPointer & vm->instructionAddressMask].opData_string;
 
-    dbgWriteLine("Pushing literal string: %d = %d", vm->instructionPointer, stackVal->stringTableEntry);
+    nkiDbgWriteLine("Pushing literal string: %d = %d", vm->instructionPointer, stackVal->stringTableEntry);
 
 }
 
@@ -332,7 +332,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
         struct NKValue *vOut = nkiVmStackPush_internal(vm);
         *vOut = *vIn;
 
-        dbgWriteLine("Fetched global value at stack position: %u", stackAddress);
+        nkiDbgWriteLine("Fetched global value at stack position: %u", stackAddress);
 
     } else {
 
@@ -343,7 +343,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
         struct NKValue *vOut = nkiVmStackPush_internal(vm);
         *vOut = *vIn;
 
-        dbgWriteLine("Fetched local value at stack position: %u", stackAddress);
+        nkiDbgWriteLine("Fetched local value at stack position: %u", stackAddress);
 
     }
 }
@@ -367,7 +367,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
         struct NKValue *vOut = nkiVmStackPeek(vm, stackAddrValue->intData);
         *vOut = *vIn;
 
-        dbgWriteLine("Set global value at stack position: %u", stackAddress);
+        nkiDbgWriteLine("Set global value at stack position: %u", stackAddress);
 
     } else {
         // Negative stack address. Probably a local variable.
@@ -376,7 +376,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
         struct NKValue *vOut = nkiVmStackPeek(vm, stackAddress);
         *vOut = *vIn;
 
-        dbgWriteLine("Set local value at stack position: %u", stackAddress);
+        nkiDbgWriteLine("Set local value at stack position: %u", stackAddress);
     }
 }
 
@@ -400,7 +400,7 @@ void nkiOpcode_call(struct NKVM *vm)
     // PEEK at the top of the stack. That's _argumentCount.
     argumentCount = nkiValueToInt(vm, nkiVmStackPeek(vm, (vm->stack.size - 1)));
 
-    dbgWriteLine("Calling function with argument count: %u", argumentCount);
+    nkiDbgWriteLine("Calling function with argument count: %u", argumentCount);
 
     // PEEK at the function id (stack top - _argumentCount). Save it.
     {
@@ -416,7 +416,7 @@ void nkiOpcode_call(struct NKVM *vm)
         }
 
         functionId = functionIdValue->functionId;
-        dbgWriteLine("Calling function with id: %u", functionId);
+        nkiDbgWriteLine("Calling function with id: %u", functionId);
     }
 
     // Look up the function in our table of function objects.
@@ -439,8 +439,8 @@ void nkiOpcode_call(struct NKVM *vm)
             -1,
             "Incorrect argument count for function call.");
 
-        dbgWriteLine("funcOb->argumentCount: %u", funcOb->argumentCount);
-        dbgWriteLine("argumentCount:         %u", argumentCount);
+        nkiDbgWriteLine("funcOb->argumentCount: %u", funcOb->argumentCount);
+        nkiDbgWriteLine("argumentCount:         %u", argumentCount);
 
         return;
     }
@@ -586,12 +586,12 @@ void nkiOpcode_jz(struct NKVM *vm)
     struct NKValue *relativeOffsetValue = nkiVmStackPop(vm);
     struct NKValue *testValue = nkiVmStackPop(vm);
 
-    dbgWriteLine("Testing branch value %d. Address now: %u", nkiValueToInt(vm, testValue), vm->instructionPointer);
+    nkiDbgWriteLine("Testing branch value %d. Address now: %u", nkiValueToInt(vm, testValue), vm->instructionPointer);
     if(nkiValueToInt(vm, testValue) == 0) {
         vm->instructionPointer += nkiValueToInt(vm, relativeOffsetValue);
-        dbgWriteLine("Branch taken. Address now: %u", vm->instructionPointer);
+        nkiDbgWriteLine("Branch taken. Address now: %u", vm->instructionPointer);
     } else {
-        dbgWriteLine("Branch NOT taken. Address now: %u", vm->instructionPointer);
+        nkiDbgWriteLine("Branch NOT taken. Address now: %u", vm->instructionPointer);
     }
 }
 
