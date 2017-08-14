@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,

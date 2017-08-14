@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 #include "nkx.h"
 
 struct NKVM *nkxVmCreate(void)

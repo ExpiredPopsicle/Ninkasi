@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 static nkbool isWhitespace(char c)
 {

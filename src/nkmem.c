@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 // static nkuint32_t killCounter = 2;
 

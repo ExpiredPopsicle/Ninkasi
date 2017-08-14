@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 nkbool nkiValueDump(
     struct NKVM *vm, struct NKValue *value)

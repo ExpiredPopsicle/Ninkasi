@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 // TODO: Make a non-recursive version of this.
 void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node)

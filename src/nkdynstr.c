@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 struct NKDynString *nkiDynStrCreate(struct NKVM *vm, const char *str)
 {

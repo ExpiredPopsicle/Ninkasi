@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 #define DEBUG_SPAM 0
 

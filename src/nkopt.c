@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 nkbool nkiCompilerCanOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 {

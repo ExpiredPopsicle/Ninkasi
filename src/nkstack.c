@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 void nkiVmStackInit(struct NKVM *vm)
 {

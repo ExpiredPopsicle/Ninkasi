@@ -1,4 +1,4 @@
-#include "common.h"
+#include "nkcommon.h"
 
 void nkiOpcode_add(struct NKVM *vm)
 {
