@@ -1,6 +1,6 @@
 #include "common.h"
 
-nkbool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
+nkbool nkiCompilerCanOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == NK_TOKENTYPE_PLUS ||
         node->opOrValue->type == NK_TOKENTYPE_MINUS ||
@@ -12,7 +12,7 @@ nkbool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node)
     return nkfalse;
 }
 
-nkbool isImmediateValue(struct NKExpressionAstNode *node)
+nkbool nkiCompilerIsImmediateValue(struct NKExpressionAstNode *node)
 {
     if(node->opOrValue->type == NK_TOKENTYPE_INTEGER ||
         node->opOrValue->type == NK_TOKENTYPE_FLOAT)
@@ -82,7 +82,8 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
         }                                                           \
     } while(0)
 
-void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
+void nkiCompilerOptimizeConstants(
+    struct NKVM *vm, struct NKExpressionAstNode **node)
 {
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't
@@ -93,19 +94,19 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
     // First recurse into children and optimize them. Maybe they'll
     // become immediate values we can work with.
     if((*node)->children[0]) {
-        optimizeConstants(vm, &(*node)->children[0]);
+        nkiCompilerOptimizeConstants(vm, &(*node)->children[0]);
     }
     if((*node)->children[1]) {
-        optimizeConstants(vm, &(*node)->children[1]);
+        nkiCompilerOptimizeConstants(vm, &(*node)->children[1]);
     }
 
-    if(canOptimizeOperationWithConstants((*node))) {
+    if(nkiCompilerCanOptimizeOperationWithConstants((*node))) {
 
         // Make sure we have two immediate values to work with.
         nkbool canOptimize = nktrue;
-        if((*node)->children[0] && !isImmediateValue((*node)->children[0])) {
+        if((*node)->children[0] && !nkiCompilerIsImmediateValue((*node)->children[0])) {
             canOptimize = nkfalse;
-        } else if((*node)->children[1] && !isImmediateValue((*node)->children[1])) {
+        } else if((*node)->children[1] && !nkiCompilerIsImmediateValue((*node)->children[1])) {
             canOptimize = nkfalse;
         }
 

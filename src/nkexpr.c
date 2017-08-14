@@ -1101,7 +1101,7 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
     if(node) {
         nkiCompilerExpressionExpandIncrementsAndDecrements(
             cs, node);
-        optimizeConstants(cs->vm, &node);
+        nkiCompilerOptimizeConstants(cs->vm, &node);
     }
 
     if(nkiVmGetErrorCount(cs->vm)) {

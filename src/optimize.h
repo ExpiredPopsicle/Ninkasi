@@ -3,9 +3,7 @@
 
 struct NKExpressionAstNode;
 
-// nkbool canOptimizeOperationWithConstants(struct NKExpressionAstNode *node);
-// nkbool isImmediateValue(struct NKExpressionAstNode *node);
-void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node);
+void nkiCompilerOptimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node);
 
 #endif // NINKASI_OPTIMIZE_H
 
