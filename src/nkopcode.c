@@ -2,22 +2,22 @@
 
 void nkiOpcode_add(struct NKVM *vm)
 {
-    struct NKValue *in2  = vmStackPop(vm);
-    struct NKValue *in1  = vmStackPop(vm);
+    struct NKValue *in2  = nkiVmStackPop(vm);
+    struct NKValue *in1  = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
     switch(type) {
 
         case NK_VALUETYPE_INT:
-            vmStackPushInt(
+            nkiVmStackPushInt(
                 vm,
                 in1->intData +
                 nkiValueToInt(vm, in2));
             break;
 
         case NK_VALUETYPE_FLOAT:
-            vmStackPushFloat(
+            nkiVmStackPushFloat(
                 vm,
                 in1->floatData +
                 nkiValueToFloat(vm, in2));
@@ -38,7 +38,7 @@ void nkiOpcode_add(struct NKVM *vm)
             nkiDynStrAppend(dynStr, nkiValueToString(vm, in2));
 
             // Push the result.
-            vmStackPushString(
+            nkiVmStackPushString(
                 vm, dynStr->data);
 
             // Clean up.
@@ -64,7 +64,7 @@ void nkiOpcode_add(struct NKVM *vm)
 
 void nkiOpcode_pushLiteral_int(struct NKVM *vm)
 {
-    struct NKValue *stackVal = vmStackPush_internal(vm);
+    struct NKValue *stackVal = nkiVmStackPush_internal(vm);
     vm->instructionPointer++;
 
     stackVal->type = NK_VALUETYPE_INT;
@@ -74,7 +74,7 @@ void nkiOpcode_pushLiteral_int(struct NKVM *vm)
 
 void nkiOpcode_pushLiteral_float(struct NKVM *vm)
 {
-    struct NKValue *stackVal = vmStackPush_internal(vm);
+    struct NKValue *stackVal = nkiVmStackPush_internal(vm);
     vm->instructionPointer++;
 
     stackVal->type = NK_VALUETYPE_FLOAT;
@@ -84,7 +84,7 @@ void nkiOpcode_pushLiteral_float(struct NKVM *vm)
 
 void nkiOpcode_pushLiteral_string(struct NKVM *vm)
 {
-    struct NKValue *stackVal = vmStackPush_internal(vm);
+    struct NKValue *stackVal = nkiVmStackPush_internal(vm);
     vm->instructionPointer++;
 
     stackVal->type = NK_VALUETYPE_STRING;
@@ -97,7 +97,7 @@ void nkiOpcode_pushLiteral_string(struct NKVM *vm)
 
 void nkiOpcode_pushLiteral_functionId(struct NKVM *vm)
 {
-    struct NKValue *stackVal = vmStackPush_internal(vm);
+    struct NKValue *stackVal = nkiVmStackPush_internal(vm);
     vm->instructionPointer++;
 
     stackVal->type = NK_VALUETYPE_FUNCTIONID;
@@ -111,22 +111,22 @@ void nkiOpcode_nop(struct NKVM *vm)
 
 void nkiOpcode_subtract(struct NKVM *vm)
 {
-    struct NKValue *in2 = vmStackPop(vm);
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in2 = nkiVmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
     switch(type) {
 
         case NK_VALUETYPE_INT:
-            vmStackPushInt(
+            nkiVmStackPushInt(
                 vm,
                 in1->intData -
                 nkiValueToInt(vm, in2));
             break;
 
         case NK_VALUETYPE_FLOAT:
-            vmStackPushFloat(
+            nkiVmStackPushFloat(
                 vm,
                 in1->floatData -
                 nkiValueToFloat(vm, in2));
@@ -147,22 +147,22 @@ void nkiOpcode_subtract(struct NKVM *vm)
 
 void nkiOpcode_multiply(struct NKVM *vm)
 {
-    struct NKValue *in2 = vmStackPop(vm);
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in2 = nkiVmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
     switch(type) {
 
         case NK_VALUETYPE_INT:
-            vmStackPushInt(
+            nkiVmStackPushInt(
                 vm,
                 in1->intData *
                 nkiValueToInt(vm, in2));
             break;
 
         case NK_VALUETYPE_FLOAT:
-            vmStackPushFloat(
+            nkiVmStackPushFloat(
                 vm,
                 in1->floatData *
                 nkiValueToFloat(vm, in2));
@@ -183,8 +183,8 @@ void nkiOpcode_multiply(struct NKVM *vm)
 
 void nkiOpcode_divide(struct NKVM *vm)
 {
-    struct NKValue *in2 = vmStackPop(vm);
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in2 = nkiVmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
@@ -197,7 +197,7 @@ void nkiOpcode_divide(struct NKVM *vm)
                     vm, -1,
                     "Integer divide-by-zero.");
             } else {
-                vmStackPushInt(
+                nkiVmStackPushInt(
                     vm,
                     in1->intData /
                     val2);
@@ -205,7 +205,7 @@ void nkiOpcode_divide(struct NKVM *vm)
         } break;
 
         case NK_VALUETYPE_FLOAT:
-            vmStackPushFloat(
+            nkiVmStackPushFloat(
                 vm,
                 in1->floatData /
                 nkiValueToFloat(vm, in2));
@@ -226,8 +226,8 @@ void nkiOpcode_divide(struct NKVM *vm)
 
 void nkiOpcode_modulo(struct NKVM *vm)
 {
-    struct NKValue *in2 = vmStackPop(vm);
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in2 = nkiVmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
@@ -240,7 +240,7 @@ void nkiOpcode_modulo(struct NKVM *vm)
                     vm, -1,
                     "Integer divide-by-zero.");
             } else {
-                vmStackPushInt(
+                nkiVmStackPushInt(
                     vm,
                     in1->intData %
                     val2);
@@ -262,20 +262,20 @@ void nkiOpcode_modulo(struct NKVM *vm)
 
 void nkiOpcode_negate(struct NKVM *vm)
 {
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     enum NKValueType type = in1->type;
 
     switch(type) {
 
         case NK_VALUETYPE_INT: {
-            vmStackPushInt(
+            nkiVmStackPushInt(
                 vm,
                 -(in1->intData));
         } break;
 
         case NK_VALUETYPE_FLOAT: {
-            vmStackPushFloat(
+            nkiVmStackPushFloat(
                 vm,
                 -(in1->floatData));
         } break;
@@ -295,19 +295,19 @@ void nkiOpcode_negate(struct NKVM *vm)
 
 void nkiOpcode_pop(struct NKVM *vm)
 {
-    vmStackPop(vm);
+    nkiVmStackPop(vm);
 }
 
 void nkiOpcode_popN(struct NKVM *vm)
 {
-    struct NKValue *v = vmStackPop(vm);
-    vmStackPopN(vm, nkiValueToInt(vm, v));
+    struct NKValue *v = nkiVmStackPop(vm);
+    nkiVmStackPopN(vm, nkiValueToInt(vm, v));
 }
 
 void nkiOpcode_dump(struct NKVM *vm)
 {
-    vmStackPop(vm);
-    // struct NKValue *v = vmStackPop(vm);
+    nkiVmStackPop(vm);
+    // struct NKValue *v = nkiVmStackPop(vm);
     // printf("Debug dump: ");
     // nkiValueDump(vm, v);
     // printf("\n");
@@ -316,7 +316,7 @@ void nkiOpcode_dump(struct NKVM *vm)
 void nkiOpcode_stackPeek(struct NKVM *vm)
 {
     // Read index.
-    struct NKValue *v = vmStackPop(vm);
+    struct NKValue *v = nkiVmStackPop(vm);
     if(v->type != NK_VALUETYPE_INT) {
         nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
@@ -328,8 +328,8 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
 
         // Absolute stack address. Probably a global variable.
         nkuint32_t stackAddress = v->intData;
-        struct NKValue *vIn = vmStackPeek(vm, v->intData);
-        struct NKValue *vOut = vmStackPush_internal(vm);
+        struct NKValue *vIn = nkiVmStackPeek(vm, v->intData);
+        struct NKValue *vOut = nkiVmStackPush_internal(vm);
         *vOut = *vIn;
 
         dbgWriteLine("Fetched global value at stack position: %u", stackAddress);
@@ -338,9 +338,9 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
 
         // Negative stack address. Probably a local variable.
         nkuint32_t stackAddress = vm->stack.size + v->intData;
-        struct NKValue *vIn = vmStackPeek(
+        struct NKValue *vIn = nkiVmStackPeek(
             vm, stackAddress);
-        struct NKValue *vOut = vmStackPush_internal(vm);
+        struct NKValue *vOut = nkiVmStackPush_internal(vm);
         *vOut = *vIn;
 
         dbgWriteLine("Fetched local value at stack position: %u", stackAddress);
@@ -351,7 +351,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
 void nkiOpcode_stackPoke(struct NKVM *vm)
 {
     // Read index.
-    struct NKValue *stackAddrValue = vmStackPop(vm);
+    struct NKValue *stackAddrValue = nkiVmStackPop(vm);
     if(stackAddrValue->type != NK_VALUETYPE_INT) {
         nkiAddError(vm, -1,
             "Attempted to use a non-integer as a stack index.");
@@ -363,8 +363,8 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
 
         // Absolute stack address. Probably a global variable.
         nkuint32_t stackAddress = stackAddrValue->intData;
-        struct NKValue *vIn = vmStackPeek(vm, (vm->stack.size - 1));
-        struct NKValue *vOut = vmStackPeek(vm, stackAddrValue->intData);
+        struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
+        struct NKValue *vOut = nkiVmStackPeek(vm, stackAddrValue->intData);
         *vOut = *vIn;
 
         dbgWriteLine("Set global value at stack position: %u", stackAddress);
@@ -372,8 +372,8 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
     } else {
         // Negative stack address. Probably a local variable.
         nkuint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
-        struct NKValue *vIn = vmStackPeek(vm, (vm->stack.size - 1));
-        struct NKValue *vOut = vmStackPeek(vm, stackAddress);
+        struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
+        struct NKValue *vOut = nkiVmStackPeek(vm, stackAddress);
         *vOut = *vIn;
 
         dbgWriteLine("Set local value at stack position: %u", stackAddress);
@@ -382,7 +382,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
 
 void nkiOpcode_jumpRelative(struct NKVM *vm)
 {
-    struct NKValue *offsetVal = vmStackPop(vm);
+    struct NKValue *offsetVal = nkiVmStackPop(vm);
     vm->instructionPointer += nkiValueToInt(vm, offsetVal);
 }
 
@@ -398,13 +398,13 @@ void nkiOpcode_call(struct NKVM *vm)
     struct NKVMFunction *funcOb = NULL;
 
     // PEEK at the top of the stack. That's _argumentCount.
-    argumentCount = nkiValueToInt(vm, vmStackPeek(vm, (vm->stack.size - 1)));
+    argumentCount = nkiValueToInt(vm, nkiVmStackPeek(vm, (vm->stack.size - 1)));
 
     dbgWriteLine("Calling function with argument count: %u", argumentCount);
 
     // PEEK at the function id (stack top - _argumentCount). Save it.
     {
-        struct NKValue *functionIdValue = vmStackPeek(
+        struct NKValue *functionIdValue = nkiVmStackPeek(
             vm, vm->stack.size - (argumentCount + 2));
 
         if(functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
@@ -493,18 +493,18 @@ void nkiOpcode_call(struct NKVM *vm)
         nkiFree(vm, data.arguments);
 
         // Pop all the arguments.
-        vmStackPopN(vm, argumentCount + 2);
+        nkiVmStackPopN(vm, argumentCount + 2);
 
         // Push return value.
         {
-            struct NKValue *retVal = vmStackPush_internal(vm);
+            struct NKValue *retVal = nkiVmStackPush_internal(vm);
             *retVal = data.returnValue;
         }
 
     } else {
 
         // Push the current instruction pointer (_returnPointer).
-        vmStackPushInt(vm, vm->instructionPointer);
+        nkiVmStackPushInt(vm, vm->instructionPointer);
 
         // Set the instruction pointer to the saved function object's
         // instruction pointer. Maybe minus one.
@@ -536,31 +536,31 @@ void nkiOpcode_return(struct NKVM *vm)
     nkuint32_t argumentCount = 0;
 
     // Pop a value, contextCount, off the stack.
-    contextCountValue = vmStackPop(vm);
+    contextCountValue = nkiVmStackPop(vm);
 
     // Pop a value off the stack. That's _returnValue.
-    returnValue = vmStackPop(vm);
+    returnValue = nkiVmStackPop(vm);
 
     // Pop contextCount more values off the stack and throw them away.
     // (Function context we're done with.)
-    vmStackPopN(vm, nkiValueToInt(vm, contextCountValue));
+    nkiVmStackPopN(vm, nkiValueToInt(vm, contextCountValue));
 
     // Pop the _returnPointer off the stack and keep it.
-    returnAddress = nkiValueToInt(vm, vmStackPop(vm));
+    returnAddress = nkiValueToInt(vm, nkiVmStackPop(vm));
 
     // Pop the _argumentCount off the stack and keep it.
-    argumentCount = nkiValueToInt(vm, vmStackPop(vm));
+    argumentCount = nkiValueToInt(vm, nkiVmStackPop(vm));
 
     // Pop _argumentCount values off the stack and throw them away.
     // (Function arguments we're done with.)
-    vmStackPopN(vm, argumentCount);
+    nkiVmStackPopN(vm, argumentCount);
 
     // Pop function id off the stack.
-    vmStackPop(vm);
+    nkiVmStackPop(vm);
 
     // Push _returnValue back onto the stack.
     {
-        struct NKValue *returnValueWrite = vmStackPush_internal(vm);
+        struct NKValue *returnValueWrite = nkiVmStackPush_internal(vm);
         *returnValueWrite = *returnValue;
     }
 
@@ -583,8 +583,8 @@ void nkiOpcode_end(struct NKVM *vm)
 
 void nkiOpcode_jz(struct NKVM *vm)
 {
-    struct NKValue *relativeOffsetValue = vmStackPop(vm);
-    struct NKValue *testValue = vmStackPop(vm);
+    struct NKValue *relativeOffsetValue = nkiVmStackPop(vm);
+    struct NKValue *testValue = nkiVmStackPop(vm);
 
     dbgWriteLine("Testing branch value %d. Address now: %u", nkiValueToInt(vm, testValue), vm->instructionPointer);
     if(nkiValueToInt(vm, testValue) == 0) {
@@ -597,8 +597,8 @@ void nkiOpcode_jz(struct NKVM *vm)
 
 nkint32_t nkiOpcode_internal_compare(struct NKVM *vm)
 {
-    struct NKValue *in2 = vmStackPop(vm);
-    struct NKValue *in1 = vmStackPop(vm);
+    struct NKValue *in2 = nkiVmStackPop(vm);
+    struct NKValue *in1 = nkiVmStackPop(vm);
 
     return nkiValueCompare(vm, in1, in2, nkfalse);
 }
@@ -606,97 +606,97 @@ nkint32_t nkiOpcode_internal_compare(struct NKVM *vm)
 void nkiOpcode_gt(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison == 1);
+    nkiVmStackPushInt(vm, comparison == 1);
 }
 
 void nkiOpcode_lt(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison == -1);
+    nkiVmStackPushInt(vm, comparison == -1);
 }
 
 void nkiOpcode_ge(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison == 0 || comparison == 1);
+    nkiVmStackPushInt(vm, comparison == 0 || comparison == 1);
 }
 
 void nkiOpcode_le(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison == 0 || comparison == -1);
+    nkiVmStackPushInt(vm, comparison == 0 || comparison == -1);
 }
 
 void nkiOpcode_eq(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison == 0);
+    nkiVmStackPushInt(vm, comparison == 0);
 }
 
 void nkiOpcode_ne(struct NKVM *vm)
 {
     nkint32_t comparison = nkiOpcode_internal_compare(vm);
-    vmStackPushInt(vm, comparison != 0);
+    nkiVmStackPushInt(vm, comparison != 0);
 }
 
 void nkiOpcode_eqsametype(struct NKVM *vm)
 {
     nkuint32_t stackSize = vm->stack.size;
     nkbool sameTypes =
-        vmStackPeek(vm, stackSize - 1)->type ==
-        vmStackPeek(vm, stackSize - 2)->type;
+        nkiVmStackPeek(vm, stackSize - 1)->type ==
+        nkiVmStackPeek(vm, stackSize - 2)->type;
 
     if(sameTypes) {
         nkint32_t comparison = nkiOpcode_internal_compare(vm);
-        vmStackPushInt(vm, comparison == 0);
+        nkiVmStackPushInt(vm, comparison == 0);
     } else {
-        vmStackPopN(vm, 2);
-        vmStackPushInt(vm, 0);
+        nkiVmStackPopN(vm, 2);
+        nkiVmStackPushInt(vm, 0);
     }
 }
 
 void nkiOpcode_not(struct NKVM *vm)
 {
-    vmStackPushInt(vm, !nkiValueToInt(vm, vmStackPop(vm)));
+    nkiVmStackPushInt(vm, !nkiValueToInt(vm, nkiVmStackPop(vm)));
 }
 
 void nkiOpcode_and(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
-    nkbool in1 = nkiValueToInt(vm, vmStackPop(vm));
-    nkbool in2 = nkiValueToInt(vm, vmStackPop(vm));
-    vmStackPushInt(vm, in1 && in2);
+    nkbool in1 = nkiValueToInt(vm, nkiVmStackPop(vm));
+    nkbool in2 = nkiValueToInt(vm, nkiVmStackPop(vm));
+    nkiVmStackPushInt(vm, in1 && in2);
 }
 
 void nkiOpcode_or(struct NKVM *vm)
 {
     // Do NOT try to inline these function calls in this expression. C
     // shortcutting will ruin your day.
-    nkbool in1 = nkiValueToInt(vm, vmStackPop(vm));
-    nkbool in2 = nkiValueToInt(vm, vmStackPop(vm));
-    vmStackPushInt(vm, in1 || in2);
+    nkbool in1 = nkiValueToInt(vm, nkiVmStackPop(vm));
+    nkbool in2 = nkiValueToInt(vm, nkiVmStackPop(vm));
+    nkiVmStackPushInt(vm, in1 || in2);
 }
 
 void nkiOpcode_createObject(struct NKVM *vm)
 {
-    struct NKValue *v = vmStackPush_internal(vm);
+    struct NKValue *v = nkiVmStackPush_internal(vm);
     v->type = NK_VALUETYPE_OBJECTID;
     v->objectId = nkiVmObjectTableCreateObject(vm);
 }
 
 void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
 {
-    struct NKValue *indexToGet = vmStackPop(vm);
+    struct NKValue *indexToGet = nkiVmStackPop(vm);
     struct NKValue *objectToGet;
     struct NKValue *output;
     struct NKValue *objectValue;
     struct NKVMObject *ob;
 
     if(popObject) {
-        objectToGet = vmStackPop(vm);
+        objectToGet = nkiVmStackPop(vm);
     } else {
-        objectToGet = vmStackPeek(vm, vm->stack.size - 1);
+        objectToGet = nkiVmStackPeek(vm, vm->stack.size - 1);
     }
 
     if(objectToGet->type != NK_VALUETYPE_OBJECTID) {
@@ -717,7 +717,7 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
         return;
     }
 
-    output = vmStackPush_internal(vm);
+    output = nkiVmStackPush_internal(vm);
 
     objectValue =
         nkiVmObjectFindOrAddEntry(vm, ob, indexToGet, nktrue);
@@ -742,9 +742,9 @@ void nkiOpcode_objectFieldGet_noPop(struct NKVM *vm)
 
 void nkiOpcode_objectFieldSet(struct NKVM *vm)
 {
-    struct NKValue *indexToSet  = vmStackPop(vm);
-    struct NKValue *objectToSet = vmStackPop(vm);
-    struct NKValue *valueToSet  = vmStackPop(vm);
+    struct NKValue *indexToSet  = nkiVmStackPop(vm);
+    struct NKValue *objectToSet = nkiVmStackPop(vm);
+    struct NKValue *valueToSet  = nkiVmStackPop(vm);
 
     // TODO: Actually assign the value.
     struct NKValue *objectValue;
@@ -787,15 +787,15 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
     }
 
     // Leave the assigned value on the stack.
-    *vmStackPush_internal(vm) = *valueToSet;
+    *nkiVmStackPush_internal(vm) = *valueToSet;
 }
 
 void nkiOpcode_prepareSelfCall(struct NKVM *vm)
 {
-    struct NKValue *argumentCount = vmStackPeek(vm, vm->stack.size - 1);
+    struct NKValue *argumentCount = nkiVmStackPeek(vm, vm->stack.size - 1);
     nkuint32_t stackOffset = nkiValueToInt(vm, argumentCount);
-    struct NKValue *function = vmStackPeek(vm, vm->stack.size - (stackOffset + 3));
-    struct NKValue *object = vmStackPeek(vm, vm->stack.size - (stackOffset + 2));
+    struct NKValue *function = nkiVmStackPeek(vm, vm->stack.size - (stackOffset + 3));
+    struct NKValue *object = nkiVmStackPeek(vm, vm->stack.size - (stackOffset + 2));
     struct NKValue tmp;
     tmp = *function;
     *function = *object;
@@ -808,6 +808,6 @@ void nkiOpcode_prepareSelfCall(struct NKVM *vm)
 
 void nkiOpcode_pushNil(struct NKVM *vm)
 {
-    struct NKValue *v = vmStackPush_internal(vm);
+    struct NKValue *v = nkiVmStackPush_internal(vm);
     v->type = NK_VALUETYPE_NIL;
 }

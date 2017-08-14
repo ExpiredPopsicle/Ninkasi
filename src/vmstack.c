@@ -1,6 +1,6 @@
 #include "common.h"
 
-void vmStackInit(struct NKVM *vm)
+void nkiVmStackInit(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
     stack->values = nkiMalloc(vm, sizeof(struct NKValue));
@@ -10,14 +10,14 @@ void vmStackInit(struct NKVM *vm)
     stack->indexMask = 0;
 }
 
-void vmStackDestroy(struct NKVM *vm)
+void nkiVmStackDestroy(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
     nkiFree(vm, stack->values);
     memset(stack, 0, sizeof(struct NKVMStack));
 }
 
-struct NKValue *vmStackPush_internal(struct NKVM *vm)
+struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -73,9 +73,9 @@ struct NKValue *vmStackPush_internal(struct NKVM *vm)
     }
 }
 
-nkbool vmStackPushInt(struct NKVM *vm, nkint32_t value)
+nkbool nkiVmStackPushInt(struct NKVM *vm, nkint32_t value)
 {
-    struct NKValue *data = vmStackPush_internal(vm);
+    struct NKValue *data = nkiVmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_INT;
         data->intData = value;
@@ -84,9 +84,9 @@ nkbool vmStackPushInt(struct NKVM *vm, nkint32_t value)
     return nkfalse;
 }
 
-nkbool vmStackPushFloat(struct NKVM *vm, float value)
+nkbool nkiVmStackPushFloat(struct NKVM *vm, float value)
 {
-    struct NKValue *data = vmStackPush_internal(vm);
+    struct NKValue *data = nkiVmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_FLOAT;
         data->floatData = value;
@@ -95,9 +95,9 @@ nkbool vmStackPushFloat(struct NKVM *vm, float value)
     return nkfalse;
 }
 
-nkbool vmStackPushString(struct NKVM *vm, const char *str)
+nkbool nkiVmStackPushString(struct NKVM *vm, const char *str)
 {
-    struct NKValue *data = vmStackPush_internal(vm);
+    struct NKValue *data = nkiVmStackPush_internal(vm);
     if(data) {
         data->type = NK_VALUETYPE_STRING;
         data->stringTableEntry =
@@ -108,7 +108,7 @@ nkbool vmStackPushString(struct NKVM *vm, const char *str)
     return nkfalse;
 }
 
-struct NKValue *vmStackPop(struct NKVM *vm)
+struct NKValue *nkiVmStackPop(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -126,7 +126,7 @@ struct NKValue *vmStackPop(struct NKVM *vm)
     return &stack->values[stack->size];
 }
 
-void vmStackPopN(struct NKVM *vm, nkuint32_t count)
+void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
 {
     struct NKVMStack *stack = &vm->stack;
 
@@ -146,18 +146,18 @@ void vmStackPopN(struct NKVM *vm, nkuint32_t count)
     stack->size -= count;
 }
 
-void vmStackDump(struct NKVM *vm)
+void nkiVmStackDump(struct NKVM *vm)
 {
     nkuint32_t i;
     struct NKVMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        nkiValueDump(vm, vmStackPeek(vm, i));
+        nkiValueDump(vm, nkiVmStackPeek(vm, i));
         printf("\n");
     }
 }
 
-struct NKValue *vmStackPeek(struct NKVM *vm, nkuint32_t index)
+struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
 {
     return &vm->stack.values[index & vm->stack.indexMask];
 }

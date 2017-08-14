@@ -314,7 +314,7 @@ int main(int argc, char *argv[])
                     // printf("PC: %u\n", vm->instructionPointer);
                     // printf("Stack...\n");
                     // printf("----------------------------------------------------------------------\n");
-                    // vmStackDump(vm);
+                    // nkiVmStackDump(vm);
                     // printf("\n");
                     // dumpListing(vm, script);
                     // getchar();
@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
                 }
             }
 
-            //     vmStackDump(vm);
+            //     nkiVmStackDump(vm);
             //     // nkxVmGarbageCollect(vm);
 
             //     printf("next at %d\n",
@@ -384,10 +384,10 @@ int main(int argc, char *argv[])
         printf("----------------------------------------------------------------------\n");
 
         printf("Final stack...\n");
-        vmStackDump(vm);
+        nkiVmStackDump(vm);
         nkxVmGarbageCollect(vm);
         printf("Final stack again...\n");
-        vmStackDump(vm);
+        nkiVmStackDump(vm);
 
         if(0) {
 
@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
             // nkiVmIterate(vm);
             // nkiVmIterate(vm);
             printf("Final stack dump...\n");
-            vmStackDump(vm);
+            nkiVmStackDump(vm);
 
         }
 

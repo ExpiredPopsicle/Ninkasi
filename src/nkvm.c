@@ -118,7 +118,7 @@ void nkiVmInit(struct NKVM *vm)
     nkiVmInitOpcodeTable();
 
     nkiErrorStateInit(vm);
-    vmStackInit(vm);
+    nkiVmStackInit(vm);
     vm->instructionPointer = 0;
 
     vm->instructions =
@@ -166,7 +166,7 @@ void nkiVmDestroy(struct NKVM *vm)
 
         nkiVmStringTableDestroy(vm);
 
-        vmStackDestroy(vm);
+        nkiVmStackDestroy(vm);
         nkiErrorStateDestroy(vm);
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);
@@ -511,11 +511,11 @@ void nkiVmCallFunction(
         nkuint32_t oldInstructionPtr = vm->instructionPointer;
         nkuint32_t i;
 
-        *vmStackPush_internal(vm) = *functionValue;
+        *nkiVmStackPush_internal(vm) = *functionValue;
         for(i = 0; i < argumentCount; i++) {
-            *vmStackPush_internal(vm) = arguments[i];
+            *nkiVmStackPush_internal(vm) = arguments[i];
         }
-        vmStackPushInt(vm, argumentCount);
+        nkiVmStackPushInt(vm, argumentCount);
 
         vm->instructionPointer = (~(nkuint32_t)0 - 1);
 
@@ -534,7 +534,7 @@ void nkiVmCallFunction(
         }
 
         // Save return value.
-        *returnValue = *vmStackPop(vm);
+        *returnValue = *nkiVmStackPop(vm);
 
         // Restore old state.
         vm->instructionPointer = oldInstructionPtr;
