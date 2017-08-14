@@ -309,7 +309,7 @@ void nkiOpcode_dump(struct NKVM *vm)
     vmStackPop(vm);
     // struct NKValue *v = vmStackPop(vm);
     // printf("Debug dump: ");
-    // value_dump(vm, v);
+    // nkiValueDump(vm, v);
     // printf("\n");
 }
 

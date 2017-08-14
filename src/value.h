@@ -5,6 +5,16 @@
 
 struct NKVM;
 
+/// Basic "value" type. This can represent an integer, float, pointer
+/// to an object, pointer to a string, or function ID. It does no
+/// reference counting, and it is safe to instantiate outside of the
+/// VM, or copy the structure in its entirety from a VM-owned
+/// instance.
+///
+/// (Note: The garbage collector will not see NKValues that are not
+/// owned by the VM. Use nkxVmObjectAcquireHandle() to keep the VM
+/// from garbage collecting objects that are potentially only tracked
+/// outside of the VM.)
 struct NKValue
 {
     enum NKValueType type;
@@ -18,12 +28,15 @@ struct NKValue
         nkuint32_t functionId;
         nkuint32_t objectId;
 
-        // Used for ints, floats, functionIds, and objectIds.
+        // Used for ints, floats, functionIds, and objectIds. NOT for
+        // strings. String hashes are stored in the corresponding
+        // entry in the string table.
         nkuint32_t basicHashValue;
     };
 };
 
-nkbool value_dump(struct NKVM *vm, struct NKValue *value);
+/// Dump a value to stdout for debugging purposes.
+nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
 
 const char *valueTypeGetName(enum NKValueType type);
 

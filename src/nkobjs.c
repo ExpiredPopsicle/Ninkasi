@@ -271,9 +271,9 @@ void nkiVmObjectTableDump(struct NKVM *vm)
                 printf("      Hash bucket %u\n", bucket);
                 while(el) {
                     printf("        ");
-                    value_dump(vm, &el->key);
+                    nkiValueDump(vm, &el->key);
                     printf(" = ");
-                    value_dump(vm, &el->value);
+                    nkiValueDump(vm, &el->value);
                     printf("\n");
                     el = el->next;
                 }

@@ -152,7 +152,7 @@ void vmStackDump(struct NKVM *vm)
     struct NKVMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        value_dump(vm, vmStackPeek(vm, i));
+        nkiValueDump(vm, vmStackPeek(vm, i));
         printf("\n");
     }
 }

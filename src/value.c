@@ -1,6 +1,6 @@
 #include "common.h"
 
-nkbool value_dump(
+nkbool nkiValueDump(
     struct NKVM *vm, struct NKValue *value)
 {
     // TODO: Function pointer table here?
@@ -35,7 +35,7 @@ nkbool value_dump(
 
         default:
             printf(
-                "value_dump unimplemented for type %s",
+                "nkiValueDump unimplemented for type %s",
                 valueTypeGetName(value->type));
             return nkfalse;
     }
