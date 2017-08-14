@@ -80,8 +80,6 @@ enum NKOpcode
     NK_OP_POP,
     NK_OP_POPN,
 
-    NK_OP_DUMP,
-
     NK_OP_STACKPEEK,
     NK_OP_STACKPOKE,
 

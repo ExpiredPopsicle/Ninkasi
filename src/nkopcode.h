@@ -89,8 +89,6 @@ void nkiOpcode_popN(struct NKVM *vm);
 
 void nkiOpcode_nop(struct NKVM *vm);
 
-void nkiOpcode_dump(struct NKVM *vm);
-
 /// Pops a stack index off the top of the stack, and then pushes a
 /// copy of the value at that index to the top of the stack.
 void nkiOpcode_stackPeek(struct NKVM *vm);

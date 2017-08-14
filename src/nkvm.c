@@ -84,8 +84,6 @@ static void nkiVmInitOpcodeTable(void)
     NK_SETUP_OP(NK_OP_POP,                    nkiOpcode_pop,                    -1);
     NK_SETUP_OP(NK_OP_POPN,                   nkiOpcode_popN,                   0);
 
-    NK_SETUP_OP(NK_OP_DUMP,                   nkiOpcode_dump,                   -1);
-
     NK_SETUP_OP(NK_OP_STACKPEEK,              nkiOpcode_stackPeek,              0);
     NK_SETUP_OP(NK_OP_STACKPOKE,              nkiOpcode_stackPoke,              -1);
 

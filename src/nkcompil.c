@@ -413,10 +413,9 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
                 return nkfalse;
             }
 
+            // Pop the expression result off the stack.
             if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_SEMICOLON) {
-                // TODO: Remove this. (Debugging output.) Replace it with
-                // a NK_OP_POP.
-                nkiCompilerAddInstructionSimple(cs, NK_OP_DUMP, nktrue);
+                nkiCompilerAddInstructionSimple(cs, NK_OP_POP, nktrue);
             }
 
             NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_SEMICOLON);

@@ -347,15 +347,6 @@ void nkiOpcode_popN(struct NKVM *vm)
     nkiVmStackPopN(vm, nkiValueToInt(vm, v));
 }
 
-void nkiOpcode_dump(struct NKVM *vm)
-{
-    nkiVmStackPop(vm);
-    // struct NKValue *v = nkiVmStackPop(vm);
-    // printf("Debug dump: ");
-    // nkiValueDump(vm, v);
-    // printf("\n");
-}
-
 void nkiOpcode_stackPeek(struct NKVM *vm)
 {
     // Read index.
