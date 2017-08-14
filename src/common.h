@@ -17,7 +17,7 @@
 #include "value.h"
 #include "nkopcode.h"
 #include "nkexpr.h"
-#include "optimize.h"
+#include "nkopt.h"
 #include "tokenize.h"
 #include "vmdbg.h"
 #include "nkerror.h"
