@@ -139,4 +139,4 @@ Name it nkiVmAddError.
 Prevents us from interfering with other systems. Maintains C++
 compatibility.
 
-* TODO User-definable malloc/free replacement
+* DONE User-definable malloc/free replacement
