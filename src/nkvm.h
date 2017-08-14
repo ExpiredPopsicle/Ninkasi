@@ -8,7 +8,7 @@
 #include "nkopcode.h"
 #include "nkstring.h"
 #include "nkfunc.h"
-#include "objects.h"
+#include "nkobjs.h"
 
 #include "nktypes.h"
 #include "value.h"

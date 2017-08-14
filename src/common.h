@@ -26,7 +26,7 @@
 #include "nkcompil.h"
 #include "nkstring.h"
 #include "nkfunc.h"
-#include "objects.h"
+#include "nkobjs.h"
 #include "nkmem.h"
 #include "nkfail.h"
 
