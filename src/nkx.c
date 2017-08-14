@@ -44,18 +44,32 @@
 #include "nkcommon.h"
 #include "nkx.h"
 
-struct NKVM *nkxVmCreate(void)
+void *nkiDefaultMalloc(nkuint32_t size, void *userData)
+{
+    return malloc(size);
+}
+
+void nkiDefaultFree(void *ptr, void *userData)
+{
+    free(ptr);
+}
+
+struct NKVM *nkxVmCreateEx(
+    struct NKVMCreateParams *params)
 {
     NK_FAILURE_RECOVERY_DECL();
 
-    // FIXME: Use specified malloc replacement here.
-    struct NKVM *vm = malloc(sizeof(struct NKVM));
+    struct NKVM *vm = params->mallocReplacement(
+        sizeof(struct NKVM),
+        params->mallocAndFreeReplacementUserData);
 
     if(!vm) {
         return NULL;
     }
 
     memset(vm, 0, sizeof(*vm));
+    vm->mallocReplacement = params->mallocReplacement;
+    vm->freeReplacement = params->freeReplacement;
 
     NK_SET_FAILURE_RECOVERY(vm);
 
@@ -64,6 +78,15 @@ struct NKVM *nkxVmCreate(void)
     NK_CLEAR_FAILURE_RECOVERY();
 
     return vm;
+}
+
+struct NKVM *nkxVmCreate(void)
+{
+    struct NKVMCreateParams params;
+    memset(&params, 0, sizeof(params));
+    params.mallocReplacement = nkiDefaultMalloc;
+    params.freeReplacement = nkiDefaultFree;
+    return nkxVmCreateEx(&params);
 }
 
 void nkxVmDelete(struct NKVM *vm)

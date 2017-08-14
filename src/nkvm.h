@@ -119,11 +119,16 @@ struct NKVM
     char *globalVariableNameStorage;
     nkuint32_t globalVariableCount;
 
+    // Memory usage stuff.
+
     struct NKVMLimits limits;
     nkuint32_t currentMemoryUsage;
     nkuint32_t peakMemoryUsage;
 
     struct NKMemoryHeader *allocations;
+    void *(*mallocReplacement)(nkuint32_t size, void *userData);
+    void (*freeReplacement)(void *ptr, void *userData);
+    void *mallocAndFreeReplacementUserData;
 
     jmp_buf *catastrophicFailureJmpBuf;
 };

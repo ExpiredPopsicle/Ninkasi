@@ -257,7 +257,7 @@ int main(int argc, char *argv[])
     maxRam = 130000;
     maxRam = 1;
     maxRam = 158000;
-    // maxRam = 15800000;
+    maxRam = 15800000;
     maxMaxRam = maxRam + 1;
 
     if(!script) {

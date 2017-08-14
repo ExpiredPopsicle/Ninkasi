@@ -43,16 +43,8 @@
 
 #include "nkcommon.h"
 
-// static nkuint32_t killCounter = 2;
-
 void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
 {
-    // if(rand() % 2048 == 0) {
-    //     nkiErrorStateSetAllocationFailFlag(vm);
-    //     NK_CATASTROPHE();
-    //     return NULL;
-    // }
-
     if(size != 0) {
 
         struct NKMemoryHeader *header = NULL;
@@ -69,7 +61,9 @@ void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
             return NULL;
         }
 
-        header = malloc(newChunkSize);
+        header = vm->mallocReplacement(
+            newChunkSize,
+            vm->mallocAndFreeReplacementUserData);
 
         if(header) {
 
@@ -120,7 +114,7 @@ void nkiFree(struct NKVM *vm, void *data)
         }
         *header->prevAllocationPtr = header->nextAllocation;
 
-        free(header);
+        vm->freeReplacement(header, vm->mallocAndFreeReplacementUserData);
     }
 }
 

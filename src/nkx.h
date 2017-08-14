@@ -70,8 +70,22 @@ struct NKValue;
 // ----------------------------------------------------------------------
 // Public VM interface
 
-/// Create and initialize a VM object.
+/// Create and initialize a VM object. (Simple version. Just uses
+/// malloc/free directly.)
 struct NKVM *nkxVmCreate(void);
+
+/// Creation parameters for advanced setup.
+struct NKVMCreateParams
+{
+    void *(*mallocReplacement)(nkuint32_t size, void *userData);
+    void (*freeReplacement)(void *ptr, void *userData);
+    void *mallocAndFreeReplacementUserData;
+};
+
+/// Advanced version of nkxVmCreate(). Use this if you want to use a
+/// different allocator than malloc() and free().
+struct NKVM *nkxVmCreateEx(
+    struct NKVMCreateParams *params);
 
 /// De-initialize and free a VM object.
 void nkxVmDelete(struct NKVM *vm);
