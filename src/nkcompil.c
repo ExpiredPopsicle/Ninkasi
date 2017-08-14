@@ -943,9 +943,9 @@ nkbool nkiCompilerCompileScript(
     tokenList.first = NULL;
     tokenList.last = NULL;
 
-    success = tokenize(cs->vm, script, &tokenList);
+    success = nkiCompilerTokenize(cs->vm, script, &tokenList);
     if(!success) {
-        destroyTokenList(cs->vm, &tokenList);
+        nkiCompilerDestroyTokenList(cs->vm, &tokenList);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
     }
@@ -960,7 +960,7 @@ nkbool nkiCompilerCompileScript(
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
-    destroyTokenList(cs->vm, &tokenList);
+    nkiCompilerDestroyTokenList(cs->vm, &tokenList);
 
     nkiCompilerPopRecursion(cs);
     return success;

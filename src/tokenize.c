@@ -13,7 +13,7 @@ static nkbool isNumber(char c)
     return (c >= '0' && c <= '9');
 }
 
-void deleteToken(struct NKVM *vm, struct NKToken *token)
+void nkiCompilerDeleteToken(struct NKVM *vm, struct NKToken *token)
 {
     if(token) {
         nkiFree(vm, token->str);
@@ -21,20 +21,20 @@ void deleteToken(struct NKVM *vm, struct NKToken *token)
     }
 }
 
-void destroyTokenList(
+void nkiCompilerDestroyTokenList(
     struct NKVM *vm, struct NKTokenList *tokenList)
 {
     struct NKToken *t = tokenList->first;
     while(t) {
         struct NKToken *next = t->next;
-        deleteToken(vm, t);
+        nkiCompilerDeleteToken(vm, t);
         t = next;
     }
     tokenList->first = NULL;
     tokenList->last = NULL;
 }
 
-void addToken(
+void nkiCompilerAddToken(
     struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
@@ -133,7 +133,7 @@ void consolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
 
             // Snip the next token out of the list.
             tok->next = next->next;
-            deleteToken(vm, next);
+            nkiCompilerDeleteToken(vm, next);
 
             // Fixup "last" pointer in the TokenList.
             if(tok->next == NULL) {
@@ -167,7 +167,7 @@ nkbool isValidIdentifierCharacter(char c, nkbool isFirstCharacter)
     return nkfalse;
 }
 
-nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
+nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 {
     nkuint32_t len = strlen(str);
     nkuint32_t i = 0;
@@ -185,59 +185,59 @@ nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 
         if(str[i] == '(') {
 
-            addToken(vm, NK_TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
 
         } else if(str[i] == ')') {
 
-            addToken(vm, NK_TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
 
         } else if(str[i] == '[') {
 
-            addToken(vm, NK_TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
 
         } else if(str[i] == ']') {
 
-            addToken(vm, NK_TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
 
         } else if(str[i] == '{') {
 
-            addToken(vm, NK_TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
 
         } else if(str[i] == '}') {
 
-            addToken(vm, NK_TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
 
         } else if(str[i] == '+') {
 
             // Check for "++".
             if(str[i+1] == '+') {
-                addToken(vm, NK_TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(vm, NK_TOKENTYPE_PLUS, "+", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_PLUS, "+", lineNumber, tokenList);
             }
 
         } else if(str[i] == '-') {
 
             // Check for "--".
             if(str[i+1] == '-') {
-                addToken(vm, NK_TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(vm, NK_TOKENTYPE_MINUS, "-", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_MINUS, "-", lineNumber, tokenList);
             }
 
         } else if(str[i] == '*') {
 
-            addToken(vm, NK_TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
 
         } else if(str[i] == '%') {
 
-            addToken(vm, NK_TOKENTYPE_MODULO, "%", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_MODULO, "%", lineNumber, tokenList);
 
         } else if(str[i] == '.') {
 
-            addToken(vm, NK_TOKENTYPE_DOT, ".", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_DOT, ".", lineNumber, tokenList);
 
         } else if(str[i] == '/') {
 
@@ -251,67 +251,67 @@ nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
                 i--;
 
             } else {
-                addToken(vm, NK_TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
             }
 
         } else if(str[i] == ';') {
 
-            addToken(vm, NK_TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
 
         } else if(str[i] == '=') {
 
             if(str[i+1] == '=') {
                 if(str[i+2] == '=') {
-                    addToken(vm, NK_TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
+                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
                     i += 2;
                 } else {
-                    addToken(vm, NK_TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
+                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
                     i++;
                 }
             } else {
-                addToken(vm, NK_TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
             }
 
         } else if(str[i] == ',') {
 
-            addToken(vm, NK_TOKENTYPE_COMMA, ",", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_COMMA, ",", lineNumber, tokenList);
 
         } else if(str[i] == '>') {
 
             if(str[i+1] == '=') {
-                addToken(vm, NK_TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(vm, NK_TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
             }
 
         } else if(str[i] == '<') {
 
             if(str[i+1] == '=') {
-                addToken(vm, NK_TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(vm, NK_TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
             }
 
         } else if(str[i] == '!') {
 
             if(str[i+1] == '=') {
-                addToken(vm, NK_TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
                 i++;
             } else {
-                addToken(vm, NK_TOKENTYPE_NOT, "!", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOT, "!", lineNumber, tokenList);
             }
 
         } else if(str[i] == '&' && str[i+1] == '&') {
 
             i++;
-            addToken(vm, NK_TOKENTYPE_AND, "&&", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_AND, "&&", lineNumber, tokenList);
 
         } else if(str[i] == '|' && str[i+1] == '|') {
 
             i++;
-            addToken(vm, NK_TOKENTYPE_OR, "||", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_OR, "||", lineNumber, tokenList);
 
         } else if(str[i] == '\"') {
 
@@ -350,7 +350,7 @@ nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 
             strUnescaped = tokenizerUnescapeString(vm, strTmp);
 
-            addToken(vm, NK_TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
 
             nkiFree(vm, strTmp);
             nkiFree(vm, strUnescaped);
@@ -383,7 +383,7 @@ nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
             // character of whatever comes next.
             i--;
 
-            addToken(
+            nkiCompilerAddToken(
                 vm,
                 isFloat ? NK_TOKENTYPE_FLOAT : NK_TOKENTYPE_INTEGER,
                 tmp,
@@ -405,27 +405,27 @@ nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
             tmp[(i - startIndex)] = 0;
 
             if(!strcmp(tmp, "var")) {
-                addToken(vm, NK_TOKENTYPE_VAR, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_VAR, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "function")) {
-                addToken(vm, NK_TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "return")) {
-                addToken(vm, NK_TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "if")) {
-                addToken(vm, NK_TOKENTYPE_IF, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_IF, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "else")) {
-                addToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "while")) {
-                addToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "for")) {
-                addToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "newobject")) {
-                addToken(vm, NK_TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "nil")) {
-                addToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "break")) {
-                addToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
             } else {
-                addToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
             }
 
             nkiFree(vm, tmp);

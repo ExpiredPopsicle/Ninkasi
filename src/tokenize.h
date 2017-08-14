@@ -19,16 +19,16 @@ struct NKTokenList
     struct NKToken *last;
 };
 
-void deleteToken(
+void nkiCompilerDeleteToken(
     struct NKVM *vm, struct NKToken *token);
-void destroyTokenList(struct NKVM *vm, struct NKTokenList *tokenList);
-void addToken(
+void nkiCompilerDestroyTokenList(struct NKVM *vm, struct NKTokenList *tokenList);
+void nkiCompilerAddToken(
     struct NKVM *vm,
     enum NKTokenType type,
     const char *str,
     nkint32_t lineNumber,
     struct NKTokenList *tokenList);
-nkbool tokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
+nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
 
 #endif // NINKASI_TOKENIZE_H
 

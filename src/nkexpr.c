@@ -8,7 +8,7 @@ void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode
     }
 
     if(node->ownedToken) {
-        deleteToken(vm, node->opOrValue);
+        nkiCompilerDeleteToken(vm, node->opOrValue);
         node->opOrValue = NULL;
     }
 
@@ -1068,7 +1068,7 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             node->isRootFunctionCallNode = nkfalse;
 
             if(wasOwningToken) {
-                deleteToken(cs->vm, oldToken);
+                nkiCompilerDeleteToken(cs->vm, oldToken);
             }
         }
 
