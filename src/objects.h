@@ -1,7 +1,7 @@
 #ifndef NINKASI_OBJECTS_H
 #define NINKASI_OBJECTS_H
 
-// Dumb linked-list for object data. We should replace this some day.
+/// Dumb linked-list for key/value pairs inside of an object.
 struct NKVMObjectElement
 {
     struct NKValue key;
@@ -42,23 +42,23 @@ struct NKVMObjectTable
     struct NKVMObject *objectsWithExternalHandles;
 };
 
-void vmObjectTableInit(struct NKVM *vm);
-void vmObjectTableDestroy(struct NKVM *vm);
+void nkiVmObjectTableInit(struct NKVM *vm);
+void nkiVmObjectTableDestroy(struct NKVM *vm);
 
-struct NKVMObject *vmObjectTableGetEntryById(
+struct NKVMObject *nkiVmObjectTableGetEntryById(
     struct NKVMObjectTable *table,
     nkuint32_t index);
 
-nkuint32_t vmObjectTableCreateObject(
+nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVM *vm);
 
-void vmObjectTableCleanOldObjects(
+void nkiVmObjectTableCleanOldObjects(
     struct NKVM *vm,
     nkuint32_t lastGCPass);
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.
-struct NKValue *vmObjectFindOrAddEntry(
+struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key,
@@ -66,12 +66,12 @@ struct NKValue *vmObjectFindOrAddEntry(
 
 // FIXME: Make a public version of this that takes Value* instead of
 // VMObject*.
-void vmObjectClearEntry(
+void nkiVmObjectClearEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key);
 
-void vmObjectTableDump(struct NKVM *vm);
+void nkiVmObjectTableDump(struct NKVM *vm);
 
 // Internal version of nkxVmObjectAcquireHandle.
 void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);

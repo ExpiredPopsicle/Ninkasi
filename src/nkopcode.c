@@ -682,7 +682,7 @@ void nkiOpcode_createObject(struct NKVM *vm)
 {
     struct NKValue *v = vmStackPush_internal(vm);
     v->type = NK_VALUETYPE_OBJECTID;
-    v->objectId = vmObjectTableCreateObject(vm);
+    v->objectId = nkiVmObjectTableCreateObject(vm);
 }
 
 void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
@@ -707,7 +707,7 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
         return;
     }
 
-    ob = vmObjectTableGetEntryById(&vm->objectTable, objectToGet->objectId);
+    ob = nkiVmObjectTableGetEntryById(&vm->objectTable, objectToGet->objectId);
 
     if(!ob) {
         nkiAddError(
@@ -720,7 +720,7 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
     output = vmStackPush_internal(vm);
 
     objectValue =
-        vmObjectFindOrAddEntry(vm, ob, indexToGet, nktrue);
+        nkiVmObjectFindOrAddEntry(vm, ob, indexToGet, nktrue);
 
     if(objectValue) {
         *output = *objectValue;
@@ -758,7 +758,7 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
         return;
     }
 
-    ob = vmObjectTableGetEntryById(&vm->objectTable, objectToSet->objectId);
+    ob = nkiVmObjectTableGetEntryById(&vm->objectTable, objectToSet->objectId);
 
     if(!ob) {
         nkiAddError(
@@ -772,14 +772,14 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
 
         // For nil, we actually want to remove a field.
 
-        vmObjectClearEntry(vm, ob, indexToSet);
+        nkiVmObjectClearEntry(vm, ob, indexToSet);
 
     } else {
 
         // For non-nil values, set or create the field.
 
         objectValue =
-            vmObjectFindOrAddEntry(vm, ob, indexToSet, nkfalse);
+            nkiVmObjectFindOrAddEntry(vm, ob, indexToSet, nkfalse);
 
         if(objectValue) {
             *objectValue = *valueToSet;

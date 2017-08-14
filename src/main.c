@@ -439,7 +439,7 @@ int main(int argc, char *argv[])
 
         nkxVmGarbageCollect(vm);
         printf("Final object table dump...\n");
-        vmObjectTableDump(vm);
+        nkiVmObjectTableDump(vm);
 
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);

@@ -141,7 +141,7 @@ void nkiVmInit(struct NKVM *vm)
     vm->globalVariables = NULL;
     vm->globalVariableNameStorage = NULL;
 
-    vmObjectTableInit(vm);
+    nkiVmObjectTableInit(vm);
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -174,7 +174,7 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiFree(vm, vm->globalVariables);
         nkiFree(vm, vm->globalVariableNameStorage);
 
-        vmObjectTableDestroy(vm);
+        nkiVmObjectTableDestroy(vm);
 
         NK_CLEAR_FAILURE_RECOVERY();
     }
@@ -323,7 +323,7 @@ void nkiVmGarbageCollect_markReferenced(
 
                 case NK_VALUETYPE_OBJECTID: {
 
-                    struct NKVMObject *ob = vmObjectTableGetEntryById(
+                    struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
                         &gcState->vm->objectTable,
                         value->objectId);
 
@@ -389,7 +389,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         vm, gcState.currentGCPass);
 
     // Delete unmarked (and not externally-referenced) objects.
-    vmObjectTableCleanOldObjects(
+    nkiVmObjectTableCleanOldObjects(
         vm, gcState.currentGCPass);
 
     // TODO: Delete unmarked external data. Also run the GC callback

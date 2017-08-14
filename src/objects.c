@@ -1,6 +1,6 @@
 #include "common.h"
 
-void vmObjectTableInit(struct NKVM *vm)
+void nkiVmObjectTableInit(struct NKVM *vm)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
 
@@ -19,7 +19,7 @@ void vmObjectTableInit(struct NKVM *vm)
     table->objectsWithExternalHandles = NULL;
 }
 
-void vmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
+void nkiVmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
 {
     nkuint32_t i;
     for(i = 0; i < nkiVMObjectHashBucketCount; i++) {
@@ -33,7 +33,7 @@ void vmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
     nkiFree(vm, ob);
 }
 
-void vmObjectTableDestroy(struct NKVM *vm)
+void nkiVmObjectTableDestroy(struct NKVM *vm)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
 
@@ -41,7 +41,7 @@ void vmObjectTableDestroy(struct NKVM *vm)
     nkuint32_t i;
     for(i = 0; i < table->objectTableCapacity; i++) {
         if(table->objectTable[i]) {
-            vmObjectDelete(vm, table->objectTable[i]);
+            nkiVmObjectDelete(vm, table->objectTable[i]);
         }
         table->objectTable[i] = NULL;
     }
@@ -60,7 +60,7 @@ void vmObjectTableDestroy(struct NKVM *vm)
     }
 }
 
-struct NKVMObject *vmObjectTableGetEntryById(
+struct NKVMObject *nkiVmObjectTableGetEntryById(
     struct NKVMObjectTable *table,
     nkuint32_t index)
 {
@@ -71,7 +71,7 @@ struct NKVMObject *vmObjectTableGetEntryById(
     return table->objectTable[index];
 }
 
-nkuint32_t vmObjectTableCreateObject(
+nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVM *vm)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
@@ -142,7 +142,7 @@ nkuint32_t vmObjectTableCreateObject(
     return newObject->objectTableIndex;
 }
 
-void vmObjectTableCleanOldObjects(
+void nkiVmObjectTableCleanOldObjects(
     struct NKVM *vm,
     nkuint32_t lastGCPass)
 {
@@ -166,7 +166,7 @@ void vmObjectTableCleanOldObjects(
                 dbgWriteLine("Purging object at index %u", i);
 
                 table->objectTable[i] = NULL;
-                vmObjectDelete(vm, ob);
+                nkiVmObjectDelete(vm, ob);
 
                 // Create a table hole for our new gap.
                 memset(hole, 0, sizeof(*hole));
@@ -180,7 +180,7 @@ void vmObjectTableCleanOldObjects(
     dbgPop();
 }
 
-void vmObjectClearEntry(
+void nkiVmObjectClearEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key)
@@ -206,7 +206,7 @@ void vmObjectClearEntry(
     }
 }
 
-struct NKValue *vmObjectFindOrAddEntry(
+struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key,
@@ -253,7 +253,7 @@ struct NKValue *vmObjectFindOrAddEntry(
     return &el->value;
 }
 
-void vmObjectTableDump(struct NKVM *vm)
+void nkiVmObjectTableDump(struct NKVM *vm)
 {
     nkuint32_t index;
     printf("Object table dump...\n");
@@ -287,7 +287,7 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
-        struct NKVMObject *ob = vmObjectTableGetEntryById(
+        struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
 
         // Make sure we actually got an object.
@@ -332,7 +332,7 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
 
-        struct NKVMObject *ob = vmObjectTableGetEntryById(
+        struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
 
         // Make sure we actually got an object.
