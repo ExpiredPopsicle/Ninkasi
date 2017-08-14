@@ -19,7 +19,7 @@
 #include "nkexpr.h"
 #include "nkopt.h"
 #include "nktoken.h"
-#include "vmdbg.h"
+#include "nkdbg.h"
 #include "nkerror.h"
 #include "nkdynstr.h"
 #include "nkvm.h"
