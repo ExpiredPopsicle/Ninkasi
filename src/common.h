@@ -16,7 +16,7 @@
 #include "vmstack.h"
 #include "value.h"
 #include "nkopcode.h"
-#include "expressn.h"
+#include "nkexpr.h"
 #include "optimize.h"
 #include "tokenize.h"
 #include "vmdbg.h"
