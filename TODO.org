@@ -138,3 +138,5 @@ Name it nkiVmAddError.
 * TODO typedefs for basic types (uint32_t, etc) should have nk prefix (nk_uint32_t, etc).
 Prevents us from interfering with other systems. Maintains C++
 compatibility.
+
+* TODO User-definable malloc/free replacement
