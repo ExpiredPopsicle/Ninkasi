@@ -22,7 +22,7 @@ nkbool isImmediateValue(struct NKExpressionAstNode *node)
     return nkfalse;
 }
 
-struct NKExpressionAstNode *makeImmediateExpressionNode(
+struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     struct NKVM *vm,
     enum NKTokenType type,
     nkuint32_t lineNumber)
@@ -40,46 +40,46 @@ struct NKExpressionAstNode *makeImmediateExpressionNode(
     return newNode;
 }
 
-#define NK_APPLY_MATH()                                 \
-    do {                                                \
-        switch((*node)->opOrValue->type) {              \
-                                                        \
-            case NK_TOKENTYPE_PLUS:                     \
-                /* Addition. */                         \
-                val = c0Val + c1Val;                    \
-                break;                                  \
-                                                        \
-            case NK_TOKENTYPE_MINUS:                    \
-                if(!(*node)->children[1]) {             \
-                    /* Unary negation. */               \
-                    val = -c0Val;                       \
-                } else {                                \
-                    /* Subtraction. */                  \
-                    val = c0Val - c1Val;                \
-                }                                       \
-                break;                                  \
-                                                        \
-            case NK_TOKENTYPE_MULTIPLY:                 \
-                /* Multiplication. */                   \
-                val = c0Val * c1Val;                    \
-                break;                                  \
-                                                        \
-            case NK_TOKENTYPE_DIVIDE:                   \
-                /* Division. */                         \
-                if(c1Val == 0) {                        \
-                    deleteExpressionNode(vm, newNode);  \
-                    /* TODO: Raise error. */            \
-                    return;                             \
-                }                                       \
-                val = c0Val / c1Val;                    \
-                break;                                  \
-                                                        \
-            default:                                    \
-                /* If you hit this, you forgot to */    \
-                /* implement something. */              \
-                assert(0);                              \
-                break;                                  \
-        }                                               \
+#define NK_APPLY_MATH()                                             \
+    do {                                                            \
+        switch((*node)->opOrValue->type) {                          \
+                                                                    \
+            case NK_TOKENTYPE_PLUS:                                 \
+                /* Addition. */                                     \
+                val = c0Val + c1Val;                                \
+                break;                                              \
+                                                                    \
+            case NK_TOKENTYPE_MINUS:                                \
+                if(!(*node)->children[1]) {                         \
+                    /* Unary negation. */                           \
+                    val = -c0Val;                                   \
+                } else {                                            \
+                    /* Subtraction. */                              \
+                    val = c0Val - c1Val;                            \
+                }                                                   \
+                break;                                              \
+                                                                    \
+            case NK_TOKENTYPE_MULTIPLY:                             \
+                /* Multiplication. */                               \
+                val = c0Val * c1Val;                                \
+                break;                                              \
+                                                                    \
+            case NK_TOKENTYPE_DIVIDE:                               \
+                /* Division. */                                     \
+                if(c1Val == 0) {                                    \
+                    nkiCompilerDeleteExpressionNode(vm, newNode);   \
+                    /* TODO: Raise error. */                        \
+                    return;                                         \
+                }                                                   \
+                val = c0Val / c1Val;                                \
+                break;                                              \
+                                                                    \
+            default:                                                \
+                /* If you hit this, you forgot to */                \
+                /* implement something. */                          \
+                assert(0);                                          \
+                break;                                              \
+        }                                                           \
     } while(0)
 
 void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
@@ -118,7 +118,7 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
             // Make a new literal value node with the same type as
             // whatever we have on the left.
             struct NKExpressionAstNode *newNode =
-                makeImmediateExpressionNode(
+                nkiCompilerMakeImmediateExpressionNode(
                     vm,
                     (*node)->children[0]->opOrValue->type,
                     (*node)->children[0]->opOrValue->lineNumber);
@@ -145,7 +145,7 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
                     newNode->opOrValue->str = nkiStrdup(vm, tmp);
 
                     // Replace the original node.
-                    deleteExpressionNode(vm, *node);
+                    nkiCompilerDeleteExpressionNode(vm, *node);
                     *node = newNode;
 
                 } break;
@@ -168,7 +168,7 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
                     newNode->opOrValue->str = nkiStrdup(vm, tmp);
 
                     // Replace the original node.
-                    deleteExpressionNode(vm, *node);
+                    nkiCompilerDeleteExpressionNode(vm, *node);
                     *node = newNode;
 
                 } break;
@@ -182,11 +182,11 @@ void optimizeConstants(struct NKVM *vm, struct NKExpressionAstNode **node)
             dbgWriteLine("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
 
             dbgWriteLine("  Child1: ");
-            dumpExpressionAstNode((*node)->children[0]);
+            nkiCompilerDumpExpressionAstNode((*node)->children[0]);
             dbgWriteLine("\n");
 
             dbgWriteLine("  Child2: ");
-            dumpExpressionAstNode((*node)->children[1]);
+            nkiCompilerDumpExpressionAstNode((*node)->children[1]);
             dbgWriteLine("\n");
 
         }

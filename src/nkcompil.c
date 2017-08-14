@@ -1223,7 +1223,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
 
     // Skip ")"
     if(!incrementExpression || !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
-        deleteExpressionNode(cs->vm, incrementExpression);
+        nkiCompilerDeleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1232,7 +1232,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     // Generate code to execute if test passes.
     nkiCompilerPushContext(cs);
     if(!nkiCompilerCompileStatement(cs)) {
-        deleteExpressionNode(cs->vm, incrementExpression);
+        nkiCompilerDeleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 3);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1240,8 +1240,8 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     nkiCompilerPopContext(cs);
 
     // Emit the increment expression.
-    if(!emitExpression(cs, incrementExpression)) {
-        deleteExpressionNode(cs->vm, incrementExpression);
+    if(!nkiCompilerEmitExpression(cs, incrementExpression)) {
+        nkiCompilerDeleteExpressionNode(cs->vm, incrementExpression);
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1254,7 +1254,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     // Fixup skip offset.
     nkiCompilerModifyJump(cs, skipAddressWritePtr, cs->instructionWriteIndex);
 
-    deleteExpressionNode(cs->vm, incrementExpression);
+    nkiCompilerDeleteExpressionNode(cs->vm, incrementExpression);
 
     nkiCompilerPopContext(cs);
     nkiCompilerFixupBreakJumpForContext(cs);

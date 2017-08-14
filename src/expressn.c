@@ -1,7 +1,7 @@
 #include "common.h"
 
 // TODO: Make a non-recursive version of this.
-void deleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node)
+void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node)
 {
     if(!node) {
         return;
@@ -13,38 +13,38 @@ void deleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node)
     }
 
     if(node->children[0]) {
-        deleteExpressionNode(vm, node->children[0]);
+        nkiCompilerDeleteExpressionNode(vm, node->children[0]);
     }
     if(node->children[1]) {
-        deleteExpressionNode(vm, node->children[1]);
+        nkiCompilerDeleteExpressionNode(vm, node->children[1]);
     }
 
     nkiFree(vm, node);
 }
 
 // TODO: Remove this.
-void dumpExpressionAstNode(struct NKExpressionAstNode *node)
+void nkiCompilerDumpExpressionAstNode(struct NKExpressionAstNode *node)
 {
     if(!node) {
         dbgWriteLine("<NULL>");
         return;
     }
 
-    if(isPrefixOperator(node->opOrValue) && !node->children[1]) {
+    if(nkiCompilerIsPrefixOperator(node->opOrValue) && !node->children[1]) {
 
         dbgWriteLine(node->opOrValue->str);
         dbgWriteLine("(");
         dbgPush();
-        dumpExpressionAstNode(node->children[0]);
+        nkiCompilerDumpExpressionAstNode(node->children[0]);
         dbgPop();
         dbgWriteLine(")");
 
     } else if(node->opOrValue->type == NK_TOKENTYPE_BRACKET_OPEN) {
 
         dbgWriteLine("(");
-        dumpExpressionAstNode(node->children[0]);
+        nkiCompilerDumpExpressionAstNode(node->children[0]);
         dbgWriteLine(")[");
-        dumpExpressionAstNode(node->children[1]);
+        nkiCompilerDumpExpressionAstNode(node->children[1]);
         dbgWriteLine("]");
 
     } else {
@@ -54,7 +54,7 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node)
         if(node->children[0]) {
             dbgWriteLine("(");
             dbgPush();
-            dumpExpressionAstNode(node->children[0]);
+            nkiCompilerDumpExpressionAstNode(node->children[0]);
             dbgPop();
             dbgWriteLine(")");
         }
@@ -66,7 +66,7 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node)
         if(node->children[1]) {
             dbgWriteLine("(");
             dbgPush();
-            dumpExpressionAstNode(node->children[1]);
+            nkiCompilerDumpExpressionAstNode(node->children[1]);
             dbgPop();
             dbgWriteLine(")");
         }
@@ -76,7 +76,7 @@ void dumpExpressionAstNode(struct NKExpressionAstNode *node)
     }
 }
 
-nkbool isSubexpressionEndingToken(struct NKToken *token)
+nkbool nkiCompilerIsSubexpressionEndingToken(struct NKToken *token)
 {
     return !token ||
         token->type == NK_TOKENTYPE_PAREN_CLOSE ||
@@ -84,13 +84,13 @@ nkbool isSubexpressionEndingToken(struct NKToken *token)
         token->type == NK_TOKENTYPE_COMMA;
 }
 
-nkbool isExpressionEndingToken(struct NKToken *token)
+nkbool nkiCompilerIsExpressionEndingToken(struct NKToken *token)
 {
-    return !token || isSubexpressionEndingToken(token) ||
+    return !token || nkiCompilerIsSubexpressionEndingToken(token) ||
         token->type == NK_TOKENTYPE_SEMICOLON;
 }
 
-nkbool isPrefixOperator(struct NKToken *token)
+nkbool nkiCompilerIsPrefixOperator(struct NKToken *token)
 {
     return token && (
         token->type == NK_TOKENTYPE_MINUS ||
@@ -99,7 +99,7 @@ nkbool isPrefixOperator(struct NKToken *token)
         token->type == NK_TOKENTYPE_NOT);
 }
 
-nkbool isPostfixOperator(struct NKToken *token)
+nkbool nkiCompilerIsPostfixOperator(struct NKToken *token)
 {
     return token && (
         token->type == NK_TOKENTYPE_BRACKET_OPEN ||
@@ -107,7 +107,7 @@ nkbool isPostfixOperator(struct NKToken *token)
         token->type == NK_TOKENTYPE_DOT);
 }
 
-nkint32_t getPrecedence(enum NKTokenType t)
+nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t)
 {
     // Reference:
     // http://en.cppreference.com/w/cpp/language/operator_precedence
@@ -145,12 +145,12 @@ nkint32_t getPrecedence(enum NKTokenType t)
     do {                                                                \
         while(opStack) {                                                \
             struct NKExpressionAstNode *next = opStack->stackNext;      \
-            deleteExpressionNode(cs->vm, opStack);                      \
+            nkiCompilerDeleteExpressionNode(cs->vm, opStack);                      \
             opStack = next;                                             \
         }                                                               \
         while(valueStack) {                                             \
             struct NKExpressionAstNode *next = valueStack->stackNext;   \
-            deleteExpressionNode(cs->vm, valueStack);                   \
+            nkiCompilerDeleteExpressionNode(cs->vm, valueStack);                   \
             valueStack = next;                                          \
         }                                                               \
     } while(0)
@@ -158,9 +158,9 @@ nkint32_t getPrecedence(enum NKTokenType t)
 #define NK_CLEANUP_INLOOP()                                \
     do {                                                \
         NK_CLEANUP_OUTER();                                \
-        deleteExpressionNode(cs->vm, firstPrefixOp);    \
-        deleteExpressionNode(cs->vm, lastPostfixOp);    \
-        deleteExpressionNode(cs->vm, valueNode);        \
+        nkiCompilerDeleteExpressionNode(cs->vm, firstPrefixOp);    \
+        nkiCompilerDeleteExpressionNode(cs->vm, lastPostfixOp);    \
+        nkiCompilerDeleteExpressionNode(cs->vm, valueNode);        \
     } while(0)
 
 #define NK_EXPECT_AND_SKIP(x)                       \
@@ -234,7 +234,7 @@ nkbool parseFunctioncall(
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
             // Parse the expression.
-            thisParamNode->children[0] = parseExpression(cs);
+            thisParamNode->children[0] = nkiCompilerParseExpression(cs);
 
             // Add us to the end of the chain.
             lastParamNode->children[1] = thisParamNode;
@@ -277,7 +277,7 @@ nkbool parseFunctioncall(
     return nktrue;
 }
 
-struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
+struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *cs)
 {
     struct NKToken **currentToken = &cs->currentToken;
     struct NKExpressionAstNode *opStack = NULL;
@@ -287,7 +287,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         return NULL;
     }
 
-    while(!isExpressionEndingToken(*currentToken)) {
+    while(!nkiCompilerIsExpressionEndingToken(*currentToken)) {
 
         struct NKExpressionAstNode *lastPrefixOp   = NULL;
         struct NKExpressionAstNode *firstPrefixOp  = NULL;
@@ -296,7 +296,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         struct NKExpressionAstNode *valueNode      = NULL;
 
         // Deal with prefix operators. Build up a list of them.
-        while(isPrefixOperator(*currentToken)) {
+        while(nkiCompilerIsPrefixOperator(*currentToken)) {
 
             struct NKExpressionAstNode *prefixNode =
                 nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
@@ -326,7 +326,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             dbgWriteLine("Parse sub-expression.");
             dbgPush();
             nkiCompilerNextToken(cs);
-            valueNode = parseExpression(cs);
+            valueNode = nkiCompilerParseExpression(cs);
             dbgPop();
 
             // Error check.
@@ -338,7 +338,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
             }
 
             // Make sure we ended on a closing parenthesis.
-            if(!(*currentToken) || !isSubexpressionEndingToken(*currentToken)) {
+            if(!(*currentToken) || !nkiCompilerIsSubexpressionEndingToken(*currentToken)) {
                 nkiCompilerAddError(cs, "Bad expression end.");
                 NK_CLEANUP_INLOOP();
                 nkiCompilerPopRecursion(cs);
@@ -353,7 +353,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         } else {
 
             // Parse the actual value.
-            if(!isExpressionEndingToken(*currentToken)) {
+            if(!nkiCompilerIsExpressionEndingToken(*currentToken)) {
 
                 valueNode = nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
                 memset(valueNode, 0, sizeof(*valueNode));
@@ -374,7 +374,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         }
 
         // Deal with postfix operators.
-        while(isPostfixOperator(*currentToken)) {
+        while(nkiCompilerIsPostfixOperator(*currentToken)) {
 
             struct NKExpressionAstNode *postfixNode =
                 nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
@@ -468,9 +468,6 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                             lastPostfixOp = functionCallNode;
                         }
                         postfixNode = functionCallNode;
-
-                        // assert(postfixNode->children[0]);
-                        // assert(firstPostfixOp->children[0]);
                     }
 
                 } else {
@@ -487,7 +484,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
                 dbgWriteLine("Handling index-into operator.");
                 dbgPush();
                 nkiCompilerNextToken(cs);
-                postfixNode->children[1] = parseExpression(cs);
+                postfixNode->children[1] = nkiCompilerParseExpression(cs);
                 dbgPop();
 
                 // Error-check.
@@ -544,7 +541,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         valueNode = NULL;
 
         // Check to see if we're just done or not.
-        if(isExpressionEndingToken(cs->currentToken)) {
+        if(nkiCompilerIsExpressionEndingToken(cs->currentToken)) {
             dbgWriteLine("Done parsing expression and maybe statement.");
             break;
         }
@@ -553,7 +550,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         dbgWriteLine("Parse operator: %s", nkiCompilerCurrentTokenString(cs));
 
         // Make sure this is even something valid.
-        if(getPrecedence((*currentToken)->type) == -1) {
+        if(nkiCompilerGetPrecedence((*currentToken)->type) == -1) {
             struct NKDynString *str =
                 nkiDynStrCreate(cs->vm, "Unknown operator: ");
             nkiDynStrAppend(str, nkiCompilerCurrentTokenString(cs));
@@ -567,8 +564,8 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
         // Attempt to reduce.
         if(opStack) {
 
-            if(getPrecedence(nkiCompilerCurrentTokenType(cs)) >=
-                getPrecedence(opStack->opOrValue->type))
+            if(nkiCompilerGetPrecedence(nkiCompilerCurrentTokenType(cs)) >=
+                nkiCompilerGetPrecedence(opStack->opOrValue->type))
             {
                 if(!reduce(&opStack, &valueStack)) {
                     nkiCompilerAddError(cs, "Expression parse failure.");
@@ -628,7 +625,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
     {
         struct NKExpressionAstNode *n = valueStack;
         while(n) {
-            dumpExpressionAstNode(n);
+            nkiCompilerDumpExpressionAstNode(n);
             n = n->stackNext;
         }
     }
@@ -637,7 +634,7 @@ struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs)
     {
         struct NKExpressionAstNode *n = opStack;
         while(n) {
-            dumpExpressionAstNode(n);
+            nkiCompilerDumpExpressionAstNode(n);
             n = n->stackNext;
         }
     }
@@ -723,9 +720,9 @@ nkbool emitSetVariable(
     return nktrue;
 }
 
-nkbool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
+nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
-nkbool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
+nkbool nkiCompilerEmitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
 {
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
@@ -746,7 +743,7 @@ nkbool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionA
     }
 
     // Emit the value we want to assign.
-    emitExpression(cs, node->children[1]);
+    nkiCompilerEmitExpression(cs, node->children[1]);
 
     // Emit the assignment itself, which will depend on what we're
     // assigning to.
@@ -765,8 +762,8 @@ nkbool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionA
         case NK_TOKENTYPE_BRACKET_OPEN: {
 
             // Emit the thing we're going to assign to.
-            emitExpression(cs, node->children[0]->children[0]); // Object id
-            emitExpression(cs, node->children[0]->children[1]); // Index
+            nkiCompilerEmitExpression(cs, node->children[0]->children[0]); // Object id
+            nkiCompilerEmitExpression(cs, node->children[0]->children[1]); // Index
 
             nkiCompilerAddInstructionSimple(cs, NK_OP_OBJECTFIELDSET, nktrue);
         } break;
@@ -788,7 +785,7 @@ nkbool emitExpressionAssignment(struct NKCompilerState *cs, struct NKExpressionA
     return nktrue;
 }
 
-nkbool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
+nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node)
 {
     struct NKInstruction inst;
     nkuint32_t i;
@@ -801,13 +798,13 @@ nkbool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *no
     // side as an LValue.
     if(node->opOrValue->type == NK_TOKENTYPE_ASSIGNMENT) {
         nkiCompilerPopRecursion(cs);
-        return emitExpressionAssignment(cs, node);
+        return nkiCompilerEmitExpressionAssignment(cs, node);
     }
 
     // Emit children.
     for(i = 0; i < 2; i++) {
         if(node->children[i]) {
-            if(!emitExpression(cs, node->children[i])) {
+            if(!nkiCompilerEmitExpression(cs, node->children[i])) {
                 nkiCompilerPopRecursion(cs);
                 return nkfalse;
             }
@@ -946,7 +943,7 @@ nkbool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *no
 
         default: {
             struct NKDynString *dynStr =
-                nkiDynStrCreate(cs->vm, "Unknown value or operator in emitExpression: ");
+                nkiDynStrCreate(cs->vm, "Unknown value or operator in nkiCompilerEmitExpression: ");
             nkiDynStrAppend(dynStr, node->opOrValue->str);
             nkiAddError(
                 cs->vm,
@@ -1096,7 +1093,7 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
         return NULL;
     }
 
-    node = parseExpression(cs);
+    node = nkiCompilerParseExpression(cs);
 
     if(node) {
         expandIncrementsAndDecrements(cs, node);
@@ -1104,7 +1101,7 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
     }
 
     if(nkiVmGetErrorCount(cs->vm)) {
-        deleteExpressionNode(cs->vm, node);
+        nkiCompilerDeleteExpressionNode(cs->vm, node);
         nkiCompilerPopRecursion(cs);
         return NULL;
     }
@@ -1125,8 +1122,8 @@ nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs)
 
     if(node) {
         nkbool ret;
-        ret = emitExpression(cs, node);
-        deleteExpressionNode(cs->vm, node);
+        ret = nkiCompilerEmitExpression(cs, node);
+        nkiCompilerDeleteExpressionNode(cs->vm, node);
         nkiCompilerPopRecursion(cs);
         return ret;
     }

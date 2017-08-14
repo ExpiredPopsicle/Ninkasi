@@ -26,26 +26,40 @@ struct NKExpressionAstNode
     nkbool isRootFunctionCallNode;
 };
 
-nkbool isPrefixOperator(struct NKToken *token);
-nkbool isPostfixOperator(struct NKToken *token);
-nkbool isExpressionEndingToken(struct NKToken *token);
-nkbool isSubexpressionEndingToken(struct NKToken *token);
-nkint32_t getPrecedence(enum NKTokenType t);
+nkbool nkiCompilerIsPrefixOperator(struct NKToken *token);
+nkbool nkiCompilerIsPostfixOperator(struct NKToken *token);
+nkbool nkiCompilerIsExpressionEndingToken(struct NKToken *token);
+nkbool nkiCompilerIsSubexpressionEndingToken(struct NKToken *token);
+nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t);
 
-struct NKExpressionAstNode *makeImmediateExpressionNode(
+struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     struct NKVM *vm,
     enum NKTokenType type,
     nkuint32_t lineNumber);
 
-void deleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node);
-void dumpExpressionAstNode(struct NKExpressionAstNode *node);
-
-struct NKExpressionAstNode *parseExpression(struct NKCompilerState *cs);
+void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node);
+void nkiCompilerDumpExpressionAstNode(struct NKExpressionAstNode *node);
 
 
-nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs);
+
+/// Just parse an expression tree starting from the current token and
+/// return an AST. The form of the AST coming out of this is only a
+/// raw representation of what was in the script, and needs some
+/// transformations and optimization applied.
+struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *cs);
+
+/// Parse an expression tree, optimize it, and apply some internal
+/// operator conversions, like turning increment/decrement operations
+/// into read/(add/subtract)/store operations. Does NOT emit
+/// instructions.
 struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs);
-nkbool emitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
+
+/// Emit instructions for a parsed and converted AST.
+nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
+
+/// Parse an expression tree, optimize it, apply needed operator
+/// transformations, and emit instructions into the VM.
+nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs);
 
 #endif // NINKASI_EXPRESSN_H
 
