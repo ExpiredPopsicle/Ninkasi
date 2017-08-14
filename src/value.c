@@ -36,13 +36,13 @@ nkbool nkiValueDump(
         default:
             printf(
                 "nkiValueDump unimplemented for type %s",
-                valueTypeGetName(value->type));
+                nkiValueTypeGetName(value->type));
             return nkfalse;
     }
     return nktrue;
 }
 
-const char *valueTypeGetName(enum NKValueType type)
+const char *nkiValueTypeGetName(enum NKValueType type)
 {
     switch(type) {
 
@@ -71,7 +71,7 @@ const char *valueTypeGetName(enum NKValueType type)
     }
 }
 
-nkint32_t valueToInt(struct NKVM *vm, struct NKValue *value)
+nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
 {
     // TODO: De-reference references here.
 
@@ -96,7 +96,7 @@ nkint32_t valueToInt(struct NKVM *vm, struct NKValue *value)
 
         default: {
             struct NKDynString *ds = nkiDynStrCreate(vm, "Cannot convert type ");
-            nkiDynStrAppend(ds, valueTypeGetName(value->type));
+            nkiDynStrAppend(ds, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
                 vm, -1,
@@ -107,7 +107,7 @@ nkint32_t valueToInt(struct NKVM *vm, struct NKValue *value)
     }
 }
 
-float valueToFloat(struct NKVM *vm, struct NKValue *value)
+float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
 {
     // TODO: De-reference references here.
 
@@ -127,7 +127,7 @@ float valueToFloat(struct NKVM *vm, struct NKValue *value)
 
         default: {
             struct NKDynString *ds = nkiDynStrCreate(vm, "Cannot convert type ");
-            nkiDynStrAppend(ds, valueTypeGetName(value->type));
+            nkiDynStrAppend(ds, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
                 vm, -1,
@@ -183,7 +183,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
             struct NKDynString *dynStr = nkiDynStrCreate(vm, "<");
             nkuint32_t id;
 
-            nkiDynStrAppend(dynStr, valueTypeGetName(value->type));
+            nkiDynStrAppend(dynStr, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(dynStr, ":");
             nkiDynStrAppendInt32(dynStr, valueHash(vm, value));
             nkiDynStrAppend(dynStr, ">");
@@ -229,7 +229,7 @@ nkint32_t value_compare(
     switch(type) {
 
         case NK_VALUETYPE_INT: {
-            nkint32_t other = valueToInt(vm, in2);
+            nkint32_t other = nkiValueToInt(vm, in2);
             if(in1->intData > other) {
                 return 1;
             } else if(in1->intData == other) {
@@ -240,7 +240,7 @@ nkint32_t value_compare(
         } break;
 
         case NK_VALUETYPE_FLOAT: {
-            float other = valueToFloat(vm, in2);
+            float other = nkiValueToFloat(vm, in2);
             if(in1->floatData > other) {
                 return 1;
             } else if(in1->floatData == other) {
@@ -286,7 +286,7 @@ nkint32_t value_compare(
         default: {
             struct NKDynString *ds =
                 nkiDynStrCreate(vm, "Comparison unimplemented for type ");
-            nkiDynStrAppend(ds, valueTypeGetName(type));
+            nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
                 vm, -1,

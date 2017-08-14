@@ -38,11 +38,14 @@ struct NKValue
 /// Dump a value to stdout for debugging purposes.
 nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
 
-const char *valueTypeGetName(enum NKValueType type);
+/// Get a string representation for a type.
+const char *nkiValueTypeGetName(enum NKValueType type);
 
-nkint32_t valueToInt(struct NKVM *vm, struct NKValue *value);
+/// Convert a value to an integer.
+nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value);
 
-float valueToFloat(struct NKVM *vm, struct NKValue *value);
+/// Convert a value to a floating point number.
+float nkiValueToFloat(struct NKVM *vm, struct NKValue *value);
 
 // Returns a string for a value, possibly converting internally.
 // Values are only guaranteed to be valid until the next garbage
