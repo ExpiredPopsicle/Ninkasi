@@ -56,7 +56,15 @@ Error handling
 
 ### Normal errors
 
-TODO
+In the event of a "normal" error, the VM's state can be considered
+valid in that there will be no dangling pointers, corrupted memory, or
+null pointers for things that would not normally have a null pointer
+as part of the normal program operation.
+
+The state may be inspected through many of the public API functions,
+but attempting to resume operation on the program running in the VM
+will probably not succeed. (And even if it did, the program will
+probably have some unexpected state as a result of the error.)
 
 ### Catastrophic error handling
 
