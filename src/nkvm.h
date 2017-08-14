@@ -4,7 +4,7 @@
 #include <setjmp.h>
 
 #include "nkerror.h"
-#include "vmstack.h"
+#include "nkstack.h"
 #include "nkopcode.h"
 #include "nkstring.h"
 #include "nkfunc.h"
