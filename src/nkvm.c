@@ -68,6 +68,11 @@ nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
 static void nkiVmInitOpcodeTable(void)
 {
+    static nkbool opcodeTableInitComplete = nkfalse;
+    if(opcodeTableInitComplete) {
+        return;
+    }
+
     assert(NK_OPCODE_PADDEDCOUNT >= NK_OPCODE_REALCOUNT);
 
     NK_SETUP_OP(NK_OP_ADD,                    nkiOpcode_add,                    -1);
@@ -133,6 +138,8 @@ static void nkiVmInitOpcodeTable(void)
     assert(sizeof(nkuint32_t) == 4);
     assert(sizeof(nkint32_t) == 4);
     assert(sizeof(nkbool) == 1);
+
+    opcodeTableInitComplete = nktrue;
 }
 
 // ----------------------------------------------------------------------
