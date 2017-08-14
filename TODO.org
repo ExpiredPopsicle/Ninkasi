@@ -127,15 +127,15 @@ Call it... nkx?
 Check the error status after we get back from the call. Fire off
 another catastrophe if we need to.
 
-* TODO Split everything into nkx and nki
+* DONE Split everything into nkx and nki
 * DONE Make errorStateAddError take a VM as a param
 Mostly about cleaning up every single call in the code.
 Name it nkiVmAddError.
 * DONE Garbage collector should only fire off if enough objects have been created since the last run
-* TODO Replace every "%u" and "%d" with NK_PRINTF_UINT32 and NK_PRINTF_INT32
-* TODO Better platform detection.
+* DONE Replace every "%u" and "%d" with NK_PRINTF_UINT32 and NK_PRINTF_INT32
+* DONE Better platform detection.
 16-bit vs 32-bit.
-* TODO typedefs for basic types (uint32_t, etc) should have nk prefix (nk_uint32_t, etc).
+* DONE typedefs for basic types (uint32_t, etc) should have nk prefix (nk_uint32_t, etc).
 Prevents us from interfering with other systems. Maintains C++
 compatibility.
 
