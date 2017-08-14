@@ -172,7 +172,7 @@ nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t)
         }                                           \
     } while(0)
 
-nkbool reduce(
+nkbool nkiCompilerExpressionReduce(
     struct NKExpressionAstNode **opStack,
     struct NKExpressionAstNode **valueStack)
 {
@@ -201,7 +201,7 @@ nkbool reduce(
     return nktrue;
 }
 
-nkbool parseFunctioncall(
+nkbool nkiCompilerExpressionParseFunctioncall(
     struct NKExpressionAstNode *postfixNode,
     struct NKCompilerState *cs)
 {
@@ -441,7 +441,8 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                         functionCallNode->children[1] = NULL;
 
                         if(!functionCallNode->opOrValue->str ||
-                            !parseFunctioncall(functionCallNode, cs))
+                            !nkiCompilerExpressionParseFunctioncall(
+                                functionCallNode, cs))
                         {
                             nkiFree(cs->vm, functionCallNode->opOrValue->str);
                             nkiFree(cs->vm, functionCallNode);
@@ -502,7 +503,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             } else if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
                 // Handle function call "operator".
-                if(!parseFunctioncall(postfixNode, cs)) {
+                if(!nkiCompilerExpressionParseFunctioncall(postfixNode, cs)) {
                     NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
@@ -567,7 +568,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             if(nkiCompilerGetPrecedence(nkiCompilerCurrentTokenType(cs)) >=
                 nkiCompilerGetPrecedence(opStack->opOrValue->type))
             {
-                if(!reduce(&opStack, &valueStack)) {
+                if(!nkiCompilerExpressionReduce(&opStack, &valueStack)) {
                     nkiCompilerAddError(cs, "Expression parse failure.");
                     NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
@@ -598,7 +599,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
     // Reduce all remaining operations.
     while(opStack) {
-        if(!reduce(&opStack, &valueStack)) {
+        if(!nkiCompilerExpressionReduce(&opStack, &valueStack)) {
             nkiCompilerAddError(cs, "Expression parse failure.");
             NK_CLEANUP_OUTER();
             nkiCompilerPopRecursion(cs);
@@ -648,7 +649,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 #undef NK_CLEANUP_OUTER
 #undef NK_CLEANUP_INLOOP
 
-nkbool emitFetchVariable(
+nkbool nkiCompilerEmitFetchVariable(
     struct NKCompilerState *cs,
     const char *name,
     struct NKExpressionAstNode *node)
@@ -892,7 +893,7 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
             break;
 
         case NK_TOKENTYPE_IDENTIFIER:
-            emitFetchVariable(cs, node->opOrValue->str, node);
+            nkiCompilerEmitFetchVariable(cs, node->opOrValue->str, node);
             break;
 
         case NK_TOKENTYPE_AND:

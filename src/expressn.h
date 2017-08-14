@@ -7,6 +7,34 @@ struct NKToken;
 struct NKVM;
 struct NKCompilerState;
 
+// ----------------------------------------------------------------------
+// Infix Expression Parsing Utilities.
+
+/// Returns true if the token represents a valid prefix operator
+/// ("++", "--", "-", etc).
+nkbool nkiCompilerIsPrefixOperator(struct NKToken *token);
+
+/// Returns ture if the token represents a valid postfix operator
+/// ("[]", "()", etc).
+nkbool nkiCompilerIsPostfixOperator(struct NKToken *token);
+
+/// Returns true if the token is a valid end-of-sub-expression token
+/// ("]", ")", etc).
+nkbool nkiCompilerIsSubexpressionEndingToken(struct NKToken *token);
+
+/// Returns true if the token is a valid end-of-expression token
+/// (anythin recognized by nkiCompilerIsSubexpressionEndingToken, plus
+/// ";", etc).
+nkbool nkiCompilerIsExpressionEndingToken(struct NKToken *token);
+
+/// Get the operator precedence of the operator represented by some
+/// token type.
+nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t);
+
+// ----------------------------------------------------------------------
+// AST Manipulation.
+
+/// A single node inside the AST.
 struct NKExpressionAstNode
 {
     struct NKToken *opOrValue;
@@ -26,21 +54,17 @@ struct NKExpressionAstNode
     nkbool isRootFunctionCallNode;
 };
 
-nkbool nkiCompilerIsPrefixOperator(struct NKToken *token);
-nkbool nkiCompilerIsPostfixOperator(struct NKToken *token);
-nkbool nkiCompilerIsExpressionEndingToken(struct NKToken *token);
-nkbool nkiCompilerIsSubexpressionEndingToken(struct NKToken *token);
-nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t);
-
+/// Make a single AST node.
 struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     struct NKVM *vm,
     enum NKTokenType type,
     nkuint32_t lineNumber);
 
+/// Delete an entire AST, including all children.
 void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node);
+
+/// Debug AST dump.
 void nkiCompilerDumpExpressionAstNode(struct NKExpressionAstNode *node);
-
-
 
 /// Just parse an expression tree starting from the current token and
 /// return an AST. The form of the AST coming out of this is only a
