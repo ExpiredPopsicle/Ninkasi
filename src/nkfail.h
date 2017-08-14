@@ -52,13 +52,10 @@
     do {                                            \
         nkiErrorStateSetAllocationFailFlag(vm);     \
         printf("Catastrophic failure!\n");          \
-        stackdump();                                \
         longjmp(*vm->catastrophicFailureJmpBuf, 1); \
     } while(0)
 
 #define NK_CHECK_CATASTROPHE() \
     (vm ? vm->errorState.allocationFailure : nktrue)
-
-void stackdump(void);
 
 #endif

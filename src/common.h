@@ -28,6 +28,6 @@
 #include "nkfunc.h"
 #include "objects.h"
 #include "nkmem.h"
-#include "failure.h"
+#include "nkfail.h"
 
 #endif // NINKASI_COMMON_H
