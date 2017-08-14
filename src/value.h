@@ -47,26 +47,26 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value);
 /// Convert a value to a floating point number.
 float nkiValueToFloat(struct NKVM *vm, struct NKValue *value);
 
-// Returns a string for a value, possibly converting internally.
-// Values are only guaranteed to be valid until the next garbage
-// collection pass.
-const char *valueToString(struct NKVM *vm, struct NKValue *value);
+/// Returns a string for a value, possibly converting internally.
+/// Values are only guaranteed to be valid until the next garbage
+/// collection pass.
+const char *nkiValueToString(struct NKVM *vm, struct NKValue *value);
 
-// The return of this value is like strcmp(). -1 for less, 0 for
-// equal, 1 for greater-than. Set strictType to nktrue to force a
-// comparison failure when types differ. You MUST do this for things
-// like binary trees to ensure things have a consistent order.
-nkint32_t value_compare(
+/// The return of this value is like strcmp(). -1 for less, 0 for
+/// equal, 1 for greater-than. Set strictType to nktrue to force a
+/// comparison failure when types differ. You MUST do this for things
+/// like binary trees to ensure things have a consistent order.
+nkint32_t nkiValueCompare(
     struct NKVM *vm,
     struct NKValue *in1,
     struct NKValue *in2,
     nkbool strictType);
 
-nkuint32_t valueHash(struct NKVM *vm, struct NKValue *value);
+nkuint32_t nkiValueHash(struct NKVM *vm, struct NKValue *value);
 
-void vmValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData);
-void vmValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
-void vmValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
+void nkiValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData);
+void nkiValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
+void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 
 #endif // NINKASI_VALUE_H
 

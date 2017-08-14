@@ -35,7 +35,7 @@ void nkiOpcode_add(struct NKVM *vm)
 
             // Append the other one, after conversion to string if
             // necessary.
-            nkiDynStrAppend(dynStr, valueToString(vm, in2));
+            nkiDynStrAppend(dynStr, nkiValueToString(vm, in2));
 
             // Push the result.
             vmStackPushString(
@@ -600,7 +600,7 @@ nkint32_t nkiOpcode_internal_compare(struct NKVM *vm)
     struct NKValue *in2 = vmStackPop(vm);
     struct NKValue *in1 = vmStackPop(vm);
 
-    return value_compare(vm, in1, in2, nkfalse);
+    return nkiValueCompare(vm, in1, in2, nkfalse);
 }
 
 void nkiOpcode_gt(struct NKVM *vm)

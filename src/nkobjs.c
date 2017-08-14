@@ -186,11 +186,11 @@ void nkiVmObjectClearEntry(
     struct NKValue *key)
 {
     struct NKVMObjectElement **obList =
-        &ob->hashBuckets[valueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
+        &ob->hashBuckets[nkiValueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
 
     struct NKVMObjectElement **elPtr = obList;
     while(*elPtr) {
-        if(value_compare(vm, key, &(*elPtr)->key, nktrue) == 0) {
+        if(nkiValueCompare(vm, key, &(*elPtr)->key, nktrue) == 0) {
             break;
         }
         elPtr = &(*elPtr)->next;
@@ -213,11 +213,11 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
     nkbool noAdd)
 {
     struct NKVMObjectElement **obList =
-        &ob->hashBuckets[valueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
+        &ob->hashBuckets[nkiValueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
 
     struct NKVMObjectElement *el = *obList;
     while(el) {
-        if(value_compare(vm, key, &el->key, nktrue) == 0) {
+        if(nkiValueCompare(vm, key, &el->key, nktrue) == 0) {
             break;
         }
         el = el->next;

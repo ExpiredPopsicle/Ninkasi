@@ -166,10 +166,10 @@ void getHash(struct NKVMFunctionCallbackData *data)
 {
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "getHash")) return;
 
-    vmValueSetInt(
+    nkiValueSetInt(
         data->vm,
         &data->returnValue,
-        valueHash(data->vm, &data->arguments[0]));
+        nkiValueHash(data->vm, &data->arguments[0]));
 }
 
 void testHandle1(struct NKVMFunctionCallbackData *data)

@@ -217,7 +217,7 @@ const char *nkxValueToString(struct NKVM *vm, struct NKValue *value)
     NK_FAILURE_RECOVERY_DECL();
     const char *ret = NULL;
     NK_SET_FAILURE_RECOVERY(NULL);
-    ret = valueToString(vm, value);
+    ret = nkiValueToString(vm, value);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }

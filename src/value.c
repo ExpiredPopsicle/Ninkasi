@@ -84,7 +84,7 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
             return (int)value->floatData;
 
         case NK_VALUETYPE_STRING:
-            return atoi(valueToString(vm, value));
+            return atoi(nkiValueToString(vm, value));
 
         case NK_VALUETYPE_OBJECTID:
             // This is just for detection of the presence of objects
@@ -120,7 +120,7 @@ float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
             return value->floatData;
 
         case NK_VALUETYPE_STRING:
-            return atof(valueToString(vm, value));
+            return atof(nkiValueToString(vm, value));
 
         case NK_VALUETYPE_NIL:
             return 0.0f;
@@ -138,7 +138,7 @@ float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
     }
 }
 
-const char *valueToString(struct NKVM *vm, struct NKValue *value)
+const char *nkiValueToString(struct NKVM *vm, struct NKValue *value)
 {
     // TODO: De-reference references here.
 
@@ -185,7 +185,7 @@ const char *valueToString(struct NKVM *vm, struct NKValue *value)
 
             nkiDynStrAppend(dynStr, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(dynStr, ":");
-            nkiDynStrAppendInt32(dynStr, valueHash(vm, value));
+            nkiDynStrAppendInt32(dynStr, nkiValueHash(vm, value));
             nkiDynStrAppend(dynStr, ">");
 
             id = nkiVmStringTableFindOrAddString(
@@ -211,7 +211,7 @@ nkint32_t value_compareType(
     return 0;
 }
 
-nkint32_t value_compare(
+nkint32_t nkiValueCompare(
     struct NKVM *vm,
     struct NKValue *in1,
     struct NKValue *in2,
@@ -251,8 +251,8 @@ nkint32_t value_compare(
         } break;
 
         case NK_VALUETYPE_STRING: {
-            const char *other = valueToString(vm, in2);
-            const char *thisData = valueToString(vm, in1);
+            const char *other = nkiValueToString(vm, in2);
+            const char *thisData = nkiValueToString(vm, in1);
 
             // Shortcut it if we ended up with two of the same entry
             // in the string table.
@@ -298,7 +298,7 @@ nkint32_t value_compare(
     return ~0;
 }
 
-nkuint32_t valueHash(struct NKVM *vm, struct NKValue *value)
+nkuint32_t nkiValueHash(struct NKVM *vm, struct NKValue *value)
 {
     nkuint32_t ret = 0;
 
@@ -333,19 +333,19 @@ nkuint32_t valueHash(struct NKVM *vm, struct NKValue *value)
     return ret;
 }
 
-void vmValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
+void nkiValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
 {
     value->type = NK_VALUETYPE_INT;
     value->intData = intData;
 }
 
-void vmValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData)
+void nkiValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData)
 {
     value->type = NK_VALUETYPE_FLOAT;
     value->floatData = floatData;
 }
 
-void vmValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
+void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
 {
     value->type = NK_VALUETYPE_STRING;
     value->stringTableEntry =
