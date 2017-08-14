@@ -14,7 +14,7 @@
 #define NINKASI_NKX
 
 #include "nktypes.h"
-#include "value.h"
+#include "nkvalue.h"
 
 struct NKVM;
 struct NKVMFunctionCallbackData;

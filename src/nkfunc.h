@@ -1,7 +1,7 @@
 #ifndef NINKASI_FUNCTION_H
 #define NINKASI_FUNCTION_H
 
-#include "value.h"
+#include "nkvalue.h"
 #include "nkx.h"
 
 struct NKVMFunction

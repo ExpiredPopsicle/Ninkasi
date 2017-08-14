@@ -11,7 +11,7 @@
 #include "nkobjs.h"
 
 #include "nktypes.h"
-#include "value.h"
+#include "nkvalue.h"
 #include "nkx.h"
 
 struct NKVM;

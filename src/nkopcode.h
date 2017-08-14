@@ -2,7 +2,7 @@
 #define NINKASI_OPCODE_H
 
 #include "nkconfig.h"
-#include "value.h"
+#include "nkvalue.h"
 
 // ----------------------------------------------------------------------
 // Types.

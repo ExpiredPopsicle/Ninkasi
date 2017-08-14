@@ -14,7 +14,7 @@
 #include "nktypes.h"
 #include "nkenums.h"
 #include "vmstack.h"
-#include "value.h"
+#include "nkvalue.h"
 #include "nkopcode.h"
 #include "nkexpr.h"
 #include "nkopt.h"
