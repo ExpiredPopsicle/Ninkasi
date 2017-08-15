@@ -317,10 +317,10 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name, nkbool useValueAtStackTop)
 {
+    nkbool isGlobal = !cs->context->parent;
     struct NKCompilerStateContextVariable *var =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
-    nkbool isGlobal = !cs->context->parent;
 
     if(isGlobal) {
 

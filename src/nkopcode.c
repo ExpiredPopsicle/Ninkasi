@@ -425,12 +425,13 @@ void nkiOpcode_staticPeek(struct NKVM *vm)
         return;
     }
 
-    nkuint32_t staticAddress = v->intData & vm->staticAddressMask;
-    struct NKValue *vIn = &vm->staticSpace[staticAddress];
-    struct NKValue *vOut = nkiVmStackPush_internal(vm);
-    *vOut = *vIn;
-
-    nkiDbgWriteLine("Fetched global value at static position: %u", staticAddress);
+    {
+        nkuint32_t staticAddress = v->intData & vm->staticAddressMask;
+        struct NKValue *vIn = &vm->staticSpace[staticAddress];
+        struct NKValue *vOut = nkiVmStackPush_internal(vm);
+        *vOut = *vIn;
+        nkiDbgWriteLine("Fetched global value at static position: %u", staticAddress);
+    }
 }
 
 void nkiOpcode_staticPoke(struct NKVM *vm)
@@ -443,12 +444,13 @@ void nkiOpcode_staticPoke(struct NKVM *vm)
         return;
     }
 
-    nkuint32_t staticAddr = staticAddrValue->intData & vm->staticAddressMask;
-    struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
-    struct NKValue *vOut = &vm->staticSpace[staticAddr];
-    *vOut = *vIn;
-
-    nkiDbgWriteLine("Set global value at static position: %u", staticAddr);
+    {
+        nkuint32_t staticAddr = staticAddrValue->intData & vm->staticAddressMask;
+        struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
+        struct NKValue *vOut = &vm->staticSpace[staticAddr];
+        *vOut = *vIn;
+        nkiDbgWriteLine("Set global value at static position: %u", staticAddr);
+    }
 }
 
 void nkiOpcode_jumpRelative(struct NKVM *vm)
