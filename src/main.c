@@ -358,11 +358,16 @@ int main(int argc, char *argv[])
                     // printf("Stack...\n");
                     // printf("----------------------------------------------------------------------\n");
                     // nkiVmStackDump(vm);
+                    // printf("----------------------------------------------------------------------\n");
+                    // printf("Static...\n");
+                    // printf("----------------------------------------------------------------------\n");
+                    // nkiVmStaticDump(vm);
                     // printf("\n");
-                    // // dumpListing(vm, script);
-                    // // getchar();
+                    // dumpListing(vm, script);
+                    // getchar();
 
                     if(nkxVmGetErrorCount(vm)) {
+                        printf("Instruction pointer of failure: %u\n", vm->instructionPointer);
                         break;
                     }
 

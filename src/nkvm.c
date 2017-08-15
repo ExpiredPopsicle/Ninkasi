@@ -654,10 +654,24 @@ struct NKValue *nkiVmFindGlobalVariable(
     nkuint32_t i;
     for(i = 0; i < vm->globalVariableCount; i++) {
         if(!strcmp(vm->globalVariables[i].name, name)) {
-            // FIXME: Use static space!
-            return &vm->stack.values[vm->stack.indexMask & vm->globalVariables[i].stackPosition];
+            return &vm->staticSpace[vm->staticAddressMask & vm->globalVariables[i].stackPosition];
         }
     }
     return NULL;
 }
 
+void nkiVmStaticDump(struct NKVM *vm)
+{
+    nkuint32_t i = 0;
+    while(1) {
+
+        printf("%3d: ", i);
+        nkiValueDump(vm, &vm->staticSpace[i]);
+        printf("\n");
+
+        if(i == vm->staticAddressMask) {
+            break;
+        }
+        i++;
+    }
+}

@@ -426,7 +426,7 @@ void nkiOpcode_staticPeek(struct NKVM *vm)
     }
 
     nkuint32_t staticAddress = v->intData & vm->staticAddressMask;
-    struct NKValue *vIn = nkiVmStackPeek(vm, v->intData);
+    struct NKValue *vIn = &vm->staticSpace[staticAddress];
     struct NKValue *vOut = nkiVmStackPush_internal(vm);
     *vOut = *vIn;
 
@@ -445,8 +445,12 @@ void nkiOpcode_staticPoke(struct NKVM *vm)
 
     nkuint32_t staticAddr = staticAddrValue->intData & vm->staticAddressMask;
     struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
-    struct NKValue *vOut = nkiVmStackPeek(vm, staticAddr);
+    struct NKValue *vOut = &vm->staticSpace[staticAddr];
     *vOut = *vIn;
+
+    printf("Wrote this value: ");
+    nkiValueDump(vm, vIn);
+    printf("\n");
 
     nkiDbgWriteLine("Set global value at static position: %u", staticAddr);
 }

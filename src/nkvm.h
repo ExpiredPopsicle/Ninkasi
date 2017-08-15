@@ -153,6 +153,8 @@ void nkiVmRescanProgramStrings(struct NKVM *vm);
 
 const char *nkiVmGetOpcodeName(enum NKOpcode op);
 
+void nkiVmStaticDump(struct NKVM *vm);
+
 // ----------------------------------------------------------------------
 
 /// Compiler internal function creation. Don't use this outside. Not
