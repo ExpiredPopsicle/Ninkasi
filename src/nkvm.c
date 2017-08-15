@@ -436,6 +436,22 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
     }
 
+    // Iterate through the current static space.
+    {
+        nkuint32_t i = 0;
+        struct NKValue *values = vm->staticSpace;
+        while(1) {
+
+            nkiVmGarbageCollect_markValue(
+                &gcState, &values[i]);
+
+            if(i == vm->staticAddressMask) {
+                break;
+            }
+            i++;
+        }
+    }
+
     // TODO: Iterate through external data with external handles.
 
     // Now go and mark everything that the things in the open list

@@ -289,8 +289,6 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
     struct NKVM *vm = cs->vm;
 
     // Expand our static address space if necessary.
-    printf("Mask:  %u\n", vm->staticAddressMask);
-    printf("Count: %u\n", cs->staticVariableCount);
     if((vm->staticAddressMask + 1) == cs->staticVariableCount) {
 
         vm->staticAddressMask <<= 1;
@@ -301,17 +299,17 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
             vm, vm->staticSpace,
             sizeof(struct NKValue) * (vm->staticAddressMask + 1));
         memset(
-            &vm->staticSpace[cs->staticVariableCount], 0,
-            cs->staticVariableCount * sizeof(struct NKValue));
+            &vm->staticSpace[cs->staticVariableCount - 1], 0,
+            (cs->staticVariableCount + 1) * sizeof(struct NKValue));
     }
 
+    // Add the variable.
     cs->staticVariableCount++;
     if(cs->staticVariableCount == 0) {
-        nkiCompilerAddError(cs, "Address space exhaustion trying to add static variable.");
+        nkiCompilerAddError(cs,
+            "Address space exhaustion trying to add static variable.");
         return 0;
     }
-
-    printf("Static space allocated: %u\n", cs->staticVariableCount);
 
     return cs->staticVariableCount - 1;
 }
