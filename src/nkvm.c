@@ -453,6 +453,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
     }
 
     // TODO: Iterate through external data with external handles.
+    // Stuff that the hosting application is explicitly holding onto.
 
     // Now go and mark everything that the things in the open list
     // reference.
