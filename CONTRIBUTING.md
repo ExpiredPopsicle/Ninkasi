@@ -83,3 +83,4 @@ if(very long
 All C functions that take no parameters must use "void" in the
 parameter list.
 
+All indentation must be done with four spaces. No tabs.
