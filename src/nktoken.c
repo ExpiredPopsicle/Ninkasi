@@ -43,7 +43,7 @@
 
 #include "nkcommon.h"
 
-static nkbool isWhitespace(char c)
+nkbool nkiCompilerIsWhitespace(char c)
 {
     if(c == ' ' || c == '\n' || c == '\t' || c == '\r') {
         return nktrue;
@@ -51,7 +51,7 @@ static nkbool isWhitespace(char c)
     return nkfalse;
 }
 
-static nkbool isNumber(char c)
+nkbool nkiCompilerIsNumber(char c)
 {
     return (c >= '0' && c <= '9');
 }
@@ -103,7 +103,7 @@ void nkiCompilerAddToken(
     }
 }
 
-char *tokenizerUnescapeString(
+char *nkiCompilerTokenizerUnescapeString(
     struct NKVM *vm,
     const char *in)
 {
@@ -152,7 +152,7 @@ char *tokenizerUnescapeString(
     return out;
 }
 
-void consolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
+void nkiCompilerConsolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
 {
     struct NKToken *tok = tokenList->first;
 
@@ -195,7 +195,7 @@ void consolidateStringLiterals(struct NKVM *vm, struct NKTokenList *tokenList)
     }
 }
 
-nkbool isValidIdentifierCharacter(char c, nkbool isFirstCharacter)
+nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
 {
     if(!isFirstCharacter) {
         if(c >= '0' && c <= '9') {
@@ -219,7 +219,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
     while(i < len) {
 
         // Skip whitespace.
-        while(i < len && isWhitespace(str[i])) {
+        while(i < len && nkiCompilerIsWhitespace(str[i])) {
             if(str[i] == '\n') {
                 lineNumber++;
             }
@@ -391,7 +391,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
-            strUnescaped = tokenizerUnescapeString(vm, strTmp);
+            strUnescaped = nkiCompilerTokenizerUnescapeString(vm, strTmp);
 
             nkiCompilerAddToken(vm, NK_TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
 
@@ -401,7 +401,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             // Skip the whole string and end quote.
             i += len + 1;
 
-        } else if(isNumber(str[i])) {
+        } else if(nkiCompilerIsNumber(str[i])) {
 
             // Scan until we find the end of the number.
             nkuint32_t numberStart = i;
@@ -409,7 +409,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             char tmp[256];
 
             while(i < len &&
-                (isNumber(str[i]) || str[i] == '.') &&
+                (nkiCompilerIsNumber(str[i]) || str[i] == '.') &&
                 (i - numberStart) < sizeof(tmp) - 1)
             {
                 tmp[i - numberStart] = str[i];
@@ -433,13 +433,13 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 lineNumber,
                 tokenList);
 
-        } else if(isValidIdentifierCharacter(str[i], nktrue)) {
+        } else if(nkiCompilerIsValidIdentifierCharacter(str[i], nktrue)) {
 
             nkuint32_t startIndex = i;
             char *tmp;
 
             i++;
-            while(isValidIdentifierCharacter(str[i], nkfalse)) {
+            while(nkiCompilerIsValidIdentifierCharacter(str[i], nkfalse)) {
                 i++;
             }
 
@@ -491,7 +491,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
         i++;
     }
 
-    consolidateStringLiterals(vm, tokenList);
+    nkiCompilerConsolidateStringLiterals(vm, tokenList);
 
     return nktrue;
 }
