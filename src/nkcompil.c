@@ -284,7 +284,7 @@ void nkiCompilerEmitPushNil(struct NKCompilerState *cs, nkbool adjustStackFrame)
 }
 
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
-    struct NKCompilerState *cs, const char *name, nkbool allocateStackSpace)
+    struct NKCompilerState *cs, const char *name, nkbool useValueAtStackTop)
 {
     struct NKCompilerStateContextVariable *var =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
@@ -292,7 +292,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
 
     // Add an instruction to make some stack space for this variable,
     // if needed.
-    if(allocateStackSpace) {
+    if(!useValueAtStackTop) {
         nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
     }
 
@@ -533,13 +533,13 @@ nkbool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
                 return nkfalse;
             }
 
-            nkiCompilerAddVariable(cs, variableName, nkfalse);
+            nkiCompilerAddVariable(cs, variableName, nktrue);
 
         } else {
 
             // Something in the form of "var foo;"
 
-            nkiCompilerAddVariable(cs, variableName, nktrue);
+            nkiCompilerAddVariable(cs, variableName, nkfalse);
         }
     }
 
@@ -655,7 +655,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // cannot refer to itself before it's finished being fully
     // created.
     nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
-    nkiCompilerAddVariable(cs, functionName, nkfalse);
+    nkiCompilerAddVariable(cs, functionName, nktrue);
 
     // Add some instructions to skip around this function. This is
     // kind of a weird way to do it, but it means that we can just
@@ -702,7 +702,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
             // FIXME: Some day, figure out why the heck the variables
             // are offset +1 in the stack.
             cs->context->stackFrameOffset++;
-            varTmp = nkiCompilerAddVariable(cs, argumentName, nkfalse);
+            varTmp = nkiCompilerAddVariable(cs, argumentName, nktrue);
 
             varTmp->doNotPopWhenOutOfScope = nktrue;
 
@@ -740,20 +740,20 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
-    varTmp = nkiCompilerAddVariable(cs, "_functionId", nkfalse);
+    varTmp = nkiCompilerAddVariable(cs, "_functionId", nktrue);
     varTmp->doNotPopWhenOutOfScope = nktrue;
     cs->context->stackFrameOffset++;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
-    varTmp = nkiCompilerAddVariable(cs, "_argumentCount", nkfalse);
+    varTmp = nkiCompilerAddVariable(cs, "_argumentCount", nktrue);
     varTmp->doNotPopWhenOutOfScope = nktrue;
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
-    varTmp = nkiCompilerAddVariable(cs, "_returnPointer", nkfalse);
+    varTmp = nkiCompilerAddVariable(cs, "_returnPointer", nktrue);
     varTmp->doNotPopWhenOutOfScope = nktrue;
 
     // Skip ')'.
@@ -875,7 +875,7 @@ void nkiCompilerCreateCFunctionVariable(
 
     // Add the variable.
     nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
-    nkiCompilerAddVariable(cs, name, nkfalse);
+    nkiCompilerAddVariable(cs, name, nktrue);
 }
 
 struct NKCompilerState *nkiCompilerCreate(

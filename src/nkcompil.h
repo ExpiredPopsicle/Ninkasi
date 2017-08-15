@@ -147,7 +147,7 @@ void nkiCompilerPopContext(struct NKCompilerState *cs);
 /// stack offset. TL;DR: You cannot use this to add variables at any
 /// time.
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
-    struct NKCompilerState *cs, const char *name, nkbool allocateStackSpace);
+    struct NKCompilerState *cs, const char *name, nkbool useValueAtStackTop);
 
 struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
