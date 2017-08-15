@@ -516,6 +516,7 @@ void nkiVmRescanProgramStrings(struct NKVM *vm)
                     nkiDbgWriteLine("Marked string as in-use by program: %s", entry->str);
                 }
             }
+
         } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
             i++; // Skip data for this.
         } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FLOAT) {
@@ -534,7 +535,6 @@ struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId
     if(functionId) {
         *functionId = vm->functionCount++;
     }
-
 
     vm->functionTable = nkiRealloc(
         vm,
