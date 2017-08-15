@@ -98,6 +98,17 @@ void nkiOpcode_stackPeek(struct NKVM *vm);
 /// value off!
 void nkiOpcode_stackPoke(struct NKVM *vm);
 
+/// Reads a value from the stack, looks it up in the static/global
+/// variable space, and pushes the value from that slot onto the
+/// stack. (index = *stackTop; *stackTop = statics[index]).
+void nkiOpcode_staticPeek(struct NKVM *vm);
+
+/// Pops a static index off the top of the static, and then copies the
+/// new top of the stack into that index. Does NOT pop the second
+/// value off! (index = *stackTop; stackTop--; statics[index] =
+/// *stackTop).
+void nkiOpcode_staticPoke(struct NKVM *vm);
+
 /// Pops a value off the stack and adds that number to the instruction
 /// pointer.
 void nkiOpcode_jumpRelative(struct NKVM *vm);

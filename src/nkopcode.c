@@ -404,6 +404,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
         nkiDbgWriteLine("Set global value at stack position: %u", stackAddress);
 
     } else {
+
         // Negative stack address. Probably a local variable.
         nkuint32_t stackAddress = vm->stack.size + stackAddrValue->intData;
         struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
@@ -412,6 +413,44 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
 
         nkiDbgWriteLine("Set local value at stack position: %u", stackAddress);
     }
+}
+
+void nkiOpcode_staticPeek(struct NKVM *vm)
+{
+    // Read index.
+    struct NKValue *v = nkiVmStackPop(vm);
+    if(v->type != NK_VALUETYPE_INT) {
+        nkiAddError(vm, -1,
+            "Attempted to use a non-integer as a static index.");
+        return;
+    }
+
+    // FIXME: !!! Mask this to the static area size. !!!
+    nkuint32_t staticAddress = v->intData;
+    struct NKValue *vIn = nkiVmStackPeek(vm, v->intData);
+    struct NKValue *vOut = nkiVmStackPush_internal(vm);
+    *vOut = *vIn;
+
+    nkiDbgWriteLine("Fetched global value at static position: %u", staticAddress);
+}
+
+void nkiOpcode_staticPoke(struct NKVM *vm)
+{
+    // Read index.
+    struct NKValue *staticAddrValue = nkiVmStackPop(vm);
+    if(staticAddrValue->type != NK_VALUETYPE_INT) {
+        nkiAddError(vm, -1,
+            "Attempted to use a non-integer as a static index.");
+        return;
+    }
+
+    // FIXME: !!! Mask this to the static area size. !!!
+    nkuint32_t staticAddr = staticAddrValue->intData;
+    struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
+    struct NKValue *vOut = nkiVmStackPeek(vm, staticAddr);
+    *vOut = *vIn;
+
+    nkiDbgWriteLine("Set global value at static position: %u", staticAddr);
 }
 
 void nkiOpcode_jumpRelative(struct NKVM *vm)

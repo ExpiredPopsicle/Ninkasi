@@ -1,3 +1,6 @@
+var a;
+var b = 1;
+
 nil;
 nil;
 nil;

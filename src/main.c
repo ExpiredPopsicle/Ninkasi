@@ -327,11 +327,11 @@ int main(int argc, char *argv[])
             //     }
             // }
 
-            // printf("----------------------------------------------------------------------\n");
-            // printf("  Dump\n");
-            // printf("----------------------------------------------------------------------\n");
+            printf("----------------------------------------------------------------------\n");
+            printf("  Dump\n");
+            printf("----------------------------------------------------------------------\n");
 
-            // dumpListing(vm, script);
+            dumpListing(vm, script);
 
             printf("----------------------------------------------------------------------\n");
             printf("  Execution\n");
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
                         vm->instructionAddressMask].opcode != NK_OP_NOP &&
                     instructionCountMax)
                 {
-                    nkxVmIterate(vm, 2000);
+                    nkxVmIterate(vm, 1);
 
                     // printf("\n\n\n\n");
                     // printf("----------------------------------------------------------------------\n");
@@ -359,8 +359,8 @@ int main(int argc, char *argv[])
                     // printf("----------------------------------------------------------------------\n");
                     // nkiVmStackDump(vm);
                     // printf("\n");
-                    // dumpListing(vm, script);
-                    // getchar();
+                    // // dumpListing(vm, script);
+                    // // getchar();
 
                     if(nkxVmGetErrorCount(vm)) {
                         break;

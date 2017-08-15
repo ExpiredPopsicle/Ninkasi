@@ -92,6 +92,9 @@ static void nkiVmInitOpcodeTable(void)
     NK_SETUP_OP(NK_OP_STACKPEEK,              nkiOpcode_stackPeek,              0);
     NK_SETUP_OP(NK_OP_STACKPOKE,              nkiOpcode_stackPoke,              -1);
 
+    NK_SETUP_OP(NK_OP_STATICPEEK,             nkiOpcode_staticPeek,             0);
+    NK_SETUP_OP(NK_OP_STATICPOKE,             nkiOpcode_staticPoke,             -1);
+
     NK_SETUP_OP(NK_OP_JUMP_RELATIVE,          nkiOpcode_jumpRelative,           -1);
 
     NK_SETUP_OP(NK_OP_CALL,                   nkiOpcode_call,                   0);

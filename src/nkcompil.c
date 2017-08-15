@@ -289,17 +289,60 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerStateContextVariable *var =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
+    nkbool isGlobal = !cs->context->parent;
 
-    // Add an instruction to make some stack space for this variable,
-    // if needed.
-    if(!useValueAtStackTop) {
-        nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
+    if(isGlobal) {
+
+        // nkuint32_t globalIndex = cs->context->stackFrameOffset - 1;
+
+        // var->next = cs->context->variables;
+        // var->isGlobal = isGlobal;
+        // var->name = nkiStrdup(cs->vm, name);
+        // var->stackPos = globalIndex;
+
+        // // TODO: Allocate static space.
+
+        // // Add an instruction to make some stack space for this variable,
+        // // if needed.
+        // if(!useValueAtStackTop) {
+        //     nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
+        // }
+
+        // nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
+        // nkiCompilerAddInstructionSimple(cs, NK_OP_STACKPOKE, nktrue);
+        // // nkiCompilerAddInstructionSimple(cs, NK_OP_POP, nktrue);
+
+        // ---
+
+        // Add an instruction to make some stack space for this variable,
+        // if needed.
+        if(!useValueAtStackTop) {
+            nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
+        }
+
+        var->next = cs->context->variables;
+        var->isGlobal = isGlobal;
+        var->name = nkiStrdup(cs->vm, name);
+        var->stackPos = cs->context->stackFrameOffset - 1;
+
+        // Set the global variable.
+        nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
+        nkiCompilerAddInstructionSimple(cs, NK_OP_STATICPOKE, nktrue);
+
+    } else {
+
+        // Add an instruction to make some stack space for this variable,
+        // if needed.
+        if(!useValueAtStackTop) {
+            nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
+        }
+
+        var->next = cs->context->variables;
+        var->isGlobal = isGlobal;
+        var->name = nkiStrdup(cs->vm, name);
+        var->stackPos = cs->context->stackFrameOffset - 1;
+
     }
-
-    var->next = cs->context->variables;
-    var->isGlobal = !cs->context->parent;
-    var->name = nkiStrdup(cs->vm, name);
-    var->stackPos = cs->context->stackFrameOffset - 1;
 
     cs->context->variables = var;
 
