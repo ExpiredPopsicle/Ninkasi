@@ -120,7 +120,7 @@ struct NKVM
     // so we don't have to keep the compiler around.
     struct GlobalVariableRecord
     {
-        nkuint32_t stackPosition;
+        nkuint32_t staticPosition;
         const char *name;
     } *globalVariables;
     char *globalVariableNameStorage;

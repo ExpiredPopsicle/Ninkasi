@@ -335,10 +335,10 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
         var->next = cs->context->variables;
         var->isGlobal = isGlobal;
         var->name = nkiStrdup(cs->vm, name);
-        var->stackPos = nkiCompilerAllocateStaticSpace(cs);
+        var->position = nkiCompilerAllocateStaticSpace(cs);
 
         // Set the global variable.
-        nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
+        nkiCompilerEmitPushLiteralInt(cs, var->position, nktrue);
         nkiCompilerAddInstructionSimple(cs, NK_OP_STATICPOKE, nktrue);
 
     } else {
@@ -352,7 +352,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
         var->next = cs->context->variables;
         var->isGlobal = isGlobal;
         var->name = nkiStrdup(cs->vm, name);
-        var->stackPos = cs->context->stackFrameOffset - 1;
+        var->position = cs->context->stackFrameOffset - 1;
 
     }
 
@@ -1003,7 +1003,7 @@ void nkiCompilerFinalize(
 
             while(var) {
 
-                cs->vm->globalVariables[count].stackPosition = var->stackPos;
+                cs->vm->globalVariables[count].staticPosition = var->position;
                 cs->vm->globalVariables[count].name = nameWritePtr;
                 strcpy(nameWritePtr, var->name);
                 nameWritePtr += strlen(var->name) + 1;

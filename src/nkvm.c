@@ -654,7 +654,7 @@ struct NKValue *nkiVmFindGlobalVariable(
     nkuint32_t i;
     for(i = 0; i < vm->globalVariableCount; i++) {
         if(!strcmp(vm->globalVariables[i].name, name)) {
-            return &vm->staticSpace[vm->staticAddressMask & vm->globalVariables[i].stackPosition];
+            return &vm->staticSpace[vm->staticAddressMask & vm->globalVariables[i].staticPosition];
         }
     }
     return NULL;

@@ -62,11 +62,10 @@ struct NKCompilerStateContextVariable
     // which really belong to the calling function.
     nkbool doNotPopWhenOutOfScope;
 
-    // If this is a global, then stackPos is the position in the stack
-    // from the very beginning of the stack, meaning we should refer
-    // to it with its absolute position. If this is not a global, then
-    // stackPos is the position from the start of the stack frame.
-    nkuint32_t stackPos;
+    // If this is a global, then position is the position in the
+    // static space. If this is not a global, then position is the
+    // position from the start of the stack frame.
+    nkuint32_t position;
 
     struct NKCompilerStateContextVariable *next;
 };

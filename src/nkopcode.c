@@ -448,10 +448,6 @@ void nkiOpcode_staticPoke(struct NKVM *vm)
     struct NKValue *vOut = &vm->staticSpace[staticAddr];
     *vOut = *vIn;
 
-    printf("Wrote this value: ");
-    nkiValueDump(vm, vIn);
-    printf("\n");
-
     nkiDbgWriteLine("Set global value at static position: %u", staticAddr);
 }
 
