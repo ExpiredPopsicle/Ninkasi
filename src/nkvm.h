@@ -78,10 +78,17 @@ struct NKVMLimits
 struct NKVM
 {
     struct NKErrorState errorState;
+
+    // Stack data. (TODO: Make per-thread.)
     struct NKVMStack stack;
+
+    // Static data.
+    struct NKValue *staticSpace;
+    nkuint32_t staticAddressMask;
 
     struct NKInstruction *instructions;
     nkuint32_t instructionAddressMask;
+    // TODO: Make per-thread.)
     nkuint32_t instructionPointer;
 
     struct NKVMStringTable stringTable;

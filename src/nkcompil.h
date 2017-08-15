@@ -96,6 +96,8 @@ struct NKCompilerState
     nkuint32_t currentLineNumber;
 
     nkuint32_t recursionCount;
+
+    nkuint32_t staticVariableCount;
 };
 
 extern nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];

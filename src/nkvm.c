@@ -193,6 +193,11 @@ void nkiVmInit(struct NKVM *vm)
     vm->globalVariableNameStorage = NULL;
 
     nkiVmObjectTableInit(vm);
+
+    // Start with a single static value.
+    vm->staticSpace = nkiMalloc(vm, sizeof(struct NKValue));
+    memset(vm->staticSpace, 0, sizeof(struct NKValue));
+    vm->staticAddressMask = 1;
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -226,6 +231,8 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiFree(vm, vm->globalVariableNameStorage);
 
         nkiVmObjectTableDestroy(vm);
+
+        nkiFree(vm, vm->staticSpace);
 
         NK_CLEAR_FAILURE_RECOVERY();
     }

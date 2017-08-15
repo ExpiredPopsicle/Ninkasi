@@ -425,8 +425,7 @@ void nkiOpcode_staticPeek(struct NKVM *vm)
         return;
     }
 
-    // FIXME: !!! Mask this to the static area size. !!!
-    nkuint32_t staticAddress = v->intData;
+    nkuint32_t staticAddress = v->intData & vm->staticAddressMask;
     struct NKValue *vIn = nkiVmStackPeek(vm, v->intData);
     struct NKValue *vOut = nkiVmStackPush_internal(vm);
     *vOut = *vIn;
@@ -444,8 +443,7 @@ void nkiOpcode_staticPoke(struct NKVM *vm)
         return;
     }
 
-    // FIXME: !!! Mask this to the static area size. !!!
-    nkuint32_t staticAddr = staticAddrValue->intData;
+    nkuint32_t staticAddr = staticAddrValue->intData & vm->staticAddressMask;
     struct NKValue *vIn = nkiVmStackPeek(vm, (vm->stack.size - 1));
     struct NKValue *vOut = nkiVmStackPeek(vm, staticAddr);
     *vOut = *vIn;

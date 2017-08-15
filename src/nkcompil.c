@@ -283,6 +283,39 @@ void nkiCompilerEmitPushNil(struct NKCompilerState *cs, nkbool adjustStackFrame)
     nkiCompilerAddInstructionSimple(cs, NK_OP_PUSHNIL, adjustStackFrame);
 }
 
+nkuint32_t nkiCompilerAllocateStaticSpace(
+    struct NKCompilerState *cs)
+{
+    struct NKVM *vm = cs->vm;
+
+    // Expand our static address space if necessary.
+    printf("Mask:  %u\n", vm->staticAddressMask);
+    printf("Count: %u\n", cs->staticVariableCount);
+    if((vm->staticAddressMask + 1) == cs->staticVariableCount) {
+
+        vm->staticAddressMask <<= 1;
+        vm->staticAddressMask |= 1;
+
+        // Reallocate and clear out the new space.
+        vm->staticSpace = nkiRealloc(
+            vm, vm->staticSpace,
+            sizeof(struct NKValue) * (vm->staticAddressMask + 1));
+        memset(
+            &vm->staticSpace[cs->staticVariableCount], 0,
+            cs->staticVariableCount * sizeof(struct NKValue));
+    }
+
+    cs->staticVariableCount++;
+    if(cs->staticVariableCount == 0) {
+        nkiCompilerAddError(cs, "Address space exhaustion trying to add static variable.");
+        return 0;
+    }
+
+    printf("Static space allocated: %u\n", cs->staticVariableCount);
+
+    return cs->staticVariableCount - 1;
+}
+
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name, nkbool useValueAtStackTop)
 {
@@ -304,7 +337,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
         var->next = cs->context->variables;
         var->isGlobal = isGlobal;
         var->name = nkiStrdup(cs->vm, name);
-        var->stackPos = cs->context->stackFrameOffset - 1;
+        var->stackPos = nkiCompilerAllocateStaticSpace(cs);
 
         // Set the global variable.
         nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
@@ -920,6 +953,8 @@ struct NKCompilerState *nkiCompilerCreate(
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
+
+    cs->staticVariableCount = 0;
 
     nkiCompilerPushContext(cs);
 
