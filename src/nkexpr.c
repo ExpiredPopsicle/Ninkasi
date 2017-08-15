@@ -709,6 +709,8 @@ nkbool nkiCompilerEmitFetchVariable(
         // Positive values for global variables (absolute stack
         // position).
         nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
+        nkiCompilerAddInstructionSimple(
+            cs, NK_OP_STATICPEEK, nkfalse);
 
         nkiDbgWriteLine("Looked up %s: Global at %d", name, var->stackPos);
 
@@ -718,12 +720,12 @@ nkbool nkiCompilerEmitFetchVariable(
         // value).
         nkint32_t fetchStackPos = var->stackPos - cs->context->stackFrameOffset;
         nkiCompilerEmitPushLiteralInt(cs, fetchStackPos, nktrue);
+        nkiCompilerAddInstructionSimple(
+            cs, NK_OP_STACKPEEK, nkfalse);
 
         nkiDbgWriteLine("Looked up %s: Local at %d", name, var->stackPos);
     }
 
-    nkiCompilerAddInstructionSimple(
-        cs, NK_OP_STACKPEEK, nkfalse);
 
     nkiDbgWriteLine("GET VAR: %s", name);
 
@@ -747,6 +749,7 @@ nkbool nkiCompilerExpressionEmitSetVariable(
         // Positive values for global variables (absolute stack
         // position).
         nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
+        nkiCompilerAddInstructionSimple(cs, NK_OP_STATICPOKE, nktrue);
 
     } else {
 
@@ -754,10 +757,9 @@ nkbool nkiCompilerExpressionEmitSetVariable(
         // value).
         nkiCompilerEmitPushLiteralInt(cs,
             var->stackPos - cs->context->stackFrameOffset, nktrue);
-
+        nkiCompilerAddInstructionSimple(cs, NK_OP_STACKPOKE, nktrue);
     }
 
-    nkiCompilerAddInstructionSimple(cs, NK_OP_STACKPOKE, nktrue);
 
     nkiDbgWriteLine("SET VAR: %s", name);
 

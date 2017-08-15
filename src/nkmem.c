@@ -45,6 +45,10 @@
 
 void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
 {
+    // This MUST be set if we ever have even a chance of reaching this
+    // function!
+    assert(vm->catastrophicFailureJmpBuf);
+
     if(size != 0) {
 
         struct NKMemoryHeader *header = NULL;

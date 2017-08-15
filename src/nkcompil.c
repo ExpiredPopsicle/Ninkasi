@@ -293,26 +293,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
 
     if(isGlobal) {
 
-        // nkuint32_t globalIndex = cs->context->stackFrameOffset - 1;
-
-        // var->next = cs->context->variables;
-        // var->isGlobal = isGlobal;
-        // var->name = nkiStrdup(cs->vm, name);
-        // var->stackPos = globalIndex;
-
-        // // TODO: Allocate static space.
-
-        // // Add an instruction to make some stack space for this variable,
-        // // if needed.
-        // if(!useValueAtStackTop) {
-        //     nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
-        // }
-
-        // nkiCompilerEmitPushLiteralInt(cs, var->stackPos, nktrue);
-        // nkiCompilerAddInstructionSimple(cs, NK_OP_STACKPOKE, nktrue);
-        // // nkiCompilerAddInstructionSimple(cs, NK_OP_POP, nktrue);
-
-        // ---
+        // TODO: Allocate static space.
 
         // Add an instruction to make some stack space for this variable,
         // if needed.
