@@ -50,6 +50,13 @@ compatibility between different architectures, for example.)
     - Remove head from sleeping thread list
     - Add head to active thread list
 
+** TODO Thread starting
+- Take a function and parameters. Setup a new context. Blah blah blah
+
+** TODO Thread ending
+- Take return value from function call. Return to the thread_wait or
+  whatever call.
+
 * DONE Strings
 ** DONE String garbage collection
 * DONE Functions
