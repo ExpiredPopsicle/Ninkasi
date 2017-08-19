@@ -8,6 +8,48 @@ Even if the address ends up different. (For serialized state
 compatibility between different architectures, for example.)
 ** TODO Save
 ** TODO Load
+* TODO Private/public header separation
+* TODO Threading
+** TODO Split stack, instruction pointer, and any other per-thread context stuff into a thread context object
+** TODO Thread basic type
+** TODO Mutex basic type
+** TODO Active/inactive thread separation
+** TODO Mutex locking
+- Locking...
+  - If mutex is locked...
+    - Add thread to inactive thread list.
+    - Add thread to list of threads to wake up on mutex unlock.
+    - Otherwise...
+      - Mark mutex as locked.
+      - Maybe write down what thread locked it.
+- Unlocking...
+  - If there are threads in the locked list waiting to wake up...
+    - Wake up the first thread that locked the mutex.
+    - Mutex stays in locked state.
+  - Otherwise...
+    - Mark mutex as unlocked.
+
+** TODO Thread sleeping
+- Each item in a list of sleeping threads will have a tick count
+  remaining until they wake up.
+  - This time is relative to the item before it.
+- Add thread to a list of sleeping threads
+  - Insertion sort into the list of sleeping threads
+    - Keep advancing through the list until we reach the end, or find
+      a thread that is scheduled to sleep even longer than this one.
+    - As we move through the list, subtract the wait time for each
+      thread from this thread's wait time (so we end up with a
+      relative sleep time).
+    - Once we find a spot in the list, subtract the NEXT thread's
+      sleep time from this thread's remaining sleep time. This will
+      make the next thread positioned correctly relative to this one.
+- Each tick...
+  - We decrement the tick count on just the lowest thread in
+    the list (because they're all relative to the one before).
+  - While the tick count <= 0 on the head...
+    - Remove head from sleeping thread list
+    - Add head to active thread list
+
 * DONE Strings
 ** DONE String garbage collection
 * DONE Functions
@@ -49,7 +91,7 @@ operation.
 * DONE Add generic hash function for Values.
 * TODO Fuzz tester
 * TODO Configurable limits
-** TODO Memory usage
+** DONE Memory usage
 *** DONE Max strings
 *** DONE Max string length
 *** DONE Max stack size
@@ -60,6 +102,7 @@ Remember to search for all the malloc, reallocs, and strdups.
 **** DONE Correctly handle errors for everything
 **** DONE Make a tester that randomly starts returning NULL and see if anything breaks.
 ** DONE Compiler recursion limit
+** TODO Max thread count?
 * TODO Documentation
 Pfffffft
 
@@ -101,6 +144,9 @@ x.a(b, c) is...
         + NULL
 
 * TODO Deal with code duplication between string and object tables.
+Mostly about the "hole" tracking stuff, unless we can genericize the
+tables entirely. Would be easy with templates but whatever.
+
 * DONE Maybe implement break.
 - We'll have to keep track of what the most recent loop context is.
 - Then add code to pop all of that out and jump to the end.
@@ -114,6 +160,7 @@ x.a(b, c) is...
 * TODO Get rid of all the asserts that were ensuring contexts line up.
 * TODO Make sure the error system has a standard way of reporting errors.
 Looking at the errorState structure won't work.
+** TODO Standardize catastrophic failure reporting
 * DONE Looking up a nonexistant entry in an object should return nil and not create anything.
 * TODO Catastrophe handling
 ** TODO Make sure the standard error reporting recognizes the out-of-memory special case.
