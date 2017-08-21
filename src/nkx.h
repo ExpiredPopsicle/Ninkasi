@@ -190,8 +190,6 @@ struct NKVMFunctionCallbackData
 
     // Set this to something to return a value.
     struct NKValue returnValue;
-
-    void *userData;
 };
 
 // ----------------------------------------------------------------------
@@ -208,8 +206,7 @@ struct NKCompilerState *nkxCompilerCreate(
 void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func,
-    void *userData);
+    VMFunctionCallback func);
 
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number

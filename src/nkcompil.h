@@ -161,8 +161,7 @@ struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
 void nkiCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func,
-    void *userData);
+    VMFunctionCallback func);
 
 // ----------------------------------------------------------------------
 // Recursive-descent compiler functions.

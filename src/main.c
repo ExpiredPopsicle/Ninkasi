@@ -238,8 +238,6 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
         // printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
         printf("%s", nkxValueToString(data->vm, &data->arguments[i]));
     }
-
-    (*(int*)data->userData)++;
 }
 
 
@@ -292,13 +290,13 @@ int main(int argc, char *argv[])
         {
             struct NKCompilerState *cs = nkxCompilerCreate(vm);
             if(cs) {
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc, NULL);
-                nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe, NULL);
-                nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint, &shitCounter);
-                nkxCompilerCreateCFunctionVariable(cs, "hash", getHash, NULL);
-                nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash, NULL);
-                nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1, NULL);
-                nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2, NULL);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
+                nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
+                nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
+                nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
+                nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
+                nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
                 // nkiCompilerCompileScript(cs, script);
                 nkxCompilerCompileScriptFile(cs, "test.txt");
                 nkxCompilerFinalize(cs);

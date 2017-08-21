@@ -54,7 +54,6 @@ struct NKVMFunction
 
     nkbool isCFunction;
     VMFunctionCallback CFunctionCallback;
-    void *CFunctionCallbackUserdata;
 };
 
 #endif // NINKASI_FUNCTION_H

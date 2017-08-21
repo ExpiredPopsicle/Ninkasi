@@ -533,7 +533,6 @@ void nkiOpcode_call(struct NKVM *vm)
         data.vm = vm;
         data.argumentCount = argumentCount;
         data.arguments = nkiMalloc(vm, argumentCount * sizeof(struct NKValue));
-        data.userData = funcOb->CFunctionCallbackUserdata;
 
         // Note: We're not simply giving the function a stack pointer,
         // because then the called function would have to worry about

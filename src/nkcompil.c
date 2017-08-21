@@ -902,8 +902,7 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
 void nkiCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func,
-    void *userData)
+    VMFunctionCallback func)
 {
     nkuint32_t functionId = 0;
     struct NKVM *vm = cs->vm;
@@ -911,9 +910,7 @@ void nkiCompilerCreateCFunctionVariable(
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
     for(functionId = 0; functionId < vm->functionCount; functionId++) {
-        if(vm->functionTable[functionId].CFunctionCallback == func &&
-           vm->functionTable[functionId].CFunctionCallbackUserdata == userData)
-        {
+        if(vm->functionTable[functionId].CFunctionCallback == func) {
             break;
         }
     }
@@ -925,7 +922,6 @@ void nkiCompilerCreateCFunctionVariable(
         vmfunc->argumentCount = ~(nkuint32_t)0;
         vmfunc->isCFunction = nktrue;
         vmfunc->CFunctionCallback = func;
-        vmfunc->CFunctionCallbackUserdata = userData;
     }
 
     // Add the variable.

@@ -208,13 +208,12 @@ struct NKCompilerState *nkxCompilerCreate(
 void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func,
-    void *userData)
+    VMFunctionCallback func)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
     NK_SET_FAILURE_RECOVERY_VOID();
-    nkiCompilerCreateCFunctionVariable(cs, name, func, userData);
+    nkiCompilerCreateCFunctionVariable(cs, name, func);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
