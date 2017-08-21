@@ -166,6 +166,8 @@ void nkiVmInit(struct NKVM *vm)
     vm->limits.maxFieldsPerObject = ~(nkuint32_t)0;
     vm->limits.maxAllocatedMemory = ~(nkuint32_t)0;
 
+    vm->userData = NULL;
+
     nkiVmInitOpcodeTable();
 
     nkiErrorStateInit(vm);

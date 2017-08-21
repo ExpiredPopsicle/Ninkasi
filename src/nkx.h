@@ -192,6 +192,15 @@ struct NKVMFunctionCallbackData
     struct NKValue returnValue;
 };
 
+/// Set an arbitrary pointer to associate with the VM. This will let
+/// you associate VMs with some context and have them visible from
+/// called functions without horrible global variable hacks. This
+/// pointer is not used by anything inside the VM.
+void nkxSetUserData(struct NKVM *vm, void *userData);
+
+/// Get the user data pointer set with nkxSetUserData.
+void *nkxGetUserData(struct NKVM *vm);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

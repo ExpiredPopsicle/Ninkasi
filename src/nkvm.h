@@ -138,6 +138,8 @@ struct NKVM
     void *mallocAndFreeReplacementUserData;
 
     jmp_buf *catastrophicFailureJmpBuf;
+
+    void *userData;
 };
 
 /// Initialize an already-allocated VM.

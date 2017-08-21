@@ -336,3 +336,13 @@ void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void nkxSetUserData(struct NKVM *vm, void *userData)
+{
+    vm->userData = userData;
+}
+
+void *nkxGetUserData(struct NKVM *vm)
+{
+    return vm->userData;
+}
+
