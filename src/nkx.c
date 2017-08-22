@@ -171,17 +171,6 @@ void nkxVmCallFunction(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-void nkxVmCreateCFunction(
-    struct NKVM *vm,
-    VMFunctionCallback func,
-    struct NKValue *output)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-    nkiVmCreateCFunction(vm, func, output);
-    NK_CLEAR_FAILURE_RECOVERY();
-}
-
 struct NKValue *nkxVmFindGlobalVariable(
     struct NKVM *vm, const char *name)
 {

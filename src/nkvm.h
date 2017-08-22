@@ -199,16 +199,6 @@ void nkiVmCallFunction(
     struct NKValue *arguments,
     struct NKValue *returnValue);
 
-/// Create a C function and write it to some Value.
-///
-/// func is the C function pointer itself.
-///
-/// output is the Value to write the pointer to.
-void nkiVmCreateCFunction(
-    struct NKVM *vm,
-    VMFunctionCallback func,
-    struct NKValue *output);
-
 /// Look up a global variable. Do not use this before executing the
 /// program at least once, or only accessing global variables that
 /// were declared earlier in the program than whatever point it's at

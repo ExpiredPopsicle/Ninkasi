@@ -561,27 +561,6 @@ struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId
     return &vm->functionTable[vm->functionCount - 1];
 }
 
-void nkiVmCreateCFunction(
-    struct NKVM *vm,
-    VMFunctionCallback func,
-    struct NKValue *output)
-{
-    // TODO: Lookup function first, to make sure we aren't making
-    // duplicate functions.
-
-    nkuint32_t functionId = 0;
-    struct NKVMFunction *vmfunc =
-        nkiVmCreateFunction(vm, &functionId);
-
-    vmfunc->argumentCount = ~(nkuint32_t)0;
-    vmfunc->externalFunctionId =
-        nkiVmRegisterExternalFunction(
-            vm, "FIXME", func);
-
-    output->type = NK_VALUETYPE_FUNCTIONID;
-    output->functionId = functionId;
-}
-
 void nkiVmCallFunction(
     struct NKVM *vm,
     struct NKValue *functionValue,

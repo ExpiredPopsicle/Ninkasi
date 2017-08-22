@@ -909,17 +909,23 @@ void nkiCompilerCreateCFunctionVariable(
     struct NKVM *vm = cs->vm;
 
     // Lookup function first, to make sure we aren't making duplicate
-    // functions.
-
+    // functions. (We're at compile time right now so we can spend
+    // some time searching for this.)
     for(externalFunctionId = 0; externalFunctionId < vm->externalFunctionCount; externalFunctionId++) {
-        if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func) {
+        if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func &&
+            !strcmp(vm->externalFunctionTable[externalFunctionId].name, name))
+        {
             break;
         }
     }
+
+    // Register a new function if we haven't found anything.
     if(externalFunctionId == vm->externalFunctionCount) {
         externalFunctionId = nkiVmRegisterExternalFunction(vm, name, func);
     }
 
+    // Search for a function object that points to the external
+    // function already.
     for(functionId = 0; functionId < vm->functionCount; functionId++) {
         if(vm->functionTable[functionId].externalFunctionId == externalFunctionId) {
             break;
