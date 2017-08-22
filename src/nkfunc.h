@@ -60,6 +60,7 @@ struct NKVMExternalFunction
 {
     char *name;
     VMFunctionCallback CFunctionCallback;
+    nkuint32_t internalFunctionId;
 };
 
 #endif // NINKASI_FUNCTION_H

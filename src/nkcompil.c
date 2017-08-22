@@ -908,37 +908,37 @@ void nkiCompilerCreateCFunctionVariable(
     nkuint32_t externalFunctionId = 0;
     struct NKVM *vm = cs->vm;
 
-    // Lookup function first, to make sure we aren't making duplicate
-    // functions. (We're at compile time right now so we can spend
-    // some time searching for this.)
-    for(externalFunctionId = 0; externalFunctionId < vm->externalFunctionCount; externalFunctionId++) {
-        if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func &&
-            !strcmp(vm->externalFunctionTable[externalFunctionId].name, name))
-        {
-            break;
-        }
-    }
+    // // Lookup function first, to make sure we aren't making duplicate
+    // // functions. (We're at compile time right now so we can spend
+    // // some time searching for this.)
+    // for(externalFunctionId = 0; externalFunctionId < vm->externalFunctionCount; externalFunctionId++) {
+    //     if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func &&
+    //         !strcmp(vm->externalFunctionTable[externalFunctionId].name, name))
+    //     {
+    //         break;
+    //     }
+    // }
 
-    // Register a new function if we haven't found anything.
-    if(externalFunctionId == vm->externalFunctionCount) {
-        externalFunctionId = nkiVmRegisterExternalFunction(vm, name, func);
-    }
+    // // Register a new function if we haven't found anything.
+    // if(externalFunctionId == vm->externalFunctionCount) {
+    //     externalFunctionId = nkiVmRegisterExternalFunction(vm, name, func);
+    // }
 
-    // Search for a function object that points to the external
-    // function already.
-    for(functionId = 0; functionId < vm->functionCount; functionId++) {
-        if(vm->functionTable[functionId].externalFunctionId == externalFunctionId) {
-            break;
-        }
-    }
+    // // Search for a function object that points to the external
+    // // function already.
+    // for(functionId = 0; functionId < vm->functionCount; functionId++) {
+    //     if(vm->functionTable[functionId].externalFunctionId == externalFunctionId) {
+    //         break;
+    //     }
+    // }
 
-    // Add a new one if we haven't found an existing one.
-    if(functionId == cs->vm->functionCount) {
-        struct NKVMFunction *vmfunc =
-            nkiVmCreateFunction(cs->vm, &functionId);
-        vmfunc->argumentCount = ~(nkuint32_t)0;
-        vmfunc->externalFunctionId = externalFunctionId;
-    }
+    // // Add a new one if we haven't found an existing one.
+    // if(functionId == cs->vm->functionCount) {
+    //     functionId = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);
+    // }
+
+    externalFunctionId = nkiVmRegisterExternalFunction(cs->vm, name, func);
+    functionId = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);
 
     // Add the variable.
     nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);

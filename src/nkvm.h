@@ -105,19 +105,16 @@ struct NKVM
     nkuint32_t functionCount;
     struct NKVMFunction *functionTable;
 
+    // External C functions. This is a block that represents every
+    // external C function linked to the VM, but separate from the
+    // main function table. Some of these may not have functions in
+    // the function table representing them. This table should be
+    // filled in prior to any kind of deserialization, so that loaded
+    // functions can be mapped to real functions by name. Use
+    // nkiVmRegisterExternalFunction (or the nkx* equivalent) to fill
+    // it in.
     nkuint32_t externalFunctionCount;
     struct NKVMExternalFunction *externalFunctionTable;
-
-    // NOTE: When you add the object table, you will need to add
-    // external reference counts. We don't care about this for strings
-    // (external code can just strdup it) or functions (they are
-    // permanently part of the program and GC doesn't even exist for
-    // them), but we do care about this for objects. We'll also have
-    // to keep a list of all objects that are externally referenced
-    // anywhere, so that the GC can start on those and mark others.
-    //
-    // Maybe just an external reference list? (Can store multiple
-    // entries for multiple external references to the same object.)
 
     // TODO: Add a global variable table and global variable lookup,
     // so we don't have to keep the compiler around.
@@ -209,10 +206,30 @@ void nkiVmCallFunction(
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
+/// Register a new external function. You should do this before
+/// compiling or deserializing. It may also take a long time searching
+/// for duplicates. You may have to use this if you do not know if a
+/// function exists or not inside the VM yet, or if you do know and
+/// need the ID to be found.
 nkuint32_t nkiVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
     VMFunctionCallback func);
+
+/// Register a new external function. You should do this before
+/// compiling or deserializing. This version will not waste time
+/// searching for an existing copy of the function object. Use only if
+/// you know that a duplicate of the function does not exist yet.
+nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
+    struct NKVM *vm,
+    const char *name,
+    VMFunctionCallback func);
+
+/// Look up or create an internal function to represent some external
+/// function. This should execute fast (no searching), but may have to
+/// instantiate a new function object.
+nkuint32_t nkiVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, nkuint32_t externalFunctionId);
 
 #endif // NINKASI_VM_H
 

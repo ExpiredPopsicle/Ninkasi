@@ -676,6 +676,30 @@ nkuint32_t nkiVmRegisterExternalFunction(
     const char *name,
     VMFunctionCallback func)
 {
+    // Lookup function first, to make sure we aren't making duplicate
+    // functions. (We're probably at compile time right now so we can
+    // spend some time searching for this.)
+    nkuint32_t externalFunctionId = 0;
+    for(externalFunctionId = 0; externalFunctionId < vm->externalFunctionCount; externalFunctionId++) {
+        if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func &&
+            !strcmp(vm->externalFunctionTable[externalFunctionId].name, name))
+        {
+            break;
+        }
+    }
+
+    if(externalFunctionId == vm->externalFunctionCount) {
+        return nkiVmRegisterExternalFunctionNoSearch(vm, name, func);
+    }
+
+    return externalFunctionId;
+}
+
+nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
+    struct NKVM *vm,
+    const char *name,
+    VMFunctionCallback func)
+{
     struct NKVMExternalFunction *funcEntry;
 
     vm->externalFunctionCount++;
@@ -691,9 +715,45 @@ nkuint32_t nkiVmRegisterExternalFunction(
 
     funcEntry = &vm->externalFunctionTable[vm->externalFunctionCount - 1];
     memset(funcEntry, 0, sizeof(*funcEntry));
+    funcEntry->internalFunctionId = ~(nkuint32_t)0;
     funcEntry->name = nkiStrdup(vm, name);
     funcEntry->CFunctionCallback = func;
 
     return vm->externalFunctionCount - 1;
+}
+
+nkuint32_t nkiVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, nkuint32_t externalFunctionId)
+{
+    nkuint32_t functionId = 0;
+
+    if(externalFunctionId >= vm->externalFunctionCount) {
+        nkiAddError(
+            vm, -1,
+            "Tried to create an internal function to represent a bad external function.");
+        return ~(nkuint32_t)0;
+    }
+
+    if(vm->externalFunctionTable[externalFunctionId].internalFunctionId == ~(nkuint32_t)0) {
+
+        // Gotta make a new function. Nothing exists yet.
+        struct NKVMFunction *vmfunc =
+            nkiVmCreateFunction(vm, &functionId);
+
+        memset(vmfunc, 0, sizeof(*vmfunc));
+        vmfunc->argumentCount = ~(nkuint32_t)0;
+
+        // Set up function ID mappings.
+        vmfunc->externalFunctionId = externalFunctionId;
+        vm->externalFunctionTable[externalFunctionId].internalFunctionId = functionId;
+
+    } else {
+
+        // Some function already exists in the VM with this external
+        // function ID.
+        functionId = vm->externalFunctionTable[externalFunctionId].internalFunctionId;
+    }
+
+    return functionId;
 }
 

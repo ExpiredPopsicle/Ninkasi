@@ -291,6 +291,10 @@ int main(int argc, char *argv[])
             struct NKCompilerState *cs = nkxCompilerCreate(vm);
             if(cs) {
                 nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
                 nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
                 nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
                 nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
