@@ -260,6 +260,7 @@ int main(int argc, char *argv[])
 
     if(!script) {
         printf("Script failed to even load.\n");
+        return 1;
     }
 
     while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
