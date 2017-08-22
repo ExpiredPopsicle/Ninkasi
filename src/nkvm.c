@@ -167,6 +167,8 @@ void nkiVmInit(struct NKVM *vm)
     vm->limits.maxAllocatedMemory = ~(nkuint32_t)0;
 
     vm->userData = NULL;
+    vm->externalFunctionCount = 0;
+    vm->externalFunctionTable = NULL;
 
     nkiVmInitOpcodeTable();
 
@@ -235,6 +237,14 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiVmObjectTableDestroy(vm);
 
         nkiFree(vm, vm->staticSpace);
+
+        {
+            nkuint32_t n;
+            for(n = 0; n < vm->externalFunctionCount; n++) {
+                nkiFree(vm, vm->externalFunctionTable[n].name);
+            }
+        }
+        nkiFree(vm, vm->externalFunctionTable);
 
         NK_CLEAR_FAILURE_RECOVERY();
     }
@@ -546,6 +556,7 @@ struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
         sizeof(struct NKVMFunction));
+    vm->functionTable[vm->functionCount - 1].externalFunctionId = ~(nkuint32_t)0;
 
     return &vm->functionTable[vm->functionCount - 1];
 }
@@ -563,8 +574,9 @@ void nkiVmCreateCFunction(
         nkiVmCreateFunction(vm, &functionId);
 
     vmfunc->argumentCount = ~(nkuint32_t)0;
-    vmfunc->isCFunction = nktrue;
-    vmfunc->CFunctionCallback = func;
+    vmfunc->externalFunctionId =
+        nkiVmRegisterExternalFunction(
+            vm, "FIXME", func);
 
     output->type = NK_VALUETYPE_FUNCTIONID;
     output->functionId = functionId;
@@ -578,6 +590,7 @@ void nkiVmCallFunction(
     struct NKValue *returnValue)
 {
     if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
+        printf("Type: %d\n", functionValue->type);
         nkiAddError(
             vm, -1,
             "Tried to call a non-function with nkiVmCallFunction.");
@@ -678,3 +691,30 @@ void nkiVmStaticDump(struct NKVM *vm)
         i++;
     }
 }
+
+nkuint32_t nkiVmRegisterExternalFunction(
+    struct NKVM *vm,
+    const char *name,
+    VMFunctionCallback func)
+{
+    struct NKVMExternalFunction *funcEntry;
+
+    vm->externalFunctionCount++;
+    if(!vm->externalFunctionCount) {
+        vm->externalFunctionCount--;
+        nkiAddError(vm, -1, "Too many external functions registered.");
+        return ~(nkuint32_t)0;
+    }
+
+    vm->externalFunctionTable = nkiRealloc(
+        vm, vm->externalFunctionTable,
+        vm->externalFunctionCount * sizeof(struct NKVMExternalFunction));
+
+    funcEntry = &vm->externalFunctionTable[vm->externalFunctionCount - 1];
+    memset(funcEntry, 0, sizeof(*funcEntry));
+    funcEntry->name = nkiStrdup(vm, name);
+    funcEntry->CFunctionCallback = func;
+
+    return vm->externalFunctionCount - 1;
+}
+

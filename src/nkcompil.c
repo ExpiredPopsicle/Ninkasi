@@ -905,12 +905,23 @@ void nkiCompilerCreateCFunctionVariable(
     VMFunctionCallback func)
 {
     nkuint32_t functionId = 0;
+    nkuint32_t externalFunctionId = 0;
     struct NKVM *vm = cs->vm;
 
     // Lookup function first, to make sure we aren't making duplicate
     // functions.
+
+    for(externalFunctionId = 0; externalFunctionId < vm->externalFunctionCount; externalFunctionId++) {
+        if(vm->externalFunctionTable[externalFunctionId].CFunctionCallback == func) {
+            break;
+        }
+    }
+    if(externalFunctionId == vm->externalFunctionCount) {
+        externalFunctionId = nkiVmRegisterExternalFunction(vm, name, func);
+    }
+
     for(functionId = 0; functionId < vm->functionCount; functionId++) {
-        if(vm->functionTable[functionId].CFunctionCallback == func) {
+        if(vm->functionTable[functionId].externalFunctionId == externalFunctionId) {
             break;
         }
     }
@@ -920,8 +931,7 @@ void nkiCompilerCreateCFunctionVariable(
         struct NKVMFunction *vmfunc =
             nkiVmCreateFunction(cs->vm, &functionId);
         vmfunc->argumentCount = ~(nkuint32_t)0;
-        vmfunc->isCFunction = nktrue;
-        vmfunc->CFunctionCallback = func;
+        vmfunc->externalFunctionId = externalFunctionId;
     }
 
     // Add the variable.

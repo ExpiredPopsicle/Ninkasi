@@ -345,4 +345,3 @@ void *nkxGetUserData(struct NKVM *vm)
 {
     return vm->userData;
 }
-

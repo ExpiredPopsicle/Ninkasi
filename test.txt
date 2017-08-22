@@ -1,10 +1,12 @@
-// var a;
-// var b = 1;
+print("TEST!\n");
 
-// {
-//     var c = "asdf";
-//     print("Derp", b, c, "\n");
-// }
+var a;
+var b = 1;
+
+{
+    var c = "asdf";
+    print("Derp", b, c, "\n");
+}
 
 nil;
 nil;
@@ -38,6 +40,12 @@ nil;
     nil;
     nil;
 }
+
+function asdfasdfasdf()
+{
+    print("asdfasdfasdf\n");
+}
+asdfasdfasdf();
 
 for(var n = 0; n < 10; ++n) {
 

@@ -105,6 +105,9 @@ struct NKVM
     nkuint32_t functionCount;
     struct NKVMFunction *functionTable;
 
+    nkuint32_t externalFunctionCount;
+    struct NKVMExternalFunction *externalFunctionTable;
+
     // NOTE: When you add the object table, you will need to add
     // external reference counts. We don't care about this for strings
     // (external code can just strdup it) or functions (they are
@@ -215,6 +218,11 @@ void nkiVmCreateCFunction(
 /// all.)
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
+
+nkuint32_t nkiVmRegisterExternalFunction(
+    struct NKVM *vm,
+    const char *name,
+    VMFunctionCallback func);
 
 #endif // NINKASI_VM_H
 

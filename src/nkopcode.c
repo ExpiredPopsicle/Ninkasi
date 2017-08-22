@@ -520,14 +520,30 @@ void nkiOpcode_call(struct NKVM *vm)
 
     // At this point the behavior changes depending on if it's a C
     // function or script function.
-    if(funcOb->isCFunction) {
+    if(funcOb->externalFunctionId != ~(nkuint32_t)0) {
 
         // In this case we just want to call the C function, pop all
         // of our data off the stack, push the return value, and then
         // return from this function.
 
         struct NKVMFunctionCallbackData data;
+        struct NKVMExternalFunction *externalFunc;
+
         memset(&data, 0, sizeof(data));
+
+        // First check that this is a valid function. Maybe we go
+        // weird data from deserialization.
+        if(funcOb->externalFunctionId >= vm->externalFunctionCount) {
+            nkiAddError(vm, -1,
+                "Tried to call a bad native function.");
+            return;
+        }
+        externalFunc = &vm->externalFunctionTable[funcOb->externalFunctionId];
+        if(!externalFunc->CFunctionCallback) {
+            nkiAddError(vm, -1,
+                "Tried to call a null native function.");
+            return;
+        }
 
         // Fill in important stuff here.
         data.vm = vm;
@@ -550,7 +566,7 @@ void nkiOpcode_call(struct NKVM *vm)
         }
 
         // Actual function call.
-        funcOb->CFunctionCallback(&data);
+        externalFunc->CFunctionCallback(&data);
 
         // If the C function called some code back inside the VM, we
         // may have suffered a catastrophic failure in that code, so

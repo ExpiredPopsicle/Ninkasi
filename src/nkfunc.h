@@ -52,7 +52,13 @@ struct NKVMFunction
     nkuint32_t argumentCount;
     nkuint32_t firstInstructionIndex;
 
-    nkbool isCFunction;
+    nkuint32_t externalFunctionId;
+};
+
+/// Native C function record.
+struct NKVMExternalFunction
+{
+    char *name;
     VMFunctionCallback CFunctionCallback;
 };
 
