@@ -902,7 +902,7 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
 void nkiCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func)
+    NKVMFunctionCallback func)
 {
     nkuint32_t functionId = 0;
     nkuint32_t externalFunctionId = 0;

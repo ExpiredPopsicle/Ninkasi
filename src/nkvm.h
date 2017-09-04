@@ -214,7 +214,7 @@ struct NKValue *nkiVmFindGlobalVariable(
 nkuint32_t nkiVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
-    VMFunctionCallback func);
+    NKVMFunctionCallback func);
 
 /// Register a new external function. You should do this before
 /// compiling or deserializing. This version will not waste time
@@ -223,7 +223,7 @@ nkuint32_t nkiVmRegisterExternalFunction(
 nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
     struct NKVM *vm,
     const char *name,
-    VMFunctionCallback func);
+    NKVMFunctionCallback func);
 
 /// Look up or create an internal function to represent some external
 /// function. This should execute fast (no searching), but may have to

@@ -464,9 +464,6 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
     }
 
-    // TODO: Iterate through external data with external handles.
-    // Stuff that the hosting application is explicitly holding onto.
-
     // Now go and mark everything that the things in the open list
     // reference.
     nkiVmGarbageCollect_markReferenced(&gcState);
@@ -603,7 +600,11 @@ void nkiVmCallFunction(
         }
 
         // Save return value.
-        *returnValue = *nkiVmStackPop(vm);
+        if(returnValue) {
+            *returnValue = *nkiVmStackPop(vm);
+        } else {
+            nkiVmStackPop(vm);
+        }
 
         // Restore old state.
         vm->instructionPointer = oldInstructionPtr;
@@ -674,7 +675,7 @@ void nkiVmStaticDump(struct NKVM *vm)
 nkuint32_t nkiVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
-    VMFunctionCallback func)
+    NKVMFunctionCallback func)
 {
     // Lookup function first, to make sure we aren't making duplicate
     // functions. (We're probably at compile time right now so we can
@@ -698,7 +699,7 @@ nkuint32_t nkiVmRegisterExternalFunction(
 nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
     struct NKVM *vm,
     const char *name,
-    VMFunctionCallback func)
+    NKVMFunctionCallback func)
 {
     struct NKVMExternalFunction *funcEntry;
 

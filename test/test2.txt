@@ -1,0 +1,508 @@
+
+
+
+for(var x = 0; x < 1000; ++x) {
+    var c = newobject;
+    setGCCallbackThing(c);
+}
+
+print("TEST!\n");
+
+var a;
+var b = 1;
+
+{
+    var c = "asdf";
+    print("Derp", b, c, "\n");
+}
+
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+nil;
+
+{
+    nil;
+    nil;
+    var asdfasdf;
+    asdfasdf = 12355;
+    nil;
+    nil;
+    nil;
+    asdfasdf = nil;
+    asdfasdf = 12355;
+    nil;
+    nil;
+}
+
+function asdfasdfasdf()
+{
+    print("asdfasdfasdf\n");
+}
+asdfasdfasdf();
+
+for(var n = 0; n < 10; ++n) {
+
+    var k = 0;
+
+    function stuff(asdf) {
+        var asdf = 1234;
+        while(asdf) {
+            break;
+        }
+    }
+
+    if(n > 5) {
+        print("derp", n, "\n");
+        break;
+    }
+
+    stuff(1);
+}
+
+// var foo = newobject;
+// foo.bar;
+// foo["bar"];
+
+var foo = newobject;
+function foo_bar(self, x, y, z)
+{
+    self.cheese = x + y + z;
+}
+
+
+foo.bar = foo_bar;
+
+foo.bar(1, 2, 3);
+
+print(foo.cheese, "\n");
+
+
+var ob = newobject;
+ob[555] = 666;
+print(ob[555]);
+
+var i;
+for(i = 0; i < 10; ++i) {
+    print("" + i + "\n");
+    ob[i] = 1234;
+}
+
+for(i = 0; i < 10; ++i) {
+    print("" + ob[i] + "\n");
+    ob[i] = 1234;
+}
+
+
+ob = 0;
+print("DONE\n");
+
+function testTrue(x)
+{
+    if(x) {
+        print("SUCCESS\n");
+    } else {
+        print("FAIL\n");
+    }
+}
+
+function testFalse(x)
+{
+    if(x) {
+        print("FAIL\n");
+    } else {
+        print("SUCCESS\n");
+    }
+}
+
+function returnTest()
+{
+    return 2 > 1;
+}
+
+print("\nThese ones should succeed...\n");
+testTrue(2 > 1);
+testFalse(1 > 2);
+testTrue(1 >= 1);
+testFalse(1 >= 2);
+testFalse(1 > 1);
+testTrue(1 < 2);
+testFalse(2 < 1);
+testTrue(1 <= 1);
+testFalse(2 <= 1);
+testFalse(1 < 1);
+testTrue("foo" + "bar" == "foobar");
+testTrue(returnTest());
+testTrue(1 == "1");
+testTrue(1 === 1);
+testFalse(1 === "1");
+
+testTrue(1 != "2");
+testTrue(1 != 2);
+testFalse(1 != 1);
+
+testTrue(!!1);
+testFalse(!1);
+testTrue(!0);
+testFalse(!!0);
+
+testTrue(1 && 1);
+testFalse(1 && 0);
+testFalse(0 && 1);
+testFalse(0 && 0);
+
+testTrue(1 || 1);
+testTrue(1 || 0);
+testTrue(0 || 1);
+testFalse(0 || 0);
+
+
+testTrue(5 % 3 == 2);
+
+
+print("\nThis ones should fail...\n");
+testTrue(0);
+testFalse(1);
+print("\n");
+
+var counter = 0;
+for(var x = 10; x; --x) {
+    for(var y = 10; y; --y) {
+        // print("" + (x * y) + "\n");
+        ++counter;
+    }
+}
+print("Counter: " + counter);
+
+// while(1)
+// {
+//     print("foo");
+// }
+
+// var k;
+for(var k = 10; k; --k) {
+    print("foo " + k);
+}
+
+var k;
+for(k = 10; k; 3 * 4 + (--k))
+{
+    print("foo " + k);
+}
+
+var foo = 123;
+var bar;
+bar = foo + foo;
+
+function cheese()
+{
+    return "CHEESE";
+}
+
+function getFunctionId()
+{
+    return _functionId;
+}
+
+function getArgumentCount(a, b, c, d, e)
+{
+    return _argumentCount;
+}
+
+function getReturnPointer()
+{
+    return _returnPointer;
+}
+
+    {
+        var shouldNotBeInFunction;
+
+        function otherTest(a, b)
+        {
+            var cheeseStr = cheese();
+            return a + b + cheeseStr;
+        }
+
+        function test(a, b, c)
+        {
+            return "beep" + "boop" + b;
+        }
+
+        foo = 1;
+        foo = 2;
+        foo = 3;
+        foo = 4;
+        foo = 5;
+        foo = test(123, 456, 789);
+        bar = test(123, 456, 789);
+
+        foo = otherTest(
+            test(0, "FOOM", 0),
+            test(0, "BUTTS", 0));
+
+        // "foom";
+    }
+
+bar = "asdf";
+
+// function test1()
+// {
+//     return "t1value";
+// }
+
+// function test2()
+// {
+//     return "t2value";
+// }
+
+// test1() + test2();
+
+print("\n");
+
+// print("Function ID is" + getFunctionId() + "\n");
+print("Argument count is " + getArgumentCount(0, 0, 0, 0, 0) + "\n");
+print("Return pointer is " + getReturnPointer() + "\n");
+
+function blahtest(a, b, c)
+{
+    1;
+    return 0;
+}
+
+
+var thing;
+thing = 2;
+
+blahtest(1, 2, 3);
+
+function callMeFromC()
+{
+    return "ASDFASDFASDFASDFASDF";
+}
+cfunc(callMeFromC);
+
+
+var readMeFromC = 1 + 2 + 3;
+
+
+print("Hello I am printing from the VM\n");
+
+// if(0 + 1) {
+//     print("This should happen.\n");
+// }
+
+if(1) {
+    print("This should happen.\n");
+} else {
+    print("This shouldn't happen.\n");
+}
+
+// if(1 - 1) {
+//     print("This should NOT happen.\n");
+// }
+
+"ASDF";
+
+// if(0) {
+//     print("None of this.\n");
+// } else {
+//     print("Definitely this.\n");
+// }
+
+
+var i;
+i = 10;
+while(i) {
+    i = i - 1;
+    print("THIS IS A THING " + i + "\n");
+}
+
+i = 10;
+while(--i) var n;
+
+// print("This is an object... ");
+// print(newobject);
+// print("\n");
+
+for(i = 0; i < 10; ++i) {
+    var asdf = newobject;
+    var asdf2 = newobject;
+    var asdf3 = newobject;
+    var asdf4 = newobject;
+    var asdf5 = newobject;
+    var asdf6 = newobject;
+}
+
+
+var gtest = "asdf";
+
+
+print("Testing object set...\n");
+var ob = newobject;
+ob[1] = 2;
+print("ob[1] now: " + ob[1] + "\n");
+
+
+
+
+function anotherObTest()
+{
+    print("OBTEST!\n");
+}
+
+var i;
+var butts = newobject;
+butts["asdf"] = anotherObTest;
+butts["asdf"]();
+for(i = 0; i < 2000; ++i) {
+    // print("GC abuse iteration: ");
+    // print(i);
+    // print("\n");
+    var n = i % 5;
+    var c = butts[n];
+    if(!butts[n]) {
+        butts[n] = newobject;
+    } else {
+        var d = newobject;
+        d[n] = butts[n];
+        butts[n] = d;
+    }
+}
+
+for(i = 0; i < 2000; ++i) {
+    butts[i] = nil;
+}
+
+
+print("DONE\n");
+
+function dumpHash(x)
+{
+    print("Hash of ", x, ": ", hash(x), "\n");
+}
+
+// print(hash("foo"), "\n");
+// print(hash("foo"), "\n");
+
+dumpHash("foo");
+dumpHash("foo");
+dumpHash("foo");
+dumpHash("bar");
+dumpHash("bar");
+dumpHash("bar");
+dumpHash(1);
+dumpHash(1.);
+dumpHash(dumpHash);
+dumpHash(cfunc);
+
+nil;
+print(nil, "\n");
+
+{
+    var obTest = newobject;
+    obTest.foo = newobject;
+    obTest.foo.bar = "TEST";
+    obTest.asdf = "hhjbjhbjhb";
+    testHandle1(obTest);
+    testHandle2(obTest);
+}
+
+
+print("Field in object that doesn't exist: ", newobject.foo, " : ", nil, "\n");
+
+{
+    {
+        {
+            {
+                {
+                    {
+                        {
+                            {
+                                {
+                                    {
+                                        {
+                                            {
+                                                {
+                                                    {
+                                                        {
+                                                            {
+                                                                {
+                                                                    {
+                                                                        {
+                                                                            {
+                                                                                {
+                                                                                    {
+                                                                                        {
+                                                                                            {
+                                                                                                {
+                                                                                                    print("adsfgasdfasdfsadf\n");
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// function causeCatastrophe()
+// {
+//     catastrophe();
+// }
+// cfunc(causeCatastrophe);
+
+function spaces(x)
+{
+    var ret = "";
+    for(var i = 0; i < x; ++i) {
+        ret = ret + "  ";
+    }
+    return ret;
+}
+
+function selfRecursionTest(x, y)
+{
+    if(x > 0) {
+        print(spaces(y), "Recursing! ", x, " ", y, "\n");
+        var ret = x * selfRecursionTest(x - 1, y + 1);
+        print(spaces(y), "Un-recursing! ", ret, "\n");
+        return ret;
+    }
+    print(spaces(y), "Final recursion! ", x, " ", y, "\n");
+    return 1;
+}
+
+print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
+
+

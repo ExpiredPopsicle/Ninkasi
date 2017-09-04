@@ -59,7 +59,7 @@ struct NKVMFunction
 struct NKVMExternalFunction
 {
     char *name;
-    VMFunctionCallback CFunctionCallback;
+    NKVMFunctionCallback CFunctionCallback;
     nkuint32_t internalFunctionId;
 };
 

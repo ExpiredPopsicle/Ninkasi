@@ -68,6 +68,8 @@ struct NKVMObject
     struct NKVMObject *nextObjectWithExternalHandles;
     struct NKVMObject **previousExternalHandleListPtr;
     nkuint32_t externalHandleCount;
+
+    nkuint32_t gcCallback;
 };
 
 struct NKVMObjectTableHole
@@ -121,5 +123,10 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 
 // Internal version of nkxVmObjectReleaseHandle.
 void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
+
+void nkiVmObjectSetGarbageCollectionCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    nkuint32_t callbackFunction);
 
 #endif // NINKASI_OBJECTS_H

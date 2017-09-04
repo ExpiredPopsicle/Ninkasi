@@ -64,7 +64,7 @@
 
 struct NKVM;
 struct NKVMFunctionCallbackData;
-typedef void (*VMFunctionCallback)(struct NKVMFunctionCallbackData *data);
+typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
 struct NKValue;
 
 // ----------------------------------------------------------------------
@@ -191,6 +191,34 @@ void nkxSetUserData(struct NKVM *vm, void *userData);
 /// Get the user data pointer set with nkxSetUserData.
 void *nkxGetUserData(struct NKVM *vm);
 
+/// Set a native (C-side) callback to fire off immediately before an
+/// object is deleted from the VM. callbackFunction is the native
+/// function id returned from nkxVmRegisterExternalFunction().
+void nkxVmObjectSetGarbageCollectionCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    nkuint32_t callbackFunction);
+
+/// Register a new external function. You should do this before
+/// compiling or deserializing. It may also take a long time searching
+/// for duplicates. You may have to use this if you do not know if a
+/// function exists or not inside the VM yet, or if you do know and
+/// need the ID to be found. The function ID returned from this is an
+/// index into the VM's native (external) callback table, NOT the
+/// table of all functions.
+nkuint32_t nkxVmRegisterExternalFunction(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback func);
+
+/// Look up or create an internal function to represent some external
+/// function. This should execute fast (no searching), but may have to
+/// instantiate a new function object. Use this to map external native
+/// functions to VM function IDs that can be assigned to function
+/// objects (functionId on NKValue).
+nkuint32_t nkxVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, nkuint32_t externalFunctionId);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 
@@ -205,7 +233,7 @@ struct NKCompilerState *nkxCompilerCreate(
 void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func);
+    NKVMFunctionCallback func);
 
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number

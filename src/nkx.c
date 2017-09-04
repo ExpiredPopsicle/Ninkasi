@@ -197,7 +197,7 @@ struct NKCompilerState *nkxCompilerCreate(
 void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
-    VMFunctionCallback func)
+    NKVMFunctionCallback func)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
@@ -334,3 +334,39 @@ void *nkxGetUserData(struct NKVM *vm)
 {
     return vm->userData;
 }
+
+void nkxVmObjectSetGarbageCollectionCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    nkuint32_t callbackFunction)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectSetGarbageCollectionCallback(vm, object, callbackFunction);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+nkuint32_t nkxVmRegisterExternalFunction(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback func)
+{
+    nkuint32_t ret = ~(nkuint32_t)0;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmRegisterExternalFunction(vm, name, func);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+nkuint32_t nkxVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, nkuint32_t externalFunctionId)
+{
+    nkuint32_t ret = ~(nkuint32_t)0;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+

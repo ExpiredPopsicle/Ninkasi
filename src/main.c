@@ -241,9 +241,28 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
 }
 
 
+static nkuint32_t doGCCallbackThing_id;
+
+void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
+{
+    assert(data->argumentCount == 1);
+    printf("GC callback called.\n");
+}
+
+void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
+{
+    assert(data->argumentCount == 1);
+    printf("Setting GC callback.\n");
+
+    doGCCallbackThing_id =
+        nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
+
+    nkxVmObjectSetGarbageCollectionCallback(data->vm, &data->arguments[0], doGCCallbackThing_id);
+}
+
 int main(int argc, char *argv[])
 {
-    char *script = loadScript("test.txt");
+    char *script = loadScript("test/test.txt");
     int shitCounter = 0;
     nkuint32_t maxRam = 19880;
     nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
@@ -302,8 +321,11 @@ int main(int argc, char *argv[])
                 nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
+
+                nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
+
                 // nkiCompilerCompileScript(cs, script);
-                nkxCompilerCompileScriptFile(cs, "test.txt");
+                nkxCompilerCompileScriptFile(cs, "test/test.txt");
                 nkxCompilerFinalize(cs);
             }
 

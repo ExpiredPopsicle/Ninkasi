@@ -174,6 +174,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
+    newObject->gcCallback = ~(nkuint32_t)0;
     table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
@@ -203,8 +204,29 @@ void nkiVmObjectTableCleanOldObjects(
 
             if(lastGCPass != ob->lastGCPass) {
 
-                struct NKVMObjectTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
+                struct NKVMObjectTableHole *hole = NULL;
+
+                // Run any external garbage collection callbacks.
+                if(ob->gcCallback != ~(nkuint32_t)0) {
+                    if(ob->gcCallback < vm->functionCount) {
+                        struct NKVMFunction *func = &vm->functionTable[ob->gcCallback];
+                        if(func->externalFunctionId != ~(nkuint32_t)0) {
+                            if(func->externalFunctionId < vm->externalFunctionCount) {
+                                struct NKValue funcValue;
+                                struct NKValue argValue;
+                                memset(&funcValue, 0, sizeof(funcValue));
+                                funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                                funcValue.functionId = ob->gcCallback;
+                                memset(&argValue, 0, sizeof(argValue));
+                                argValue.type = NK_VALUETYPE_OBJECTID;
+                                argValue.objectId = i;
+                                nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+                            }
+                        }
+                    }
+                }
+
+                hole = nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
 
                 nkiDbgWriteLine("Purging object at index %u", i);
 
@@ -406,6 +428,48 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 
         nkiAddError(
             vm, -1, "Tried to release handle for non-object.");
+    }
+}
+
+void nkiVmObjectSetGarbageCollectionCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    nkuint32_t callbackFunction)
+{
+    nkuint32_t internalFunctionId = ~(nkuint32_t)0;
+
+    if(callbackFunction >= vm->externalFunctionCount) {
+        nkiAddError(
+            vm, -1, "Bad native function ID in nkiVmObjectSetGarbageCollectionCallback.");
+    }
+
+    internalFunctionId =
+        nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, callbackFunction);
+
+    if(internalFunctionId >= vm->functionCount) {
+        nkiAddError(
+            vm, -1, "Bad function ID in nkiVmObjectSetGarbageCollectionCallback.");
+        return;
+    }
+
+    if(object->type == NK_VALUETYPE_OBJECTID) {
+
+        struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
+            &vm->objectTable, object->objectId);
+
+        // Make sure we actually got an object.
+        if(!ob) {
+            nkiAddError(
+                vm, -1, "Bad object ID in nkiVmObjectSetGarbageCollectionCallback.");
+            return;
+        }
+
+        ob->gcCallback = internalFunctionId;
+
+    } else {
+
+        nkiAddError(
+            vm, -1, "Tried to set garbage collection callback for non-object.");
     }
 }
 
