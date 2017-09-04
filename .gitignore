@@ -1,2 +1,28 @@
+# Native object files
 *.o
+
+# MS-DOS object files
 *.OBJ
+
+# Autotools generated crap
+Makefile
+Makefile.in
+aclocal.m4
+autom4te.cache
+compile
+config.log
+config.status
+configure
+depcomp
+install-sh
+missing
+src/.deps
+src/Makefile
+src/Makefile.in
+src/ninkasi_test
+test-driver
+test/Makefile
+test/Makefile.in
+test/test-suite.log
+test/test.sh.log
+test/test.sh.trs
