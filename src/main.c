@@ -240,7 +240,7 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
     }
 }
 
-
+// This should probably be tracked separately for each VM.
 static nkuint32_t doGCCallbackThing_id;
 
 void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
