@@ -174,7 +174,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
-    newObject->gcCallback = NK_INVALID_VALUE;
+    newObject->gcCallback.id = NK_INVALID_VALUE;
     table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
@@ -207,11 +207,11 @@ void nkiVmObjectTableCleanOldObjects(
                 struct NKVMObjectTableHole *hole = NULL;
 
                 // Run any external garbage collection callbacks.
-                if(ob->gcCallback != NK_INVALID_VALUE) {
-                    if(ob->gcCallback < vm->functionCount) {
-                        struct NKVMFunction *func = &vm->functionTable[ob->gcCallback];
-                        if(func->externalFunctionId != NK_INVALID_VALUE) {
-                            if(func->externalFunctionId < vm->externalFunctionCount) {
+                if(ob->gcCallback.id != NK_INVALID_VALUE) {
+                    if(ob->gcCallback.id < vm->functionCount) {
+                        struct NKVMFunction *func = &vm->functionTable[ob->gcCallback.id];
+                        if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                            if(func->externalFunctionId.id < vm->externalFunctionCount) {
                                 struct NKValue funcValue;
                                 struct NKValue argValue;
                                 memset(&funcValue, 0, sizeof(funcValue));
@@ -434,11 +434,11 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 void nkiVmObjectSetGarbageCollectionCallback(
     struct NKVM *vm,
     struct NKValue *object,
-    nkuint32_t callbackFunction)
+    NKVMExternalFunctionID callbackFunction)
 {
-    nkuint32_t internalFunctionId = NK_INVALID_VALUE;
+    NKVMInternalFunctionID internalFunctionId = { NK_INVALID_VALUE };
 
-    if(callbackFunction >= vm->externalFunctionCount) {
+    if(callbackFunction.id >= vm->externalFunctionCount) {
         nkiAddError(
             vm, -1, "Bad native function ID in nkiVmObjectSetGarbageCollectionCallback.");
     }
@@ -446,7 +446,7 @@ void nkiVmObjectSetGarbageCollectionCallback(
     internalFunctionId =
         nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, callbackFunction);
 
-    if(internalFunctionId >= vm->functionCount) {
+    if(internalFunctionId.id >= vm->functionCount) {
         nkiAddError(
             vm, -1, "Bad function ID in nkiVmObjectSetGarbageCollectionCallback.");
         return;

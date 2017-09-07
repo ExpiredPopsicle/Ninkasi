@@ -69,7 +69,11 @@ struct NKVMObject
     struct NKVMObject **previousExternalHandleListPtr;
     nkuint32_t externalHandleCount;
 
-    nkuint32_t gcCallback;
+    // This has an internal function ID type, because it must actually
+    // be callable by VM code, but only external functions are valid
+    // here. Putting the wrong type here will throw an error when it
+    // is actually called.
+    NKVMInternalFunctionID gcCallback;
 };
 
 struct NKVMObjectTableHole
@@ -127,6 +131,6 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 void nkiVmObjectSetGarbageCollectionCallback(
     struct NKVM *vm,
     struct NKValue *object,
-    nkuint32_t callbackFunction);
+    NKVMExternalFunctionID callbackFunction);
 
 #endif // NINKASI_OBJECTS_H

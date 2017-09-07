@@ -46,6 +46,7 @@
 
 #include "nkconfig.h"
 #include "nkvalue.h"
+#include "nkfunc.h"
 
 // ----------------------------------------------------------------------
 // Types.
@@ -61,7 +62,7 @@ struct NKInstruction
         nkint32_t opData_int;
         float opData_float;
         nkuint32_t opData_string;
-        nkuint32_t opData_functionId;
+        NKVMInternalFunctionID opData_functionId;
     };
 
   #if NK_VM_DEBUG

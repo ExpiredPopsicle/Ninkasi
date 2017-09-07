@@ -467,7 +467,7 @@ void nkiOpcode_call(struct NKVM *vm)
     //   function id
 
     nkuint32_t argumentCount = 0;
-    nkuint32_t functionId = 0;
+    NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
     struct NKVMFunction *funcOb = NULL;
 
     // PEEK at the top of the stack. That's _argumentCount.
@@ -493,14 +493,14 @@ void nkiOpcode_call(struct NKVM *vm)
     }
 
     // Look up the function in our table of function objects.
-    if(functionId >= vm->functionCount) {
+    if(functionId.id >= vm->functionCount) {
         nkiAddError(
             vm,
             -1,
             "Bad function id.");
         return;
     }
-    funcOb = &vm->functionTable[functionId];
+    funcOb = &vm->functionTable[functionId.id];
 
     // Compare _argumentCount to the stored function object's
     // _argumentCount. Throw an error if they mismatch.
@@ -520,7 +520,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
     // At this point the behavior changes depending on if it's a C
     // function or script function.
-    if(funcOb->externalFunctionId != NK_INVALID_VALUE) {
+    if(funcOb->externalFunctionId.id != NK_INVALID_VALUE) {
 
         // In this case we just want to call the C function, pop all
         // of our data off the stack, push the return value, and then
@@ -533,12 +533,12 @@ void nkiOpcode_call(struct NKVM *vm)
 
         // First check that this is a valid function. Maybe we go
         // weird data from deserialization.
-        if(funcOb->externalFunctionId >= vm->externalFunctionCount) {
+        if(funcOb->externalFunctionId.id >= vm->externalFunctionCount) {
             nkiAddError(vm, -1,
                 "Tried to call a bad native function.");
             return;
         }
-        externalFunc = &vm->externalFunctionTable[funcOb->externalFunctionId];
+        externalFunc = &vm->externalFunctionTable[funcOb->externalFunctionId.id];
         if(!externalFunc->CFunctionCallback) {
             nkiAddError(vm, -1,
                 "Tried to call a null native function.");
@@ -595,7 +595,8 @@ void nkiOpcode_call(struct NKVM *vm)
         nkiVmStackPushInt(vm, vm->instructionPointer);
 
         // Set the instruction pointer to the saved function object's
-        // instruction pointer. Maybe minus one.
+        // instruction pointer. Minus one, because the instruction
+        // pointer will be incremented when this function returns.
         vm->instructionPointer = funcOb->firstInstructionIndex - 1;
 
         // Expected stack state at end...

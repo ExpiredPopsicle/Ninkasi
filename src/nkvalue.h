@@ -45,6 +45,7 @@
 #define NINKASI_VALUE_H
 
 #include "nkenums.h"
+#include "nkfuncid.h"
 
 struct NKVM;
 
@@ -68,7 +69,7 @@ struct NKValue
         nkint32_t intData;
         float floatData;
         nkuint32_t stringTableEntry;
-        nkuint32_t functionId;
+        NKVMInternalFunctionID functionId;
         nkuint32_t objectId;
 
         // Used for ints, floats, functionIds, and objectIds. NOT for

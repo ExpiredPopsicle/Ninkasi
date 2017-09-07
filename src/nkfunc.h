@@ -46,32 +46,14 @@
 
 #include "nkvalue.h"
 #include "nkx.h"
-
-/// Wrapper around external function ID numbers (C function calls
-/// registered to the VM). Given its own struct so that it cannot
-/// accidentally be passed in or assigned to a value of type
-/// NKVMInternalFunctionID.
-struct NKVMExternalFunctionID
-{
-    nkuint32_t externalFunctionID;
-};
-
-/// Wrapper around internal function ID numbers (functions defined
-/// entirely in VM, and wrappers around external functions callable
-/// from the VM). Given its own struct so that it cannot accidentally
-/// be passed in or assigned to a value of type
-/// NKVMExternalFunctionID.
-struct NKVMInternalFunctionID
-{
-    nkuint32_t internalFunctionID;
-};
+#include "nkfuncid.h"
 
 struct NKVMFunction
 {
     nkuint32_t argumentCount;
     nkuint32_t firstInstructionIndex;
 
-    nkuint32_t externalFunctionId;
+    NKVMExternalFunctionID externalFunctionId;
 };
 
 /// Native C function record.
@@ -79,7 +61,7 @@ struct NKVMExternalFunction
 {
     char *name;
     NKVMFunctionCallback CFunctionCallback;
-    nkuint32_t internalFunctionId;
+    NKVMInternalFunctionID internalFunctionId;
 };
 
 #endif // NINKASI_FUNCTION_H

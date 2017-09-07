@@ -160,8 +160,9 @@ void nkiVmStaticDump(struct NKVM *vm);
 // ----------------------------------------------------------------------
 
 /// Compiler internal function creation. Don't use this outside. Not
-/// for that.
-struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId);
+/// for that. This ONLY allocates a function.
+struct NKVMFunction *nkiVmCreateFunction(
+    struct NKVM *vm, NKVMInternalFunctionID *functionId);
 
 /// Run the compiled program.
 nkbool nkiVmExecuteProgram(struct NKVM *vm);
@@ -211,7 +212,7 @@ struct NKValue *nkiVmFindGlobalVariable(
 /// for duplicates. You may have to use this if you do not know if a
 /// function exists or not inside the VM yet, or if you do know and
 /// need the ID to be found.
-nkuint32_t nkiVmRegisterExternalFunction(
+NKVMExternalFunctionID nkiVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback func);
@@ -220,7 +221,7 @@ nkuint32_t nkiVmRegisterExternalFunction(
 /// compiling or deserializing. This version will not waste time
 /// searching for an existing copy of the function object. Use only if
 /// you know that a duplicate of the function does not exist yet.
-nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
+NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback func);
@@ -228,8 +229,8 @@ nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
 /// Look up or create an internal function to represent some external
 /// function. This should execute fast (no searching), but may have to
 /// instantiate a new function object.
-nkuint32_t nkiVmGetOrCreateInternalFunctionForExternalFunction(
-    struct NKVM *vm, nkuint32_t externalFunctionId);
+NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
 
 #endif // NINKASI_VM_H
 

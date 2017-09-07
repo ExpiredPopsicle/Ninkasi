@@ -77,7 +77,7 @@ struct NKCompilerStateContext
 
     nkuint32_t stackFrameOffset;
 
-    nkuint32_t currentFunctionId;
+    NKVMInternalFunctionID currentFunctionId;
     nkbool isLoopContext;
     nkuint32_t *loopContextFixups;
     nkuint32_t loopContextFixupCount;
@@ -184,7 +184,8 @@ nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs);
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, nkbool adjustStackFrame);
 void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, nkbool adjustStackFrame);
 void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *str, nkbool adjustStackFrame);
-void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, nkuint32_t functionId, nkbool adjustStackFrame);
+void nkiCompilerEmitPushLiteralFunctionId(
+    struct NKCompilerState *cs, NKVMInternalFunctionID functionId, nkbool adjustStackFrame);
 void nkiCompilerEmitPushNil(struct NKCompilerState *cs, nkbool adjustStackFrame);
 void nkiCompilerEmitReturn(struct NKCompilerState *cs);
 

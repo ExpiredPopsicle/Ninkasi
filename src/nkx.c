@@ -338,7 +338,7 @@ void *nkxGetUserData(struct NKVM *vm)
 void nkxVmObjectSetGarbageCollectionCallback(
     struct NKVM *vm,
     struct NKValue *object,
-    nkuint32_t callbackFunction)
+    NKVMExternalFunctionID callbackFunction)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
@@ -346,12 +346,12 @@ void nkxVmObjectSetGarbageCollectionCallback(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-nkuint32_t nkxVmRegisterExternalFunction(
+NKVMExternalFunctionID nkxVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback func)
 {
-    nkuint32_t ret = NK_INVALID_VALUE;
+    NKVMExternalFunctionID ret = { NK_INVALID_VALUE };
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmRegisterExternalFunction(vm, name, func);
@@ -359,10 +359,10 @@ nkuint32_t nkxVmRegisterExternalFunction(
     return ret;
 }
 
-nkuint32_t nkxVmGetOrCreateInternalFunctionForExternalFunction(
-    struct NKVM *vm, nkuint32_t externalFunctionId)
+NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, NKVMExternalFunctionID externalFunctionId)
 {
-    nkuint32_t ret = NK_INVALID_VALUE;
+    NKVMInternalFunctionID ret = { NK_INVALID_VALUE };
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);

@@ -197,7 +197,7 @@ void *nkxGetUserData(struct NKVM *vm);
 void nkxVmObjectSetGarbageCollectionCallback(
     struct NKVM *vm,
     struct NKValue *object,
-    nkuint32_t callbackFunction);
+    NKVMExternalFunctionID callbackFunction);
 
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
@@ -206,7 +206,7 @@ void nkxVmObjectSetGarbageCollectionCallback(
 /// need the ID to be found. The function ID returned from this is an
 /// index into the VM's native (external) callback table, NOT the
 /// table of all functions.
-nkuint32_t nkxVmRegisterExternalFunction(
+NKVMExternalFunctionID nkxVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback func);
@@ -216,8 +216,8 @@ nkuint32_t nkxVmRegisterExternalFunction(
 /// instantiate a new function object. Use this to map external native
 /// functions to VM function IDs that can be assigned to function
 /// objects (functionId on NKValue).
-nkuint32_t nkxVmGetOrCreateInternalFunctionForExternalFunction(
-    struct NKVM *vm, nkuint32_t externalFunctionId);
+NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
+    struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
 
 // ----------------------------------------------------------------------
 // Public compiler interface

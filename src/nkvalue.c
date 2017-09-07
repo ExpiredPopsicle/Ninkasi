@@ -69,7 +69,7 @@ nkbool nkiValueDump(
             break;
 
         case NK_VALUETYPE_FUNCTIONID:
-            printf("<function:%u>", value->functionId);
+            printf("<function:%u>", value->functionId.id);
             break;
 
         case NK_VALUETYPE_OBJECTID:
@@ -308,11 +308,11 @@ nkint32_t nkiValueCompare(
 
         case NK_VALUETYPE_FUNCTIONID: {
             if(in2->type == NK_VALUETYPE_FUNCTIONID &&
-                in2->functionId == in1->functionId)
+                in2->functionId.id == in1->functionId.id)
             {
                 return 0;
             } else {
-                return in1->functionId < in2->functionId ? -1 : 1;
+                return in1->functionId.id < in2->functionId.id ? -1 : 1;
             }
         }
 

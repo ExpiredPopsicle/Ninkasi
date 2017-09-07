@@ -107,7 +107,7 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
     struct NKCompilerStateContext *newContext =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
-    newContext->currentFunctionId = NK_INVALID_VALUE;
+    newContext->currentFunctionId.id = NK_INVALID_VALUE;
     newContext->parent = cs->context;
 
     // Set stack frame offset.
@@ -221,7 +221,8 @@ void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, 
     nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
 
-void nkiCompilerEmitPushLiteralFunctionId(struct NKCompilerState *cs, nkuint32_t functionId, nkbool adjustStackFrame)
+void nkiCompilerEmitPushLiteralFunctionId(
+    struct NKCompilerState *cs, NKVMInternalFunctionID functionId, nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
 
@@ -609,7 +610,7 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
     // Find the function we're in.
     struct NKCompilerStateContext *ctx = cs->context;
     struct NKVMFunction *func;
-    while(ctx && ctx->currentFunctionId == NK_INVALID_VALUE) {
+    while(ctx && ctx->currentFunctionId.id == NK_INVALID_VALUE) {
         ctx = ctx->parent;
     }
 
@@ -619,13 +620,13 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
         return;
     }
 
-    if(ctx->currentFunctionId >= cs->vm->functionCount) {
+    if(ctx->currentFunctionId.id >= cs->vm->functionCount) {
         nkiCompilerAddError(
             cs, "Bad function id when attempting to emit return.");
         return;
     }
 
-    func = &cs->vm->functionTable[ctx->currentFunctionId];
+    func = &cs->vm->functionTable[ctx->currentFunctionId.id];
 
     {
         // We want to throw away the context except for...
@@ -679,8 +680,10 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     struct NKCompilerStateContextVariable *varTmp;
     nkuint32_t functionArgumentCount = 0;
 
-    nkuint32_t functionId = 0;
+    NKVMInternalFunctionID functionId;
     struct NKVMFunction *functionObject;
+
+    functionId.id = NK_INVALID_VALUE;
 
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
@@ -826,7 +829,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // functionObject pointer may have been invalidated in the
     // recursive code because of a reallocation (from a function added
     // inside the function), so let's update it just in case.
-    functionObject = &cs->vm->functionTable[functionId];
+    functionObject = &cs->vm->functionTable[functionId.id];
 
     // Add a RETURN instruction just in case the function reaches the
     // end without returning. (Zero is probably fine as a default
@@ -904,8 +907,8 @@ void nkiCompilerCreateCFunctionVariable(
     const char *name,
     NKVMFunctionCallback func)
 {
-    nkuint32_t functionId = 0;
-    nkuint32_t externalFunctionId = 0;
+    NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
+    NKVMExternalFunctionID externalFunctionId = { NK_INVALID_VALUE };
     struct NKVM *vm = cs->vm;
 
     externalFunctionId = nkiVmRegisterExternalFunction(cs->vm, name, func);

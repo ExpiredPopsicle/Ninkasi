@@ -136,7 +136,7 @@ void dumpListing(struct NKVM *vm, const char *script)
                 printf(" %f", maybeParams->opData_float);
             } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FUNCTIONID) {
                 i++;
-                printf(" %u", maybeParams->opData_functionId);
+                printf(" %u", maybeParams->opData_functionId.id);
             } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
                 const char *str = nkiVmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
                 i++;
@@ -241,7 +241,7 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
 }
 
 // This should probably be tracked separately for each VM.
-static nkuint32_t doGCCallbackThing_id;
+static NKVMExternalFunctionID doGCCallbackThing_id;
 
 void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
@@ -257,12 +257,19 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
     doGCCallbackThing_id =
         nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
 
-    nkxVmObjectSetGarbageCollectionCallback(data->vm, &data->arguments[0], doGCCallbackThing_id);
+    nkxVmObjectSetGarbageCollectionCallback(
+        data->vm, &data->arguments[0], doGCCallbackThing_id);
 }
+
+const char *scriptName = "test/test.txt";
 
 int main(int argc, char *argv[])
 {
-    char *script = loadScript("test/test.txt");
+    if(argc == 2) {
+        scriptName = argv[1];
+    }
+
+    char *script = loadScript(scriptName);
     int shitCounter = 0;
     nkuint32_t maxRam = 19880;
     nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
@@ -325,7 +332,7 @@ int main(int argc, char *argv[])
                 nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
 
                 // nkiCompilerCompileScript(cs, script);
-                nkxCompilerCompileScriptFile(cs, "test/test.txt");
+                nkxCompilerCompileScriptFile(cs, scriptName);
                 nkxCompilerFinalize(cs);
             }
 
