@@ -107,7 +107,7 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
     struct NKCompilerStateContext *newContext =
         nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
-    newContext->currentFunctionId = ~(nkuint32_t)0;
+    newContext->currentFunctionId = NK_INVALID_VALUE;
     newContext->parent = cs->context;
 
     // Set stack frame offset.
@@ -609,7 +609,7 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
     // Find the function we're in.
     struct NKCompilerStateContext *ctx = cs->context;
     struct NKVMFunction *func;
-    while(ctx && ctx->currentFunctionId == ~(nkuint32_t)0) {
+    while(ctx && ctx->currentFunctionId == NK_INVALID_VALUE) {
         ctx = ctx->parent;
     }
 

@@ -146,7 +146,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
         if((newCapacity > vm->limits.maxObjects || !newCapacity)) {
             nkiAddError(
                 vm, -1, "Reached object table capacity limit.");
-            return ~(nkuint32_t)0;
+            return NK_INVALID_VALUE;
         }
 
         table->objectTable = nkiRealloc(
@@ -174,7 +174,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
-    newObject->gcCallback = ~(nkuint32_t)0;
+    newObject->gcCallback = NK_INVALID_VALUE;
     table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
@@ -207,10 +207,10 @@ void nkiVmObjectTableCleanOldObjects(
                 struct NKVMObjectTableHole *hole = NULL;
 
                 // Run any external garbage collection callbacks.
-                if(ob->gcCallback != ~(nkuint32_t)0) {
+                if(ob->gcCallback != NK_INVALID_VALUE) {
                     if(ob->gcCallback < vm->functionCount) {
                         struct NKVMFunction *func = &vm->functionTable[ob->gcCallback];
-                        if(func->externalFunctionId != ~(nkuint32_t)0) {
+                        if(func->externalFunctionId != NK_INVALID_VALUE) {
                             if(func->externalFunctionId < vm->externalFunctionCount) {
                                 struct NKValue funcValue;
                                 struct NKValue argValue;
@@ -436,7 +436,7 @@ void nkiVmObjectSetGarbageCollectionCallback(
     struct NKValue *object,
     nkuint32_t callbackFunction)
 {
-    nkuint32_t internalFunctionId = ~(nkuint32_t)0;
+    nkuint32_t internalFunctionId = NK_INVALID_VALUE;
 
     if(callbackFunction >= vm->externalFunctionCount) {
         nkiAddError(

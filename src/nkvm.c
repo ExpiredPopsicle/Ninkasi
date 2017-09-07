@@ -159,12 +159,12 @@ void nkiVmInit(struct NKVM *vm)
     vm->peakMemoryUsage = 0;
     vm->allocations = NULL;
 
-    vm->limits.maxStrings = ~(nkuint32_t)0;
-    vm->limits.maxStringLength = ~(nkuint32_t)0;
-    vm->limits.maxStacksize = ~(nkuint32_t)0;
-    vm->limits.maxObjects = ~(nkuint32_t)0;
-    vm->limits.maxFieldsPerObject = ~(nkuint32_t)0;
-    vm->limits.maxAllocatedMemory = ~(nkuint32_t)0;
+    vm->limits.maxStrings = NK_UINT_MAX;
+    vm->limits.maxStringLength = NK_UINT_MAX;
+    vm->limits.maxStacksize = NK_UINT_MAX;
+    vm->limits.maxObjects = NK_UINT_MAX;
+    vm->limits.maxFieldsPerObject = NK_UINT_MAX;
+    vm->limits.maxAllocatedMemory = NK_UINT_MAX;
 
     vm->userData = NULL;
     vm->externalFunctionCount = 0;
@@ -553,7 +553,7 @@ struct NKVMFunction *nkiVmCreateFunction(struct NKVM *vm, nkuint32_t *functionId
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
         sizeof(struct NKVMFunction));
-    vm->functionTable[vm->functionCount - 1].externalFunctionId = ~(nkuint32_t)0;
+    vm->functionTable[vm->functionCount - 1].externalFunctionId = NK_INVALID_VALUE;
 
     return &vm->functionTable[vm->functionCount - 1];
 }
@@ -583,7 +583,7 @@ void nkiVmCallFunction(
         }
         nkiVmStackPushInt(vm, argumentCount);
 
-        vm->instructionPointer = (~(nkuint32_t)0 - 1);
+        vm->instructionPointer = (NK_INVALID_VALUE - 1);
 
         nkiOpcode_call(vm);
         if(vm->errorState.firstError) {
@@ -592,7 +592,7 @@ void nkiVmCallFunction(
 
         vm->instructionPointer++;
 
-        while(vm->instructionPointer != ~(nkuint32_t)0 &&
+        while(vm->instructionPointer != NK_INVALID_VALUE &&
             !vm->errorState.firstError)
         {
             nkiDbgWriteLine("In nkiVmCallFunction %u", vm->instructionPointer);
@@ -707,7 +707,7 @@ nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
     if(!vm->externalFunctionCount) {
         vm->externalFunctionCount--;
         nkiAddError(vm, -1, "Too many external functions registered.");
-        return ~(nkuint32_t)0;
+        return NK_INVALID_VALUE;
     }
 
     vm->externalFunctionTable = nkiRealloc(
@@ -716,7 +716,7 @@ nkuint32_t nkiVmRegisterExternalFunctionNoSearch(
 
     funcEntry = &vm->externalFunctionTable[vm->externalFunctionCount - 1];
     memset(funcEntry, 0, sizeof(*funcEntry));
-    funcEntry->internalFunctionId = ~(nkuint32_t)0;
+    funcEntry->internalFunctionId = NK_INVALID_VALUE;
     funcEntry->name = nkiStrdup(vm, name);
     funcEntry->CFunctionCallback = func;
 
@@ -732,17 +732,17 @@ nkuint32_t nkiVmGetOrCreateInternalFunctionForExternalFunction(
         nkiAddError(
             vm, -1,
             "Tried to create an internal function to represent a bad external function.");
-        return ~(nkuint32_t)0;
+        return NK_INVALID_VALUE;
     }
 
-    if(vm->externalFunctionTable[externalFunctionId].internalFunctionId == ~(nkuint32_t)0) {
+    if(vm->externalFunctionTable[externalFunctionId].internalFunctionId == NK_INVALID_VALUE) {
 
         // Gotta make a new function. Nothing exists yet.
         struct NKVMFunction *vmfunc =
             nkiVmCreateFunction(vm, &functionId);
 
         memset(vmfunc, 0, sizeof(*vmfunc));
-        vmfunc->argumentCount = ~(nkuint32_t)0;
+        vmfunc->argumentCount = NK_INVALID_VALUE;
 
         // Set up function ID mappings.
         vmfunc->externalFunctionId = externalFunctionId;

@@ -77,5 +77,8 @@
 #define nkfalse ((nkbool)0)
 #define nktrue ((nkbool)1)
 
+#define NK_INVALID_VALUE (~(nkuint32_t)0)
+#define NK_UINT_MAX (~(nkuint32_t)0)
+
 #endif // NINKASI_BASETYPE_H
 

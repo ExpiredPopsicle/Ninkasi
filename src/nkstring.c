@@ -148,7 +148,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     if(len > vm->limits.maxStringLength) {
         nkiAddError(
             vm, -1, "Reached string length limit.");
-        return ~(nkuint32_t)0;
+        return NK_INVALID_VALUE;
     }
 
     // If we've reach this point, then we don't have the string yet,
@@ -183,7 +183,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
             if((newCapacity > vm->limits.maxStrings || !newCapacity)) {
                 nkiAddError(
                     vm, -1, "Reached string table capacity limit.");
-                return ~(nkuint32_t)0;
+                return NK_INVALID_VALUE;
             }
 
             table->stringTable = nkiRealloc(

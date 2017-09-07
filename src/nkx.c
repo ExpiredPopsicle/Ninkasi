@@ -351,7 +351,7 @@ nkuint32_t nkxVmRegisterExternalFunction(
     const char *name,
     NKVMFunctionCallback func)
 {
-    nkuint32_t ret = ~(nkuint32_t)0;
+    nkuint32_t ret = NK_INVALID_VALUE;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmRegisterExternalFunction(vm, name, func);
@@ -362,7 +362,7 @@ nkuint32_t nkxVmRegisterExternalFunction(
 nkuint32_t nkxVmGetOrCreateInternalFunctionForExternalFunction(
     struct NKVM *vm, nkuint32_t externalFunctionId)
 {
-    nkuint32_t ret = ~(nkuint32_t)0;
+    nkuint32_t ret = NK_INVALID_VALUE;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);

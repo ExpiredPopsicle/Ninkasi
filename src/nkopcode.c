@@ -504,7 +504,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
     // Compare _argumentCount to the stored function object's
     // _argumentCount. Throw an error if they mismatch.
-    if(funcOb->argumentCount != ~(nkuint32_t)0 &&
+    if(funcOb->argumentCount != NK_INVALID_VALUE &&
         funcOb->argumentCount != argumentCount)
     {
         nkiAddError(
@@ -520,7 +520,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
     // At this point the behavior changes depending on if it's a C
     // function or script function.
-    if(funcOb->externalFunctionId != ~(nkuint32_t)0) {
+    if(funcOb->externalFunctionId != NK_INVALID_VALUE) {
 
         // In this case we just want to call the C function, pop all
         // of our data off the stack, push the return value, and then
