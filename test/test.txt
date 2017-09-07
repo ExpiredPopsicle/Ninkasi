@@ -1,9 +1,23 @@
 
 
 
-for(var x = 0; x < 1000; ++x) {
-    var c = newobject;
-    setGCCallbackThing(c);
-}
+// for(var x = 0; x < 1000; ++x) {
+//     var c = newobject;
+//     setGCCallbackThing(c);
+// }
 
-print("TEST!\n");
+// print("TEST!\n");
+
+
+print("----------------------------------------------------------------------\n");
+print("PROGRAM STARTING\n");
+print("----------------------------------------------------------------------\n");
+
+var c = newobject;
+setGCCallbackThing(c);
+
+print("----------------------------------------------------------------------\n");
+print("PROGRAM ENDING\n");
+print("----------------------------------------------------------------------\n");
+
+

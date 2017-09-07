@@ -205,3 +205,13 @@ struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
     return &vm->stack.values[index & vm->stack.indexMask];
 }
 
+void nkiVmStackClear(struct NKVM *vm)
+{
+    struct NKVMStack *stack = &vm->stack;
+    nkiFree(vm, stack->values);
+    stack->values = nkiMalloc(vm, sizeof(struct NKValue));
+    memset(stack->values, 0, sizeof(struct NKValue));
+    stack->size = 0;
+    stack->capacity = 1;
+    stack->indexMask = 0;
+}

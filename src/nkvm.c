@@ -224,6 +224,16 @@ void nkiVmDestroy(struct NKVM *vm)
 
         NK_SET_FAILURE_RECOVERY_VOID();
 
+        // Nuke the entire static address space and stack, then force
+        // a final garbage collection pass before we start making the
+        // VM unusable, so that GC callbacks get hit for external data
+        // and that stuff can clean up in a conventional manner.
+        nkiVmStackClear(vm);
+        memset(
+            vm->staticSpace, 0,
+            (vm->staticAddressMask + 1) * sizeof(struct NKValue));
+        nkiVmGarbageCollect(vm);
+
         nkiVmStringTableDestroy(vm);
 
         nkiVmStackDestroy(vm);
@@ -492,6 +502,8 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         nkiDbgWriteLine("Closed list grew to: %u\n", count);
     }
 }
+
+// ----------------------------------------------------------------------
 
 void nkiVmRescanProgramStrings(struct NKVM *vm)
 {

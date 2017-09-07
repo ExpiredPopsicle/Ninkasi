@@ -87,5 +87,8 @@ void nkiVmStackDestroy(struct NKVM *vm);
 /// fill it in).
 struct NKValue *nkiVmStackPush_internal(struct NKVM *vm);
 
+/// Clear the entire stack.
+void nkiVmStackClear(struct NKVM *vm);
+
 #endif // NINKASI_VMSTACK_H
 
