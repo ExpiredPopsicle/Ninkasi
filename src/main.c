@@ -265,14 +265,17 @@ const char *scriptName = "test/test.txt";
 
 int main(int argc, char *argv[])
 {
+    char *script = NULL;
+    int shitCounter = 0;
+    nkuint32_t maxRam = 19880;
+    nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
+
     if(argc == 2) {
         scriptName = argv[1];
     }
 
-    char *script = loadScript(scriptName);
-    int shitCounter = 0;
-    nkuint32_t maxRam = 19880;
-    nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
+    script = loadScript(scriptName);
+
     maxRam = 60522;
     maxRam = 61818;
     maxRam = 89049;

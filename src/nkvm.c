@@ -758,7 +758,8 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
     funcEntry->CFunctionCallback = func;
 
     {
-        NKVMExternalFunctionID ret = { vm->externalFunctionCount - 1 };
+        NKVMExternalFunctionID ret;
+        ret.id = vm->externalFunctionCount - 1;
         return ret;
     }
 }
