@@ -835,6 +835,11 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
         return ret;
     }
 
+    if(vm->externalTypeCount == NK_INVALID_VALUE) {
+        nkiAddError(vm, -1, "Allocated too many types.");
+        return ret;
+    }
+
     ret.id = vm->externalTypeCount;
 
     vm->externalTypeCount++;

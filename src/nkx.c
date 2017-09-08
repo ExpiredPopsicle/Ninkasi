@@ -392,3 +392,27 @@ const char *nkxVmGetExternalTypeName(
 {
     return nkiVmGetExternalTypeName(vm, id);
 }
+
+void nkxVmObjectSetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalDataTypeID externalType)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectSetExternalType(vm, object, externalType);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+NKVMExternalDataTypeID nkxVmObjectGetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmObjectGetExternalType(vm, object);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+

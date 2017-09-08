@@ -74,6 +74,8 @@ struct NKVMObject
     // here. Putting the wrong type here will throw an error when it
     // is actually called.
     NKVMInternalFunctionID gcCallback;
+
+    NKVMExternalDataTypeID externalDataType;
 };
 
 struct NKVMObjectTableHole
@@ -132,5 +134,14 @@ void nkiVmObjectSetGarbageCollectionCallback(
     struct NKVM *vm,
     struct NKValue *object,
     NKVMExternalFunctionID callbackFunction);
+
+void nkiVmObjectSetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalDataTypeID externalType);
+
+NKVMExternalDataTypeID nkiVmObjectGetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object);
 
 #endif // NINKASI_OBJECTS_H

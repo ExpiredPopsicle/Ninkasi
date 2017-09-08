@@ -237,6 +237,17 @@ NKVMExternalDataTypeID nkxVmFindExternalType(
 const char *nkxVmGetExternalTypeName(
     struct NKVM *vm, NKVMExternalDataTypeID id);
 
+/// Set the external type of an object.
+void nkxVmObjectSetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalDataTypeID externalType);
+
+/// Get the external type of an object.
+NKVMExternalDataTypeID nkxVmObjectGetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

@@ -1,17 +1,14 @@
 
-
-
-// for(var x = 0; x < 1000; ++x) {
-//     var c = newobject;
-//     setGCCallbackThing(c);
-// }
-
-// print("TEST!\n");
-
-
 print("----------------------------------------------------------------------\n");
 print("PROGRAM STARTING\n");
 print("----------------------------------------------------------------------\n");
+
+for(var x = 0; x < 1000; ++x) {
+    var c = newobject;
+    setGCCallbackThing(c);
+}
+
+// print("TEST!\n");
 
 var c = newobject;
 setGCCallbackThing(c);

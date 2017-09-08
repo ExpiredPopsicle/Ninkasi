@@ -175,6 +175,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
     newObject->gcCallback.id = NK_INVALID_VALUE;
+    newObject->externalDataType.id = NK_INVALID_VALUE;
     table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
@@ -348,87 +349,83 @@ void nkiVmObjectTableDump(struct NKVM *vm)
     }
 }
 
-void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
+// ----------------------------------------------------------------------
+// Object interface
+
+struct NKVMObject *nkiVmGetObjectFromValue(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
-
         struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
-
-        // Make sure we actually got an object.
-        if(!ob) {
-            nkiAddError(
-                vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
-            return;
-        }
-
-        // FIXME: Check for integer overflow.
-        ob->externalHandleCount++;
-
-        // If we already have a handle count, it means the object is
-        // in the linked list of handles, so we'll just increment the
-        // counter and return.
-        if(ob->externalHandleCount > 1) {
-            return;
-        }
-
-        assert(!ob->nextObjectWithExternalHandles);
-        assert(!ob->previousExternalHandleListPtr);
-
-        // Add us to the linked list.
-        ob->nextObjectWithExternalHandles =
-            vm->objectTable.objectsWithExternalHandles;
-        ob->previousExternalHandleListPtr =
-            &vm->objectTable.objectsWithExternalHandles;
-        if(vm->objectTable.objectsWithExternalHandles) {
-            vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
-                &ob->nextObjectWithExternalHandles;
-        }
-        vm->objectTable.objectsWithExternalHandles = ob;
-
-    } else {
-
-        nkiAddError(
-            vm, -1, "Tried to acquire handle for non-object.");
+        return ob;
     }
+
+    return NULL;
+}
+
+void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, value);
+
+    // Make sure we actually got an object.
+    if(!ob) {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
+        return;
+    }
+
+    // FIXME: Check for integer overflow.
+    ob->externalHandleCount++;
+
+    // If we already have a handle count, it means the object is
+    // in the linked list of handles, so we'll just increment the
+    // counter and return.
+    if(ob->externalHandleCount > 1) {
+        return;
+    }
+
+    assert(!ob->nextObjectWithExternalHandles);
+    assert(!ob->previousExternalHandleListPtr);
+
+    // Add us to the linked list.
+    ob->nextObjectWithExternalHandles =
+        vm->objectTable.objectsWithExternalHandles;
+    ob->previousExternalHandleListPtr =
+        &vm->objectTable.objectsWithExternalHandles;
+    if(vm->objectTable.objectsWithExternalHandles) {
+        vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
+            &ob->nextObjectWithExternalHandles;
+    }
+    vm->objectTable.objectsWithExternalHandles = ob;
 }
 
 void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
 {
-    if(value->type == NK_VALUETYPE_OBJECTID) {
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, value);
 
-        struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
-            &vm->objectTable, value->objectId);
-
-        // Make sure we actually got an object.
-        if(!ob) {
-            nkiAddError(
-                vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
-            return;
-        }
-
-        if(ob->externalHandleCount == 0) {
-            nkiAddError(
-                vm, -1, "Tried to release handle for object with no external handles.");
-        }
-
-        ob->externalHandleCount--;
-
-        // If there are handles left, then we're done.
-        if(ob->externalHandleCount > 0) {
-            return;
-        }
-
-        // Cut us out of the linked list.
-        *ob->previousExternalHandleListPtr = ob->nextObjectWithExternalHandles;
-        ob->previousExternalHandleListPtr = NULL;
-        ob->nextObjectWithExternalHandles = NULL;
-
-    } else {
-
+    // Make sure we actually got an object.
+    if(!ob) {
         nkiAddError(
-            vm, -1, "Tried to release handle for non-object.");
+            vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
+        return;
     }
+
+    if(ob->externalHandleCount == 0) {
+        nkiAddError(
+            vm, -1, "Tried to release handle for object with no external handles.");
+    }
+
+    ob->externalHandleCount--;
+
+    // If there are handles left, then we're done.
+    if(ob->externalHandleCount > 0) {
+        return;
+    }
+
+    // Cut us out of the linked list.
+    *ob->previousExternalHandleListPtr = ob->nextObjectWithExternalHandles;
+    ob->previousExternalHandleListPtr = NULL;
+    ob->nextObjectWithExternalHandles = NULL;
 }
 
 void nkiVmObjectSetGarbageCollectionCallback(
@@ -437,6 +434,7 @@ void nkiVmObjectSetGarbageCollectionCallback(
     NKVMExternalFunctionID callbackFunction)
 {
     NKVMInternalFunctionID internalFunctionId = { NK_INVALID_VALUE };
+    struct NKVMObject *ob;
 
     if(callbackFunction.id >= vm->externalFunctionCount) {
         nkiAddError(
@@ -452,24 +450,45 @@ void nkiVmObjectSetGarbageCollectionCallback(
         return;
     }
 
-    if(object->type == NK_VALUETYPE_OBJECTID) {
+    ob = nkiVmGetObjectFromValue(vm, object);
 
-        struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
-            &vm->objectTable, object->objectId);
-
-        // Make sure we actually got an object.
-        if(!ob) {
-            nkiAddError(
-                vm, -1, "Bad object ID in nkiVmObjectSetGarbageCollectionCallback.");
-            return;
-        }
-
-        ob->gcCallback = internalFunctionId;
-
-    } else {
-
+    // Make sure we actually got an object.
+    if(!ob) {
         nkiAddError(
-            vm, -1, "Tried to set garbage collection callback for non-object.");
+            vm, -1, "Bad object ID in nkiVmObjectSetGarbageCollectionCallback.");
+        return;
+    }
+
+    ob->gcCallback = internalFunctionId;
+}
+
+void nkiVmObjectSetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalDataTypeID externalType)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    if(ob) {
+        ob->externalDataType = externalType;
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectSetExternalType.");
     }
 }
+
+NKVMExternalDataTypeID nkiVmObjectGetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    if(ob) {
+        ret = ob->externalDataType;
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectSetExternalType.");
+    }
+    return ret;
+}
+
 
