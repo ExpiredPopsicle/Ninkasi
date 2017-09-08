@@ -247,6 +247,7 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
     assert(data->argumentCount == 1);
     printf("GC callback called.\n");
+    // printf("GCing external type %s\n", nkxVmGetExternalTypeName(vm, id));
 }
 
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
@@ -259,6 +260,11 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
     nkxVmObjectSetGarbageCollectionCallback(
         data->vm, &data->arguments[0], doGCCallbackThing_id);
+
+    {
+        NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");
+        printf("Registered external type %s\n", nkxVmGetExternalTypeName(data->vm, id));
+    }
 }
 
 const char *scriptName = "test/test.txt";

@@ -166,7 +166,7 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
 // ----------------------------------------------------------------------
-// Native C function call interface.
+// Native C function call interface
 
 /// This structure is passed into C functions called from inside the
 /// VM, as a pointer. The C functions are expected to take no other
@@ -218,6 +218,24 @@ NKVMExternalFunctionID nkxVmRegisterExternalFunction(
 /// objects (functionId on NKValue).
 NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
     struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
+
+// ----------------------------------------------------------------------
+// External data interface
+
+/// Call this rarely. It will cause a search of all the existing types
+/// to make sure duplicates don't creep in. It's an
+/// initialization-time thing.
+NKVMExternalDataTypeID nkxVmRegisterExternalType(
+    struct NKVM *vm, const char *name);
+
+/// Search through all existing types for a matching name. Returns a
+/// NKVMExternalDataTypeID with NK_INVALID_VALUE on failure.
+NKVMExternalDataTypeID nkxVmFindExternalType(
+    struct NKVM *vm, const char *name);
+
+/// Get a type name.
+const char *nkxVmGetExternalTypeName(
+    struct NKVM *vm, NKVMExternalDataTypeID id);
 
 // ----------------------------------------------------------------------
 // Public compiler interface

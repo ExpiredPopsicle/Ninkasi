@@ -65,5 +65,11 @@ typedef struct NKVMInternalFunctionID
     nkuint32_t id;
 } NKVMInternalFunctionID;
 
+/// Type identification for external data types.
+typedef struct NKVMExternalDataTypeID
+{
+    nkuint32_t id;
+} NKVMExternalDataTypeID;
+
 #endif // NINKASI_FUNCTIONID_H
 

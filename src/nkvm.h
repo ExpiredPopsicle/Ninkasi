@@ -139,7 +139,12 @@ struct NKVM
 
     jmp_buf *catastrophicFailureJmpBuf;
 
+    // TODO: Make accessor for this.
+    // TODO: Make key/value pairs for multiple subsystems to use?
     void *userData;
+
+    char **externalTypeNames;
+    nkuint32_t externalTypeCount;
 };
 
 /// Initialize an already-allocated VM.
@@ -207,6 +212,9 @@ void nkiVmCallFunction(
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
 
+// ----------------------------------------------------------------------
+// External function interface
+
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
 /// for duplicates. You may have to use this if you do not know if a
@@ -231,6 +239,24 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
 /// instantiate a new function object.
 NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
     struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
+
+// ----------------------------------------------------------------------
+// External data interface
+
+/// Call this rarely. It will cause a search of all the existing types
+/// to make sure duplicates don't creep in. It's an
+/// initialization-time thing.
+NKVMExternalDataTypeID nkiVmRegisterExternalType(
+    struct NKVM *vm, const char *name);
+
+/// Search through all existing types for a matching name. Returns a
+/// NKVMExternalDataTypeID with NK_INVALID_VALUE on failure.
+NKVMExternalDataTypeID nkiVmFindExternalType(
+    struct NKVM *vm, const char *name);
+
+/// Get a type name.
+const char *nkiVmGetExternalTypeName(
+    struct NKVM *vm, NKVMExternalDataTypeID id);
 
 #endif // NINKASI_VM_H
 

@@ -202,6 +202,9 @@ void nkiVmInit(struct NKVM *vm)
     vm->staticSpace = nkiMalloc(vm, sizeof(struct NKValue));
     memset(vm->staticSpace, 0, sizeof(struct NKValue));
     vm->staticAddressMask = 1;
+
+    vm->externalTypeNames = NULL;
+    vm->externalTypeCount = 0;
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -248,6 +251,7 @@ void nkiVmDestroy(struct NKVM *vm)
 
         nkiFree(vm, vm->staticSpace);
 
+        // Free external function table.
         {
             nkuint32_t n;
             for(n = 0; n < vm->externalFunctionCount; n++) {
@@ -255,6 +259,15 @@ void nkiVmDestroy(struct NKVM *vm)
             }
         }
         nkiFree(vm, vm->externalFunctionTable);
+
+        // Free external type data.
+        {
+            nkuint32_t n;
+            for(n = 0; n < vm->externalTypeCount; n++) {
+                nkiFree(vm, vm->externalTypeNames[n]);
+            }
+            nkiFree(vm, vm->externalTypeNames);
+        }
 
         NK_CLEAR_FAILURE_RECOVERY();
     }
@@ -811,3 +824,48 @@ NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
     return functionId;
 }
 
+// ----------------------------------------------------------------------
+// External data interface
+
+NKVMExternalDataTypeID nkiVmRegisterExternalType(
+    struct NKVM *vm, const char *name)
+{
+    NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
+    if(ret.id != NK_INVALID_VALUE) {
+        return ret;
+    }
+
+    ret.id = vm->externalTypeCount;
+
+    vm->externalTypeCount++;
+    vm->externalTypeNames = nkiRealloc(
+        vm, vm->externalTypeNames,
+        sizeof(*(vm->externalTypeNames)) * vm->externalTypeCount);
+
+    vm->externalTypeNames[ret.id] = nkiStrdup(vm, name);
+
+    return ret;
+}
+
+NKVMExternalDataTypeID nkiVmFindExternalType(
+    struct NKVM *vm, const char *name)
+{
+    NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
+    nkuint32_t i;
+    for(i = 0; i < vm->externalTypeCount; i++) {
+        if(!strcmp(vm->externalTypeNames[i], name)) {
+            ret.id = i;
+            return ret;
+        }
+    }
+    return ret;
+}
+
+const char *nkiVmGetExternalTypeName(
+    struct NKVM *vm, NKVMExternalDataTypeID id)
+{
+    if(id.id >= vm->externalTypeCount) {
+        return "";
+    }
+    return vm->externalTypeNames[id.id];
+}

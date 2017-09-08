@@ -370,3 +370,25 @@ NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
     return ret;
 }
 
+NKVMExternalDataTypeID nkxVmRegisterExternalType(
+    struct NKVM *vm, const char *name)
+{
+    NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmRegisterExternalType(vm, name);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+NKVMExternalDataTypeID nkxVmFindExternalType(
+    struct NKVM *vm, const char *name)
+{
+    return nkiVmFindExternalType(vm, name);
+}
+
+const char *nkxVmGetExternalTypeName(
+    struct NKVM *vm, NKVMExternalDataTypeID id)
+{
+    return nkiVmGetExternalTypeName(vm, id);
+}
