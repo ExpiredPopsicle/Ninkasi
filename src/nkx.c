@@ -416,3 +416,26 @@ NKVMExternalDataTypeID nkxVmObjectGetExternalType(
     return ret;
 }
 
+void nkxVmObjectSetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object,
+    void *data)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectSetExternalData(vm, object, data);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void *nkxVmObjectGetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmObjectGetExternalData(vm, object);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+

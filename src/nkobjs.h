@@ -76,6 +76,7 @@ struct NKVMObject
     NKVMInternalFunctionID gcCallback;
 
     NKVMExternalDataTypeID externalDataType;
+    void *externalData;
 };
 
 struct NKVMObjectTableHole
@@ -141,6 +142,15 @@ void nkiVmObjectSetExternalType(
     NKVMExternalDataTypeID externalType);
 
 NKVMExternalDataTypeID nkiVmObjectGetExternalType(
+    struct NKVM *vm,
+    struct NKValue *object);
+
+void nkiVmObjectSetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object,
+    void *data);
+
+void *nkiVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 

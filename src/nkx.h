@@ -248,6 +248,17 @@ NKVMExternalDataTypeID nkxVmObjectGetExternalType(
     struct NKVM *vm,
     struct NKValue *object);
 
+/// Set a pointer to some external data to associate with this object.
+void nkxVmObjectSetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object,
+    void *data);
+
+/// Get the previously set external data (NULL if not set).
+void *nkxVmObjectGetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

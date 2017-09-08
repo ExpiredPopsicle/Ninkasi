@@ -251,6 +251,12 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
         NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
         printf("GCing external of type %s\n", nkxVmGetExternalTypeName(data->vm, id));
     }
+
+    {
+        char *externalData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
+        printf("GCing external data: %s\n", externalData);
+        free(externalData);
+    }
 }
 
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
@@ -263,6 +269,8 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
     nkxVmObjectSetGarbageCollectionCallback(
         data->vm, &data->arguments[0], doGCCallbackThing_id);
+
+    nkxVmObjectSetExternalData(data->vm, &data->arguments[0], strdup("butts"));
 
     {
         NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");

@@ -176,6 +176,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
     newObject->lastGCPass = 0;
     newObject->gcCallback.id = NK_INVALID_VALUE;
     newObject->externalDataType.id = NK_INVALID_VALUE;
+    newObject->externalData = NULL;
     table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
@@ -486,9 +487,36 @@ NKVMExternalDataTypeID nkiVmObjectGetExternalType(
         ret = ob->externalDataType;
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectSetExternalType.");
+            vm, -1, "Bad object ID in nkiVmObjectGetExternalType.");
     }
     return ret;
 }
 
+void nkiVmObjectSetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object,
+    void *data)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    if(ob) {
+        ob->externalData = data;
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectSetExternalData.");
+    }
+}
 
+void *nkiVmObjectGetExternalData(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    void *ret = NULL;
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    if(ob) {
+        ret = ob->externalData;
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectGetExternalData.");
+    }
+    return ret;
+}
