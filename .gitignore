@@ -1,8 +1,10 @@
 # Native object files
 *.o
 
-# MS-DOS object files
+# MS-DOS object files and build artifacts
 *.OBJ
+*.EXE
+build.bat
 
 # Autotools generated crap
 Makefile
@@ -26,3 +28,4 @@ test/Makefile.in
 test/test-suite.log
 test/test.sh.log
 test/test.sh.trs
+
