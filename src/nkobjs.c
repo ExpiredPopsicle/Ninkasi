@@ -175,6 +175,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
     newObject->gcCallback.id = NK_INVALID_VALUE;
+    newObject->serializationCallback.id = NK_INVALID_VALUE;
     newObject->externalDataType.id = NK_INVALID_VALUE;
     newObject->externalData = NULL;
     table->objectTable[index] = newObject;

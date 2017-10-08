@@ -145,6 +145,12 @@ struct NKVM
 
     char **externalTypeNames;
     nkuint32_t externalTypeCount;
+
+    struct
+    {
+        NKVMSerializationWriter writer;
+        void *userdata;
+    } serializationState;
 };
 
 /// Initialize an already-allocated VM.
@@ -257,6 +263,9 @@ NKVMExternalDataTypeID nkiVmFindExternalType(
 /// Get a type name.
 const char *nkiVmGetExternalTypeName(
     struct NKVM *vm, NKVMExternalDataTypeID id);
+
+/// Serialize VM state.
+nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata);
 
 #endif // NINKASI_VM_H
 

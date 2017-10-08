@@ -75,6 +75,9 @@ struct NKVMObject
     // is actually called.
     NKVMInternalFunctionID gcCallback;
 
+    // Same specifics as gcCallback.
+    NKVMInternalFunctionID serializationCallback;
+
     NKVMExternalDataTypeID externalDataType;
     void *externalData;
 };

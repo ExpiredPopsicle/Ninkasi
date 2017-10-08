@@ -65,6 +65,7 @@
 struct NKVM;
 struct NKVMFunctionCallbackData;
 typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
+typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata);
 struct NKValue;
 
 // ----------------------------------------------------------------------
@@ -290,5 +291,7 @@ nkbool nkxCompilerCompileScriptFile(
 /// like setting up the global variable list in the VM.
 void nkxCompilerFinalize(
     struct NKCompilerState *cs);
+
+nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata);
 
 #endif // NINKASI_NKX

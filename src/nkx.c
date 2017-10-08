@@ -439,3 +439,12 @@ void *nkxVmObjectGetExternalData(
     return ret;
 }
 
+nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    nkbool ret = nkfalse;
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmSerialize(vm, writer, userdata);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}

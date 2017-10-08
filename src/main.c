@@ -52,7 +52,7 @@
 #include <string.h>
 
 
-typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata);
+// typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata);
 
 // Wrapper for all of our serialization helpers that just adds some
 // error checking and handling.
@@ -112,6 +112,48 @@ nkbool nkiSerializeErrorState(struct NKVM *vm, NKVMSerializationWriter writer, v
     return nktrue;
 }
 
+nkbool nkiSerializeObject(struct NKVM *vm, struct NKVMObject *object, NKVMSerializationWriter writer, void *userdata)
+{
+    printf("\n  Object: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
+    NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
+    NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
+    NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->gcCallback);
+    NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
+    NKI_SERIALIZE_BASIC(NKVMExternalDataTypeID, object->externalDataType);
+
+    // External serialization callback.
+    if(object->serializationCallback.id != NK_INVALID_VALUE) {
+        if(object->serializationCallback.id < vm->functionCount) {
+            struct NKVMFunction *func = &vm->functionTable[object->serializationCallback.id];
+            if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                if(func->externalFunctionId.id < vm->externalFunctionCount) {
+                    struct NKValue funcValue;
+                    struct NKValue argValue;
+                    memset(&funcValue, 0, sizeof(funcValue));
+                    funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                    funcValue.functionId = object->serializationCallback;
+                    memset(&argValue, 0, sizeof(argValue));
+                    argValue.type = NK_VALUETYPE_OBJECTID;
+                    argValue.objectId = object->objectTableIndex;
+
+                    {
+                        NKVMSerializationWriter oldWriter = vm->serializationState.writer;
+                        void *oldUserdata = vm->serializationState.userdata;
+                        vm->serializationState.writer = writer;
+                        vm->serializationState.userdata = userdata;
+                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+                        vm->serializationState.userdata = oldUserdata;
+                        vm->serializationState.writer = oldWriter;
+                    }
+                }
+            }
+        }
+    }
+
+    return nktrue;
+}
+
 nkbool nkiSerializeObjectTable(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata)
 {
     printf("\nObjectTable: ");
@@ -122,6 +164,10 @@ nkbool nkiSerializeObjectTable(struct NKVM *vm, NKVMSerializationWriter writer, 
         nkuint32_t i;
         for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
             if(vm->objectTable.objectTable[i]) {
+                NKI_WRAPSERIALIZE(
+                    nkiSerializeObject(
+                        vm, vm->objectTable.objectTable[i],
+                        writer, userdata));
                 // NKI_SERIALIZE_BASIC(nkuint32_t, i);
                 // NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
                 // NKI_SERIALIZE_STRING(vm->stringTable.stringTable[i]->str);
@@ -169,6 +215,12 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         vm->staticSpace,
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));
 
+    printf("\nStackSize: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
+    NKI_SERIALIZE_DATA(
+        vm->stack.values,
+        sizeof(struct NKValue) * (vm->stack.size));
+
     printf("\nIP: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionPointer);
 
@@ -204,9 +256,6 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     return nktrue;
 }
-
-
-
 
 // ----------------------------------------------------------------------
 
@@ -545,7 +594,7 @@ int main(int argc, char *argv[])
         printf("----------------------------------------------------------------------\n");
         printf("  Serialization\n");
         printf("----------------------------------------------------------------------\n");
-        nkiVmSerialize(vm, writerTest, NULL);
+        nkxVmSerialize(vm, writerTest, NULL);
         printf("\n----------------------------------------------------------------------\n");
 
         if(!nkxVmHasErrors(vm)) {
@@ -672,7 +721,7 @@ int main(int argc, char *argv[])
         nkiVmStackDump(vm);
 
         printf("Final serialized state...\n");
-        nkiVmSerialize(vm, writerTest, NULL);
+        nkxVmSerialize(vm, writerTest, NULL);
 
         if(0) {
 
