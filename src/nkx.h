@@ -200,6 +200,13 @@ void nkxVmObjectSetGarbageCollectionCallback(
     struct NKValue *object,
     NKVMExternalFunctionID callbackFunction);
 
+/// Set a native (C-side) callback to handle serialization of the
+/// object.
+void nkxVmObjectSetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalFunctionID callbackFunction);
+
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
 /// for duplicates. You may have to use this if you do not know if a
@@ -292,6 +299,7 @@ nkbool nkxCompilerCompileScriptFile(
 void nkxCompilerFinalize(
     struct NKCompilerState *cs);
 
+/// Serialize the entire VM state.
 nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata);
 
 #endif // NINKASI_NKX

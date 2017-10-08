@@ -464,6 +464,42 @@ void nkiVmObjectSetGarbageCollectionCallback(
     ob->gcCallback = internalFunctionId;
 }
 
+// FIXME: Consolidate this with code from
+// nkiVmObjectSetGarbagecollectioncallback.
+void nkiVmObjectSetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalFunctionID callbackFunction)
+{
+    NKVMInternalFunctionID internalFunctionId = { NK_INVALID_VALUE };
+    struct NKVMObject *ob;
+
+    if(callbackFunction.id >= vm->externalFunctionCount) {
+        nkiAddError(
+            vm, -1, "Bad native function ID in nkiVmObjectSetSerializationCallback.");
+    }
+
+    internalFunctionId =
+        nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, callbackFunction);
+
+    if(internalFunctionId.id >= vm->functionCount) {
+        nkiAddError(
+            vm, -1, "Bad function ID in nkiVmObjectSetSerializationCallback.");
+        return;
+    }
+
+    ob = nkiVmGetObjectFromValue(vm, object);
+
+    // Make sure we actually got an object.
+    if(!ob) {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectSetSerializationCallback.");
+        return;
+    }
+
+    ob->serializationCallback = internalFunctionId;
+}
+
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,

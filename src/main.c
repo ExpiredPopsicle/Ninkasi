@@ -483,6 +483,15 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
     }
 }
 
+void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
+{
+    printf("\nSerialization callback start!\n");
+    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata);
+    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata);
+    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata);
+    printf("\nSerialization callback complete!\n");
+}
+
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
     assert(data->argumentCount == 1);
@@ -495,6 +504,14 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
         data->vm, &data->arguments[0], doGCCallbackThing_id);
 
     nkxVmObjectSetExternalData(data->vm, &data->arguments[0], strdup("butts"));
+
+
+    {
+        NKVMExternalFunctionID serializationCallbackId = nkxVmRegisterExternalFunction(
+            data->vm, "doSerializationCallbackThing", doSerializationCallbackThing);
+        nkxVmObjectSetSerializationCallback(
+            data->vm, &data->arguments[0], serializationCallbackId);
+    }
 
     {
         NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");

@@ -139,6 +139,11 @@ void nkiVmObjectSetGarbageCollectionCallback(
     struct NKValue *object,
     NKVMExternalFunctionID callbackFunction);
 
+void nkiVmObjectSetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object,
+    NKVMExternalFunctionID callbackFunction);
+
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
