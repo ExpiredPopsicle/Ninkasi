@@ -56,6 +56,7 @@ struct NKVM;
 
 struct NKInstruction
 {
+    // Must be 32-bits!
     union {
         enum NKOpcode opcode;
 
@@ -66,6 +67,7 @@ struct NKInstruction
     };
 
   #if NK_VM_DEBUG
+    // Must be LAST for serialization purposes.
     nkuint32_t lineNumber;
   #endif
 };

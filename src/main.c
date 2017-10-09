@@ -181,16 +181,17 @@ nkbool nkiSerializeObjectTable(struct NKVM *vm, NKVMSerializationWriter writer, 
 nkbool nkiSerializeStringTable(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata)
 {
     printf("\nStringTable: ");
-
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTableCapacity);
-
+    printf("\n");
     {
         nkuint32_t i;
         for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
             if(vm->stringTable.stringTable[i]) {
+                printf("  ");
                 NKI_SERIALIZE_BASIC(nkuint32_t, i);
                 NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
                 NKI_SERIALIZE_STRING(vm->stringTable.stringTable[i]->str);
+                printf("\n");
             }
         }
     }
@@ -203,6 +204,48 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Clean up before serializing.
 
     printf("\nVM serialize: ");
+
+
+
+
+    printf("\nInstructions: ");
+    {
+        // Find the actual end of the instruction buffer.
+        nkuint32_t instructionLimitSearch = vm->instructionAddressMask;
+        while(instructionLimitSearch && vm->instructions[instructionLimitSearch].opcode == NK_OP_NOP) {
+            instructionLimitSearch--;
+        }
+
+        // Record how much information we're going to store in the
+        // stream.
+        NKI_SERIALIZE_BASIC(nkuint32_t, instructionLimitSearch);
+
+        // We still need the real instruction address mask. There's a
+        // chance that some of that NK_OP_OP on the end was really
+        // something like a literal value instead of a real opcode,
+        // and if we cut off the address mask before it, that would
+        // read the wrong value.
+        NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionAddressMask);
+
+        printf("\n");
+        {
+            nkuint32_t i;
+            for(i = 0; i < instructionLimitSearch; i++) {
+                printf("  ");
+              #if NK_VM_DEBUG
+                NKI_SERIALIZE_DATA(&vm->instructions[i], 4);
+              #else
+                NKI_SERIALIZE_BASIC(struct NKInstruction, vm->instructions[i]);
+              #endif
+                printf("\n");
+            }
+        }
+    }
+
+
+
+
+
 
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata));
@@ -229,13 +272,48 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     nkiSerializeObjectTable(vm, writer, userdata);
 
     // Skip GC state (serialized data doesn't get to decide anything
-    // about te GC).
-
-    printf("\nFunctionTable: ");
+    // about the GC).
 
     printf("\nExternalFunctionTable: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalFunctionCount);
+    printf("\n");
+    {
+        nkuint32_t i;
+        for(i = 0; i < vm->externalFunctionCount; i++) {
+            printf("  ");
+            NKI_SERIALIZE_BASIC(
+                NKVMInternalFunctionID, vm->externalFunctionTable[i].internalFunctionId);
+            NKI_SERIALIZE_STRING(vm->externalFunctionTable[i].name);
+            printf("\n");
+        }
+    }
+
+    printf("\nFunctionTable: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionCount);
+    printf("\n");
+    {
+        nkuint32_t i;
+        for(i = 0; i < vm->functionCount; i++) {
+            printf("  ");
+            NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].argumentCount);
+            NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].firstInstructionIndex);
+            NKI_SERIALIZE_BASIC(NKVMExternalFunctionID, vm->functionTable[i].externalFunctionId);
+            printf("\n");
+        }
+    }
 
     printf("\nGlobalVariables: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
+    printf("\n");
+    {
+        nkuint32_t i;
+        for(i = 0; i < vm->globalVariableCount; i++) {
+            printf("  ");
+            NKI_SERIALIZE_STRING(vm->globalVariables[i].name);
+            NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariables[i].staticPosition);
+            printf("\n");
+        }
+    }
 
     // Skip limits (defined before serialization in application, also
     // nullifies safety precautions if we just take the serialized
@@ -252,7 +330,16 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // before/after).
 
     printf("\nExternalTypeNames: ");
-
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalTypeCount);
+    printf("\n");
+    {
+        nkuint32_t i;
+        for(i = 0; i < vm->externalTypeCount; i++) {
+            printf("  ");
+            NKI_SERIALIZE_STRING(vm->externalTypeNames[i]);
+            printf("\n");
+        }
+    }
 
     return nktrue;
 }
@@ -520,7 +607,7 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
     }
 }
 
-const char *scriptName = "test/test.txt";
+const char *scriptName = "test/test2.txt";
 
 int main(int argc, char *argv[])
 {
