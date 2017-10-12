@@ -150,6 +150,7 @@ struct NKVM
     {
         NKVMSerializationWriter writer;
         void *userdata;
+        nkbool writeMode;
     } serializationState;
 };
 
@@ -263,9 +264,6 @@ NKVMExternalDataTypeID nkiVmFindExternalType(
 /// Get a type name.
 const char *nkiVmGetExternalTypeName(
     struct NKVM *vm, NKVMExternalDataTypeID id);
-
-/// Serialize VM state.
-nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata);
 
 #endif // NINKASI_VM_H
 

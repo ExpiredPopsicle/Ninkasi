@@ -80,5 +80,11 @@
 #define NK_INVALID_VALUE (~(nkuint32_t)0)
 #define NK_UINT_MAX (~(nkuint32_t)0)
 
+struct NKVM;
+struct NKValue;
+struct NKVMFunctionCallbackData;
+typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
+typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata, nkbool writeMode);
+
 #endif // NINKASI_BASETYPE_H
 

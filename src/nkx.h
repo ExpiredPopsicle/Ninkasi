@@ -62,12 +62,6 @@
 #include "nktypes.h"
 #include "nkvalue.h"
 
-struct NKVM;
-struct NKVMFunctionCallbackData;
-typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
-typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata);
-struct NKValue;
-
 // ----------------------------------------------------------------------
 // Public VM interface
 
@@ -300,6 +294,10 @@ void nkxCompilerFinalize(
     struct NKCompilerState *cs);
 
 /// Serialize the entire VM state.
-nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata);
+nkbool nkxVmSerialize(
+    struct NKVM *vm,
+    NKVMSerializationWriter writer,
+    void *userdata,
+    nkbool writeMode);
 
 #endif // NINKASI_NKX

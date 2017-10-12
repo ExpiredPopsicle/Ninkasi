@@ -72,5 +72,6 @@
 #include "nkobjs.h"
 #include "nkmem.h"
 #include "nkfail.h"
+#include "nksave.h"
 
 #endif // NINKASI_COMMON_H
