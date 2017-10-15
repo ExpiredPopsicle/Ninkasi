@@ -57,14 +57,54 @@
 
 // ----------------------------------------------------------------------
 
-nkbool writerTest(const void *data, nkuint32_t size, void *userdata, nkbool writeMode)
+struct WriterTestBuffer
+{
+    char *data;
+    nkuint32_t readPtr;
+    nkuint32_t size;
+};
+
+nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 {
     const char charMap[17] = { "0123456789abcdef" };
     nkuint32_t i = 0;
+
+    if(userdata) {
+
+        struct WriterTestBuffer *testBuf = (struct WriterTestBuffer *)userdata;
+
+        if(writeMode) {
+
+            nkuint32_t oldSize = testBuf->size;
+            testBuf->size += size;
+            testBuf->data = realloc(testBuf->data, testBuf->size);
+            memcpy(testBuf->data + oldSize, data, size);
+
+        } else {
+
+            if(testBuf->readPtr + size <= testBuf->size) {
+                memcpy(data, testBuf->data + testBuf->readPtr, size);
+                testBuf->readPtr += size;
+            } else {
+                printf("END OF BUFFER!\n");
+                return nkfalse;
+            }
+        }
+    }
+
     for(i = 0; i < size; i++) {
         const char *c = (const char *)data + i;
         printf("%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
     }
+
+    // if(size >= 4) {
+    //     if(*(nkuint32_t*)data != 0) {
+    //         printf("NOT ZERO");
+    //     } else {
+    //         printf("ZERO");
+    //     }
+    // }
+
     return nktrue;
 }
 
@@ -536,7 +576,22 @@ int main(int argc, char *argv[])
         nkiVmStackDump(vm);
 
         printf("Final serialized state...\n");
-        nkxVmSerialize(vm, writerTest, NULL, nktrue);
+        {
+            struct WriterTestBuffer buf;
+            memset(&buf, 0, sizeof(buf));
+            nkxVmSerialize(vm, writerTest, &buf, nktrue);
+
+            {
+                struct NKVM *newVm = nkxVmCreate();
+                printf("Deserializing...\n");
+                nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+                nkxVmDelete(newVm);
+            }
+
+            free(buf.data);
+        }
+
+
 
         if(0) {
 

@@ -43,7 +43,7 @@
 
 #include "nkcommon.h"
 
-static nkuint32_t nkiStringHash(const char *in)
+nkuint32_t nkiStringHash(const char *in)
 {
     nkuint32_t len = strlen(in);
     nkuint32_t a = 1;

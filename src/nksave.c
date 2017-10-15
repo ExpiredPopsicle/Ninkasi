@@ -10,24 +10,26 @@
     } while(0)
 
 #define NKI_SERIALIZE_DATA(data, size)                              \
-    NKI_WRAPSERIALIZE(writer((data), (size), userdata, writeMode)); \
+    NKI_WRAPSERIALIZE(writer((void*)(data), (size), userdata, writeMode)); \
     printf(" ")
 
 #define NKI_SERIALIZE_BASIC(t, val)                 \
     do {                                            \
         t tmp = (val);                              \
-        NKI_SERIALIZE_DATA(&(tmp), sizeof(tmp));    \
+        NKI_SERIALIZE_DATA(&(val), sizeof(tmp));    \
     } while(0)
 
-nkbool nkiSerializeString(
+nkbool nkiSerializeString_save(
     struct NKVM *vm,
     NKVMSerializationWriter writer,
     void *userdata,
-    const char *str,
-    nkbool writeMode)
+    const char *str)
 {
-    nkuint32_t len = strlen(str);
-    if(len > NK_UINT_MAX) return nkfalse;
+    nkbool writeMode = nktrue;
+
+    size_t lenFull = strlen(str);
+    nkuint32_t len = (nkuint32_t)lenFull;
+    if(lenFull > NK_UINT_MAX) return nkfalse;
 
     // Write length.
     NKI_SERIALIZE_BASIC(nkuint32_t, len);
@@ -38,8 +40,38 @@ nkbool nkiSerializeString(
     return nktrue;
 }
 
-#define NKI_SERIALIZE_STRING(str)                                   \
-    NKI_WRAPSERIALIZE(nkiSerializeString(vm, writer, userdata, (str), writeMode))
+nkbool nkiSerializeString_load(
+    struct NKVM *vm,
+    NKVMSerializationWriter writer,
+    void *userdata,
+    char **outData)
+{
+    nkbool writeMode = nkfalse;
+    nkuint32_t len = 0;
+
+    // Read length.
+    NKI_SERIALIZE_BASIC(nkuint32_t, len);
+    if(len == ~(nkuint32_t)0) {
+        return nkfalse;
+    }
+
+    *outData = nkiMalloc(vm, len + 1);
+
+    // Read actual string.
+    NKI_SERIALIZE_DATA(*outData, len);
+    (*outData)[len] = 0;
+
+    return nktrue;
+}
+
+#define NKI_SERIALIZE_STRING(str)                                       \
+    if(writeMode) {                                                     \
+        NKI_WRAPSERIALIZE(nkiSerializeString_save(vm, writer, userdata, (str))); \
+    } else {                                                            \
+        char *outData = NULL;                                           \
+        NKI_WRAPSERIALIZE(nkiSerializeString_load(vm, writer, userdata, &outData)); \
+        (str) = outData;                                                \
+    }
 
 nkbool nkiSerializeErrorState(
     struct NKVM *vm, NKVMSerializationWriter writer,
@@ -139,20 +171,121 @@ nkbool nkiSerializeStringTable(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
 {
+    nkuint32_t capacity = vm->stringTable.stringTableCapacity;
+
     printf("\nStringTable: ");
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTableCapacity);
+    printf("\n  Capacity: ");
+    NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
+
+    // Destroy and recreate the string table with the specified capacity, if we're in READ mode.
+    if(!writeMode) {
+        nkiVmStringTableDestroy(vm);
+        vm->stringTable.stringTableCapacity = capacity;
+        vm->stringTable.stringTable =
+            nkiMalloc(vm, vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+        memset(vm->stringTable.stringTable, 0,
+            vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+    }
+
     printf("\n");
+
     {
         nkuint32_t i;
-        for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
-            if(vm->stringTable.stringTable[i]) {
-                printf("  ");
-                NKI_SERIALIZE_BASIC(nkuint32_t, i);
-                NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
-                NKI_SERIALIZE_STRING(vm->stringTable.stringTable[i]->str);
-                printf("\n");
+        nkuint32_t actualCount = 0;
+
+        // Count up the number of actual entries.
+        if(writeMode) {
+            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+                if(vm->stringTable.stringTable[i]) {
+                    actualCount++;
+                }
             }
         }
+        printf("\n  Count: ");
+        NKI_SERIALIZE_BASIC(nkuint32_t, actualCount);
+        printf("\n");
+
+        if(writeMode) {
+
+            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+                if(vm->stringTable.stringTable[i]) {
+                    printf("\n  Object: ");
+                    char *tmp = vm->stringTable.stringTable[i]->str;
+                    NKI_SERIALIZE_BASIC(nkuint32_t, i);
+                    printf("\n    String: ");
+                    NKI_SERIALIZE_STRING(tmp);
+                    printf("\n    DontGC: ");
+                    NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
+                }
+            }
+
+        } else {
+
+            nkuint32_t n;
+
+            for(n = 0; n < actualCount; n++) {
+
+                nkuint32_t i = 0;
+                char *tmpStr = NULL;
+
+                printf("\n  Object: ");
+                NKI_SERIALIZE_BASIC(nkuint32_t, i);
+                if(i >= vm->stringTable.stringTableCapacity) {
+                    return nkfalse;
+                }
+
+                printf("\n    String: ");
+                NKI_SERIALIZE_STRING(tmpStr);
+                {
+                    // FIXME: Check overflow here.
+                    nkuint32_t size =
+                        strlen(tmpStr) + sizeof(*vm->stringTable.stringTable[i]) + 1;
+                    vm->stringTable.stringTable[i] =
+                        nkiMalloc(vm, size);
+
+
+                    assert(vm->stringTable.stringTable[i]);
+
+                    printf("size: %u\n", size);
+
+                    memset(vm->stringTable.stringTable[i], 0, size);
+                    memcpy(vm->stringTable.stringTable[i]->str, tmpStr, strlen(tmpStr) + 1);
+                    nkiFree(vm, tmpStr);
+
+                    assert(vm->stringTable.stringTable[i]);
+
+                    printf("\n    DontGC: ");
+                    NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
+                    vm->stringTable.stringTable[i]->stringTableIndex = i;
+                    vm->stringTable.stringTable[i]->hash =
+                        nkiStringHash(vm->stringTable.stringTable[i]->str);
+
+                    {
+                        struct NKVMString *hashBucket =
+                            vm->stringTable.stringsByHash[
+                                vm->stringTable.stringTable[i]->hash & (nkiVmStringHashTableSize - 1)];
+                        vm->stringTable.stringTable[i]->nextInHashBucket = hashBucket;
+                        vm->stringTable.stringsByHash[
+                            vm->stringTable.stringTable[i]->hash & (nkiVmStringHashTableSize - 1)] =
+                            vm->stringTable.stringTable[i];
+                    }
+                }
+
+            }
+
+            // Create hole objects.
+            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+                if(!vm->stringTable.stringTable[i]) {
+                    struct NKVMStringTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+                    newHole->index = i;
+                    newHole->next = vm->stringTable.tableHoles;
+                    vm->stringTable.tableHoles = newHole;
+                }
+            }
+
+
+        }
+
     }
 
     return nktrue;
@@ -201,15 +334,18 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
 
+    // FIXME: Check that a valid mask is 2^n-1.
     printf("\nStaticSpaceSize: ");
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask+1);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
 
     printf("\nStaticSpace: ");
+    // TODO!!!: Make new static space for read mode.
     NKI_SERIALIZE_DATA(
         vm->staticSpace,
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));
 
     printf("\nStackSize: ");
+    // TODO!!!: Make new stack space for read mode.
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
     NKI_SERIALIZE_DATA(
         vm->stack.values,
@@ -218,9 +354,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     printf("\nIP: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionPointer);
 
-    nkiSerializeStringTable(vm, writer, userdata, writeMode);
+    NKI_WRAPSERIALIZE(nkiSerializeStringTable(vm, writer, userdata, writeMode));
 
-    nkiSerializeObjectTable(vm, writer, userdata, writeMode);
+    NKI_WRAPSERIALIZE(nkiSerializeObjectTable(vm, writer, userdata, writeMode));
 
     // Skip GC state (serialized data doesn't get to decide anything
     // about the GC).

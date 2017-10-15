@@ -84,7 +84,7 @@ struct NKVM;
 struct NKValue;
 struct NKVMFunctionCallbackData;
 typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
-typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata, nkbool writeMode);
+typedef nkbool (*NKVMSerializationWriter)(void *data, nkuint32_t size, void *userdata, nkbool writeMode);
 
 #endif // NINKASI_BASETYPE_H
 

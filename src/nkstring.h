@@ -100,5 +100,7 @@ void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     nkuint32_t lastGCPass);
 
+nkuint32_t nkiStringHash(const char *in);
+
 #endif // NINKASI_VMSTRING_H
 
