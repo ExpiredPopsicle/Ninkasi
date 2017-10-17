@@ -145,11 +145,49 @@ nkbool nkiSerializeObjectTable(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
 {
+    nkuint32_t objectCount = 0;
+
     printf("\nObjectTable: ");
 
+    // FIXME: Ensure objectTableCapacity is a power of two, or find a
+    // better way to store it!
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.objectTableCapacity);
 
-    {
+    if(writeMode) {
+
+        // Count up objects if we're writing.
+        nkuint32_t i;
+        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+            if(vm->objectTable.objectTable[i]) {
+                objectCount++;
+            }
+        }
+
+    } else {
+
+        // Reallocate the object table if we're reading.
+        nkiFree(vm, vm->objectTable.objectTable);
+        vm->objectTable.objectTable =
+            nkiMalloc(vm, sizeof(struct NKVMObject *) * vm->objectTable.objectTableCapacity);
+        memset(
+            vm->objectTable.objectTable, 0,
+            sizeof(struct NKVMObject *) * vm->objectTable.objectTableCapacity);
+
+        // Free the holes.
+        while(vm->objectTable.tableHoles) {
+            struct NKVMObjectTableHole *hole = vm->objectTable.tableHoles;
+            vm->objectTable.tableHoles = hole->next;
+            nkiFree(vm, hole);
+        }
+    }
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
+    if(objectCount >= vm->objectTable.objectTableCapacity) {
+        return nkfalse;
+    }
+
+    if(writeMode) {
+
         nkuint32_t i;
         for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
             if(vm->objectTable.objectTable[i]) {
@@ -157,9 +195,32 @@ nkbool nkiSerializeObjectTable(
                     nkiSerializeObject(
                         vm, vm->objectTable.objectTable[i],
                         writer, userdata, writeMode));
-                // NKI_SERIALIZE_BASIC(nkuint32_t, i);
-                // NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
-                // NKI_SERIALIZE_STRING(vm->stringTable.stringTable[i]->str);
+            }
+        }
+
+    } else {
+
+        nkuint32_t i;
+        for(i = 0; i < objectCount; i++) {
+            struct NKVMObject *object = nkiMalloc(vm, sizeof(struct NKVMObject));
+            memset(object, 0, sizeof(struct NKVMObject));
+            vm->objectTable.objectTable[i] = object;
+            NKI_WRAPSERIALIZE(
+                nkiSerializeObject(
+                    vm, vm->objectTable.objectTable[i],
+                    writer, userdata, writeMode));
+        }
+    }
+
+    // Recreate holes for read mode.
+    if(!writeMode) {
+        nkuint32_t i;
+        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+            if(!vm->objectTable.objectTable[i]) {
+                struct NKVMObjectTableHole *hole =
+                    nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
+                hole->next = vm->objectTable.tableHoles;
+                hole->index = i;
             }
         }
     }
@@ -291,18 +352,31 @@ nkbool nkiSerializeStringTable(
     return nktrue;
 }
 
+#define NKI_VERSION 1
+
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
     // Clean up before serializing.
 
     printf("\nVM serialize: ");
 
+    // Serialize version number.
+    {
+        nkuint32_t version = NKI_VERSION;
+        NKI_SERIALIZE_BASIC(nkuint32_t, version);
+        if(version != NKI_VERSION) {
+            return nkfalse;
+        }
+    }
+
     printf("\nInstructions: ");
     {
         // Find the actual end of the instruction buffer.
         nkuint32_t instructionLimitSearch = vm->instructionAddressMask;
-        while(instructionLimitSearch && vm->instructions[instructionLimitSearch].opcode == NK_OP_NOP) {
-            instructionLimitSearch--;
+        if(writeMode) {
+            while(instructionLimitSearch && vm->instructions[instructionLimitSearch].opcode == NK_OP_NOP) {
+                instructionLimitSearch--;
+            }
         }
 
         // Record how much information we're going to store in the
@@ -315,6 +389,16 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         // and if we cut off the address mask before it, that would
         // read the wrong value.
         NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionAddressMask);
+
+        // Recreate the entire instruction space if we're reading.
+        if(!writeMode) {
+            nkuint32_t bufSize = sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1);
+            nkiFree(vm, vm->instructions);
+            vm->instructions = nkiMalloc(
+                vm,
+                bufSize);
+            memset(vm->instructions, 0, bufSize);
+        }
 
         printf("\n");
         {
@@ -334,12 +418,20 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
 
-    // FIXME: Check that a valid mask is 2^n-1.
+    // FIXME: Check that a valid mask is 2^n-1. (Or just find a better
+    // way to store it.)
     printf("\nStaticSpaceSize: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
 
     printf("\nStaticSpace: ");
-    // TODO!!!: Make new static space for read mode.
+
+    // Make new static space for read mode.
+    if(!writeMode) {
+        nkiFree(vm, vm->staticSpace);
+        vm->staticSpace = nkiMalloc(vm, sizeof(struct NKValue) * (vm->staticAddressMask + 1));
+    }
+
+    // Read/write the static space.
     NKI_SERIALIZE_DATA(
         vm->staticSpace,
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));
@@ -361,6 +453,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Skip GC state (serialized data doesn't get to decide anything
     // about the GC).
 
+    // TODO: Match up external functions at read time.
     printf("\nExternalFunctionTable: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalFunctionCount);
     printf("\n");
@@ -375,6 +468,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
+    // TODO: Reallocate internal function table for read mode.
     printf("\nFunctionTable: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionCount);
     printf("\n");
@@ -389,6 +483,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
+    // TODO: Deal with the fact that we stuck all the global variable
+    // names in one big chunk of memory for some dumb reason.
     printf("\nGlobalVariables: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
     printf("\n");
@@ -416,6 +512,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Skip userdata (serialize it outside the VM and hook it up
     // before/after).
 
+    // TODO: Match up internal/external types. Will this mean going
+    // through and fixing up objects afterwards?
     printf("\nExternalTypeNames: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalTypeCount);
     printf("\n");
