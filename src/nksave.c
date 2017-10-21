@@ -437,8 +437,17 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));
 
     printf("\nStackSize: ");
-    // TODO!!!: Make new stack space for read mode.
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
+
+    // Make new stack space for read mode.
+    if(!writeMode) {
+        nkiFree(vm, vm->stack.values);
+        vm->stack.values = nkiMalloc(vm,
+            sizeof(struct NKValue) * (vm->stack.size));
+        memset(vm->stack.values, 0,
+            sizeof(struct NKValue) * (vm->stack.size));
+    }
+
     NKI_SERIALIZE_DATA(
         vm->stack.values,
         sizeof(struct NKValue) * (vm->stack.size));
@@ -453,7 +462,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Skip GC state (serialized data doesn't get to decide anything
     // about the GC).
 
-    // TODO: Match up external functions at read time.
+    // Save the external function table or match up existing external
+    // functions to loaded external functions at read time.
     printf("\nExternalFunctionTable: ");
     {
         nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
