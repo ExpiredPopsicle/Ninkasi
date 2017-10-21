@@ -455,16 +455,59 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     // TODO: Match up external functions at read time.
     printf("\nExternalFunctionTable: ");
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalFunctionCount);
-    printf("\n");
     {
-        nkuint32_t i;
-        for(i = 0; i < vm->externalFunctionCount; i++) {
-            printf("  ");
-            NKI_SERIALIZE_BASIC(
-                NKVMInternalFunctionID, vm->externalFunctionTable[i].internalFunctionId);
-            NKI_SERIALIZE_STRING(vm->externalFunctionTable[i].name);
-            printf("\n");
+        nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
+        NKI_SERIALIZE_BASIC(nkuint32_t, tmpExternalFunctionCount);
+
+        printf("\n");
+        {
+            nkuint32_t i;
+            NKVMExternalFunctionID *functionIdMapping = NULL;
+            if(!writeMode) {
+                functionIdMapping = nkiMalloc(
+                    vm, tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+                memset(
+                    functionIdMapping, NK_INVALID_VALUE,
+                    tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+            }
+
+            for(i = 0; i < tmpExternalFunctionCount; i++) {
+
+                struct NKVMExternalFunction tmpExternalFunc = {0};
+                if(writeMode) {
+                    tmpExternalFunc = vm->externalFunctionTable[i];
+                }
+
+                printf("  ");
+
+                NKI_SERIALIZE_BASIC(
+                    NKVMInternalFunctionID,
+                    tmpExternalFunc.internalFunctionId);
+
+                NKI_SERIALIZE_STRING(
+                    tmpExternalFunc.name);
+
+                // For loading, we need to find the existing external
+                // function.
+                if(!writeMode) {
+                    nkuint32_t n;
+                    for(n = 0; n < vm->externalFunctionCount; n++) {
+                        if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
+                            functionIdMapping[i].id = n;
+                            vm->externalFunctionTable[n].internalFunctionId =
+                                tmpExternalFunc.internalFunctionId;
+                            break;
+                        }
+                    }
+                }
+
+                printf("\n");
+
+            }
+
+            if(!writeMode) {
+                nkiFree(vm, functionIdMapping);
+            }
         }
     }
 
