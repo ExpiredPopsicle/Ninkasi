@@ -352,23 +352,8 @@ nkbool nkiSerializeStringTable(
     return nktrue;
 }
 
-#define NKI_VERSION 1
-
-nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
+nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
-    // Clean up before serializing.
-
-    printf("\nVM serialize: ");
-
-    // Serialize version number.
-    {
-        nkuint32_t version = NKI_VERSION;
-        NKI_SERIALIZE_BASIC(nkuint32_t, version);
-        if(version != NKI_VERSION) {
-            return nkfalse;
-        }
-    }
-
     printf("\nInstructions: ");
     {
         // Find the actual end of the instruction buffer.
@@ -414,6 +399,29 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
             }
         }
     }
+
+    return nktrue;
+}
+
+#define NKI_VERSION 1
+
+nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
+{
+    // Clean up before serializing.
+
+    printf("\nVM serialize: ");
+
+    // Serialize version number.
+    {
+        nkuint32_t version = NKI_VERSION;
+        NKI_SERIALIZE_BASIC(nkuint32_t, version);
+        if(version != NKI_VERSION) {
+            return nkfalse;
+        }
+    }
+
+    NKI_WRAPSERIALIZE(
+        nkiSerializeInstructions(vm, writer, userdata, writeMode));
 
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
