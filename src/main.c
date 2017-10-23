@@ -583,8 +583,22 @@ int main(int argc, char *argv[])
 
             {
                 struct NKVM *newVm = nkxVmCreate();
+
+                nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
+                nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
+                nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
+                nkxVmRegisterExternalFunction(newVm, "hash", getHash);
+                nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
+                nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
+                nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
+                nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
+                nkxVmRegisterExternalType(newVm, "footype");
+
                 printf("Deserializing...\n");
-                nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+                {
+                    nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+                    assert(b);
+                }
                 nkxVmDelete(newVm);
             }
 

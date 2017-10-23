@@ -270,8 +270,8 @@ nkbool nkiSerializeStringTable(
 
             for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
-                    printf("\n  Object: ");
                     char *tmp = vm->stringTable.stringTable[i]->str;
+                    printf("\n  Object: ");
                     NKI_SERIALIZE_BASIC(nkuint32_t, i);
                     printf("\n    String: ");
                     NKI_SERIALIZE_STRING(tmp);
@@ -307,7 +307,7 @@ nkbool nkiSerializeStringTable(
 
                     assert(vm->stringTable.stringTable[i]);
 
-                    printf("size: %u\n", size);
+                    // printf("size: %u\n", size);
 
                     memset(vm->stringTable.stringTable[i], 0, size);
                     memcpy(vm->stringTable.stringTable[i]->str, tmpStr, strlen(tmpStr) + 1);
@@ -420,8 +420,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
-    NKI_WRAPSERIALIZE(
-        nkiSerializeInstructions(vm, writer, userdata, writeMode));
+    // NKI_WRAPSERIALIZE(
+    //     nkiSerializeInstructions(vm, writer, userdata, writeMode));
 
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
@@ -472,75 +472,101 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     // Save the external function table or match up existing external
     // functions to loaded external functions at read time.
-    printf("\nExternalFunctionTable: ");
     {
-        nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
-        NKI_SERIALIZE_BASIC(nkuint32_t, tmpExternalFunctionCount);
 
+        NKVMExternalFunctionID *functionIdMapping = NULL;
+        nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
+
+        printf("\nExternalFunctionTable: ");
+        {
+            NKI_SERIALIZE_BASIC(nkuint32_t, tmpExternalFunctionCount);
+
+            printf("\n");
+            {
+                nkuint32_t i;
+                if(!writeMode) {
+                    functionIdMapping = nkiMalloc(
+                        vm, tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+                    memset(
+                        functionIdMapping, NK_INVALID_VALUE,
+                        tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+                }
+
+                for(i = 0; i < tmpExternalFunctionCount; i++) {
+
+                    struct NKVMExternalFunction tmpExternalFunc = {0};
+                    if(writeMode) {
+                        tmpExternalFunc = vm->externalFunctionTable[i];
+                    }
+
+                    printf("  ");
+
+                    NKI_SERIALIZE_BASIC(
+                        NKVMInternalFunctionID,
+                        tmpExternalFunc.internalFunctionId);
+
+                    NKI_SERIALIZE_STRING(
+                        tmpExternalFunc.name);
+
+                    // For loading, we need to find the existing external
+                    // function.
+                    if(!writeMode) {
+                        nkuint32_t n;
+                        for(n = 0; n < vm->externalFunctionCount; n++) {
+                            if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
+                                functionIdMapping[i].id = n;
+                                vm->externalFunctionTable[n].internalFunctionId =
+                                    tmpExternalFunc.internalFunctionId;
+                                break;
+                            }
+                        }
+                    }
+
+                    printf("\n");
+
+                }
+
+            }
+        }
+
+        printf("\nFunctionTable: ");
+        NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionCount);
         printf("\n");
         {
             nkuint32_t i;
-            NKVMExternalFunctionID *functionIdMapping = NULL;
+
+            // Reallocate internal function table for read mode.
             if(!writeMode) {
-                functionIdMapping = nkiMalloc(
-                    vm, tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
-                memset(
-                    functionIdMapping, NK_INVALID_VALUE,
-                    tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+                nkiFree(vm, vm->functionTable);
+                vm->functionTable = nkiMalloc(vm, sizeof(struct NKVMFunction) * vm->functionCount);
+                memset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
             }
 
-            for(i = 0; i < tmpExternalFunctionCount; i++) {
-
-                struct NKVMExternalFunction tmpExternalFunc = {0};
-                if(writeMode) {
-                    tmpExternalFunc = vm->externalFunctionTable[i];
-                }
-
+            for(i = 0; i < vm->functionCount; i++) {
                 printf("  ");
+                NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].argumentCount);
+                NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].firstInstructionIndex);
+                NKI_SERIALIZE_BASIC(NKVMExternalFunctionID, vm->functionTable[i].externalFunctionId);
 
-                NKI_SERIALIZE_BASIC(
-                    NKVMInternalFunctionID,
-                    tmpExternalFunc.internalFunctionId);
-
-                NKI_SERIALIZE_STRING(
-                    tmpExternalFunc.name);
-
-                // For loading, we need to find the existing external
-                // function.
+                // Remap external function ID.
                 if(!writeMode) {
-                    nkuint32_t n;
-                    for(n = 0; n < vm->externalFunctionCount; n++) {
-                        if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
-                            functionIdMapping[i].id = n;
-                            vm->externalFunctionTable[n].internalFunctionId =
-                                tmpExternalFunc.internalFunctionId;
-                            break;
+                    // printf("id:    %u\n", vm->functionTable[i].externalFunctionId.id);
+                    // printf("count: %u\n", vm->externalFunctionCount);
+                    if(vm->functionTable[i].externalFunctionId.id != NK_INVALID_VALUE) {
+                        if(vm->functionTable[i].externalFunctionId.id <= tmpExternalFunctionCount) {
+                            vm->functionTable[i].externalFunctionId =
+                                functionIdMapping[vm->functionTable[i].externalFunctionId.id];
+                        } else {
+                            return nkfalse;
                         }
                     }
                 }
-
                 printf("\n");
-
-            }
-
-            if(!writeMode) {
-                nkiFree(vm, functionIdMapping);
             }
         }
-    }
 
-    // TODO: Reallocate internal function table for read mode.
-    printf("\nFunctionTable: ");
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionCount);
-    printf("\n");
-    {
-        nkuint32_t i;
-        for(i = 0; i < vm->functionCount; i++) {
-            printf("  ");
-            NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].argumentCount);
-            NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionTable[i].firstInstructionIndex);
-            NKI_SERIALIZE_BASIC(NKVMExternalFunctionID, vm->functionTable[i].externalFunctionId);
-            printf("\n");
+        if(!writeMode) {
+            nkiFree(vm, functionIdMapping);
         }
     }
 
@@ -551,11 +577,44 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     printf("\n");
     {
         nkuint32_t i;
+
+        if(!writeMode) {
+            nkiFree(vm, vm->globalVariables);
+            nkiFree(vm, vm->globalVariableNameStorage);
+            vm->globalVariables = nkiMalloc(
+                vm, sizeof(vm->globalVariables[0]) *
+                vm->globalVariableCount);
+        }
+
         for(i = 0; i < vm->globalVariableCount; i++) {
             printf("  ");
             NKI_SERIALIZE_STRING(vm->globalVariables[i].name);
             NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariables[i].staticPosition);
             printf("\n");
+        }
+
+        // Convert individually heap-allocated names to a single chunk
+        // of memory.
+        if(!writeMode) {
+
+            char *storagePtr;
+            nkuint32_t storageSize = 0;
+
+            for(i = 0; i < vm->globalVariableCount; i++) {
+                storageSize += strlen(vm->globalVariables[i].name) + 1;
+            }
+
+            vm->globalVariableNameStorage = nkiMalloc(vm, storageSize);
+
+            storagePtr = vm->globalVariableNameStorage;
+
+            for(i = 0; i < vm->globalVariableCount; i++) {
+                nkuint32_t len = strlen(vm->globalVariables[i].name) + 1;
+                memcpy(storagePtr, vm->globalVariables[i].name, len);
+                nkiFree(vm, (char*)vm->globalVariables[i].name);
+                vm->globalVariables[i].name = storagePtr;
+                storagePtr += len;
+            }
         }
     }
 
@@ -576,14 +635,68 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // TODO: Match up internal/external types. Will this mean going
     // through and fixing up objects afterwards?
     printf("\nExternalTypeNames: ");
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->externalTypeCount);
-    printf("\n");
     {
-        nkuint32_t i;
-        for(i = 0; i < vm->externalTypeCount; i++) {
-            printf("  ");
-            NKI_SERIALIZE_STRING(vm->externalTypeNames[i]);
-            printf("\n");
+        nkuint32_t serializedTypeCount = vm->externalTypeCount;
+        NKI_SERIALIZE_BASIC(nkuint32_t, serializedTypeCount);
+
+        printf("\n");
+
+        {
+            nkuint32_t i;
+
+            nkuint32_t *typeMapping = NULL;
+            if(!writeMode) {
+                typeMapping = nkiMalloc(vm, sizeof(nkuint32_t) * serializedTypeCount);
+            }
+
+            for(i = 0; i < serializedTypeCount; i++) {
+                char *typeName = NULL;
+                if(writeMode) {
+                    typeName = vm->externalTypeNames[i];
+                }
+
+                printf("  ");
+                NKI_SERIALIZE_STRING(typeName);
+                printf("\n");
+
+                if(!writeMode) {
+
+                    nkuint32_t n;
+
+                    for(n = 0; n < vm->externalTypeCount; n++) {
+                        if(!strcmp(vm->externalTypeNames[n], typeName)) {
+                            typeMapping[i] = n;
+                            break;
+                        }
+                    }
+
+                    if(n == vm->externalTypeCount) {
+                        // Couldn't find a matching type to the one we
+                        // loaded.
+                        return nkfalse;
+                    }
+                }
+            }
+
+            if(!writeMode) {
+
+                nkuint32_t i;
+
+                for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+                    if(vm->objectTable.objectTable[i]) {
+                        if(vm->objectTable.objectTable[i]->externalDataType.id != NK_INVALID_VALUE) {
+                            if(vm->objectTable.objectTable[i]->externalDataType.id < serializedTypeCount) {
+                                vm->objectTable.objectTable[i]->externalDataType.id =
+                                    typeMapping[vm->objectTable.objectTable[i]->externalDataType.id];
+                            } else {
+                                return nkfalse;
+                            }
+                        }
+                    }
+                }
+
+                nkiFree(vm, typeMapping);
+            }
         }
     }
 
