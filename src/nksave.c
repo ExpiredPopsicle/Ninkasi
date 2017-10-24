@@ -1,4 +1,5 @@
 #include "nkcommon.h"
+#include "nkconfig.h"
 
 // Wrapper for all of our serialization helpers that just adds some
 // error checking and handling.
@@ -238,6 +239,7 @@ nkbool nkiSerializeObjectTable(
                     nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
                 hole->next = vm->objectTable.tableHoles;
                 hole->index = i;
+                vm->objectTable.tableHoles = hole;
             }
         }
     }
@@ -405,13 +407,13 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         printf("\n");
         {
             nkuint32_t i;
-            for(i = 0; i < instructionLimitSearch; i++) {
+            for(i = 0; i <= instructionLimitSearch; i++) {
                 printf("  ");
-              #if NK_VM_DEBUG
-                NKI_SERIALIZE_DATA(&vm->instructions[i], 4);
-              #else
+              // #if NK_VM_DEBUG
+              //   NKI_SERIALIZE_DATA(&vm->instructions[i], 4);
+              // #else
                 NKI_SERIALIZE_BASIC(struct NKInstruction, vm->instructions[i]);
-              #endif
+              // #endif
                 printf("\n");
             }
         }
@@ -536,7 +538,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                     // For loading, we need to find the existing external
                     // function.
                     if(!writeMode) {
+
                         nkuint32_t n;
+
                         for(n = 0; n < vm->externalFunctionCount; n++) {
                             if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
                                 functionIdMapping[i].id = n;
@@ -545,6 +549,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                                 break;
                             }
                         }
+
+                        nkiFree(vm, tmpExternalFunc.name);
                     }
 
                     printf("\n");
@@ -700,6 +706,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                         // loaded.
                         return nkfalse;
                     }
+
+                    nkiFree(vm, typeName);
                 }
             }
 

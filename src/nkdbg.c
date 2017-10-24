@@ -95,7 +95,7 @@ void nkiDbgDumpRaw(FILE *stream, void *data, nkuint32_t len)
     }
 }
 
-void nkiDbgDumpState(const struct NKVM *vm, FILE *stream)
+void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 {
     nkuint32_t i;
 
@@ -130,5 +130,35 @@ void nkiDbgDumpState(const struct NKVM *vm, FILE *stream)
 
     fprintf(stream, "Instructions:\n");
     fprintf(stream, "  instructionAddressMask: %u\n", vm->instructionAddressMask);
+    fprintf(stream, "  instructionPointer:     %u\n", vm->instructionPointer);
+    for(i = 0; i <= vm->instructionAddressMask; i++) {
+        fprintf(stream, "    %4x: ", i);
+        nkiDbgDumpRaw(stream, &vm->instructions[i], sizeof(vm->instructions[i]));
+        fprintf(stream, "\n");
+    }
+
+    fprintf(stream, "String table:\n");
+    fprintf(stream, "  capacity: %u\n", vm->stringTable.stringTableCapacity);
+    fprintf(stream, "  holes:\n");
+    {
+        char *holeTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity);
+        struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+
+        memset(holeTracker, 0, vm->stringTable.stringTableCapacity);
+
+        while(hole) {
+            assert(!holeTracker[hole->index]);
+            holeTracker[hole->index] = 1;
+            hole = hole->next;
+        }
+
+        for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+            if(holeTracker[i]) {
+                fprintf(stream, "    %4x\n", i);
+            }
+        }
+
+        nkiFree(vm, holeTracker);
+    }
 }
 

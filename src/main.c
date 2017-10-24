@@ -586,7 +586,7 @@ int main(int argc, char *argv[])
 
             {
                 FILE *out1 = fopen("stest1.txt", "w+");
-                nkiDbgDumpState(vm, out1);
+                nkxDbgDumpState(vm, out1);
                 fclose(out1);
             }
 
@@ -611,7 +611,7 @@ int main(int argc, char *argv[])
 
                 {
                     FILE *out2 = fopen("stest2.txt", "w+");
-                    nkiDbgDumpState(newVm, out2);
+                    nkxDbgDumpState(newVm, out2);
                     fclose(out2);
                 }
 

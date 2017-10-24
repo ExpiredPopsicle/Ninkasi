@@ -57,7 +57,14 @@ void nkiDbgPop_real(const char *func);
 #define nkiDbgPush() do { nkiDbgPush_real(""); } while(0)
 #define nkiDbgPop() do { nkiDbgPop_real(""); } while(0)
 
-void nkiDbgDumpState(const struct NKVM *vm, FILE *stream);
+void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
+
+
+// FIXME: Move this into nkx.
+
+/// Dump the entire state of the VM. For comparison when testing
+/// serialized data.
+void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
 #endif // NINKASI_VMDBG_H
 

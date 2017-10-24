@@ -459,3 +459,11 @@ nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
+
+void nkxDbgDumpState(struct NKVM *vm, FILE *stream)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiDbgDumpState(vm, stream);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
