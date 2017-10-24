@@ -85,11 +85,17 @@ nkbool nkiSerializeErrorState(
     // Save error count.
     NKI_SERIALIZE_BASIC(nkuint32_t, errorCount);
 
-    // Save each error.
-    while(err) {
-        NKI_SERIALIZE_STRING(err->errorText);
-        err = err->next;
+    // FIXME: Not set up to deserialize!
+    if(!writeMode) {
+        return nktrue;
     }
+
+    // // Save each error.
+    // while(err) {
+    //     char *tmp = err->errorText;
+    //     NKI_SERIALIZE_STRING(tmp);
+    //     err = err->next;
+    // }
 
     return nktrue;
 }
@@ -141,6 +147,14 @@ nkbool nkiSerializeObject(
     return nktrue;
 }
 
+nkbool nkiIsPow2(nkuint32_t x)
+{
+    if(x && (x & (x - 1))) {
+        return nkfalse;
+    }
+    return nktrue;
+}
+
 nkbool nkiSerializeObjectTable(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
@@ -152,6 +166,9 @@ nkbool nkiSerializeObjectTable(
     // FIXME: Ensure objectTableCapacity is a power of two, or find a
     // better way to store it!
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.objectTableCapacity);
+    if(!nkiIsPow2(vm->objectTable.objectTableCapacity)) {
+        return nkfalse;
+    }
 
     if(writeMode) {
 
@@ -420,8 +437,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
-    // NKI_WRAPSERIALIZE(
-    //     nkiSerializeInstructions(vm, writer, userdata, writeMode));
+    NKI_WRAPSERIALIZE(
+        nkiSerializeInstructions(vm, writer, userdata, writeMode));
 
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
@@ -430,6 +447,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // way to store it.)
     printf("\nStaticSpaceSize: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
+    if(!nkiIsPow2(vm->staticAddressMask + 1)) {
+        return nkfalse;
+    }
 
     printf("\nStaticSpace: ");
 
@@ -446,14 +466,19 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     printf("\nStackSize: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.capacity);
+    if(!nkiIsPow2(vm->stack.capacity)) {
+        return nkfalse;
+    }
+    vm->stack.indexMask = vm->stack.capacity - 1;
 
     // Make new stack space for read mode.
     if(!writeMode) {
         nkiFree(vm, vm->stack.values);
         vm->stack.values = nkiMalloc(vm,
-            sizeof(struct NKValue) * (vm->stack.size));
+            sizeof(struct NKValue) * (vm->stack.capacity));
         memset(vm->stack.values, 0,
-            sizeof(struct NKValue) * (vm->stack.size));
+            sizeof(struct NKValue) * (vm->stack.capacity));
     }
 
     NKI_SERIALIZE_DATA(

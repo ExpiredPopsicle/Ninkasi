@@ -46,6 +46,8 @@
 #ifndef NINKASI_VMDBG_H
 #define NINKASI_VMDBG_H
 
+#include <stdio.h>
+
 int nkiDbgWriteLine(const char *fmt, ...);
 void nkiDbgPush_real(const char *func);
 void nkiDbgPop_real(const char *func);
@@ -54,6 +56,8 @@ void nkiDbgPop_real(const char *func);
 // #define nkiDbgPop() do { nkiDbgPop_real(__FUNCTION__); } while(0)
 #define nkiDbgPush() do { nkiDbgPush_real(""); } while(0)
 #define nkiDbgPop() do { nkiDbgPop_real(""); } while(0)
+
+void nkiDbgDumpState(const struct NKVM *vm, FILE *stream);
 
 #endif // NINKASI_VMDBG_H
 

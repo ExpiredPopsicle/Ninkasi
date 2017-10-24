@@ -46,6 +46,9 @@
 // FIXME: Get rid of this.
 #include "nkvm.h"
 
+// FIXME: Get rid of this.
+#include "nkdbg.h"
+
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
@@ -582,6 +585,12 @@ int main(int argc, char *argv[])
             nkxVmSerialize(vm, writerTest, &buf, nktrue);
 
             {
+                FILE *out1 = fopen("stest1.txt", "w+");
+                nkiDbgDumpState(vm, out1);
+                fclose(out1);
+            }
+
+            {
                 struct NKVM *newVm = nkxVmCreate();
 
                 nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
@@ -599,6 +608,13 @@ int main(int argc, char *argv[])
                     nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
                     assert(b);
                 }
+
+                {
+                    FILE *out2 = fopen("stest2.txt", "w+");
+                    nkiDbgDumpState(newVm, out2);
+                    fclose(out2);
+                }
+
                 nkxVmDelete(newVm);
             }
 

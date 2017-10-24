@@ -81,3 +81,54 @@ void nkiDbgPop_real(const char *func)
     // nkiDbgIndentLevel--;
 }
 
+// ----------------------------------------------------------------------
+// State dump stuff.
+
+void nkiDbgDumpRaw(FILE *stream, void *data, nkuint32_t len)
+{
+    nkuint32_t i;
+    const char *lookup = "0123456789abcdef";
+    const char *ptr = (const char *)data;
+    for(i = 0; i < len; i++) {
+        fputc(lookup[(ptr[i] & 0xf0) >> 4], stream);
+        fputc(lookup[(ptr[i] & 0xf)], stream);
+    }
+}
+
+void nkiDbgDumpState(const struct NKVM *vm, FILE *stream)
+{
+    nkuint32_t i;
+
+    fprintf(stream, "Errors:\n");
+    {
+        struct NKError *err = vm->errorState.firstError;
+        while(err) {
+            fprintf(stream, "  %s\n", err->errorText);
+            err = err->next;
+        }
+    }
+
+    fprintf(stream, "Stack:\n");
+    fprintf(stream, "  Capacity:  %u\n", vm->stack.capacity);
+    fprintf(stream, "  Size:      %u\n", vm->stack.size);
+    fprintf(stream, "  IndexMask: %u\n", vm->stack.indexMask);
+    fprintf(stream, "  Elements:\n");
+    for(i = 0; i < vm->stack.size; i++) {
+        fprintf(stream, "    %4x: ", i);
+        nkiDbgDumpRaw(stream, &vm->stack.values[i], sizeof(vm->stack.values[i]));
+        fprintf(stream, "\n");
+    }
+
+    fprintf(stream, "Statics:\n");
+    fprintf(stream, "  staticAddressMask: %u\n", vm->staticAddressMask);
+    fprintf(stream, "  Elements:\n");
+    for(i = 0; i <= vm->staticAddressMask; i++) {
+        fprintf(stream, "    %4x: ", i);
+        nkiDbgDumpRaw(stream, &vm->staticSpace[i], sizeof(vm->staticSpace[i]));
+        fprintf(stream, "\n");
+    }
+
+    fprintf(stream, "Instructions:\n");
+    fprintf(stream, "  instructionAddressMask: %u\n", vm->instructionAddressMask);
+}
+
