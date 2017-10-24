@@ -208,6 +208,23 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
         nkiFree(vm, holeTracker);
     }
 
+    // TODO: Finish object table.
+
+    // TODO: GC stuff? I dunno if we should include that in the
+    // serialized state, but we can. Also, we should dump it here
+    // regardless of serialization.
+
+    // TODO: Functions.
+
+    // TODO: External functions.
+
+    // TODO: Global variables.
+
+    // TODO: Memory limits (even if not serialized).
+
+    // TODO: Check allocations? Same number?
+
+    // TODO: External types.
 
 }
 
