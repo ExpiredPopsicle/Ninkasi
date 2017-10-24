@@ -160,5 +160,54 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
         nkiFree(vm, holeTracker);
     }
+    {
+        nkuint32_t *bucketTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity * 4);
+        for(i = 0; i < nkiVmStringHashTableSize; i++) {
+            struct NKVMString *str = vm->stringTable.stringsByHash[i];
+            while(str) {
+                bucketTracker[str->stringTableIndex] = i;
+                str = str->nextInHashBucket;
+            }
+        }
+        nkiFree(vm, bucketTracker);
+    }
+    fprintf(stream, "  strings:\n");
+    for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+        if(vm->stringTable.stringTable[i]) {
+            fprintf(stream, "    string %4x:\n", i);
+            fprintf(stream, "      stringTableIndex: %u\n", vm->stringTable.stringTable[i]->stringTableIndex);
+            fprintf(stream, "      dontGC:           %u\n", vm->stringTable.stringTable[i]->dontGC);
+            fprintf(stream, "      hash:             %u\n", vm->stringTable.stringTable[i]->hash);
+            fprintf(stream, "      data:             ");
+            nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, strlen(vm->stringTable.stringTable[i]->str));
+            fprintf(stream, "\n");
+        }
+    }
+
+    fprintf(stream, "objectTable:\n");
+    fprintf(stream, "  objectTableCapacity: %u\n", vm->objectTable.objectTableCapacity);
+    fprintf(stream, "  holes:\n");
+    {
+        char *holeTracker = nkiMalloc(vm, vm->objectTable.objectTableCapacity);
+        struct NKVMObjectTableHole *hole = vm->objectTable.tableHoles;
+
+        memset(holeTracker, 0, vm->objectTable.objectTableCapacity);
+
+        while(hole) {
+            assert(!holeTracker[hole->index]);
+            holeTracker[hole->index] = 1;
+            hole = hole->next;
+        }
+
+        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+            if(holeTracker[i]) {
+                fprintf(stream, "    %4x\n", i);
+            }
+        }
+
+        nkiFree(vm, holeTracker);
+    }
+
+
 }
 

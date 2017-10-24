@@ -208,10 +208,13 @@ nkbool nkiSerializeObjectTable(
 
         nkuint32_t i;
         for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
-            if(vm->objectTable.objectTable[i]) {
+            struct NKVMObject *object = vm->objectTable.objectTable[i];
+            if(object) {
+                assert(i == object->objectTableIndex);
+                NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
                 NKI_WRAPSERIALIZE(
                     nkiSerializeObject(
-                        vm, vm->objectTable.objectTable[i],
+                        vm, object,
                         writer, userdata, writeMode));
             }
         }
@@ -222,10 +225,11 @@ nkbool nkiSerializeObjectTable(
         for(i = 0; i < objectCount; i++) {
             struct NKVMObject *object = nkiMalloc(vm, sizeof(struct NKVMObject));
             memset(object, 0, sizeof(struct NKVMObject));
-            vm->objectTable.objectTable[i] = object;
+            NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
+            vm->objectTable.objectTable[object->objectTableIndex] = object;
             NKI_WRAPSERIALIZE(
                 nkiSerializeObject(
-                    vm, vm->objectTable.objectTable[i],
+                    vm, object,
                     writer, userdata, writeMode));
         }
     }
@@ -352,6 +356,26 @@ nkbool nkiSerializeStringTable(
                 }
 
             }
+
+            // // Reverse the order of the linked lists in the hash table
+            // // for consistency with what was saved.
+            // for(n = 0; n < nkiVmStringHashTableSize; n++) {
+
+            //     struct NKVMString **origList =
+            //         &vm->stringTable.stringsByHash[n];
+
+            //     struct NKVMString *tmp1 = NULL;
+            //     struct NKVMString *newList = NULL;
+
+            //     while(*origList) {
+            //         tmp1 = *origList;
+            //         *origList = tmp1->nextInHashBucket;
+            //         tmp1->nextInHashBucket = newList;
+            //         newList = tmp1;
+            //     }
+
+            //     *origList = newList;
+            // }
 
             // Create hole objects.
             for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
