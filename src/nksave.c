@@ -113,6 +113,32 @@ nkbool nkiSerializeObject(
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
     NKI_SERIALIZE_BASIC(NKVMExternalDataTypeID, object->externalDataType);
 
+    // Serialize all hash buckets.
+    if(writeMode) {
+        nkuint32_t n;
+        for(n = 0; n < nkiVMObjectHashBucketCount; n++) {
+            struct NKVMObjectElement *el = object->hashBuckets[n];
+            while(el) {
+                NKI_SERIALIZE_BASIC(struct NKValue, el->key);
+                NKI_SERIALIZE_BASIC(struct NKValue, el->value);
+                el = el->next;
+            }
+        }
+    } else {
+        nkuint32_t loadedSize = object->size;
+        nkuint32_t n;
+        object->size = 0;
+        for(n = 0; n < loadedSize; n++) {
+            struct NKValue key;
+            struct NKValue *value;
+            NKI_SERIALIZE_BASIC(struct NKValue, key);
+            value = nkiVmObjectFindOrAddEntry(vm, object, &key, nkfalse);
+            if(value) {
+                NKI_SERIALIZE_BASIC(struct NKValue, *value);
+            }
+        }
+    }
+
     // External serialization callback.
     if(object->serializationCallback.id != NK_INVALID_VALUE) {
         if(object->serializationCallback.id < vm->functionCount) {
@@ -142,6 +168,19 @@ nkbool nkiSerializeObject(
                     }
                 }
             }
+        }
+    }
+
+    // If we're loading, we need to reconstruct the external handle
+    // list.
+    if(!writeMode) {
+        if(object->externalHandleCount) {
+            if(vm->objectTable.objectsWithExternalHandles) {
+                vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
+                    &object->nextObjectWithExternalHandles;
+            }
+            object->nextObjectWithExternalHandles = vm->objectTable.objectsWithExternalHandles;
+            vm->objectTable.objectsWithExternalHandles = object;
         }
     }
 

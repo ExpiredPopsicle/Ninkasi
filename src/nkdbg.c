@@ -114,7 +114,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  IndexMask: %u\n", vm->stack.indexMask);
     fprintf(stream, "  Elements:\n");
     for(i = 0; i < vm->stack.size; i++) {
-        fprintf(stream, "    %4x: ", i);
+        fprintf(stream, "    %u: ", i);
         nkiDbgDumpRaw(stream, &vm->stack.values[i], sizeof(vm->stack.values[i]));
         fprintf(stream, "\n");
     }
@@ -123,7 +123,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  staticAddressMask: %u\n", vm->staticAddressMask);
     fprintf(stream, "  Elements:\n");
     for(i = 0; i <= vm->staticAddressMask; i++) {
-        fprintf(stream, "    %4x: ", i);
+        fprintf(stream, "    %u: ", i);
         nkiDbgDumpRaw(stream, &vm->staticSpace[i], sizeof(vm->staticSpace[i]));
         fprintf(stream, "\n");
     }
@@ -132,7 +132,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  instructionAddressMask: %u\n", vm->instructionAddressMask);
     fprintf(stream, "  instructionPointer:     %u\n", vm->instructionPointer);
     for(i = 0; i <= vm->instructionAddressMask; i++) {
-        fprintf(stream, "    %4x: ", i);
+        fprintf(stream, "    %u: ", i);
         nkiDbgDumpRaw(stream, &vm->instructions[i], sizeof(vm->instructions[i]));
         fprintf(stream, "\n");
     }
@@ -154,7 +154,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
         for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
             if(holeTracker[i]) {
-                fprintf(stream, "    %4x\n", i);
+                fprintf(stream, "    %u\n", i);
             }
         }
 
@@ -174,7 +174,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  strings:\n");
     for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
         if(vm->stringTable.stringTable[i]) {
-            fprintf(stream, "    string %4x:\n", i);
+            fprintf(stream, "    string %u:\n", i);
             fprintf(stream, "      stringTableIndex: %u\n", vm->stringTable.stringTable[i]->stringTableIndex);
             fprintf(stream, "      dontGC:           %u\n", vm->stringTable.stringTable[i]->dontGC);
             fprintf(stream, "      hash:             %u\n", vm->stringTable.stringTable[i]->hash);
@@ -201,14 +201,46 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
         for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
             if(holeTracker[i]) {
-                fprintf(stream, "    %4x\n", i);
+                fprintf(stream, "    %u\n", i);
             }
         }
 
         nkiFree(vm, holeTracker);
     }
-
-    // TODO: Finish object table.
+    fprintf(stream, "  objects:\n");
+    for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        if(vm->objectTable.objectTable[i]) {
+            struct NKVMObject *ob = vm->objectTable.objectTable[i];
+            fprintf(stream, "    %u\n", i);
+            fprintf(stream, "      index: %u\n", ob->objectTableIndex);
+            fprintf(stream, "      size: %u\n", ob->size);
+            fprintf(stream, "      external handles: %u\n", ob->externalHandleCount);
+            fprintf(stream, "      hashbuckets:\n");
+            {
+                nkuint32_t n;
+                for(n = 0; n < nkiVMObjectHashBucketCount; n++) {
+                    // FIXME: Output values here in a deterministic
+                    // order, instead of just however they showed up
+                    // in the list.
+                    struct NKVMObjectElement *el = ob->hashBuckets[n];
+                    if(el) {
+                        fprintf(stream, "        %u:\n", n);
+                        while(el) {
+                            fprintf(stream, "          key: ");
+                            nkiDbgDumpRaw(stream, &el->key, sizeof(el->key));
+                            fprintf(stream, "\n          value: ");
+                            nkiDbgDumpRaw(stream, &el->value, sizeof(el->value));
+                            fprintf(stream, "\n");
+                            el = el->next;
+                        }
+                    }
+                }
+            }
+            fprintf(stream, "      gcCallback: %u\n", ob->gcCallback.id);
+            fprintf(stream, "      serializationCallback: %u\n", ob->serializationCallback.id);
+            fprintf(stream, "      externalDataType: %u\n", ob->externalDataType.id);
+        }
+    }
 
     // TODO: GC stuff? I dunno if we should include that in the
     // serialized state, but we can. Also, we should dump it here
