@@ -316,7 +316,7 @@ struct NKVMGCState
     struct NKVMValueGCEntry *closedList; // We'll keep this just for re-using allocations.
 };
 
-struct NKVMValueGCEntry *vmGcStateMakeEntry(struct NKVMGCState *state)
+struct NKVMValueGCEntry *nkiVmGcStateMakeEntry(struct NKVMGCState *state)
 {
     struct NKVMValueGCEntry *ret = NULL;
 
@@ -357,7 +357,7 @@ void nkiVmGarbageCollect_markObject(
                 if(v->type == NK_VALUETYPE_STRING ||
                     v->type == NK_VALUETYPE_OBJECTID)
                 {
-                    struct NKVMValueGCEntry *newEntry = vmGcStateMakeEntry(gcState);
+                    struct NKVMValueGCEntry *newEntry = nkiVmGcStateMakeEntry(gcState);
                     newEntry->value = v;
                 }
             }
@@ -377,7 +377,7 @@ void nkiVmGarbageCollect_markValue(
     }
 
     {
-        struct NKVMValueGCEntry *entry = vmGcStateMakeEntry(gcState);
+        struct NKVMValueGCEntry *entry = nkiVmGcStateMakeEntry(gcState);
         entry->value = v;
     }
 }

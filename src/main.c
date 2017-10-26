@@ -601,6 +601,9 @@ int main(int argc, char *argv[])
                 nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
                 nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
                 nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
+                nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
+                nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
+
                 nkxVmRegisterExternalType(newVm, "footype");
 
                 printf("Deserializing...\n");

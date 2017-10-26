@@ -179,6 +179,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             fprintf(stream, "      dontGC:           %u\n", vm->stringTable.stringTable[i]->dontGC);
             fprintf(stream, "      hash:             %u\n", vm->stringTable.stringTable[i]->hash);
             fprintf(stream, "      data:             ");
+            fprintf(stream, "      lastGCPass:       %u\n", vm->stringTable.stringTable[i]->lastGCPass);
             nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, strlen(vm->stringTable.stringTable[i]->str));
             fprintf(stream, "\n");
         }
@@ -213,6 +214,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             struct NKVMObject *ob = vm->objectTable.objectTable[i];
             fprintf(stream, "    %u\n", i);
             fprintf(stream, "      index: %u\n", ob->objectTableIndex);
+            fprintf(stream, "      lastGCPass: %u\n", ob->lastGCPass);
             fprintf(stream, "      size: %u\n", ob->size);
             fprintf(stream, "      external handles: %u\n", ob->externalHandleCount);
             fprintf(stream, "      hashbuckets:\n");
@@ -242,21 +244,52 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
         }
     }
 
-    // TODO: GC stuff? I dunno if we should include that in the
-    // serialized state, but we can. Also, we should dump it here
-    // regardless of serialization.
+    // Functions.
+    fprintf(stream, "functions: %u\n", vm->functionCount);
+    for(i = 0; i < vm->functionCount; i++) {
+        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "    argumentCount: %u\n", vm->functionTable[i].argumentCount);
+        fprintf(stream, "    firstInstructionIndex: %u\n", vm->functionTable[i].firstInstructionIndex);
+        fprintf(stream, "    externalFunctionId: %u\n", vm->functionTable[i].externalFunctionId.id);
+    }
 
-    // TODO: Functions.
+    // External functions.
+    fprintf(stream, "external functions: %u\n", vm->externalFunctionCount);
+    for(i = 0; i < vm->externalFunctionCount; i++) {
+        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "    name: %s\n", vm->externalFunctionTable[i].name);
+        fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
+        fprintf(stream, "    internalFunctionId: %u\n", vm->externalFunctionTable[i].internalFunctionId.id);
+    }
 
-    // TODO: External functions.
+    // Global variables.
+    fprintf(stream, "globals: %u\n", vm->globalVariableCount);
+    for(i = 0; i < vm->globalVariableCount; i++) {
+        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "    name: %s\n", vm->globalVariables[i].name);
+        fprintf(stream, "    staticPosition: %u\n", vm->globalVariables[i].staticPosition);
+    }
 
-    // TODO: Global variables.
+    // External types.
+    fprintf(stream, "externalTypeNames: %u\n", vm->externalTypeCount);
+    for(i = 0; i < vm->externalTypeCount; i++) {
+        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "    name: %s\n", vm->externalTypeNames[i]);
+    }
+
+    // GC stuff? I dunno if we should include that in the serialized
+    // state, but we can. Also, we should dump it here regardless of
+    // serialization.
+    fprintf(stream, "Gc stuff:\n");
+    fprintf(stream, "  lastGCPass: %u\n", vm->lastGCPass);
+    fprintf(stream, "  gcInterval: %u\n", vm->gcInterval);
+    fprintf(stream, "  gcCountdown: %u\n", vm->gcCountdown);
+    fprintf(stream, "  gcNewObjectInterval: %u\n", vm->gcNewObjectInterval);
+    fprintf(stream, "  gcNewObjectCountdown: %u\n", vm->gcNewObjectCountdown);
 
     // TODO: Memory limits (even if not serialized).
 
-    // TODO: Check allocations? Same number?
-
-    // TODO: External types.
-
+    // Check allocations? Same number?
+    fprintf(stream, "Current memory usage: %u\n", vm->currentMemoryUsage);
 }
 

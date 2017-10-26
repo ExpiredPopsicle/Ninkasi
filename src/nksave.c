@@ -109,6 +109,7 @@ nkbool nkiSerializeObject(
     NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
+    NKI_SERIALIZE_BASIC(nkuint32_t, object->lastGCPass);
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->gcCallback);
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
     NKI_SERIALIZE_BASIC(NKVMExternalDataTypeID, object->externalDataType);
@@ -337,6 +338,8 @@ nkbool nkiSerializeStringTable(
                     NKI_SERIALIZE_BASIC(nkuint32_t, i);
                     printf("\n    String: ");
                     NKI_SERIALIZE_STRING(tmp);
+                    printf("\n    lastGCPass: ");
+                    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTable[i]->lastGCPass);
                     printf("\n    DontGC: ");
                     NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
                 }
@@ -376,6 +379,9 @@ nkbool nkiSerializeStringTable(
                     nkiFree(vm, tmpStr);
 
                     assert(vm->stringTable.stringTable[i]);
+
+                    printf("\n    lastGCPass: ");
+                    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTable[i]->lastGCPass);
 
                     printf("\n    DontGC: ");
                     NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
@@ -557,8 +563,16 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     NKI_WRAPSERIALIZE(nkiSerializeObjectTable(vm, writer, userdata, writeMode));
 
-    // Skip GC state (serialized data doesn't get to decide anything
-    // about the GC).
+    // GC state. Exposing the garbage collector parameters to someone
+    // writing a malicious binary is an issue if the memory usage
+    // limits are not set, but right now I think we should go with the
+    // most consistency between serialized and deserialized versions
+    // of stuff.
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->lastGCPass);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInterval);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcCountdown);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectInterval);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectCountdown);
 
     // Save the external function table or match up existing external
     // functions to loaded external functions at read time.

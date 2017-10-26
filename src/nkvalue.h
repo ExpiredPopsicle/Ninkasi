@@ -62,6 +62,10 @@ struct NKVM;
 struct NKValue
 {
     enum NKValueType type;
+
+    // FIXME: We shouldn't have this for values. Just strings and
+    // objects. But it'll take some work refactoring the garbage
+    // collector to fix this.
     nkuint32_t lastGCPass;
 
     union
