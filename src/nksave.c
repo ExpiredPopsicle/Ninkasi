@@ -239,10 +239,15 @@ nkbool nkiSerializeObjectTable(
         }
     }
 
+    printf("\nObjectCount: ");
+
     NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
-    if(objectCount >= vm->objectTable.objectTableCapacity) {
+    if(objectCount > vm->objectTable.objectTableCapacity) {
+        printf("\nBAD COUNT: %u >= %u\n", objectCount, vm->objectTable.objectTableCapacity);
         return nkfalse;
     }
+
+    printf("\nObjects: ");
 
     if(writeMode) {
 
@@ -273,6 +278,8 @@ nkbool nkiSerializeObjectTable(
                     writer, userdata, writeMode));
         }
     }
+
+    printf("\nRebuild holes: ");
 
     // Recreate holes for read mode.
     if(!writeMode) {
@@ -437,6 +444,8 @@ nkbool nkiSerializeStringTable(
 
     }
 
+    printf("\nStringtable complete\n");
+
     return nktrue;
 }
 
@@ -561,18 +570,18 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     NKI_WRAPSERIALIZE(nkiSerializeStringTable(vm, writer, userdata, writeMode));
 
-    NKI_WRAPSERIALIZE(nkiSerializeObjectTable(vm, writer, userdata, writeMode));
-
     // GC state. Exposing the garbage collector parameters to someone
     // writing a malicious binary is an issue if the memory usage
     // limits are not set, but right now I think we should go with the
     // most consistency between serialized and deserialized versions
     // of stuff.
+    printf("GC stuff:\n");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->lastGCPass);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInterval);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcCountdown);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectInterval);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectCountdown);
+    printf("\nGC stuff end:\n");
 
     // Save the external function table or match up existing external
     // functions to loaded external functions at read time.
@@ -677,6 +686,12 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
             nkiFree(vm, functionIdMapping);
         }
     }
+
+    // Serialize object table and objects. This MUST happen after the
+    // functions, because deserialization routines are set up there.
+    printf("\nObject table start\n");
+    NKI_WRAPSERIALIZE(nkiSerializeObjectTable(vm, writer, userdata, writeMode));
+    printf("\nObject table end\n");
 
     // TODO: Deal with the fact that we stuck all the global variable
     // names in one big chunk of memory for some dumb reason.

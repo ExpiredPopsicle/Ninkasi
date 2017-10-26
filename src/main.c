@@ -327,9 +327,10 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
 {
     printf("\nSerialization callback start!\n");
-    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-    data->vm->serializationState.writer("TEST", 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+    char tmp[5] = "TEST";
+    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
     printf("\nSerialization callback complete!\n");
 }
 
@@ -512,6 +513,65 @@ int main(int argc, char *argv[])
                         break;
                     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+                    {
+                        struct WriterTestBuffer buf;
+                        memset(&buf, 0, sizeof(buf));
+                        nkxVmSerialize(vm, writerTest, &buf, nktrue);
+
+                        {
+                            struct NKVM *newVm = nkxVmCreate();
+
+                            nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
+                            nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
+                            nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
+                            nkxVmRegisterExternalFunction(newVm, "hash", getHash);
+                            nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
+                            nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
+                            nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
+                            nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
+                            nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
+                            nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
+
+                            nkxVmRegisterExternalType(newVm, "footype");
+
+                            printf("Deserializing...\n");
+                            {
+                                nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+                                assert(b);
+                            }
+
+                            {
+                                FILE *out2 = fopen("stest2.txt", "w+");
+                                nkxDbgDumpState(newVm, out2);
+                                fclose(out2);
+                            }
+
+                            nkxVmDelete(vm);
+                            vm = newVm;
+                        }
+
+                        free(buf.data);
+                    }
+
+
+
+
+
+
+
+
                     instructionCountMax--;
                 }
 
@@ -541,6 +601,15 @@ int main(int argc, char *argv[])
                     err = err->next;
                 }
             }
+
+
+
+
+
+
+
+
+
 
             //     nkiVmStackDump(vm);
             //     // nkxVmGarbageCollect(vm);
