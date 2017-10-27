@@ -515,6 +515,7 @@ int main(int argc, char *argv[])
 
 
 
+                    fprintf(stderr, "IP: " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
 
 
 
@@ -552,11 +553,11 @@ int main(int argc, char *argv[])
                                 assert(b);
                             }
 
-                            {
-                                FILE *out2 = fopen("stest2.txt", "w+");
-                                nkxDbgDumpState(newVm, out2);
-                                fclose(out2);
-                            }
+                            // {
+                            //     FILE *out2 = fopen("stest2.txt", "w+");
+                            //     nkxDbgDumpState(newVm, out2);
+                            //     fclose(out2);
+                            // }
 
                             nkxVmDelete(vm);
                             vm = newVm;

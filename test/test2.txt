@@ -1,7 +1,7 @@
 
 
 
-for(var x = 0; x < 1000; ++x) {
+for(var x = 0; x < 10; ++x) {
     var c = newobject;
     setGCCallbackThing(c);
 }
@@ -368,7 +368,7 @@ var i;
 var butts = newobject;
 butts["asdf"] = anotherObTest;
 butts["asdf"]();
-for(i = 0; i < 2000; ++i) {
+for(i = 0; i < 20; ++i) {
     // print("GC abuse iteration: ");
     // print(i);
     // print("\n");
@@ -383,7 +383,7 @@ for(i = 0; i < 2000; ++i) {
     }
 }
 
-for(i = 0; i < 2000; ++i) {
+for(i = 0; i < 20; ++i) {
     butts[i] = nil;
 }
 

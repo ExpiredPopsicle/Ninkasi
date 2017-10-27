@@ -180,6 +180,7 @@ nkbool nkiSerializeObject(
                 vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
                     &object->nextObjectWithExternalHandles;
             }
+            object->previousExternalHandleListPtr = &vm->objectTable.objectsWithExternalHandles;
             object->nextObjectWithExternalHandles = vm->objectTable.objectsWithExternalHandles;
             vm->objectTable.objectsWithExternalHandles = object;
         }
