@@ -63,10 +63,10 @@ void nkiCompilerAddInstruction(
 
             cs->vm->instructionAddressMask <<= 1;
             cs->vm->instructionAddressMask |= 1;
-            cs->vm->instructions = nkiRealloc(
+            cs->vm->instructions = nkiReallocArray(
                 cs->vm,
                 cs->vm->instructions,
-                sizeof(struct NKInstruction) *
+                sizeof(struct NKInstruction),
                 newSize);
 
             // Clear the new area to NOPs.
@@ -295,10 +295,16 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
         vm->staticAddressMask <<= 1;
         vm->staticAddressMask |= 1;
 
+        if(vm->staticAddressMask == ~(nkuint32_t)0) {
+            nkiCompilerAddError(cs,
+                "Address space exhaustion trying to add static variable.");
+            return 0;
+        }
+
         // Reallocate and clear out the new space.
-        vm->staticSpace = nkiRealloc(
+        vm->staticSpace = nkiReallocArray(
             vm, vm->staticSpace,
-            sizeof(struct NKValue) * (vm->staticAddressMask + 1));
+            sizeof(struct NKValue), (vm->staticAddressMask + 1));
         memset(
             &vm->staticSpace[cs->staticVariableCount - 1], 0,
             (cs->staticVariableCount + 1) * sizeof(struct NKValue));
@@ -988,7 +994,7 @@ void nkiCompilerFinalize(
         cs->vm->globalVariableNameStorage = nkiMalloc(
             cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
-            nkiMalloc(cs->vm, sizeof(struct GlobalVariableRecord) * count);
+            nkiMallocArray(cs->vm, sizeof(struct GlobalVariableRecord), count);
         cs->vm->globalVariableCount = count;
 
         // Now run through it all again and actually assign data.
@@ -1403,8 +1409,8 @@ nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
         nkuint32_t jumpFixup = nkiCompilerEmitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
-            nkiRealloc(cs->vm, searchContext->loopContextFixups,
-                sizeof(*searchContext->loopContextFixups) *
+            nkiReallocArray(cs->vm, searchContext->loopContextFixups,
+                sizeof(*searchContext->loopContextFixups),
                 searchContext->loopContextFixupCount);
         searchContext->loopContextFixups[
             searchContext->loopContextFixupCount - 1] =

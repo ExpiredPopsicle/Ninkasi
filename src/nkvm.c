@@ -571,14 +571,15 @@ struct NKVMFunction *nkiVmCreateFunction(
         functionId->id = vm->functionCount++;
     }
 
-    vm->functionTable = nkiRealloc(
+    vm->functionTable = nkiReallocArray(
         vm,
         vm->functionTable,
-        sizeof(struct NKVMFunction) * vm->functionCount);
+        sizeof(struct NKVMFunction), vm->functionCount);
 
     memset(
         &vm->functionTable[vm->functionCount - 1], 0,
         sizeof(struct NKVMFunction));
+
     vm->functionTable[vm->functionCount - 1].externalFunctionId.id = NK_INVALID_VALUE;
 
     return &vm->functionTable[vm->functionCount - 1];
@@ -773,9 +774,9 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
         }
     }
 
-    vm->externalFunctionTable = nkiRealloc(
+    vm->externalFunctionTable = nkiReallocArray(
         vm, vm->externalFunctionTable,
-        vm->externalFunctionCount * sizeof(struct NKVMExternalFunction));
+        vm->externalFunctionCount, sizeof(struct NKVMExternalFunction));
 
     funcEntry = &vm->externalFunctionTable[vm->externalFunctionCount - 1];
     memset(funcEntry, 0, sizeof(*funcEntry));
@@ -844,9 +845,9 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
     ret.id = vm->externalTypeCount;
 
     vm->externalTypeCount++;
-    vm->externalTypeNames = nkiRealloc(
+    vm->externalTypeNames = nkiReallocArray(
         vm, vm->externalTypeNames,
-        sizeof(*(vm->externalTypeNames)) * vm->externalTypeCount);
+        sizeof(*(vm->externalTypeNames)), vm->externalTypeCount);
 
     vm->externalTypeNames[ret.id] = nkiStrdup(vm, name);
 

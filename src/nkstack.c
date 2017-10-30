@@ -68,16 +68,17 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
     // binaries.
     if(!stack->capacity) {
         stack->capacity = 1;
-        stack->values = nkiRealloc(
+        stack->values = nkiReallocArray(
             vm,
             stack->values,
-            stack->capacity * sizeof(struct NKValue));
+            stack->capacity, sizeof(struct NKValue));
+        memset(stack->values, 0, sizeof(struct NKValue));
     }
 
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
 
-        stack->capacity <<= 1;
+        // printf("Reallocating stack\n");
 
         // TODO: Add an adjustable stack size limit.
         if(stack->capacity > 0xffff) {
@@ -88,6 +89,13 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 
             return &stack->values[0];
         }
+
+        // Thanks AFL! Continued attempts to keep pushing stuff to the
+        // stack (even though the stack overflow had occurred) would
+        // cause the stack size to keep doubling anyway, but without
+        // any actual allocation. Now the stack capacity change
+        // happens AFTER the overflow check.
+        stack->capacity <<= 1;
 
         // TODO: Make a more reasonable stack space limit than "we ran
         // out of 32-bit integer".
@@ -107,19 +115,35 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 
         stack->indexMask <<= 1;
         stack->indexMask |= 1;
-        stack->values = nkiRealloc(
+        stack->values = nkiReallocArray(
             vm,
             stack->values,
-            stack->capacity * sizeof(struct NKValue));
+            stack->capacity, sizeof(struct NKValue));
 
         memset(
             &stack->values[stack->size], 0,
             sizeof(struct NKValue) * (stack->capacity - stack->size));
+
+    // } else {
+
+    //     printf("NOT reallocating stack\n");
+
     }
 
     {
         struct NKValue *ret = &stack->values[stack->size];
+
+        // printf("ret:                            %p\n", ret);
+        // printf("stack->values:                  %p\n", stack->values);
+        // printf("stack->values[stack->capacity]: %p\n", &stack->values[stack->capacity]);
+        // printf("stack->capacity:                %u\n", stack->capacity);
+        // printf("size:                           %u\n", stack->size);
+
+        assert(ret < stack->values + stack->capacity);
+
         stack->size++;
+
+        // assert(ret < stack->capacity);
         return ret;
     }
 }

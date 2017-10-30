@@ -65,8 +65,10 @@ struct NKMemoryHeader
 };
 
 void *nkiMalloc(struct NKVM *vm, nkuint32_t size);
+void *nkiMallocArray(struct NKVM *vm, nkuint32_t size, nkuint32_t count);
 void nkiFree(struct NKVM *vm, void *data);
 void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size);
+void *nkiReallocArray(struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t count);
 char *nkiStrdup(struct NKVM *vm, const char *str);
 
 #endif // NINKASI_MEM_H

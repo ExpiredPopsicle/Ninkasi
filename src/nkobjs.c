@@ -149,10 +149,10 @@ nkuint32_t nkiVmObjectTableCreateObject(
             return NK_INVALID_VALUE;
         }
 
-        table->objectTable = nkiRealloc(
+        table->objectTable = nkiReallocArray(
             vm,
             table->objectTable,
-            sizeof(struct NKVMObject *) * newCapacity);
+            sizeof(struct NKVMObject *), newCapacity);
 
         // Create hole objects for all our empty new space. Not
         // that we don't create one on the border between the old

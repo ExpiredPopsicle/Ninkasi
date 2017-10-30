@@ -186,10 +186,10 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                 return NK_INVALID_VALUE;
             }
 
-            table->stringTable = nkiRealloc(
+            table->stringTable = nkiReallocArray(
                 vm,
                 table->stringTable,
-                sizeof(struct NKVMString *) * newCapacity);
+                sizeof(struct NKVMString *), newCapacity);
 
             // Create hole objects for all our empty new space. Not
             // that we don't create one on the border between the old

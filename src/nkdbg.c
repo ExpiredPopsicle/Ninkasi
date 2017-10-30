@@ -161,7 +161,10 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
         nkiFree(vm, holeTracker);
     }
     {
-        nkuint32_t *bucketTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity * 4);
+        // Thanks AFL! The size and count were swapped, so the size
+        // would sometimes be zero and cause a divide by zero in the
+        // checking.
+        nkuint32_t *bucketTracker = nkiMallocArray(vm, sizeof(nkuint32_t), vm->stringTable.stringTableCapacity);
         for(i = 0; i < nkiVmStringHashTableSize; i++) {
             struct NKVMString *str = vm->stringTable.stringsByHash[i];
             while(str) {

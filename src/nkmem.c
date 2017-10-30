@@ -49,8 +49,6 @@ void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
     // function!
     assert(vm->catastrophicFailureJmpBuf);
 
-    printf("Allocating size: %u\n", size);
-
     // Thanks, AFL! Allocations large enough to overflow 32-bit uints
     // are bad.
     if(size > ~(nkuint32_t)0 - sizeof(struct NKMemoryHeader)) {
@@ -163,5 +161,33 @@ char *nkiStrdup(struct NKVM *vm, const char *str)
         }
     }
     return NULL;
+}
+
+// Thanks AFL! There were so many bugs caused by integer overflows
+// when we tried to allocate some number of objects that I made this
+// function to wrap all of them safely.
+void *nkiMallocArray(struct NKVM *vm, nkuint32_t size, nkuint32_t count)
+{
+    if(count >= ~(nkuint32_t)0 / size) {
+        nkiErrorStateSetAllocationFailFlag(vm);
+        NK_CATASTROPHE();
+        assert(0);
+        return NULL;
+    }
+
+    return nkiMalloc(vm, size * count);
+}
+
+// Thanks AFL! Looks like we needed one for realloc, too.
+void *nkiReallocArray(struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t count)
+{
+    if(count >= ~(nkuint32_t)0 / size) {
+        nkiErrorStateSetAllocationFailFlag(vm);
+        NK_CATASTROPHE();
+        assert(0);
+        return NULL;
+    }
+
+    return nkiRealloc(vm, data, size * count);
 }
 

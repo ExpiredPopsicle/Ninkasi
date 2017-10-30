@@ -770,13 +770,16 @@ int main(int argc, char *argv[])
             printf("Serializing...\n");
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
-                assert(c);
+                if(c) {
+                    printf("Error occurred during serialization.\n");
+                    return 1;
+                }
             }
 
             {
-                FILE *out1 = fopen("stest1.txt", "w+");
-                nkxDbgDumpState(vm, out1);
-                fclose(out1);
+                // FILE *out1 = fopen("stest1.txt", "w+");
+                nkxDbgDumpState(vm, stdout);
+                // fclose(out1);
             }
 
             {
@@ -798,13 +801,16 @@ int main(int argc, char *argv[])
                 printf("Deserializing...\n");
                 {
                     nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
-                    assert(b);
+                    if(!b) {
+                        printf("Deserialization of previously serialized VM state failed.\n");
+                        // assert(b);
+                    }
                 }
 
                 {
-                    FILE *out2 = fopen("stest2.txt", "w+");
-                    nkxDbgDumpState(newVm, out2);
-                    fclose(out2);
+                    // FILE *out2 = fopen("stest2.txt", "w+");
+                    nkxDbgDumpState(newVm, stdout);
+                    // fclose(out2);
                 }
 
                 nkxVmDelete(newVm);

@@ -228,7 +228,7 @@ nkbool nkiSerializeObjectTable(
         // Reallocate the object table if we're reading.
         nkiFree(vm, vm->objectTable.objectTable);
         vm->objectTable.objectTable =
-            nkiMalloc(vm, sizeof(struct NKVMObject *) * vm->objectTable.objectTableCapacity);
+            nkiMallocArray(vm, sizeof(struct NKVMObject *), vm->objectTable.objectTableCapacity);
         memset(
             vm->objectTable.objectTable, 0,
             sizeof(struct NKVMObject *) * vm->objectTable.objectTableCapacity);
@@ -319,14 +319,15 @@ nkbool nkiSerializeStringTable(
 
         // Thanks AFL! String table size can cause a 32-bit integer
         // overflow after being multiplied by the size of the string
-        // pointer.
+        // pointer. (FIXME: We might not need this after the addition
+        // of nkiMallocArray.)
         if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.stringTableCapacity) {
             printf("String table too large!\n");
             return nkfalse;
         }
 
         vm->stringTable.stringTable =
-            nkiMalloc(vm, vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+            nkiMallocArray(vm, sizeof(struct NKVMString*), vm->stringTable.stringTableCapacity);
 
         // Note: Memset takes a size_t here, which on 64-bit bit can
         // take higher values than our nkuint32_t type passed into
@@ -498,6 +499,15 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         // read the wrong value.
         NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionAddressMask);
 
+        // Thanks AFL! Instruction address mask of 2^32-1 means that
+        // the actual allocation is 2^32, which overflows to zero, and
+        // we're left in a situation where we think we have a giant
+        // instruction buffer when we really have a NULL pointer.
+        if(vm->instructionAddressMask == ~(nkuint32_t)0) {
+            printf("instruction address mask is 2^32-1.\n");
+            return nkfalse;
+        }
+
         if(!nkiIsPow2(vm->instructionAddressMask + 1)) {
             printf("instruction address mask is not 2^n-1.\n");
             return nkfalse;
@@ -517,6 +527,10 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
                 bufSize);
             memset(vm->instructions, 0, bufSize);
         }
+
+        printf("Address mask:     %u\n", vm->instructionAddressMask);
+        printf("ILS:              %u\n", instructionLimitSearch);
+        printf("vm->instructions: %p\n", vm->instructions);
 
         printf("\n");
         {
@@ -585,7 +599,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Make new static space for read mode.
     if(!writeMode) {
         nkiFree(vm, vm->staticSpace);
-        vm->staticSpace = nkiMalloc(vm, sizeof(struct NKValue) * (vm->staticAddressMask + 1));
+        vm->staticSpace = nkiMallocArray(vm, sizeof(struct NKValue), vm->staticAddressMask + 1);
     }
 
     // Read/write the static space.
@@ -614,8 +628,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     if(!writeMode) {
         nkiFree(vm, vm->stack.values);
 
-        vm->stack.values = nkiMalloc(vm,
-            sizeof(struct NKValue) * (vm->stack.capacity));
+        vm->stack.values = nkiMallocArray(vm,
+            sizeof(struct NKValue), vm->stack.capacity);
 
         // Thanks AFL!
         if(!vm->stack.values) {
@@ -663,8 +677,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
             {
                 nkuint32_t i;
                 if(!writeMode) {
-                    functionIdMapping = nkiMalloc(
-                        vm, tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+                    functionIdMapping = nkiMallocArray(
+                        vm, sizeof(NKVMInternalFunctionID), tmpExternalFunctionCount);
+                    // printf("tmpExternalFunctionCount: %u\n", tmpExternalFunctionCount);
+                    // assert(functionIdMapping);
                     memset(
                         functionIdMapping, NK_INVALID_VALUE,
                         tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
@@ -720,7 +736,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
             // Reallocate internal function table for read mode.
             if(!writeMode) {
                 nkiFree(vm, vm->functionTable);
-                vm->functionTable = nkiMalloc(vm, sizeof(struct NKVMFunction) * vm->functionCount);
+                vm->functionTable = nkiMallocArray(vm, sizeof(struct NKVMFunction), vm->functionCount);
                 memset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
             }
 
@@ -735,7 +751,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                     // printf("id:    %u\n", vm->functionTable[i].externalFunctionId.id);
                     // printf("count: %u\n", vm->externalFunctionCount);
                     if(vm->functionTable[i].externalFunctionId.id != NK_INVALID_VALUE) {
-                        if(vm->functionTable[i].externalFunctionId.id <= tmpExternalFunctionCount) {
+
+                        // Thanks AFL! There was a <= instead of a <
+                        // here.
+                        if(vm->functionTable[i].externalFunctionId.id < tmpExternalFunctionCount) {
                             vm->functionTable[i].externalFunctionId =
                                 functionIdMapping[vm->functionTable[i].externalFunctionId.id];
                         } else {
@@ -770,8 +789,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         if(!writeMode) {
             nkiFree(vm, vm->globalVariables);
             nkiFree(vm, vm->globalVariableNameStorage);
-            vm->globalVariables = nkiMalloc(
-                vm, sizeof(vm->globalVariables[0]) *
+            vm->globalVariables = nkiMallocArray(
+                vm, sizeof(vm->globalVariables[0]),
                 vm->globalVariableCount);
         }
 
@@ -835,7 +854,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
             nkuint32_t *typeMapping = NULL;
             if(!writeMode) {
-                typeMapping = nkiMalloc(vm, sizeof(nkuint32_t) * serializedTypeCount);
+                typeMapping = nkiMallocArray(vm, sizeof(nkuint32_t), serializedTypeCount);
             }
 
             for(i = 0; i < serializedTypeCount; i++) {
