@@ -617,7 +617,7 @@ int main(int argc, char *argv[])
                         vm->instructionAddressMask].opcode != NK_OP_NOP &&
                     instructionCountMax)
                 {
-                    printf("InstructionCountMax: %u\n", instructionCountMax);
+                    // printf("InstructionCountMax: %u\n", instructionCountMax);
 
                     // TODO: Give this value an accessor.
                     vm->instructionsLeftBeforeTimeout = 1024;
@@ -787,7 +787,7 @@ int main(int argc, char *argv[])
             printf("Serializing...\n");
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
-                if(c) {
+                if(!c) {
                     printf("Error occurred during serialization.\n");
                     return 1;
                 }

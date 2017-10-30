@@ -608,7 +608,6 @@ void nkiVmCallFunction(
     struct NKValue *returnValue)
 {
     if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
-        printf("Type: %d\n", functionValue->type);
         nkiAddError(
             vm, -1,
             "Tried to call a non-function with nkiVmCallFunction.");
@@ -759,7 +758,6 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunction(
         if(vm->externalFunctionTable[externalFunctionId.id].CFunctionCallback == func &&
             !strcmp(vm->externalFunctionTable[externalFunctionId.id].name, name))
         {
-            printf("FUNCTION FOUND ALREADY: %s\n", name);
             break;
         }
     }
