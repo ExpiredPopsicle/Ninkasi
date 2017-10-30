@@ -313,6 +313,12 @@ nkint32_t nkiValueCompare(
             const char *other = nkiValueToString(vm, in2);
             const char *thisData = nkiValueToString(vm, in1);
 
+            // Thanks AFL!
+            if(!other || !thisData) {
+                nkiAddError(vm, -1, "Bad string comparison.");
+                return 1;
+            }
+
             // Shortcut it if we ended up with two of the same entry
             // in the string table.
             if(other == thisData) {

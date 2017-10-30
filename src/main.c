@@ -353,6 +353,11 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
 void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
 {
+    // TODO: Make this standard, or find a way to make sure
+    // serialization callbacks aren't called by a normal program.
+    if(!data->vm->serializationState.writer) {
+        return;
+    }
     printf("\nSerialization callback start!\n");
     char tmp[5] = "TEST";
     data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);

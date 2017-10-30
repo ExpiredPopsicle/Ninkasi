@@ -272,7 +272,16 @@ nkbool nkiSerializeObjectTable(
         for(i = 0; i < objectCount; i++) {
             struct NKVMObject *object = nkiMalloc(vm, sizeof(struct NKVMObject));
             memset(object, 0, sizeof(struct NKVMObject));
+
             NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
+
+            // Thanks AFL! Holy crap I'm an idiot for letting this one
+            // slide by.
+            if(object->objectTableIndex >= vm->objectTable.objectTableCapacity) {
+                printf("Object outside of table capacity.\n");
+                return nkfalse;
+            }
+
             vm->objectTable.objectTable[object->objectTableIndex] = object;
             NKI_WRAPSERIALIZE(
                 nkiSerializeObject(
@@ -638,6 +647,11 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
         memset(vm->stack.values, 0,
             sizeof(struct NKValue) * (vm->stack.capacity));
+    }
+
+    // Thanks AFL!
+    if(vm->stack.capacity < vm->stack.size) {
+        return nkfalse;
     }
 
     NKI_SERIALIZE_DATA(
