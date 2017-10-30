@@ -127,7 +127,15 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
             return (int)value->floatData;
 
         case NK_VALUETYPE_STRING:
-            return atoi(nkiValueToString(vm, value));
+        {
+            // Thanks AFL! Sometimes nkiValueToString returns NULL,
+            // because nkiVmStringTableGetStringById can return NULL.
+            const char *str = nkiValueToString(vm, value);
+            if(str) {
+                return atoi(str);
+            }
+            return 0;
+        }
 
         case NK_VALUETYPE_OBJECTID:
             // This is just for detection of the presence of objects
@@ -163,7 +171,15 @@ float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
             return value->floatData;
 
         case NK_VALUETYPE_STRING:
-            return atof(nkiValueToString(vm, value));
+        {
+            // Thanks AFL! Sometimes nkiValueToString returns NULL,
+            // because nkiVmStringTableGetStringById can return NULL.
+            const char *str = nkiValueToString(vm, value);
+            if(str) {
+                return atof(str);
+            }
+            return 0.0f;
+        }
 
         case NK_VALUETYPE_NIL:
             return 0.0f;

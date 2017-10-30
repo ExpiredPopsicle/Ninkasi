@@ -49,6 +49,17 @@ void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
     // function!
     assert(vm->catastrophicFailureJmpBuf);
 
+    printf("Allocating size: %u\n", size);
+
+    // Thanks, AFL! Allocations large enough to overflow 32-bit uints
+    // are bad.
+    if(size > ~(nkuint32_t)0 - sizeof(struct NKMemoryHeader)) {
+        nkiErrorStateSetAllocationFailFlag(vm);
+        NK_CATASTROPHE();
+        assert(0);
+        return NULL;
+    }
+
     if(size != 0) {
 
         struct NKMemoryHeader *header = NULL;

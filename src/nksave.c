@@ -309,15 +309,38 @@ nkbool nkiSerializeStringTable(
     printf("\nStringTable: ");
     printf("\n  Capacity: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
+    printf("\n  Decoded capacity: %u\n", capacity);
 
     // Destroy and recreate the string table with the specified capacity, if we're in READ mode.
     if(!writeMode) {
         nkiVmStringTableDestroy(vm);
         vm->stringTable.stringTableCapacity = capacity;
+        printf("\n  Assigned capacity: %u\n", vm->stringTable.stringTableCapacity);
+
+        // Thanks AFL! String table size can cause a 32-bit integer
+        // overflow after being multiplied by the size of the string
+        // pointer.
+        if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.stringTableCapacity) {
+            printf("String table too large!\n");
+            return nkfalse;
+        }
+
         vm->stringTable.stringTable =
             nkiMalloc(vm, vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+
+        // Note: Memset takes a size_t here, which on 64-bit bit can
+        // take higher values than our nkuint32_t type passed into
+        // nkiMalloc, meaning that this command can take larger values
+        // than it's possible for us to allocate, even with the same
+        // equation!
         memset(vm->stringTable.stringTable, 0,
             vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+    }
+
+    // Thanks AFL!
+    if(!nkiIsPow2(vm->stringTable.stringTableCapacity)) {
+        printf("Non-power-of-two string table capacity!\n");
+        return nkfalse;
     }
 
     printf("\n");
@@ -475,6 +498,11 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         // read the wrong value.
         NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionAddressMask);
 
+        if(!nkiIsPow2(vm->instructionAddressMask + 1)) {
+            printf("instruction address mask is not 2^n-1.\n");
+            return nkfalse;
+        }
+
         if(instructionLimitSearch > vm->instructionAddressMask) {
             printf("Too many instructions for given instruction address mask.\n");
             return nkfalse;
@@ -572,13 +600,28 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         printf("!nkiIsPow2(vm->stack.capacity)\n");
         return nkfalse;
     }
+
+    // Thanks AFL! Stack size = 0 means stack index mask becomes
+    // 0xffffffff, even though there's no stack.
+    if(vm->stack.capacity < 1) {
+        printf("Zero stack size not allowed.\n");
+        return nkfalse;
+    }
+
     vm->stack.indexMask = vm->stack.capacity - 1;
 
     // Make new stack space for read mode.
     if(!writeMode) {
         nkiFree(vm, vm->stack.values);
+
         vm->stack.values = nkiMalloc(vm,
             sizeof(struct NKValue) * (vm->stack.capacity));
+
+        // Thanks AFL!
+        if(!vm->stack.values) {
+            return nkfalse;
+        }
+
         memset(vm->stack.values, 0,
             sizeof(struct NKValue) * (vm->stack.capacity));
     }
