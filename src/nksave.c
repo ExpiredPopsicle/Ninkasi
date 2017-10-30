@@ -529,12 +529,15 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
 
         // Recreate the entire instruction space if we're reading.
         if(!writeMode) {
-            nkuint32_t bufSize = sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1);
             nkiFree(vm, vm->instructions);
-            vm->instructions = nkiMalloc(
+
+            // Thanks AFL!
+            vm->instructions = nkiMallocArray(
                 vm,
-                bufSize);
-            memset(vm->instructions, 0, bufSize);
+                sizeof(struct NKInstruction),
+                vm->instructionAddressMask + 1);
+
+            memset(vm->instructions, 0, sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1));
         }
 
         printf("Address mask:     %u\n", vm->instructionAddressMask);

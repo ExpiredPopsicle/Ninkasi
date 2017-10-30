@@ -263,6 +263,13 @@ char *loadScriptFromStdin(nkuint32_t *scriptSize)
 
 void testVMFunc(struct NKVMFunctionCallbackData *data)
 {
+    // Thanks AFL!
+    static nkuint32_t recursionCounter = 0;
+    if(recursionCounter > 32) {
+        return;
+    }
+    recursionCounter++;
+
     // nkuint32_t i;
     printf("testVMFunc hit!\n");
     // for(i = 0; i < data->argumentCount; i++) {
@@ -610,6 +617,11 @@ int main(int argc, char *argv[])
                         vm->instructionAddressMask].opcode != NK_OP_NOP &&
                     instructionCountMax)
                 {
+                    printf("InstructionCountMax: %u\n", instructionCountMax);
+
+                    // TODO: Give this value an accessor.
+                    vm->instructionsLeftBeforeTimeout = 1024;
+
                     nkxVmIterate(vm, 1);
 
                     // printf("\n\n\n\n");

@@ -152,6 +152,8 @@ struct NKVM
         void *userdata;
         nkbool writeMode;
     } serializationState;
+
+    nkuint32_t instructionsLeftBeforeTimeout;
 };
 
 /// Initialize an already-allocated VM.

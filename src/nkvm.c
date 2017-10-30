@@ -165,6 +165,7 @@ void nkiVmInit(struct NKVM *vm)
     vm->limits.maxObjects = NK_UINT_MAX;
     vm->limits.maxFieldsPerObject = NK_UINT_MAX;
     vm->limits.maxAllocatedMemory = NK_UINT_MAX;
+    vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;
 
     vm->userData = NULL;
     vm->externalFunctionCount = 0;
@@ -281,6 +282,15 @@ void nkiVmIterate(struct NKVM *vm)
     struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
+
+    // Thanks AFL!
+    if(vm->instructionsLeftBeforeTimeout != NK_INVALID_VALUE) {
+        if(vm->instructionsLeftBeforeTimeout == 0) {
+            nkiAddError(vm, -1, "Instruction count limit reached.");
+            return;
+        }
+        vm->instructionsLeftBeforeTimeout--;
+    }
 
     nkiDbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
 
