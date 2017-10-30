@@ -293,11 +293,21 @@ nkbool nkxCompilerCompileScriptFile(
 void nkxCompilerFinalize(
     struct NKCompilerState *cs);
 
+// ----------------------------------------------------------------------
+// Serializer
+
 /// Serialize the entire VM state.
 nkbool nkxVmSerialize(
     struct NKVM *vm,
     NKVMSerializationWriter writer,
     void *userdata,
     nkbool writeMode);
+
+// ----------------------------------------------------------------------
+// Public-facing error stuff
+
+void nkxAddError(
+    struct NKVM *vm,
+    const char *str);
 
 #endif // NINKASI_NKX

@@ -130,7 +130,7 @@ nkbool nkiSerializeObject(
         nkuint32_t n;
         object->size = 0;
         for(n = 0; n < loadedSize; n++) {
-            struct NKValue key;
+            struct NKValue key = {0};
             struct NKValue *value;
             NKI_SERIALIZE_BASIC(struct NKValue, key);
             value = nkiVmObjectFindOrAddEntry(vm, object, &key, nkfalse);
@@ -209,6 +209,7 @@ nkbool nkiSerializeObjectTable(
     // better way to store it!
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.objectTableCapacity);
     if(!nkiIsPow2(vm->objectTable.objectTableCapacity)) {
+        printf("!nkiIsPow2(vm->objectTable.objectTableCapacity)\n");
         return nkfalse;
     }
 
@@ -365,6 +366,7 @@ nkbool nkiSerializeStringTable(
                 printf("\n  Object: ");
                 NKI_SERIALIZE_BASIC(nkuint32_t, i);
                 if(i >= vm->stringTable.stringTableCapacity) {
+                    printf("i >= vm->stringTable.stringTableCapacity\n");
                     return nkfalse;
                 }
 
@@ -473,6 +475,11 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         // read the wrong value.
         NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionAddressMask);
 
+        if(instructionLimitSearch > vm->instructionAddressMask) {
+            printf("Too many instructions for given instruction address mask.\n");
+            return nkfalse;
+        }
+
         // Recreate the entire instruction space if we're reading.
         if(!writeMode) {
             nkuint32_t bufSize = sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1);
@@ -507,13 +514,25 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 {
     // Clean up before serializing.
 
-    printf("\nVM serialize: ");
+    printf("\nVM serialize:\n");
+
+    // Serialize format marker.
+    {
+        const char *formatMarker = "\0NKVM";
+        char formatMarkerTmp[5];
+        memcpy(formatMarkerTmp, formatMarker, 5);
+        NKI_SERIALIZE_DATA(formatMarkerTmp, 5);
+        if(memcmp(formatMarkerTmp, formatMarker, 5)) {
+            return nkfalse;
+        }
+    }
 
     // Serialize version number.
     {
         nkuint32_t version = NKI_VERSION;
         NKI_SERIALIZE_BASIC(nkuint32_t, version);
         if(version != NKI_VERSION) {
+            printf("version != NKI_VERSION\n");
             return nkfalse;
         }
     }
@@ -529,6 +548,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     printf("\nStaticSpaceSize: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
     if(!nkiIsPow2(vm->staticAddressMask + 1)) {
+        printf("!nkiIsPow2(vm->staticAddressMask + 1)\n");
         return nkfalse;
     }
 
@@ -549,6 +569,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.capacity);
     if(!nkiIsPow2(vm->stack.capacity)) {
+        printf("!nkiIsPow2(vm->stack.capacity)\n");
         return nkfalse;
     }
     vm->stack.indexMask = vm->stack.capacity - 1;
@@ -675,6 +696,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                             vm->functionTable[i].externalFunctionId =
                                 functionIdMapping[vm->functionTable[i].externalFunctionId.id];
                         } else {
+                            printf("vm->functionTable[i].externalFunctionId.id > tmpExternalFunctionCount\n");
                             return nkfalse;
                         }
                     }

@@ -840,6 +840,10 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
         return nkfalse;
     }
 
+    if(!node) {
+        return nkfalse;
+    }
+
     // Assignments are special, because we need to evaluate the left
     // side as an LValue.
     if(node->opOrValue->type == NK_TOKENTYPE_ASSIGNMENT) {

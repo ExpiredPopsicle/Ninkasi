@@ -109,7 +109,7 @@ for(i = 0; i < 10; ++i) {
 
 
 ob = 0;
-print("DONE\n");
+print("DONE1\n");
 
 function testTrue(x)
 {
@@ -204,7 +204,7 @@ for(k = 10; k; 3 * 4 + (--k))
     print("foo " + k);
 }
 
-var foo = 123;
+foo = 123;
 var bar;
 bar = foo + foo;
 
@@ -324,7 +324,6 @@ if(1) {
 // }
 
 
-var i;
 i = 10;
 while(i) {
     i = i - 1;
@@ -352,7 +351,7 @@ var gtest = "asdf";
 
 
 print("Testing object set...\n");
-var ob = newobject;
+ob = newobject;
 ob[1] = 2;
 print("ob[1] now: " + ob[1] + "\n");
 
@@ -364,7 +363,6 @@ function anotherObTest()
     print("OBTEST!\n");
 }
 
-var i;
 var butts = newobject;
 butts["asdf"] = anotherObTest;
 butts["asdf"]();
@@ -388,7 +386,7 @@ for(i = 0; i < 20; ++i) {
 }
 
 
-print("DONE\n");
+print("DONE2\n");
 
 function dumpHash(x)
 {

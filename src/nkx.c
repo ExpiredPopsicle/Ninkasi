@@ -454,7 +454,13 @@ nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 {
     NK_FAILURE_RECOVERY_DECL();
     nkbool ret = nkfalse;
+
+    printf("WHAT1...\n");
+
     NK_SET_FAILURE_RECOVERY(ret);
+
+    printf("WHAT...\n");
+
     ret = nkiVmSerialize(vm, writer, userdata, writeMode);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
@@ -467,3 +473,14 @@ void nkxDbgDumpState(struct NKVM *vm, FILE *stream)
     nkiDbgDumpState(vm, stream);
     NK_CLEAR_FAILURE_RECOVERY();
 }
+
+void nkxAddError(
+    struct NKVM *vm,
+    const char *str)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiAddError(vm, -1, str);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+

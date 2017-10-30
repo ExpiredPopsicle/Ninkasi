@@ -743,6 +743,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunction(
         if(vm->externalFunctionTable[externalFunctionId.id].CFunctionCallback == func &&
             !strcmp(vm->externalFunctionTable[externalFunctionId.id].name, name))
         {
+            printf("FUNCTION FOUND ALREADY: %s\n", name);
             break;
         }
     }

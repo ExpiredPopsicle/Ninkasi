@@ -64,6 +64,16 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
 
+    // Make a stack if we don't have one. This can happen with weird
+    // binaries.
+    if(!stack->capacity) {
+        stack->capacity = 1;
+        stack->values = nkiRealloc(
+            vm,
+            stack->values,
+            stack->capacity * sizeof(struct NKValue));
+    }
+
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
 
@@ -81,8 +91,6 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 
         // TODO: Make a more reasonable stack space limit than "we ran
         // out of 32-bit integer".
-        // TODO: Make this a normal error. (Return NULL?)
-        assert(stack->capacity);
         if(!stack->capacity) {
             nkiAddError(
                 vm, -1,

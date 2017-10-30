@@ -318,14 +318,24 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
 struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name, nkbool useValueAtStackTop)
 {
+    // This is a global variable if we're at a root-level context with
+    // no parent.
     nkbool isGlobal = !cs->context->parent;
-    struct NKCompilerStateContextVariable *var =
-        nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
+    struct NKCompilerStateContextVariable *var;
+    struct NKCompilerStateContextVariable *checkVar;
+
+    for(checkVar = cs->context->variables; checkVar; checkVar = checkVar->next) {
+        if(!strcmp(checkVar->name, name)) {
+            nkiCompilerAddError(cs,
+                "Redundant variable declaration.");
+            return NULL;
+        }
+    }
+
+    var = nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
     if(isGlobal) {
-
-        // TODO: Allocate static space.
 
         // Add an instruction to make some stack space for this variable,
         // if needed.

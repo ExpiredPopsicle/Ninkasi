@@ -242,6 +242,25 @@ char *loadScript(const char *filename)
     return buf;
 }
 
+char *loadScriptFromStdin(nkuint32_t *scriptSize)
+{
+    size_t bufSize = 256;
+    size_t scriptLen = 0;
+    char *buf = malloc(bufSize);
+    while(fread(&buf[scriptLen], 1, 1, stdin) > 0) {
+        scriptLen++;
+        buf[scriptLen] = 0;
+        if(scriptLen + 1 >= bufSize) {
+            bufSize <<= 1;
+            buf = realloc(buf, bufSize);
+        }
+    }
+    if(scriptSize) {
+        *scriptSize = scriptLen;
+    }
+    return buf;
+}
+
 void testVMFunc(struct NKVMFunctionCallbackData *data)
 {
     // nkuint32_t i;
@@ -310,6 +329,14 @@ static NKVMExternalFunctionID doGCCallbackThing_id;
 
 void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
+    // TODO: Add standard argument count handler.
+    if(data->argumentCount != 1) {
+        nkiAddError(
+            data->vm,
+            -1, "Bad argument count in doGCCallbackThing.");
+        return;
+    }
+
     assert(data->argumentCount == 1);
     printf("GC callback called.\n");
     {
@@ -336,6 +363,13 @@ void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
 
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
+    if(data->argumentCount != 1) {
+        nkiAddError(
+            data->vm,
+            -1, "Bad argument count in setGCCallbackThing.");
+        return;
+    }
+
     assert(data->argumentCount == 1);
     printf("Setting GC callback.\n");
 
@@ -367,15 +401,40 @@ const char *scriptName = "test/test2.txt";
 int main(int argc, char *argv[])
 {
     char *script = NULL;
-    int shitCounter = 0;
+    nkuint32_t scriptSize = 0;
     nkuint32_t maxRam = 19880;
     nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
+    nkbool compileOnly = nkfalse;
 
     if(argc == 2) {
-        scriptName = argv[1];
+        // scriptName = argv[1];
+        if(!strcmp(argv[1], "-c")) {
+            compileOnly = nktrue;
+        }
     }
 
-    script = loadScript(scriptName);
+    // {
+    //     size_t scriptNameLen = strlen(scriptName);
+    //     if(scriptNameLen > 4) {
+    //         if(!strcmp(&scriptName[scriptNameLen - 4], ".nkb")) {
+    //             printf("It's a binary\n");
+    //             return 0;
+    //         }
+    //         if(!strcmp(&scriptName[scriptNameLen - 4], ".nks")) {
+    //             printf("It's a script\n");
+    //             return 0;
+    //         }
+    //     }
+    // }
+
+    // script = loadScript(scriptName);
+
+    script = loadScriptFromStdin(&scriptSize);
+    // printf("%s\n", script);
+    // if(strlen(script) % 20 == 0) {
+    //     assert(0);
+    // }
+    // return 0;
 
     maxRam = 60522;
     maxRam = 61818;
@@ -393,17 +452,21 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
+    // while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         nkuint32_t lineCount = 0;
         char **lines = NULL;
 
-        nkuint32_t instructionCountMax = (nkuint32_t)1024*(nkuint32_t)1024*(nkuint32_t)1024;
+        nkuint32_t instructionCountMax = (nkuint32_t)1024*(nkuint32_t)1024; // *(nkuint32_t)1024;
         struct NKVM *vm = nkxVmCreate();
-        if(!vm) continue;
+        if(!vm) {
+            assert(0);
+            return 1;
+        }
         if(nkiVmGetErrorCount(vm)) {
             nkxVmDelete(vm);
-            continue;
+            assert(0);
+            return 1;
         }
 
         lineCount = 0;
@@ -418,26 +481,45 @@ int main(int argc, char *argv[])
         // vm->limits.maxFieldsPerObject = 2;
         vm->limits.maxAllocatedMemory = maxRam;
 
-        {
+        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+        nkxVmRegisterExternalFunction(vm, "catastrophe", testVMCatastrophe);
+        nkxVmRegisterExternalFunction(vm, "print", vmFuncPrint);
+        nkxVmRegisterExternalFunction(vm, "hash", getHash);
+        nkxVmRegisterExternalFunction(vm, "hash2", getHash);
+        nkxVmRegisterExternalFunction(vm, "testHandle1", testHandle1);
+        nkxVmRegisterExternalFunction(vm, "testHandle2", testHandle2);
+        nkxVmRegisterExternalFunction(vm, "setGCCallbackThing", setGCCallbackThing);
+
+        if(script && script[0] != 0) {
+
             struct NKCompilerState *cs = nkxCompilerCreate(vm);
+
             if(cs) {
+
                 nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
                 nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
                 nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
                 nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
                 nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
                 nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
-
                 nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
 
-                // nkiCompilerCompileScript(cs, script);
-                nkxCompilerCompileScriptFile(cs, scriptName);
+                nkxCompilerCompileScript(cs, script);
+                // nkxCompilerCompileScriptFile(cs, scriptName);
                 nkxCompilerFinalize(cs);
+
+            } else {
+                assert(0);
+                return 1;
             }
 
             // Dump errors.
@@ -448,13 +530,44 @@ int main(int argc, char *argv[])
                     err = err->next;
                 }
             }
+
+        } else {
+
+            struct WriterTestBuffer buf;
+            buf.data = script;
+            buf.readPtr = 0;
+            buf.size = scriptSize;
+
+            if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
+                printf("Deserialization fail.\n");
+                return 1;
+            }
         }
 
-        printf("----------------------------------------------------------------------\n");
-        printf("  Serialization\n");
-        printf("----------------------------------------------------------------------\n");
-        nkxVmSerialize(vm, writerTest, NULL, nktrue);
-        printf("\n----------------------------------------------------------------------\n");
+        if(compileOnly) {
+
+            FILE *out = NULL;
+            struct WriterTestBuffer buf;
+
+            buf.data = NULL;
+            buf.readPtr = 0;
+            buf.size = 0;
+
+            nkxVmSerialize(vm, writerTest, &buf, nktrue);
+
+            out = fopen("out.nkb", "wb+");
+            assert(out);
+            fwrite(buf.data, buf.size, 1, out);
+            fclose(out);
+
+            return !nkxVmHasErrors(vm);
+        }
+
+        // printf("----------------------------------------------------------------------\n");
+        // printf("  Serialization\n");
+        // printf("----------------------------------------------------------------------\n");
+        // nkxVmSerialize(vm, writerTest, NULL, nktrue);
+        // printf("\n----------------------------------------------------------------------\n");
 
         if(!nkxVmHasErrors(vm)) {
 
@@ -515,7 +628,6 @@ int main(int argc, char *argv[])
 
 
 
-                    fprintf(stderr, "IP: " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
 
 
 
@@ -525,46 +637,45 @@ int main(int argc, char *argv[])
 
 
 
+                    // {
+                    //     struct WriterTestBuffer buf;
+                    //     memset(&buf, 0, sizeof(buf));
+                    //     nkxVmSerialize(vm, writerTest, &buf, nktrue);
 
-                    {
-                        struct WriterTestBuffer buf;
-                        memset(&buf, 0, sizeof(buf));
-                        nkxVmSerialize(vm, writerTest, &buf, nktrue);
+                    //     {
+                    //         struct NKVM *newVm = nkxVmCreate();
 
-                        {
-                            struct NKVM *newVm = nkxVmCreate();
+                    //         nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
+                    //         nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
+                    //         nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
+                    //         nkxVmRegisterExternalFunction(newVm, "hash", getHash);
+                    //         nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
+                    //         nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
+                    //         nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
+                    //         nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
+                    //         nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
+                    //         nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
 
-                            nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
-                            nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
-                            nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
-                            nkxVmRegisterExternalFunction(newVm, "hash", getHash);
-                            nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
-                            nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
-                            nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
-                            nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
-                            nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
-                            nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
+                    //         nkxVmRegisterExternalType(newVm, "footype");
 
-                            nkxVmRegisterExternalType(newVm, "footype");
+                    //         printf("Deserializing...\n");
+                    //         {
+                    //             nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+                    //             assert(b);
+                    //         }
 
-                            printf("Deserializing...\n");
-                            {
-                                nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
-                                assert(b);
-                            }
+                    //         // {
+                    //         //     FILE *out2 = fopen("stest2.txt", "w+");
+                    //         //     nkxDbgDumpState(newVm, out2);
+                    //         //     fclose(out2);
+                    //         // }
 
-                            // {
-                            //     FILE *out2 = fopen("stest2.txt", "w+");
-                            //     nkxDbgDumpState(newVm, out2);
-                            //     fclose(out2);
-                            // }
+                    //         nkxVmDelete(vm);
+                    //         vm = newVm;
+                    //     }
 
-                            nkxVmDelete(vm);
-                            vm = newVm;
-                        }
-
-                        free(buf.data);
-                    }
+                    //     free(buf.data);
+                    // }
 
 
 
@@ -649,10 +760,18 @@ int main(int argc, char *argv[])
         nkiVmStackDump(vm);
 
         printf("Final serialized state...\n");
-        {
+        if(vm->errorState.allocationFailure) {
+            // TODO: Remember allocation failure condition for
+            // serialization stuff.
+            printf("Error was allocation error. Skipping serialization.\n");
+        } else {
             struct WriterTestBuffer buf;
             memset(&buf, 0, sizeof(buf));
-            nkxVmSerialize(vm, writerTest, &buf, nktrue);
+            printf("Serializing...\n");
+            {
+                nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+                assert(c);
+            }
 
             {
                 FILE *out1 = fopen("stest1.txt", "w+");
@@ -770,10 +889,6 @@ int main(int argc, char *argv[])
     }
 
     free(script);
-
-    printf("Shitcounter: %d\n", shitCounter);
-
-
 
     return 0;
 }
