@@ -674,6 +674,13 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     printf("GC stuff:\n");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->lastGCPass);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInterval);
+
+    // gcInterval needs a hard limit here because the instruction
+    // count limit is only enforced on garbage collection intervals.
+    if(vm->gcInterval > 65536) {
+        vm->gcInterval = 65536;
+    }
+
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcCountdown);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectInterval);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectCountdown);

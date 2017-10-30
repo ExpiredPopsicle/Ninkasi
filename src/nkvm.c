@@ -283,30 +283,35 @@ void nkiVmIterate(struct NKVM *vm)
         vm->instructionPointer & vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
 
-    // Thanks AFL!
-    if(vm->instructionsLeftBeforeTimeout != NK_INVALID_VALUE) {
-        if(vm->instructionsLeftBeforeTimeout == 0) {
-            nkiAddError(vm, -1, "Instruction count limit reached.");
-            return;
-        }
-        vm->instructionsLeftBeforeTimeout--;
-    }
-
-    nkiDbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
-
-    nkiOpcodeTable[opcodeId](vm);
-    vm->instructionPointer++;
-
-    // Handle periodic garbage collection.
-
+    // Handle periodic garbage collection. Do this BEFORE the
+    // instruction, so we can handle instruction count limits in here
+    // too.
     vm->gcCountdown--;
     if(!vm->gcCountdown) {
+
+        // Thanks AFL!
+        if(vm->instructionsLeftBeforeTimeout != NK_INVALID_VALUE) {
+            if(vm->instructionsLeftBeforeTimeout < vm->gcInterval) {
+                nkiAddError(vm, -1, "Instruction count limit reached.");
+                vm->instructionsLeftBeforeTimeout = 0;
+                return;
+            }
+            vm->instructionsLeftBeforeTimeout -= vm->gcInterval;
+        }
+
         if(!vm->gcNewObjectCountdown) {
             nkiVmGarbageCollect(vm);
             vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
         }
         vm->gcCountdown = vm->gcInterval;
     }
+
+    // Do the instruction.
+
+    nkiDbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
+
+    nkiOpcodeTable[opcodeId](vm);
+    vm->instructionPointer++;
 }
 
 // ----------------------------------------------------------------------
