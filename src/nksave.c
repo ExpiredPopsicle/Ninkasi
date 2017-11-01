@@ -315,12 +315,16 @@ nkbool nkiSerializeStringTable(
 {
     nkuint32_t capacity = vm->stringTable.stringTableCapacity;
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     printf("\nStringTable: ");
     printf("\n  Capacity: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
     printf("\n  Decoded capacity: %u\n", capacity);
 
-    // Destroy and recreate the string table with the specified capacity, if we're in READ mode.
+    // Destroy and recreate the string table with the specified
+    // capacity, if we're in READ mode.
     if(!writeMode) {
         nkiVmStringTableDestroy(vm);
         vm->stringTable.stringTableCapacity = capacity;
@@ -355,12 +359,15 @@ nkbool nkiSerializeStringTable(
 
     printf("\n");
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     {
-        nkuint32_t i;
         nkuint32_t actualCount = 0;
 
         // Count up the number of actual entries.
         if(writeMode) {
+            nkuint32_t i;
             for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
                     actualCount++;
@@ -373,6 +380,7 @@ nkbool nkiSerializeStringTable(
 
         if(writeMode) {
 
+            nkuint32_t i;
             for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
                     char *tmp = vm->stringTable.stringTable[i]->str;
@@ -391,15 +399,25 @@ nkbool nkiSerializeStringTable(
 
             nkuint32_t n;
 
+            // nkiVmStringTableDestroy(vm);
+            // nkiVmStringTableInit(vm);
+
+            // Delete all hole objects. We'll recreate them later.
+            while(vm->stringTable.tableHoles) {
+                struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+                vm->stringTable.tableHoles = hole->next;
+                nkiFree(vm, hole);
+            }
+
             for(n = 0; n < actualCount; n++) {
 
-                nkuint32_t i = 0;
+                nkuint32_t index = 0;
                 char *tmpStr = NULL;
 
                 printf("\n  Object: ");
-                NKI_SERIALIZE_BASIC(nkuint32_t, i);
-                if(i >= vm->stringTable.stringTableCapacity) {
-                    printf("i >= vm->stringTable.stringTableCapacity\n");
+                NKI_SERIALIZE_BASIC(nkuint32_t, index);
+                if(index >= vm->stringTable.stringTableCapacity) {
+                    printf("index >= vm->stringTable.stringTableCapacity\n");
                     return nkfalse;
                 }
 
@@ -408,38 +426,47 @@ nkbool nkiSerializeStringTable(
                 {
                     // FIXME: Check overflow here.
                     nkuint32_t size =
-                        strlen(tmpStr) + sizeof(*vm->stringTable.stringTable[i]) + 1;
-                    vm->stringTable.stringTable[i] =
+                        strlen(tmpStr) + sizeof(*vm->stringTable.stringTable[index]) + 1;
+
+                    // Thanks AFL! Bail out if the binary has two
+                    // strings in the same slot.
+                    if(vm->stringTable.stringTable[index]) {
+                        printf("Two strings in the same slot!\n");
+                        return nkfalse;
+                    }
+
+                    vm->stringTable.stringTable[index] =
                         nkiMalloc(vm, size);
 
 
-                    assert(vm->stringTable.stringTable[i]);
+                    assert(vm->stringTable.stringTable[index]);
 
                     // printf("size: %u\n", size);
 
-                    memset(vm->stringTable.stringTable[i], 0, size);
-                    memcpy(vm->stringTable.stringTable[i]->str, tmpStr, strlen(tmpStr) + 1);
+                    memset(vm->stringTable.stringTable[index], 0, size);
+                    memcpy(vm->stringTable.stringTable[index]->str, tmpStr, strlen(tmpStr) + 1);
                     nkiFree(vm, tmpStr);
 
-                    assert(vm->stringTable.stringTable[i]);
+                    // FIXME: Remove this.
+                    assert(vm->stringTable.stringTable[index]);
 
                     printf("\n    lastGCPass: ");
-                    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTable[i]->lastGCPass);
+                    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTable[index]->lastGCPass);
 
                     printf("\n    DontGC: ");
-                    NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
-                    vm->stringTable.stringTable[i]->stringTableIndex = i;
-                    vm->stringTable.stringTable[i]->hash =
-                        nkiStringHash(vm->stringTable.stringTable[i]->str);
+                    NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[index]->dontGC);
+                    vm->stringTable.stringTable[index]->stringTableIndex = index;
+                    vm->stringTable.stringTable[index]->hash =
+                        nkiStringHash(vm->stringTable.stringTable[index]->str);
 
                     {
                         struct NKVMString *hashBucket =
                             vm->stringTable.stringsByHash[
-                                vm->stringTable.stringTable[i]->hash & (nkiVmStringHashTableSize - 1)];
-                        vm->stringTable.stringTable[i]->nextInHashBucket = hashBucket;
+                                vm->stringTable.stringTable[index]->hash & (nkiVmStringHashTableSize - 1)];
+                        vm->stringTable.stringTable[index]->nextInHashBucket = hashBucket;
                         vm->stringTable.stringsByHash[
-                            vm->stringTable.stringTable[i]->hash & (nkiVmStringHashTableSize - 1)] =
-                            vm->stringTable.stringTable[i];
+                            vm->stringTable.stringTable[index]->hash & (nkiVmStringHashTableSize - 1)] =
+                            vm->stringTable.stringTable[index];
                     }
                 }
 
@@ -465,20 +492,40 @@ nkbool nkiSerializeStringTable(
             //     *origList = newList;
             // }
 
-            // Create hole objects.
-            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
-                if(!vm->stringTable.stringTable[i]) {
-                    struct NKVMStringTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
-                    newHole->index = i;
-                    newHole->next = vm->stringTable.tableHoles;
-                    vm->stringTable.tableHoles = newHole;
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
+
+            // Delete and recreate hole objects.
+            while(vm->stringTable.tableHoles) {
+                struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+                vm->stringTable.tableHoles = hole->next;
+                nkiFree(vm, hole);
+            }
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
+            {
+                nkuint32_t i;
+                for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+                    if(!vm->stringTable.stringTable[i]) {
+                        struct NKVMStringTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+                        newHole->index = i;
+                        newHole->next = vm->stringTable.tableHoles;
+                        vm->stringTable.tableHoles = newHole;
+
+                        printf("ADSF: Made new hole: %d\n", i);
+                    }
                 }
             }
 
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
 
         }
 
     }
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 
     printf("\nStringtable complete\n");
 
@@ -567,6 +614,9 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
     // Clean up before serializing.
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 
     printf("\nVM serialize:\n");
 

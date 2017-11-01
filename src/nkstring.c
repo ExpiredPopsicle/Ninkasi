@@ -136,6 +136,9 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
     struct NKVMString *cur = hashBucket;
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     while(cur) {
         if(!strcmp(cur->str, str)) {
             return cur->stringTableIndex;
@@ -191,6 +194,9 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                 table->stringTable,
                 sizeof(struct NKVMString *), newCapacity);
 
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
+
             // Create hole objects for all our empty new space. Not
             // that we don't create one on the border between the old
             // and new space because that's where our new entry will
@@ -220,6 +226,9 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         newString->nextInHashBucket = hashBucket;
         table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
         table->stringTable[index] = newString;
+
+        // FIXME: Remove this.
+        nkiCheckStringTableHoles(vm);
 
         return newString->stringTableIndex;
     }
@@ -255,6 +264,11 @@ void nkiVmStringTableCleanOldStrings(
     struct NKVMStringTable *table = &vm->stringTable;
     nkuint32_t i;
 
+    printf("nkiVmStringTableCleanOldStrings start\n");
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     nkiDbgWriteLine("Purging unused strings...");
     nkiDbgPush();
 
@@ -265,11 +279,16 @@ void nkiVmStringTableCleanOldStrings(
 
         while(str) {
 
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
+
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
                 nkuint32_t index = str->stringTableIndex;
                 struct NKVMStringTableHole *hole =
                     nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+
+                printf("Nuking string: %d, %p\n", index, str);
 
                 // TODO: Remove this.
                 nkiDbgWriteLine("Purging unused string: %s", str->str);
@@ -284,7 +303,15 @@ void nkiVmStringTableCleanOldStrings(
                 hole->index = index;
                 hole->next = table->tableHoles;
                 table->tableHoles = hole;
+
+                printf("Added a hole at %d\n", index);
+
+                // FIXME: Remove this.
+                nkiCheckStringTableHoles(vm);
             }
+
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
 
             // FIXME: Remove this.
             if(str) {
@@ -299,4 +326,9 @@ void nkiVmStringTableCleanOldStrings(
     }
 
     nkiDbgPop();
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
+    printf("nkiVmStringTableCleanOldStrings end\n");
 }

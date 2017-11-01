@@ -463,6 +463,9 @@ void nkiVmGarbageCollect(struct NKVM *vm)
     gcState.currentGCPass = ++vm->lastGCPass;
     gcState.vm = vm;
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     // TODO: Remove this.
     nkiDbgWriteLine("nkiVmGarbageCollect");
 
@@ -476,6 +479,9 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
     }
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     // Iterate through the current stack.
     {
         nkuint32_t i;
@@ -485,6 +491,9 @@ void nkiVmGarbageCollect(struct NKVM *vm)
                 &gcState, &values[i]);
         }
     }
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 
     // Iterate through the current static space.
     {
@@ -502,13 +511,22 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
     }
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     // Now go and mark everything that the things in the open list
     // reference.
     nkiVmGarbageCollect_markReferenced(&gcState);
 
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
+
     // Delete unmarked strings.
     nkiVmStringTableCleanOldStrings(
         vm, gcState.currentGCPass);
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 
     // Delete unmarked (and not externally-referenced) objects.
     nkiVmObjectTableCleanOldObjects(
@@ -516,6 +534,9 @@ void nkiVmGarbageCollect(struct NKVM *vm)
 
     // TODO: Delete unmarked external data. Also run the GC callback
     // for them.
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 
     // Clean up.
     assert(!gcState.openList);
@@ -529,6 +550,9 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
         nkiDbgWriteLine("Closed list grew to: %u\n", count);
     }
+
+    // FIXME: Remove this.
+    nkiCheckStringTableHoles(vm);
 }
 
 // ----------------------------------------------------------------------

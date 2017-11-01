@@ -140,6 +140,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "String table:\n");
     fprintf(stream, "  capacity: %u\n", vm->stringTable.stringTableCapacity);
     fprintf(stream, "  holes:\n");
+    nkiCheckStringTableHoles(vm);
     {
         char *holeTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity);
         struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
@@ -296,3 +297,47 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "Current memory usage: %u\n", vm->currentMemoryUsage);
 }
 
+void nkiCheckStringTableHoles(struct NKVM *vm)
+{
+    char *holeTracker = malloc(vm->stringTable.stringTableCapacity);
+    struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+
+    memset(holeTracker, 0, vm->stringTable.stringTableCapacity);
+
+    // printf("HOLE LIST...\n");
+    while(hole) {
+        // printf("HOLE: %d\n", hole->index);
+        assert(hole->index < vm->stringTable.stringTableCapacity);
+        assert(!vm->stringTable.stringTable[hole->index]);
+        assert(!holeTracker[hole->index]);
+        holeTracker[hole->index] = 1;
+        hole = hole->next;
+    }
+
+    free(holeTracker);
+
+    {
+        nkuint32_t n;
+        for(n = 0; n < vm->stringTable.stringTableCapacity; n++) {
+            if(vm->stringTable.stringTable[n]) {
+                assert(vm->stringTable.stringTable[n]->stringTableIndex == n);
+            }
+        }
+
+        for(n = 0; n < nkiVmStringHashTableSize; n++) {
+
+            struct NKVMString *str = vm->stringTable.stringsByHash[n];
+
+            while(str) {
+                assert(vm->stringTable.stringTable[str->stringTableIndex] == str);
+                str = str->nextInHashBucket;
+            }
+        }
+    }
+
+
+}
+
+// void nkiCheckStringTableHoleExists(struct NKVM *vm)
+// {
+// }

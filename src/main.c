@@ -701,6 +701,10 @@ int main(int argc, char *argv[])
 
 
 
+                    // FIXME: Remove this.
+                    nkiCheckStringTableHoles(vm);
+
+
                     instructionCountMax--;
                 }
 
@@ -730,7 +734,6 @@ int main(int argc, char *argv[])
                     err = err->next;
                 }
             }
-
 
 
 
@@ -770,11 +773,25 @@ int main(int argc, char *argv[])
         printf("  Finish\n");
         printf("----------------------------------------------------------------------\n");
 
+        // FIXME: Remove this.
+        nkiCheckStringTableHoles(vm);
+
         printf("Final stack...\n");
         nkiVmStackDump(vm);
+
+        // FIXME: Remove this.
+        nkiCheckStringTableHoles(vm);
+
         nkxVmGarbageCollect(vm);
+
+        // FIXME: Remove this.
+        nkiCheckStringTableHoles(vm);
+
         printf("Final stack again...\n");
         nkiVmStackDump(vm);
+
+        // FIXME: Remove this.
+        nkiCheckStringTableHoles(vm);
 
         printf("Final serialized state...\n");
         if(vm->errorState.allocationFailure) {
@@ -785,6 +802,10 @@ int main(int argc, char *argv[])
             struct WriterTestBuffer buf;
             memset(&buf, 0, sizeof(buf));
             printf("Serializing...\n");
+
+            // FIXME: Remove this.
+            nkiCheckStringTableHoles(vm);
+
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
                 if(!c) {

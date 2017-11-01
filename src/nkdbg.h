@@ -66,5 +66,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
 /// serialized data.
 void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
+void nkiCheckStringTableHoles(struct NKVM *vm);
+
 #endif // NINKASI_VMDBG_H
 
