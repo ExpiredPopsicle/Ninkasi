@@ -121,7 +121,7 @@ nkbool nkiSerializeErrorState(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
 {
-    nkuint32_t errorCount = nkiVmGetErrorCount(vm);
+    nkuint32_t errorCount = nkiGetErrorCount(vm);
     struct NKError *err = vm->errorState.firstError;
 
     printf("\nErrorState: ");
@@ -358,9 +358,6 @@ nkbool nkiSerializeStringTable(
 {
     nkuint32_t capacity = vm->stringTable.stringTableCapacity;
 
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
-
     printf("\nStringTable: ");
     printf("\n  Capacity: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
@@ -399,11 +396,6 @@ nkbool nkiSerializeStringTable(
         printf("Non-power-of-two string table capacity!\n");
         return nkfalse;
     }
-
-    printf("\n");
-
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
 
     {
         nkuint32_t actualCount = 0;
@@ -534,9 +526,6 @@ nkbool nkiSerializeStringTable(
 
             //     *origList = newList;
             // }
-
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
 
             // Delete and recreate hole objects.
             while(vm->stringTable.tableHoles) {

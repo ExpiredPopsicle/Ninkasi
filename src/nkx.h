@@ -90,7 +90,7 @@ nkbool nkxVmExecuteProgram(struct NKVM *vm);
 
 /// Get the number of errors that have occurred. Compile errors and
 /// runtime errors are both stored here.
-nkuint32_t nkxVmGetErrorCount(struct NKVM *vm);
+nkuint32_t nkxGetErrorCount(struct NKVM *vm);
 
 /// Get whether or not the VM has any errors.
 nkbool nkxVmHasErrors(struct NKVM *vm);

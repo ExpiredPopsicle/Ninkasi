@@ -78,7 +78,11 @@ void nkiErrorStateSetAllocationFailFlag(
     struct NKVM *vm);
 
 /// Get whether or not an error has occurred (faster than
-/// nkiVmGetErrorCount).
+/// nkiGetErrorCount).
 nkbool nkiVmHasErrors(struct NKVM *vm);
+
+/// Get the number of errors that have occurred. Compile errors and
+/// runtime errors are both stored here.
+nkuint32_t nkiGetErrorCount(struct NKVM *vm);
 
 #endif

@@ -116,9 +116,6 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
     }
 
     cs->context = newContext;
-
-    nkiDbgWriteLine("Pushed context: %p", cs->context);
-    nkiDbgPush();
 }
 
 void nkiCompilerPopContext(struct NKCompilerState *cs)
@@ -201,9 +198,6 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
 
     // Free the context itself.
     nkiFree(cs->vm, oldContext);
-
-    nkiDbgPop();
-    nkiDbgWriteLine("Popped context: %p (now %p)", oldContext, cs->context);
 }
 
 void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, nkbool adjustStackFrame)
@@ -864,10 +858,6 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     }
 
     // Restore the "real" context back to the parent.
-    nkiDbgPush(); // FIXME: To counter the push inside nkiCompilerPopContext.
-
-    // assert(cs->context == functionLocalContext);
-
     nkiCompilerPopContext(cs);
     cs->context = savedContext;
 

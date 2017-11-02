@@ -475,7 +475,7 @@ int main(int argc, char *argv[])
             assert(0);
             return 1;
         }
-        if(nkiVmGetErrorCount(vm)) {
+        if(nkiGetErrorCount(vm)) {
             nkxVmDelete(vm);
             assert(0);
             return 1;
@@ -535,7 +535,7 @@ int main(int argc, char *argv[])
             }
 
             // Dump errors.
-            if(nkiVmGetErrorCount(vm)) {
+            if(nkiGetErrorCount(vm)) {
                 struct NKError *err = vm->errorState.firstError;
                 while(err) {
                     printf("error: %s\n", err->errorText);
@@ -604,7 +604,7 @@ int main(int argc, char *argv[])
             printf("  Execution\n");
             printf("----------------------------------------------------------------------\n");
 
-            if(!nkiVmGetErrorCount(vm)) {
+            if(!nkiGetErrorCount(vm)) {
 
                 // nkiVmExecuteProgram(vm);
 
@@ -638,7 +638,7 @@ int main(int argc, char *argv[])
                     // dumpListing(vm, script);
                     // getchar();
 
-                    if(nkxVmGetErrorCount(vm)) {
+                    if(nkxGetErrorCount(vm)) {
                         printf("Instruction pointer of failure: %u\n", vm->instructionPointer);
                         break;
                     }

@@ -99,3 +99,20 @@ void nkiAddError(
         vm->errorState.firstError = newError;
     }
 }
+
+nkuint32_t nkiGetErrorCount(struct NKVM *vm)
+{
+    nkuint32_t count = 0;
+    struct NKError *error = vm->errorState.firstError;
+
+    while(error) {
+        count++;
+        error = error->next;
+    }
+
+    if(vm->errorState.allocationFailure) {
+        count++;
+    }
+
+    return count;
+}

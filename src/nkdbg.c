@@ -45,8 +45,6 @@
 
 #define DEBUG_SPAM 0
 
-// static nkint32_t nkiDbgIndentLevel = 0;
-
 int nkiDbgWriteLine(const char *fmt, ...)
 {
   #if DEBUG_SPAM
@@ -68,17 +66,6 @@ int nkiDbgWriteLine(const char *fmt, ...)
   #else
     return 0;
   #endif
-}
-
-void nkiDbgPush_real(const char *func)
-{
-    // nkiDbgIndentLevel++;
-}
-
-void nkiDbgPop_real(const char *func)
-{
-    // assert(nkiDbgIndentLevel > 0);
-    // nkiDbgIndentLevel--;
 }
 
 // ----------------------------------------------------------------------
@@ -338,6 +325,25 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
 
 }
 
-// void nkiCheckStringTableHoleExists(struct NKVM *vm)
-// {
-// }
+void nkiVmStringTableDump(struct NKVMStringTable *table)
+{
+    nkuint32_t i;
+    printf("String table dump...\n");
+
+    printf("  Hash table...\n");
+    for(i = 0; i < nkiVmStringHashTableSize  ; i++) {
+        struct NKVMString *str = table->stringsByHash[i];
+        printf("    %.2x\n", i);
+        while(str) {
+            printf("      %s\n", str->str);
+            str = str->nextInHashBucket;
+        }
+    }
+
+    printf("  Main table...\n");
+    for(i = 0; i < table->stringTableCapacity; i++) {
+        struct NKVMString *str = table->stringTable[i];
+        printf("    %.2x\n", i);
+        printf("      %s\n", str ? str->str : "<null>");
+    }
+}

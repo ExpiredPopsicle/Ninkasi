@@ -48,14 +48,9 @@
 
 #include <stdio.h>
 
-int nkiDbgWriteLine(const char *fmt, ...);
-void nkiDbgPush_real(const char *func);
-void nkiDbgPop_real(const char *func);
+struct NKVMStringTable;
 
-// #define nkiDbgPush() do { nkiDbgPush_real(__FUNCTION__); } while(0)
-// #define nkiDbgPop() do { nkiDbgPop_real(__FUNCTION__); } while(0)
-#define nkiDbgPush() do { nkiDbgPush_real(""); } while(0)
-#define nkiDbgPop() do { nkiDbgPop_real(""); } while(0)
+int nkiDbgWriteLine(const char *fmt, ...);
 
 void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
 
@@ -67,6 +62,8 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
 void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
 void nkiCheckStringTableHoles(struct NKVM *vm);
+
+void nkiVmStringTableDump(struct NKVMStringTable *table);
 
 #endif // NINKASI_VMDBG_H
 

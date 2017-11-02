@@ -94,8 +94,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str);
 
-void nkiVmStringTableDump(struct NKVMStringTable *table);
-
 void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     nkuint32_t lastGCPass);

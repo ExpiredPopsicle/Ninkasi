@@ -251,8 +251,5 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
         nkiDbgWriteLine("Closed list grew to: %u\n", count);
     }
-
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
 }
 

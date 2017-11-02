@@ -196,9 +196,6 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVMObjectTable *table = &vm->objectTable;
     nkuint32_t i;
 
-    nkiDbgWriteLine("Purging unused objects...");
-    nkiDbgPush();
-
     for(i = 0; i < table->objectTableCapacity; i++) {
 
         struct NKVMObject *ob = table->objectTable[i];
@@ -244,8 +241,6 @@ void nkiVmObjectTableCleanOldObjects(
             }
         }
     }
-
-    nkiDbgPop();
 }
 
 void nkiVmObjectClearEntry(

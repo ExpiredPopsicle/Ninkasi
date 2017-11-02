@@ -107,12 +107,12 @@ nkbool nkxVmExecuteProgram(struct NKVM *vm)
     return ret;
 }
 
-nkuint32_t nkxVmGetErrorCount(struct NKVM *vm)
+nkuint32_t nkxGetErrorCount(struct NKVM *vm)
 {
     nkuint32_t ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(1);
-    ret = nkiVmGetErrorCount(vm);
+    ret = nkiGetErrorCount(vm);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }

@@ -106,9 +106,6 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
 /// Delete an entire AST, including all children.
 void nkiCompilerDeleteExpressionNode(struct NKVM *vm, struct NKExpressionAstNode *node);
 
-/// Debug AST dump.
-void nkiCompilerDumpExpressionAstNode(struct NKExpressionAstNode *node);
-
 /// Just parse an expression tree starting from the current token and
 /// return an AST. The form of the AST coming out of this is only a
 /// raw representation of what was in the script, and needs some

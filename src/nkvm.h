@@ -57,7 +57,6 @@
 #include "nkvalue.h"
 #include "nkx.h"
 
-struct NKVM;
 struct NKVMFunction;
 struct NKMemoryHeader;
 
@@ -75,6 +74,7 @@ struct NKVMLimits
     nkuint32_t maxAllocatedMemory;
 };
 
+/// The VM object itself.
 struct NKVM
 {
     struct NKErrorState errorState;
@@ -162,28 +162,14 @@ void nkiVmInit(struct NKVM *vm);
 /// De-initialize a VM. Does not deallocate the VM structure.
 void nkiVmDestroy(struct NKVM *vm);
 
-/// Re-check all strings in the string table to see if they're in-use
-/// by any program code. If program code has been removed that
-/// references strings, then they can be made garbage-collectible.
-void nkiVmRescanProgramStrings(struct NKVM *vm);
-
 const char *nkiVmGetOpcodeName(enum NKOpcode op);
 
 void nkiVmStaticDump(struct NKVM *vm);
 
 // ----------------------------------------------------------------------
 
-/// Compiler internal function creation. Don't use this outside. Not
-/// for that. This ONLY allocates a function.
-struct NKVMFunction *nkiVmCreateFunction(
-    struct NKVM *vm, NKVMInternalFunctionID *functionId);
-
 /// Run the compiled program.
 nkbool nkiVmExecuteProgram(struct NKVM *vm);
-
-/// Get the number of errors that have occurred. Compile errors and
-/// runtime errors are both stored here.
-nkuint32_t nkiVmGetErrorCount(struct NKVM *vm);
 
 // TODO: Error string functions.
 
@@ -220,34 +206,6 @@ void nkiVmCallFunction(
 /// all.)
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
-
-// ----------------------------------------------------------------------
-// External function interface
-
-/// Register a new external function. You should do this before
-/// compiling or deserializing. It may also take a long time searching
-/// for duplicates. You may have to use this if you do not know if a
-/// function exists or not inside the VM yet, or if you do know and
-/// need the ID to be found.
-NKVMExternalFunctionID nkiVmRegisterExternalFunction(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback func);
-
-/// Register a new external function. You should do this before
-/// compiling or deserializing. This version will not waste time
-/// searching for an existing copy of the function object. Use only if
-/// you know that a duplicate of the function does not exist yet.
-NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback func);
-
-/// Look up or create an internal function to represent some external
-/// function. This should execute fast (no searching), but may have to
-/// instantiate a new function object.
-NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
-    struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
 
 // ----------------------------------------------------------------------
 // External data interface

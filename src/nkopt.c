@@ -220,19 +220,6 @@ void nkiCompilerOptimizeConstants(
                 default:
                     break;
             }
-
-        } else {
-
-            nkiDbgWriteLine("NOT optimizing operator: %s\n", (*node)->opOrValue->str);
-
-            nkiDbgWriteLine("  Child1: ");
-            nkiCompilerDumpExpressionAstNode((*node)->children[0]);
-            nkiDbgWriteLine("\n");
-
-            nkiDbgWriteLine("  Child2: ");
-            nkiCompilerDumpExpressionAstNode((*node)->children[1]);
-            nkiDbgWriteLine("\n");
-
         }
     }
 }
