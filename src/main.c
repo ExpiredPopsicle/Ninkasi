@@ -69,9 +69,6 @@ struct WriterTestBuffer
 
 nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 {
-    const char charMap[17] = { "0123456789abcdef" };
-    nkuint32_t i = 0;
-
     if(userdata) {
 
         struct WriterTestBuffer *testBuf = (struct WriterTestBuffer *)userdata;
@@ -95,16 +92,12 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
         }
     }
 
-    for(i = 0; i < size; i++) {
-        const char *c = (const char *)data + i;
-        printf("%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
-    }
-
-    // if(size >= 4) {
-    //     if(*(nkuint32_t*)data != 0) {
-    //         printf("NOT ZERO");
-    //     } else {
-    //         printf("ZERO");
+    // {
+    //     const char charMap[17] = { "0123456789abcdef" };
+    //     nkuint32_t i = 0;
+    //     for(i = 0; i < size; i++) {
+    //         const char *c = (const char *)data + i;
+    //         printf("%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
     //     }
     // }
 
@@ -594,11 +587,11 @@ int main(int argc, char *argv[])
             //     }
             // }
 
-            printf("----------------------------------------------------------------------\n");
-            printf("  Dump\n");
-            printf("----------------------------------------------------------------------\n");
+            // printf("----------------------------------------------------------------------\n");
+            // printf("  Dump\n");
+            // printf("----------------------------------------------------------------------\n");
 
-            dumpListing(vm, script);
+            // dumpListing(vm, script);
 
             printf("----------------------------------------------------------------------\n");
             printf("  Execution\n");
@@ -800,7 +793,7 @@ int main(int argc, char *argv[])
 
             {
                 // FILE *out1 = fopen("stest1.txt", "w+");
-                nkxDbgDumpState(vm, stdout);
+                // nkxDbgDumpState(vm, stdout);
                 // fclose(out1);
             }
 
@@ -831,7 +824,7 @@ int main(int argc, char *argv[])
 
                 {
                     // FILE *out2 = fopen("stest2.txt", "w+");
-                    nkxDbgDumpState(newVm, stdout);
+                    // nkxDbgDumpState(newVm, stdout);
                     // fclose(out2);
                 }
 

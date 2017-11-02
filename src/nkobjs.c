@@ -228,8 +228,6 @@ void nkiVmObjectTableCleanOldObjects(
 
                 hole = nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
 
-                nkiDbgWriteLine("Purging object at index %u", i);
-
                 table->objectTable[i] = NULL;
                 nkiVmObjectDelete(vm, ob);
 

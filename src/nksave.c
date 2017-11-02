@@ -54,8 +54,7 @@
     } while(0)
 
 #define NKI_SERIALIZE_DATA(data, size)                              \
-    NKI_WRAPSERIALIZE(writer((void*)(data), (size), userdata, writeMode)); \
-    printf(" ")
+    NKI_WRAPSERIALIZE(writer((void*)(data), (size), userdata, writeMode))
 
 #define NKI_SERIALIZE_BASIC(t, val)                 \
     do {                                            \
@@ -543,8 +542,6 @@ nkbool nkiSerializeStringTable(
                         newHole->index = i;
                         newHole->next = vm->stringTable.tableHoles;
                         vm->stringTable.tableHoles = newHole;
-
-                        printf("ADSF: Made new hole: %d\n", i);
                     }
                 }
             }
@@ -633,7 +630,7 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
               // #else
                 NKI_SERIALIZE_BASIC(struct NKInstruction, vm->instructions[i]);
               // #endif
-                printf("\n");
+                // printf("\n");
             }
         }
     }
