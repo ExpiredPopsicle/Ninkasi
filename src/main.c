@@ -54,10 +54,6 @@
 #include <malloc.h>
 #include <string.h>
 
-
-// typedef nkbool (*NKVMSerializationWriter)(const void *data, nkuint32_t size, void *userdata);
-
-
 // ----------------------------------------------------------------------
 
 struct WriterTestBuffer

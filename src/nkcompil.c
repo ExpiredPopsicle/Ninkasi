@@ -1387,9 +1387,6 @@ nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
 
     loopContextLevel = searchContext->stackFrameOffset;
 
-    printf("Stack frame difference: %u\n", contextLevel - loopContextLevel);
-    // assert(0);
-
     // Pop off every context's data between the break statement and
     // the loop context.
     nkiCompilerEmitPushLiteralInt(cs, contextLevel - loopContextLevel, nkfalse);
