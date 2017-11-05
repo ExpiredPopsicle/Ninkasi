@@ -470,6 +470,39 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
     return nktrue;
 }
 
+void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
+{
+    nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+    nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+    nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+    nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+    nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
+    nkxVmRegisterExternalFunction(vm, "catastrophe", testVMCatastrophe);
+    nkxVmRegisterExternalFunction(vm, "print", vmFuncPrint);
+    nkxVmRegisterExternalFunction(vm, "hash", getHash);
+    nkxVmRegisterExternalFunction(vm, "hash2", getHash);
+    nkxVmRegisterExternalFunction(vm, "testHandle1", testHandle1);
+    nkxVmRegisterExternalFunction(vm, "testHandle2", testHandle2);
+    nkxVmRegisterExternalFunction(vm, "setGCCallbackThing", setGCCallbackThing);
+
+    if(cs) {
+
+        nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+        nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
+        nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
+        nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
+        nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
+        nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
+        nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
+        nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
+
+    }
+}
+
 int main(int argc, char *argv[])
 {
     struct Settings settings;
@@ -520,18 +553,7 @@ int main(int argc, char *argv[])
         // vm->limits.maxAllocatedMemory = settings.maxRam;
         vm->limits = settings.limits;
 
-        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
-        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
-        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
-        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
-        nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
-        nkxVmRegisterExternalFunction(vm, "catastrophe", testVMCatastrophe);
-        nkxVmRegisterExternalFunction(vm, "print", vmFuncPrint);
-        nkxVmRegisterExternalFunction(vm, "hash", getHash);
-        nkxVmRegisterExternalFunction(vm, "hash2", getHash);
-        nkxVmRegisterExternalFunction(vm, "testHandle1", testHandle1);
-        nkxVmRegisterExternalFunction(vm, "testHandle2", testHandle2);
-        nkxVmRegisterExternalFunction(vm, "setGCCallbackThing", setGCCallbackThing);
+        initInternalFunctions(vm, NULL);
 
         if(script && script[0] != 0) {
 
@@ -539,18 +561,20 @@ int main(int argc, char *argv[])
 
             if(cs) {
 
-                nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                initInternalFunctions(vm, cs);
+
                 // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
-                nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
-                nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
-                nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
-                nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
-                nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
-                nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
-                nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
+                // // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // // nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
+                // nkxCompilerCreateCFunctionVariable(cs, "catastrophe", testVMCatastrophe);
+                // nkxCompilerCreateCFunctionVariable(cs, "print", vmFuncPrint);
+                // nkxCompilerCreateCFunctionVariable(cs, "hash", getHash);
+                // nkxCompilerCreateCFunctionVariable(cs, "hash2", getHash);
+                // nkxCompilerCreateCFunctionVariable(cs, "testHandle1", testHandle1);
+                // nkxCompilerCreateCFunctionVariable(cs, "testHandle2", testHandle2);
+                // nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
 
                 nkxCompilerCompileScript(cs, script);
 
