@@ -402,13 +402,11 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
     }
 }
 
-const char *scriptName = "test/test2.txt";
-
 struct Settings
 {
     nkbool compileOnly;
-    nkuint32_t maxRam;
     const char *filename;
+    struct NKVMLimits limits;
 };
 
 void printHelp(nkbool isError)
@@ -424,7 +422,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
-    settings->maxRam = NK_INVALID_VALUE;
+    memset(&settings->limits, 0xff, sizeof(settings->limits));
 
     for(i = 1; i < argc; i++) {
 
@@ -436,7 +434,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
             i++;
             if(i < argc) {
-                settings->maxRam = atoi(argv[i]);
+                settings->limits.maxAllocatedMemory = atoi(argv[i]);
             } else {
                 fprintf(stderr, "Missing parameter for -m.\n");
                 return nkfalse;
@@ -477,8 +475,6 @@ int main(int argc, char *argv[])
     struct Settings settings;
     char *script = NULL;
     nkuint32_t scriptSize = 0;
-    nkuint32_t maxRam = 19880;
-    nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
 
     if(!parseCmdLine(argc, argv, &settings)) {
         return 1;
@@ -490,26 +486,11 @@ int main(int argc, char *argv[])
         script = loadScriptFromStdin(&scriptSize);
     }
 
-    maxRam = 60522;
-    maxRam = 61818;
-    maxRam = 89049;
-    maxRam = 90490;
-    maxRam = 115200;
-    maxRam = 130000;
-    maxRam = 1;
-    maxRam = 158000;
-    maxRam = 15800000;
-
-    maxRam = settings.maxRam;
-    maxMaxRam = maxRam + 1;
-
-
     if(!script) {
         printf("Script failed to even load.\n");
         return 1;
     }
 
-    // while(strlen(script) && maxRam < maxMaxRam) // && maxRam < 512)
     {
         nkuint32_t lineCount = 0;
         char **lines = NULL;
@@ -536,7 +517,8 @@ int main(int argc, char *argv[])
         // vm->limits.maxStacksize = 5;
         // vm->limits.maxObjects = 1;
         // vm->limits.maxFieldsPerObject = 2;
-        vm->limits.maxAllocatedMemory = maxRam;
+        // vm->limits.maxAllocatedMemory = settings.maxRam;
+        vm->limits = settings.limits;
 
         nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
         nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
@@ -571,12 +553,12 @@ int main(int argc, char *argv[])
                 nkxCompilerCreateCFunctionVariable(cs, "setGCCallbackThing", setGCCallbackThing);
 
                 nkxCompilerCompileScript(cs, script);
-                // nkxCompilerCompileScriptFile(cs, scriptName);
+
                 nkxCompilerFinalize(cs);
 
             } else {
 
-                printf("Can't create compiler state.\n");
+                fprintf(stderr, "Can't create compiler state.\n");
 
                 return 1;
             }
@@ -952,15 +934,6 @@ int main(int argc, char *argv[])
 
         free(lines[0]);
         free(lines);
-
-
-
-        // script[strlen(script) - 1] = 0;
-        maxRam++;
-        printf("maxRam: " NK_PRINTF_UINT32 "\n", maxRam);
-
-        // fprintf(stderr, "Iterations: %u\n", (nkuint32_t)strlen(script));
-        fprintf(stderr, "maxRam: " NK_PRINTF_UINT32 "\n", (nkuint32_t)maxRam);
     }
 
     free(script);
