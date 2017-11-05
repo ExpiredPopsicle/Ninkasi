@@ -53,6 +53,7 @@
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
+#include <stdlib.h>
 
 // ----------------------------------------------------------------------
 
@@ -208,7 +209,7 @@ void dumpListing(struct NKVM *vm, const char *script)
     }
 }
 
-char *loadScript(const char *filename)
+char *loadScript(const char *filename, nkuint32_t *scriptSize)
 {
     FILE *in = fopen(filename, "rb");
     nkuint32_t len;
@@ -227,6 +228,10 @@ char *loadScript(const char *filename)
     buf[len] = 0;
 
     fclose(in);
+
+    if(scriptSize) {
+        *scriptSize = len;
+    }
 
     return buf;
 }
@@ -399,43 +404,91 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
 const char *scriptName = "test/test2.txt";
 
+struct Settings
+{
+    nkbool compileOnly;
+    nkuint32_t maxRam;
+    const char *filename;
+};
+
+void printHelp(nkbool isError)
+{
+    FILE *stream = isError ? stderr : stdout;
+    fprintf(stream, "<TODO: help text goes here>\n");
+}
+
+nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
+{
+    int i;
+    nkbool noMoreSwitches = nkfalse;
+
+    // Set up some nice defaults.
+    memset(settings, 0, sizeof(*settings));
+    settings->maxRam = NK_INVALID_VALUE;
+
+    for(i = 1; i < argc; i++) {
+
+        if(strcmp("-c", argv[i]) == 0) {
+
+            settings->compileOnly = nktrue;
+
+        } else if(strcmp("-m", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+                settings->maxRam = atoi(argv[i]);
+            } else {
+                fprintf(stderr, "Missing parameter for -m.\n");
+                return nkfalse;
+            }
+
+        } else if(strcmp("--help", argv[i]) == 0) {
+
+            printHelp(nkfalse);
+            exit(0);
+
+        } else if(strcmp("--", argv[i]) == 0) {
+
+            noMoreSwitches = nktrue;
+
+        } else if(noMoreSwitches || argv[i][0] != '-') {
+
+            if(settings->filename) {
+                fprintf(stderr, "Too many filenames specified.\n");
+                return nkfalse;
+            }
+
+            settings->filename = argv[i];
+
+        } else {
+
+            fprintf(stderr, "Unrecognized argument: %s\n", argv[i]);
+            fprintf(stderr, "Use '%s --help' for more information.\n", argv[0]);
+            return nkfalse;
+
+        }
+    }
+
+    return nktrue;
+}
+
 int main(int argc, char *argv[])
 {
+    struct Settings settings;
     char *script = NULL;
     nkuint32_t scriptSize = 0;
     nkuint32_t maxRam = 19880;
     nkuint32_t maxMaxRam = (nkuint32_t)1024*(nkuint32_t)1024;
-    nkbool compileOnly = nkfalse;
 
-    if(argc == 2) {
-        // scriptName = argv[1];
-        if(!strcmp(argv[1], "-c")) {
-            compileOnly = nktrue;
-        }
+    if(!parseCmdLine(argc, argv, &settings)) {
+        return 1;
     }
 
-    // {
-    //     size_t scriptNameLen = strlen(scriptName);
-    //     if(scriptNameLen > 4) {
-    //         if(!strcmp(&scriptName[scriptNameLen - 4], ".nkb")) {
-    //             printf("It's a binary\n");
-    //             return 0;
-    //         }
-    //         if(!strcmp(&scriptName[scriptNameLen - 4], ".nks")) {
-    //             printf("It's a script\n");
-    //             return 0;
-    //         }
-    //     }
-    // }
-
-    // script = loadScript(scriptName);
-
-    script = loadScriptFromStdin(&scriptSize);
-    // printf("%s\n", script);
-    // if(strlen(script) % 20 == 0) {
-    //     assert(0);
-    // }
-    // return 0;
+    if(settings.filename) {
+        script = loadScript(settings.filename, &scriptSize);
+    } else {
+        script = loadScriptFromStdin(&scriptSize);
+    }
 
     maxRam = 60522;
     maxRam = 61818;
@@ -446,7 +499,10 @@ int main(int argc, char *argv[])
     maxRam = 1;
     maxRam = 158000;
     maxRam = 15800000;
+
+    maxRam = settings.maxRam;
     maxMaxRam = maxRam + 1;
+
 
     if(!script) {
         printf("Script failed to even load.\n");
@@ -519,7 +575,9 @@ int main(int argc, char *argv[])
                 nkxCompilerFinalize(cs);
 
             } else {
-                assert(0);
+
+                printf("Can't create compiler state.\n");
+
                 return 1;
             }
 
@@ -545,7 +603,7 @@ int main(int argc, char *argv[])
             }
         }
 
-        if(compileOnly) {
+        if(settings.compileOnly) {
 
             FILE *out = NULL;
             struct WriterTestBuffer buf;
