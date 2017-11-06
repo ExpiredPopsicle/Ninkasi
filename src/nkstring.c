@@ -136,9 +136,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
     struct NKVMString *cur = hashBucket;
 
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
-
     while(cur) {
         if(!strcmp(cur->str, str)) {
             return cur->stringTableIndex;
@@ -194,9 +191,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                 table->stringTable,
                 sizeof(struct NKVMString *), newCapacity);
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-
             // Create hole objects for all our empty new space. Not
             // that we don't create one on the border between the old
             // and new space because that's where our new entry will
@@ -226,9 +220,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         newString->nextInHashBucket = hashBucket;
         table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
         table->stringTable[index] = newString;
-
-        // FIXME: Remove this.
-        nkiCheckStringTableHoles(vm);
 
         return newString->stringTableIndex;
     }
@@ -272,7 +263,4 @@ void nkiVmStringTableCleanOldStrings(
             }
         }
     }
-
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
 }

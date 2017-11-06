@@ -121,24 +121,37 @@ nkbool nkiSerializeErrorState(
     void *userdata, nkbool writeMode)
 {
     nkuint32_t errorCount = nkiGetErrorCount(vm);
-    struct NKError *err = vm->errorState.firstError;
 
     printf("\nErrorState: ");
 
     // Save error count.
     NKI_SERIALIZE_BASIC(nkuint32_t, errorCount);
+    NKI_SERIALIZE_BASIC(nkbool, vm->errorState.allocationFailure);
 
-    // FIXME: Not set up to deserialize!
-    if(!writeMode) {
-        return nktrue;
+    if(writeMode) {
+
+        struct NKError *err = vm->errorState.firstError;
+
+        while(err) {
+            char *tmp = err->errorText;
+            NKI_SERIALIZE_STRING(tmp);
+            err = err->next;
+        }
+
+    } else {
+
+        nkuint32_t errorNum;
+        struct NKError **lastPtr = &vm->errorState.firstError;
+
+        for(errorNum = 0; errorNum < errorCount; errorNum++) {
+            struct NKError *newError = nkiMalloc(vm, sizeof(struct NKError));
+            NKI_SERIALIZE_STRING(newError->errorText);
+            newError->next = NULL;
+            *lastPtr = newError;
+            lastPtr = &newError->next;
+        }
+
     }
-
-    // // Save each error.
-    // while(err) {
-    //     char *tmp = err->errorText;
-    //     NKI_SERIALIZE_STRING(tmp);
-    //     err = err->next;
-    // }
 
     return nktrue;
 }
@@ -532,8 +545,7 @@ nkbool nkiSerializeStringTable(
                 vm->stringTable.tableHoles = hole->next;
                 nkiFree(vm, hole);
             }
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
+
             {
                 nkuint32_t i;
                 for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
@@ -546,15 +558,9 @@ nkbool nkiSerializeStringTable(
                 }
             }
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-
         }
 
     }
-
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
 
     printf("\nStringtable complete\n");
 
@@ -643,9 +649,6 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
     // Clean up before serializing.
-
-    // FIXME: Remove this.
-    nkiCheckStringTableHoles(vm);
 
     printf("\nVM serialize:\n");
 
@@ -812,6 +815,12 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                         nkuint32_t n;
 
                         for(n = 0; n < vm->externalFunctionCount; n++) {
+
+                            // Clear out the internal function value,
+                            // in case we don't actually find
+                            // something.
+                            vm->externalFunctionTable[n].internalFunctionId.id = NK_INVALID_VALUE;
+
                             if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
                                 functionIdMapping[i].id = n;
                                 vm->externalFunctionTable[n].internalFunctionId =

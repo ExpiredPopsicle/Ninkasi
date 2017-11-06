@@ -127,7 +127,6 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "String table:\n");
     fprintf(stream, "  capacity: %u\n", vm->stringTable.stringTableCapacity);
     fprintf(stream, "  holes:\n");
-    nkiCheckStringTableHoles(vm);
     {
         char *holeTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity);
         struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
