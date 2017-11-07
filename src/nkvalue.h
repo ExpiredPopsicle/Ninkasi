@@ -61,7 +61,13 @@ struct NKVM;
 /// outside of the VM.)
 struct NKValue
 {
-    enum NKValueType type;
+    // The type_uint field here forces the field to be 32-bits on DOS,
+    // where the compiler I'm using still uses 16-bit values for
+    // enums.
+    union {
+        enum NKValueType type;
+        nkuint32_t type_uint;
+    };
 
     // FIXME: We shouldn't have this for values. Just strings and
     // objects. But it'll take some work refactoring the garbage

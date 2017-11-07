@@ -96,6 +96,7 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
     //         const char *c = (const char *)data + i;
     //         printf("%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
     //     }
+    //     printf("\n");
     // }
 
     return nktrue;
@@ -360,10 +361,12 @@ void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
         return;
     }
     printf("\nSerialization callback start!\n");
-    char tmp[5] = "TEST";
-    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-    data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+    {
+        char tmp[5] = "TEST";
+        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
+    }
     printf("\nSerialization callback complete!\n");
 }
 

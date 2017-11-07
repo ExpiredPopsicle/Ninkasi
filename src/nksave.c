@@ -697,6 +697,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     }
 
     // Read/write the static space.
+
+    printf("sizeof(struct NKValue) = %ld\n", sizeof(struct NKValue));
+
     NKI_SERIALIZE_DATA(
         vm->staticSpace,
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));
