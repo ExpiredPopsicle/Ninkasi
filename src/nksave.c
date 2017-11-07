@@ -373,14 +373,14 @@ nkbool nkiSerializeStringTable(
     printf("\nStringTable: ");
     printf("\n  Capacity: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
-    printf("\n  Decoded capacity: %u\n", capacity);
+    printf("\n  Decoded capacity: " NK_PRINTF_UINT32 "\n", capacity);
 
     // Destroy and recreate the string table with the specified
     // capacity, if we're in READ mode.
     if(!writeMode) {
         nkiVmStringTableDestroy(vm);
         vm->stringTable.stringTableCapacity = capacity;
-        printf("\n  Assigned capacity: %u\n", vm->stringTable.stringTableCapacity);
+        printf("\n  Assigned capacity: " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTableCapacity);
 
         // Thanks AFL! String table size can cause a 32-bit integer
         // overflow after being multiplied by the size of the string
@@ -487,8 +487,6 @@ nkbool nkiSerializeStringTable(
 
 
                     assert(vm->stringTable.stringTable[index]);
-
-                    // printf("size: %u\n", size);
 
                     memset(vm->stringTable.stringTable[index], 0, size);
                     memcpy(vm->stringTable.stringTable[index]->str, tmpStr, strlen(tmpStr) + 1);
@@ -622,9 +620,9 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
             memset(vm->instructions, 0, sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1));
         }
 
-        printf("Address mask:     %u\n", vm->instructionAddressMask);
-        printf("ILS:              %u\n", instructionLimitSearch);
-        printf("vm->instructions: %p\n", vm->instructions);
+        printf("Address mask:     " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
+        printf("ILS:              " NK_PRINTF_UINT32 "\n", instructionLimitSearch);
+        // printf("vm->instructions: %p\n", vm->instructions);
 
         printf("\n");
         {
@@ -697,9 +695,6 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     }
 
     // Read/write the static space.
-
-    printf("sizeof(struct NKValue) = %ld\n", sizeof(struct NKValue));
-
     NKI_SERIALIZE_DATA(
         vm->staticSpace,
         sizeof(struct NKValue) * (vm->staticAddressMask + 1));

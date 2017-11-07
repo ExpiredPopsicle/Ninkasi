@@ -96,36 +96,36 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     }
 
     fprintf(stream, "Stack:\n");
-    fprintf(stream, "  Capacity:  %u\n", vm->stack.capacity);
-    fprintf(stream, "  Size:      %u\n", vm->stack.size);
-    fprintf(stream, "  IndexMask: %u\n", vm->stack.indexMask);
+    fprintf(stream, "  Capacity:  " NK_PRINTF_UINT32 "\n", vm->stack.capacity);
+    fprintf(stream, "  Size:      " NK_PRINTF_UINT32 "\n", vm->stack.size);
+    fprintf(stream, "  IndexMask: " NK_PRINTF_UINT32 "\n", vm->stack.indexMask);
     fprintf(stream, "  Elements:\n");
     for(i = 0; i < vm->stack.size; i++) {
-        fprintf(stream, "    %u: ", i);
+        fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
         nkiDbgDumpRaw(stream, &vm->stack.values[i], sizeof(vm->stack.values[i]));
         fprintf(stream, "\n");
     }
 
     fprintf(stream, "Statics:\n");
-    fprintf(stream, "  staticAddressMask: %u\n", vm->staticAddressMask);
+    fprintf(stream, "  staticAddressMask: " NK_PRINTF_UINT32 "\n", vm->staticAddressMask);
     fprintf(stream, "  Elements:\n");
     for(i = 0; i <= vm->staticAddressMask; i++) {
-        fprintf(stream, "    %u: ", i);
+        fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
         nkiDbgDumpRaw(stream, &vm->staticSpace[i], sizeof(vm->staticSpace[i]));
         fprintf(stream, "\n");
     }
 
     fprintf(stream, "Instructions:\n");
-    fprintf(stream, "  instructionAddressMask: %u\n", vm->instructionAddressMask);
-    fprintf(stream, "  instructionPointer:     %u\n", vm->instructionPointer);
+    fprintf(stream, "  instructionAddressMask: " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
+    fprintf(stream, "  instructionPointer:     " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
     for(i = 0; i <= vm->instructionAddressMask; i++) {
-        fprintf(stream, "    %u: ", i);
+        fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
         nkiDbgDumpRaw(stream, &vm->instructions[i], sizeof(vm->instructions[i]));
         fprintf(stream, "\n");
     }
 
     fprintf(stream, "String table:\n");
-    fprintf(stream, "  capacity: %u\n", vm->stringTable.stringTableCapacity);
+    fprintf(stream, "  capacity: " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTableCapacity);
     fprintf(stream, "  holes:\n");
     {
         char *holeTracker = nkiMalloc(vm, vm->stringTable.stringTableCapacity);
@@ -141,7 +141,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
         for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
             if(holeTracker[i]) {
-                fprintf(stream, "    %u\n", i);
+                fprintf(stream, "    " NK_PRINTF_UINT32 "\n", i);
             }
         }
 
@@ -164,19 +164,19 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  strings:\n");
     for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
         if(vm->stringTable.stringTable[i]) {
-            fprintf(stream, "    string %u:\n", i);
-            fprintf(stream, "      stringTableIndex: %u\n", vm->stringTable.stringTable[i]->stringTableIndex);
-            fprintf(stream, "      dontGC:           %u\n", vm->stringTable.stringTable[i]->dontGC);
-            fprintf(stream, "      hash:             %u\n", vm->stringTable.stringTable[i]->hash);
+            fprintf(stream, "    string " NK_PRINTF_UINT32 ":\n", i);
+            fprintf(stream, "      stringTableIndex: " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->stringTableIndex);
+            fprintf(stream, "      dontGC:           " NK_PRINTF_UINT32 "\n", (nkuint32_t)(vm->stringTable.stringTable[i]->dontGC ? 1 : 0));
+            fprintf(stream, "      hash:             " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->hash);
             fprintf(stream, "      data:             ");
-            fprintf(stream, "      lastGCPass:       %u\n", vm->stringTable.stringTable[i]->lastGCPass);
+            fprintf(stream, "      lastGCPass:       " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->lastGCPass);
             nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, strlen(vm->stringTable.stringTable[i]->str));
             fprintf(stream, "\n");
         }
     }
 
     fprintf(stream, "objectTable:\n");
-    fprintf(stream, "  objectTableCapacity: %u\n", vm->objectTable.objectTableCapacity);
+    fprintf(stream, "  objectTableCapacity: " NK_PRINTF_UINT32 "\n", vm->objectTable.objectTableCapacity);
     fprintf(stream, "  holes:\n");
     {
         char *holeTracker = nkiMalloc(vm, vm->objectTable.objectTableCapacity);
@@ -192,7 +192,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
         for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
             if(holeTracker[i]) {
-                fprintf(stream, "    %u\n", i);
+                fprintf(stream, "    " NK_PRINTF_UINT32 "\n", i);
             }
         }
 
@@ -202,11 +202,11 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
         if(vm->objectTable.objectTable[i]) {
             struct NKVMObject *ob = vm->objectTable.objectTable[i];
-            fprintf(stream, "    %u\n", i);
-            fprintf(stream, "      index: %u\n", ob->objectTableIndex);
-            fprintf(stream, "      lastGCPass: %u\n", ob->lastGCPass);
-            fprintf(stream, "      size: %u\n", ob->size);
-            fprintf(stream, "      external handles: %u\n", ob->externalHandleCount);
+            fprintf(stream, "    " NK_PRINTF_UINT32 "\n", i);
+            fprintf(stream, "      index: " NK_PRINTF_UINT32 "\n", ob->objectTableIndex);
+            fprintf(stream, "      lastGCPass: " NK_PRINTF_UINT32 "\n", ob->lastGCPass);
+            fprintf(stream, "      size: " NK_PRINTF_UINT32 "\n", ob->size);
+            fprintf(stream, "      external handles: " NK_PRINTF_UINT32 "\n", ob->externalHandleCount);
             fprintf(stream, "      hashbuckets:\n");
             {
                 nkuint32_t n;
@@ -216,7 +216,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                     // in the list.
                     struct NKVMObjectElement *el = ob->hashBuckets[n];
                     if(el) {
-                        fprintf(stream, "        %u:\n", n);
+                        fprintf(stream, "        " NK_PRINTF_UINT32 ":\n", n);
                         while(el) {
                             fprintf(stream, "          key: ");
                             nkiDbgDumpRaw(stream, &el->key, sizeof(el->key));
@@ -228,42 +228,42 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                     }
                 }
             }
-            fprintf(stream, "      gcCallback: %u\n", ob->gcCallback.id);
-            fprintf(stream, "      serializationCallback: %u\n", ob->serializationCallback.id);
-            fprintf(stream, "      externalDataType: %u\n", ob->externalDataType.id);
+            fprintf(stream, "      gcCallback: " NK_PRINTF_UINT32 "\n", ob->gcCallback.id);
+            fprintf(stream, "      serializationCallback: " NK_PRINTF_UINT32 "\n", ob->serializationCallback.id);
+            fprintf(stream, "      externalDataType: " NK_PRINTF_UINT32 "\n", ob->externalDataType.id);
         }
     }
 
     // Functions.
-    fprintf(stream, "functions: %u\n", vm->functionCount);
+    fprintf(stream, "functions: " NK_PRINTF_UINT32 "\n", vm->functionCount);
     for(i = 0; i < vm->functionCount; i++) {
-        fprintf(stream, "  %u:\n", i);
-        fprintf(stream, "    argumentCount: %u\n", vm->functionTable[i].argumentCount);
-        fprintf(stream, "    firstInstructionIndex: %u\n", vm->functionTable[i].firstInstructionIndex);
-        fprintf(stream, "    externalFunctionId: %u\n", vm->functionTable[i].externalFunctionId.id);
+        fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
+        fprintf(stream, "    argumentCount: " NK_PRINTF_UINT32 "\n", vm->functionTable[i].argumentCount);
+        fprintf(stream, "    firstInstructionIndex: " NK_PRINTF_UINT32 "\n", vm->functionTable[i].firstInstructionIndex);
+        fprintf(stream, "    externalFunctionId: " NK_PRINTF_UINT32 "\n", vm->functionTable[i].externalFunctionId.id);
     }
 
     // External functions.
-    fprintf(stream, "external functions: %u\n", vm->externalFunctionCount);
+    fprintf(stream, "external functions: " NK_PRINTF_UINT32 "\n", vm->externalFunctionCount);
     for(i = 0; i < vm->externalFunctionCount; i++) {
-        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
         fprintf(stream, "    name: %s\n", vm->externalFunctionTable[i].name);
-        fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
-        fprintf(stream, "    internalFunctionId: %u\n", vm->externalFunctionTable[i].internalFunctionId.id);
+        // fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
+        fprintf(stream, "    internalFunctionId: " NK_PRINTF_UINT32 "\n", vm->externalFunctionTable[i].internalFunctionId.id);
     }
 
     // Global variables.
-    fprintf(stream, "globals: %u\n", vm->globalVariableCount);
+    fprintf(stream, "globals: " NK_PRINTF_UINT32 "\n", vm->globalVariableCount);
     for(i = 0; i < vm->globalVariableCount; i++) {
-        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
         fprintf(stream, "    name: %s\n", vm->globalVariables[i].name);
-        fprintf(stream, "    staticPosition: %u\n", vm->globalVariables[i].staticPosition);
+        fprintf(stream, "    staticPosition: " NK_PRINTF_UINT32 "\n", vm->globalVariables[i].staticPosition);
     }
 
     // External types.
-    fprintf(stream, "externalTypeNames: %u\n", vm->externalTypeCount);
+    fprintf(stream, "externalTypeNames: " NK_PRINTF_UINT32 "\n", vm->externalTypeCount);
     for(i = 0; i < vm->externalTypeCount; i++) {
-        fprintf(stream, "  %u:\n", i);
+        fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
         fprintf(stream, "    name: %s\n", vm->externalTypeNames[i]);
     }
 
@@ -271,16 +271,16 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     // state, but we can. Also, we should dump it here regardless of
     // serialization.
     fprintf(stream, "Gc stuff:\n");
-    fprintf(stream, "  lastGCPass: %u\n", vm->lastGCPass);
-    fprintf(stream, "  gcInterval: %u\n", vm->gcInterval);
-    fprintf(stream, "  gcCountdown: %u\n", vm->gcCountdown);
-    fprintf(stream, "  gcNewObjectInterval: %u\n", vm->gcNewObjectInterval);
-    fprintf(stream, "  gcNewObjectCountdown: %u\n", vm->gcNewObjectCountdown);
+    fprintf(stream, "  lastGCPass: " NK_PRINTF_UINT32 "\n", vm->lastGCPass);
+    fprintf(stream, "  gcInterval: " NK_PRINTF_UINT32 "\n", vm->gcInterval);
+    fprintf(stream, "  gcCountdown: " NK_PRINTF_UINT32 "\n", vm->gcCountdown);
+    fprintf(stream, "  gcNewObjectInterval: " NK_PRINTF_UINT32 "\n", vm->gcNewObjectInterval);
+    fprintf(stream, "  gcNewObjectCountdown: " NK_PRINTF_UINT32 "\n", vm->gcNewObjectCountdown);
 
     // TODO: Memory limits (even if not serialized).
 
     // Check allocations? Same number?
-    fprintf(stream, "Current memory usage: %u\n", vm->currentMemoryUsage);
+    fprintf(stream, "Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 }
 
 void nkiCheckStringTableHoles(struct NKVM *vm)

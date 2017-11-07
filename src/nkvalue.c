@@ -61,7 +61,8 @@ nkbool nkiValueDump(
             const char *str = nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
-            printf("%d:%s", value->stringTableEntry, str ? str : "<bad id>");
+            if(!str) str = "<bad id>";
+            printf("string:" NK_PRINTF_UINT32 ":%s", value->stringTableEntry, str);
         } break;
 
         case NK_VALUETYPE_NIL:
@@ -69,11 +70,11 @@ nkbool nkiValueDump(
             break;
 
         case NK_VALUETYPE_FUNCTIONID:
-            printf("<function:%u>", value->functionId.id);
+            printf("<function:" NK_PRINTF_UINT32 ">", value->functionId.id);
             break;
 
         case NK_VALUETYPE_OBJECTID:
-            printf("<object:%u>", value->objectId);
+            printf("<object:" NK_PRINTF_UINT32 ">", value->objectId);
             break;
 
         default:

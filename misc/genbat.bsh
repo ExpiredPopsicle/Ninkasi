@@ -6,8 +6,8 @@ echo "del *.EXE" > build.bat
 # CFLAGS="-ml"
 # LFLAGS="-ml"
 
-find src -iname "*.c" | sed -e "s/^/wcc386 ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
-echo "wcl386 *.OBJ ${LFLAGS} -fe=a.exe" >> build.bat
+find src -iname "*.c" | sed -e "s/^/wcc -mh ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
+echo "wcl -mh *.OBJ ${LFLAGS} -fe=a.exe" >> build.bat
 
 dos2unix build.bat
 

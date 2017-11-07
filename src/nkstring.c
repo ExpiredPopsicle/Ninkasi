@@ -120,7 +120,8 @@ const char *nkiVmStringTableGetStringById(
     nkuint32_t index)
 {
     struct NKVMString *vmstr = nkiVmStringTableGetEntryById(table, index);
-    return vmstr ? vmstr->str : NULL;
+    const char *ret = vmstr ? vmstr->str : NULL;
+    return ret;
 }
 
 nkuint32_t nkiVmStringTableFindOrAddString(

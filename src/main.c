@@ -681,6 +681,8 @@ int main(int argc, char *argv[])
 
                         nkxVmIterate(vm, 1);
 
+                        // nkxDbgDumpState(vm, stdout);
+
                         // printf("\n\n\n\n");
                         // printf("----------------------------------------------------------------------\n");
                         // printf("PC: %u\n", vm->instructionPointer);
@@ -784,12 +786,17 @@ int main(int argc, char *argv[])
             } else {
 
                 // FIXME: Standardize error output.
+                fprintf(stdout, "*** AN ERROR WAS DETECTED ***\n");
                 fprintf(stderr, "*** AN ERROR WAS DETECTED ***\n");
                 {
                     struct NKError *err = vm->errorState.firstError;
-                    while(err) {
-                        fprintf(stderr, "%s\n", err->errorText);
-                        err = err->next;
+                    // while(err) {
+                    //     fprintf(stderr, "%s\n", err->errorText);
+                    //     err = err->next;
+                    // }
+
+                    if(vm->errorState.allocationFailure) {
+                        fprintf(stderr, "Allocation failure!\n");
                     }
                 }
 
@@ -877,6 +884,9 @@ int main(int argc, char *argv[])
         nkxVmGarbageCollect(vm);
         printf("Final object table dump...\n");
         nkiVmObjectTableDump(vm);
+
+        // nkiVmStringTableDump(&vm->stringTable);
+        // nkxDbgDumpState(vm, stdout);
 
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
