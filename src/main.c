@@ -452,7 +452,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
             noMoreSwitches = nktrue;
 
-        } else if(noMoreSwitches || argv[i][0] != '-') {
+        } else if(noMoreSwitches || (argv[i][0] != '-' || strcmp(argv[i], "-") == 0)) {
 
             if(settings->filename) {
                 fprintf(stderr, "Too many filenames specified.\n");
@@ -516,14 +516,19 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // Load script file.
     if(settings.filename) {
-        script = loadScript(settings.filename, &scriptSize);
+        if(strcmp(settings.filename, "-") == 0) {
+            script = loadScriptFromStdin(&scriptSize);
+        } else {
+            script = loadScript(settings.filename, &scriptSize);
+        }
     } else {
-        script = loadScriptFromStdin(&scriptSize);
+        fprintf(stderr, "No input file specified.\n");
+        return 1;
     }
-
     if(!script) {
-        printf("Script failed to even load.\n");
+        fprintf(stderr, "Script failed to even load.\n");
         return 1;
     }
 
