@@ -405,6 +405,8 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
     }
 }
 
+// ----------------------------------------------------------------------
+
 struct Settings
 {
     nkbool compileOnly;
@@ -789,14 +791,15 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "*** AN ERROR WAS DETECTED ***\n");
                 {
                     struct NKError *err = vm->errorState.firstError;
-                    // while(err) {
-                    //     fprintf(stderr, "%s\n", err->errorText);
-                    //     err = err->next;
-                    // }
-
                     if(vm->errorState.allocationFailure) {
                         fprintf(stderr, "Allocation failure!\n");
+                    } else {
+                        while(err) {
+                            fprintf(stderr, "%s\n", err->errorText);
+                            err = err->next;
+                        }
                     }
+
                 }
 
             }
@@ -871,6 +874,7 @@ int main(int argc, char *argv[])
         }
 
 
+        printf("----------------------------------------------------------------------\n");
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
