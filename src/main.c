@@ -669,6 +669,9 @@ int main(int argc, char *argv[])
 
                     // nkiVmExecuteProgram(vm);
 
+                    // TODO: Give this value an accessor.
+                    vm->instructionsLeftBeforeTimeout = 1024 * 1024;
+
                     while(
                         vm->instructions[
                             vm->instructionPointer &
@@ -678,8 +681,6 @@ int main(int argc, char *argv[])
                             vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
 
-                        // TODO: Give this value an accessor.
-                        vm->instructionsLeftBeforeTimeout = 1024;
 
                         nkxVmIterate(vm, 1);
 
