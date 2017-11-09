@@ -47,7 +47,7 @@
 
 struct NKVMValueGCEntry
 {
-    struct NKValue *value;
+    struct NKVMObject *object;
     struct NKVMValueGCEntry *next;
 };
 
@@ -75,54 +75,87 @@ struct NKVMValueGCEntry *nkiVmGcStateMakeEntry(struct NKVMGCState *state)
     return ret;
 }
 
-void nkiVmGarbageCollect_markObject(
+void nkiVmGarbageCollect_markString(
     struct NKVMGCState *gcState,
-    struct NKVMObject *ob)
+    struct NKValue *value)
 {
-    nkuint32_t bucket;
+    struct NKVMString *str = nkiVmStringTableGetEntryById(
+        &gcState->vm->stringTable,
+        value->stringTableEntry);
 
-    if(ob->lastGCPass == gcState->currentGCPass) {
-        return;
+    if(str) {
+        str->lastGCPass = gcState->currentGCPass;
+    } else {
+        nkiAddError(
+            gcState->vm, -1,
+            "GC error: Bad string table index.");
     }
+}
 
-    ob->lastGCPass = gcState->currentGCPass;
+void nkiVmGarbageCollect_addObject(
+    struct NKVMGCState *gcState,
+    struct NKValue *value)
+{
+    struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
+        &gcState->vm->objectTable,
+        value->objectId);
 
-    for(bucket = 0; bucket < nkiVMObjectHashBucketCount; bucket++) {
-
-        struct NKVMObjectElement *el = ob->hashBuckets[bucket];
-
-        while(el) {
-
-            nkuint32_t k;
-            for(k = 0; k < 2; k++) {
-                struct NKValue *v = k ? &el->value : &el->key;
-
-                if(v->type == NK_VALUETYPE_STRING ||
-                    v->type == NK_VALUETYPE_OBJECTID)
-                {
-                    struct NKVMValueGCEntry *newEntry = nkiVmGcStateMakeEntry(gcState);
-                    newEntry->value = v;
-                }
-            }
-
-            el = el->next;
-        }
+    if(ob->lastGCPass != gcState->currentGCPass) {
+        struct NKVMValueGCEntry *newEntry = nkiVmGcStateMakeEntry(gcState);
+        newEntry->object = ob;
     }
-
 }
 
 void nkiVmGarbageCollect_markValue(
     struct NKVMGCState *gcState,
     struct NKValue *v)
 {
-    if(v->lastGCPass == gcState->currentGCPass) {
+    if(v->type == NK_VALUETYPE_OBJECTID) {
+
+        // Add this object for a later pass to avoid over-recursion.
+        nkiVmGarbageCollect_addObject(
+            gcState, v);
+
+    } else if(v->type == NK_VALUETYPE_STRING) {
+
+        // Just a string. No risk of over-recursion. Mark it directly.
+        nkiVmGarbageCollect_markString(
+            gcState, v);
+
+    }
+}
+
+void nkiVmGarbageCollect_markObject(
+    struct NKVMGCState *gcState,
+    struct NKVMObject *ob)
+{
+    nkuint32_t bucket;
+
+    // Did we already get this one?
+    if(ob->lastGCPass == gcState->currentGCPass) {
         return;
     }
 
-    {
-        struct NKVMValueGCEntry *entry = nkiVmGcStateMakeEntry(gcState);
-        entry->value = v;
+    ob->lastGCPass = gcState->currentGCPass;
+
+    // Iterate through all the hash buckets on this object.
+    for(bucket = 0; bucket < nkiVMObjectHashBucketCount; bucket++) {
+
+        // Iterate through the elements inside the hash bucket.
+        struct NKVMObjectElement *el = ob->hashBuckets[bucket];
+        while(el) {
+
+            // Iterate between key and value for this element.
+            nkuint32_t k;
+            for(k = 0; k < 2; k++) {
+                struct NKValue *v = k ? &el->value : &el->key;
+                nkiVmGarbageCollect_markValue(gcState, v);
+            }
+
+            el = el->next;
+        }
     }
+
 }
 
 void nkiVmGarbageCollect_markReferenced(
@@ -134,50 +167,7 @@ void nkiVmGarbageCollect_markReferenced(
         struct NKVMValueGCEntry *currentEntry = gcState->openList;
         gcState->openList = gcState->openList->next;
 
-        if(currentEntry->value->lastGCPass != gcState->currentGCPass) {
-            struct NKValue *value = currentEntry->value;
-            value->lastGCPass = gcState->currentGCPass;
-
-            // Add all references from this value to openList.
-
-            switch(value->type) {
-
-                case NK_VALUETYPE_STRING: {
-
-                    struct NKVMString *str = nkiVmStringTableGetEntryById(
-                        &gcState->vm->stringTable,
-                        value->stringTableEntry);
-
-                    if(str) {
-                        str->lastGCPass = gcState->currentGCPass;
-                    } else {
-                        nkiAddError(
-                            gcState->vm, -1,
-                            "GC error: Bad string table index.");
-                    }
-                } break;
-
-                case NK_VALUETYPE_OBJECTID: {
-
-                    struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
-                        &gcState->vm->objectTable,
-                        value->objectId);
-
-                    if(ob) {
-
-                        nkiVmGarbageCollect_markObject(gcState, ob);
-
-                    } else {
-                        nkiAddError(
-                            gcState->vm, -1,
-                            "GC error: Bad object table index.");
-                    }
-                } break;
-
-                default:
-                    break;
-            }
-        }
+        nkiVmGarbageCollect_markObject(gcState, currentEntry->object);
 
         currentEntry->next = gcState->closedList;
         gcState->closedList = currentEntry;
