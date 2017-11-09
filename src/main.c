@@ -672,8 +672,8 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    vm->instructionsLeftBeforeTimeout = (1024 * 1024 * 1024) & 0xffff;
-                    // vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;
+                    // vm->instructionsLeftBeforeTimeout = (1024 * 1024 * 1024) & 0xffff;
+                    vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;
 
                     while(
                         vm->instructions[
