@@ -856,6 +856,79 @@ nkbool nkiSerializeGlobalsList(
     return nktrue;
 }
 
+nkbool nkiSerializeExternalTypes(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    nkuint32_t serializedTypeCount = vm->externalTypeCount;
+    nkuint32_t i;
+    nkuint32_t *typeMapping = NULL;
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, serializedTypeCount);
+
+    // Allocate an array if we have to map types between the binary
+    // and existing types.
+    if(!writeMode) {
+        typeMapping = nkiMallocArray(vm, sizeof(nkuint32_t), serializedTypeCount);
+    }
+
+    for(i = 0; i < serializedTypeCount; i++) {
+
+        char *typeName = NULL;
+        if(writeMode) {
+            typeName = vm->externalTypeNames[i];
+        }
+
+        NKI_SERIALIZE_STRING(typeName);
+
+        if(!writeMode) {
+
+            nkuint32_t n;
+
+            // Search for an existing type with the same name as the
+            // one we're loading.
+            for(n = 0; n < vm->externalTypeCount; n++) {
+                if(!strcmp(vm->externalTypeNames[n], typeName)) {
+                    typeMapping[i] = n;
+                    break;
+                }
+            }
+
+            if(n == vm->externalTypeCount) {
+                nkiAddError(vm, -1, "Could not find a matching type for deserialized external data type.");
+                return nkfalse;
+            }
+
+            nkiFree(vm, typeName);
+        }
+    }
+
+    // If we're loading, go through the entire object table and
+    // reassign every external type ID based on the mapping we figured
+    // out.
+    if(!writeMode) {
+
+        nkuint32_t i;
+
+        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+            if(vm->objectTable.objectTable[i]) {
+                if(vm->objectTable.objectTable[i]->externalDataType.id != NK_INVALID_VALUE) {
+                    if(vm->objectTable.objectTable[i]->externalDataType.id < serializedTypeCount) {
+                        vm->objectTable.objectTable[i]->externalDataType.id =
+                            typeMapping[vm->objectTable.objectTable[i]->externalDataType.id];
+                    } else {
+                        return nkfalse;
+                    }
+                }
+            }
+        }
+
+        nkiFree(vm, typeMapping);
+    }
+
+    return nktrue;
+}
+
 #define NKI_VERSION 1
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
@@ -928,75 +1001,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Skip userdata (serialize it outside the VM and hook it up
     // before/after).
 
-    // TODO: Match up internal/external types. Will this mean going
-    // through and fixing up objects afterwards?
-    printf("\nExternalTypeNames: ");
-    {
-        nkuint32_t serializedTypeCount = vm->externalTypeCount;
-        NKI_SERIALIZE_BASIC(nkuint32_t, serializedTypeCount);
-
-        printf("\n");
-
-        {
-            nkuint32_t i;
-
-            nkuint32_t *typeMapping = NULL;
-            if(!writeMode) {
-                typeMapping = nkiMallocArray(vm, sizeof(nkuint32_t), serializedTypeCount);
-            }
-
-            for(i = 0; i < serializedTypeCount; i++) {
-                char *typeName = NULL;
-                if(writeMode) {
-                    typeName = vm->externalTypeNames[i];
-                }
-
-                printf("  ");
-                NKI_SERIALIZE_STRING(typeName);
-                printf("\n");
-
-                if(!writeMode) {
-
-                    nkuint32_t n;
-
-                    for(n = 0; n < vm->externalTypeCount; n++) {
-                        if(!strcmp(vm->externalTypeNames[n], typeName)) {
-                            typeMapping[i] = n;
-                            break;
-                        }
-                    }
-
-                    if(n == vm->externalTypeCount) {
-                        // Couldn't find a matching type to the one we
-                        // loaded.
-                        return nkfalse;
-                    }
-
-                    nkiFree(vm, typeName);
-                }
-            }
-
-            if(!writeMode) {
-
-                nkuint32_t i;
-
-                for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
-                    if(vm->objectTable.objectTable[i]) {
-                        if(vm->objectTable.objectTable[i]->externalDataType.id != NK_INVALID_VALUE) {
-                            if(vm->objectTable.objectTable[i]->externalDataType.id < serializedTypeCount) {
-                                vm->objectTable.objectTable[i]->externalDataType.id =
-                                    typeMapping[vm->objectTable.objectTable[i]->externalDataType.id];
-                            } else {
-                                return nkfalse;
-                            }
-                        }
-                    }
-                }
-
-                nkiFree(vm, typeMapping);
-            }
-        }
-    }
+    NKI_WRAPSERIALIZE(
+        nkiSerializeExternalTypes(vm, writer, userdata, writeMode));
 
     return nktrue;
 }
