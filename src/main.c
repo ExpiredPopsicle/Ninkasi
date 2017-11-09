@@ -672,7 +672,8 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    vm->instructionsLeftBeforeTimeout = 1024 * 1024 * 1024;
+                    vm->instructionsLeftBeforeTimeout = (1024 * 1024 * 1024) & 0xffff;
+                    // vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;
 
                     while(
                         vm->instructions[
@@ -768,9 +769,13 @@ int main(int argc, char *argv[])
                 if(nkxVmHasErrors(vm)) {
                     struct NKError *err = vm->errorState.firstError;
                     fprintf(stderr, "Errors detected...\n");
-                    while(err) {
-                        fprintf(stderr, "  error: %s\n", err->errorText);
-                        err = err->next;
+                    if(vm->errorState.allocationFailure) {
+                        fprintf(stderr, "Allocation failure!\n");
+                    } else {
+                        while(err) {
+                            fprintf(stderr, "%s\n", err->errorText);
+                            err = err->next;
+                        }
                     }
                 }
 

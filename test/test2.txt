@@ -98,7 +98,7 @@ print(ob[555]);
 
 var i;
 for(i = 0; i < 10; ++i) {
-    print("" + i + "\n");
+    print("Thing? " + i + "\n");
     ob[i] = 1234;
 }
 

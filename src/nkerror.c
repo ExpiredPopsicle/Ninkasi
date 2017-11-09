@@ -86,7 +86,7 @@ void nkiAddError(
         nkiMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
 
     newError->errorText[0] = 0;
-    sprintf(newError->errorText, "%d: %s", lineNumber, str);
+    sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
 
     newError->next = NULL;
 

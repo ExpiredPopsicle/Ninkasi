@@ -185,7 +185,7 @@ void nkiCompilerOptimizeConstants(
                     // TODO: Use sprintf_s.
 
                     // Set the string for the result.
-                    sprintf(tmp, "%d", val);
+                    sprintf(tmp, NK_PRINTF_INT32, val);
                     newNode->opOrValue->str = nkiStrdup(vm, tmp);
 
                     // Replace the original node.
