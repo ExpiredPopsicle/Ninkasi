@@ -69,11 +69,6 @@ struct NKValue
         nkuint32_t type_uint;
     };
 
-    // FIXME: We shouldn't have this for values. Just strings and
-    // objects. But it'll take some work refactoring the garbage
-    // collector to fix this.
-    nkuint32_t lastGCPass;
-
     union
     {
         nkint32_t intData;
