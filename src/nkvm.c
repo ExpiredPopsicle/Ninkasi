@@ -395,3 +395,4 @@ const char *nkiVmGetExternalTypeName(
     }
     return vm->externalTypeNames[id.id];
 }
+

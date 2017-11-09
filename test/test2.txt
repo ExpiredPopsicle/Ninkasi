@@ -366,7 +366,7 @@ function anotherObTest()
 var butts = newobject;
 butts["asdf"] = anotherObTest;
 butts["asdf"]();
-for(i = 0; i < 20; ++i) {
+for(i = 0; i < 2000; ++i) {
     // print("GC abuse iteration: ");
     // print(i);
     // print("\n");
@@ -381,10 +381,15 @@ for(i = 0; i < 20; ++i) {
     }
 }
 
-for(i = 0; i < 20; ++i) {
+for(i = 0; i < 2000; ++i) {
     butts[i] = nil;
 }
 
+for(i = 0; i < 100000; ++i) {
+    newobject;
+}
+
+butts = 0;
 
 print("DONE2\n");
 

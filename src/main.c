@@ -672,7 +672,7 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    vm->instructionsLeftBeforeTimeout = 1024 * 1024;
+                    vm->instructionsLeftBeforeTimeout = 1024 * 1024 * 1024;
 
                     while(
                         vm->instructions[
@@ -873,7 +873,7 @@ int main(int argc, char *argv[])
             free(buf.data);
         }
 
-
+        nkxVmGarbageCollect(vm);
         printf("----------------------------------------------------------------------\n");
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
