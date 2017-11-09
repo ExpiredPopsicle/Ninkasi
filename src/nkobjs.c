@@ -314,36 +314,6 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
     return &el->value;
 }
 
-void nkiVmObjectTableDump(struct NKVM *vm)
-{
-    nkuint32_t index;
-    printf("Object table dump...\n");
-    for(index = 0; index < vm->objectTable.objectTableCapacity; index++) {
-        if(vm->objectTable.objectTable[index]) {
-
-            struct NKVMObject *ob = vm->objectTable.objectTable[index];
-            nkuint32_t bucket;
-
-            printf("%4u ", index);
-            printf("Object\n");
-
-            for(bucket = 0; bucket < nkiVMObjectHashBucketCount; bucket++) {
-                struct NKVMObjectElement *el = ob->hashBuckets[bucket];
-                printf("      Hash bucket %u\n", bucket);
-                while(el) {
-                    printf("        ");
-                    nkiValueDump(vm, &el->key);
-                    printf(" = ");
-                    nkiValueDump(vm, &el->value);
-                    printf("\n");
-                    el = el->next;
-                }
-            }
-            printf("\n");
-        }
-    }
-}
-
 // ----------------------------------------------------------------------
 // Object interface
 

@@ -94,7 +94,6 @@
 #define NK_CATASTROPHE()                            \
     do {                                            \
         nkiErrorStateSetAllocationFailFlag(vm);     \
-        printf("Catastrophic failure!\n");          \
         longjmp(*vm->catastrophicFailureJmpBuf, 1); \
     } while(0)
 

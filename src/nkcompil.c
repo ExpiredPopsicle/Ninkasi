@@ -57,12 +57,21 @@ void nkiCompilerAddInstruction(
             nkiCompilerAddError(cs, "Too many instructions.");
         }
 
+
         {
             nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
             nkuint32_t newSize = oldSize << 1;
 
             cs->vm->instructionAddressMask <<= 1;
             cs->vm->instructionAddressMask |= 1;
+
+            // This is a HARD limit because of the implementation and
+            // must be spearate from the settable limit.
+            if(cs->vm->instructionAddressMask >= ~(nkuint32_t)0) {
+                nkiCompilerAddError(cs, "Too many instructions. Hit address space limit.");
+                cs->vm->instructionAddressMask >>= 1;
+            }
+
             cs->vm->instructions = nkiReallocArray(
                 cs->vm,
                 cs->vm->instructions,
@@ -289,6 +298,9 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
         vm->staticAddressMask <<= 1;
         vm->staticAddressMask |= 1;
 
+        // Note: This limits the address space to 0xefffffff, because
+        // we can't use that last bit. (The space allocation would
+        // overflow to zero.)
         if(vm->staticAddressMask == ~(nkuint32_t)0) {
             nkiCompilerAddError(cs,
                 "Address space exhaustion trying to add static variable.");

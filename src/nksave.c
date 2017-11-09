@@ -122,8 +122,6 @@ nkbool nkiSerializeErrorState(
 {
     nkuint32_t errorCount = nkiGetErrorCount(vm);
 
-    printf("\nErrorState: ");
-
     // Save error count.
     NKI_SERIALIZE_BASIC(nkuint32_t, errorCount);
     NKI_SERIALIZE_BASIC(nkbool, vm->errorState.allocationFailure);
@@ -160,7 +158,6 @@ nkbool nkiSerializeObject(
     NKVMSerializationWriter writer, void *userdata,
     nkbool writeMode)
 {
-    printf("\n  Object: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
@@ -258,13 +255,11 @@ nkbool nkiSerializeObjectTable(
 {
     nkuint32_t objectCount = 0;
 
-    printf("\nObjectTable: ");
-
     // FIXME: Ensure objectTableCapacity is a power of two, or find a
     // better way to store it!
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.objectTableCapacity);
     if(!nkiIsPow2(vm->objectTable.objectTableCapacity)) {
-        printf("!nkiIsPow2(vm->objectTable.objectTableCapacity)\n");
+        nkiAddError(vm, -1, "Object table capacity is not a power of two.");
         return nkfalse;
     }
 
@@ -300,7 +295,7 @@ nkbool nkiSerializeObjectTable(
 
     NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
     if(objectCount > vm->objectTable.objectTableCapacity) {
-        printf("\nBAD COUNT: %u >= %u\n", objectCount, vm->objectTable.objectTableCapacity);
+        nkiAddError(vm, -1, "Object count exceeds object table capacity.");
         return nkfalse;
     }
 
@@ -333,7 +328,7 @@ nkbool nkiSerializeObjectTable(
             // Thanks AFL! Holy crap I'm an idiot for letting this one
             // slide by.
             if(object->objectTableIndex >= vm->objectTable.objectTableCapacity) {
-                printf("Object outside of table capacity.\n");
+                nkiAddError(vm, -1, "Object index exceeds object table capacity.");
                 return nkfalse;
             }
 
@@ -387,7 +382,7 @@ nkbool nkiSerializeStringTable(
         // pointer. (FIXME: We might not need this after the addition
         // of nkiMallocArray.)
         if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.stringTableCapacity) {
-            printf("String table too large!\n");
+            nkiAddError(vm, -1, "String table too large.");
             return nkfalse;
         }
 
@@ -405,7 +400,7 @@ nkbool nkiSerializeStringTable(
 
     // Thanks AFL!
     if(!nkiIsPow2(vm->stringTable.stringTableCapacity)) {
-        printf("Non-power-of-two string table capacity!\n");
+        nkiAddError(vm, -1, "String table capacity is not a power of two.");
         return nkfalse;
     }
 
@@ -464,7 +459,7 @@ nkbool nkiSerializeStringTable(
                 printf("\n  Object: ");
                 NKI_SERIALIZE_BASIC(nkuint32_t, index);
                 if(index >= vm->stringTable.stringTableCapacity) {
-                    printf("index >= vm->stringTable.stringTableCapacity\n");
+                    nkiAddError(vm, -1, "String index exceeds string table capacity.");
                     return nkfalse;
                 }
 
@@ -478,7 +473,7 @@ nkbool nkiSerializeStringTable(
                     // Thanks AFL! Bail out if the binary has two
                     // strings in the same slot.
                     if(vm->stringTable.stringTable[index]) {
-                        printf("Two strings in the same slot!\n");
+                        nkiAddError(vm, -1, "Two strings occupy the same slot in the string table.");
                         return nkfalse;
                     }
 
@@ -593,17 +588,17 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         // we're left in a situation where we think we have a giant
         // instruction buffer when we really have a NULL pointer.
         if(vm->instructionAddressMask == ~(nkuint32_t)0) {
-            printf("instruction address mask is 2^32-1.\n");
+            nkiAddError(vm, -1, "Instruction address mask is too large.");
             return nkfalse;
         }
 
         if(!nkiIsPow2(vm->instructionAddressMask + 1)) {
-            printf("instruction address mask is not 2^n-1.\n");
+            nkiAddError(vm, -1, "Instruction address mask is not a power of two minus one.");
             return nkfalse;
         }
 
         if(instructionLimitSearch > vm->instructionAddressMask) {
-            printf("Too many instructions for given instruction address mask.\n");
+            nkiAddError(vm, -1, "Too many instructions for given instruction address mask.");
             return nkfalse;
         }
 
@@ -657,6 +652,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         memcpy(formatMarkerTmp, formatMarker, 5);
         NKI_SERIALIZE_DATA(formatMarkerTmp, 5);
         if(memcmp(formatMarkerTmp, formatMarker, 5)) {
+            nkiAddError(vm, -1, "Wrong binary format.");
             return nkfalse;
         }
     }
@@ -666,7 +662,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         nkuint32_t version = NKI_VERSION;
         NKI_SERIALIZE_BASIC(nkuint32_t, version);
         if(version != NKI_VERSION) {
-            printf("version != NKI_VERSION\n");
+            nkiAddError(vm, -1, "Wrong binary VM version.");
             return nkfalse;
         }
     }
@@ -677,12 +673,17 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
 
-    // FIXME: Check that a valid mask is 2^n-1. (Or just find a better
-    // way to store it.)
+    // Check that a valid mask is 2^n-1. (Or just find a better way to
+    // store it.)
     printf("\nStaticSpaceSize: ");
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
     if(!nkiIsPow2(vm->staticAddressMask + 1)) {
-        printf("!nkiIsPow2(vm->staticAddressMask + 1)\n");
+        nkiAddError(vm, -1, "Static space address mask is not a power of two minus one.");
+        return nkfalse;
+    }
+
+    if(vm->staticAddressMask == ~(nkuint32_t)0) {
+        nkiAddError(vm, -1, "Static space address mask is too large.");
         return nkfalse;
     }
 
@@ -703,14 +704,14 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.capacity);
     if(!nkiIsPow2(vm->stack.capacity)) {
-        printf("!nkiIsPow2(vm->stack.capacity)\n");
+        nkiAddError(vm, -1, "Stack capacity is not a power of two.");
         return nkfalse;
     }
 
     // Thanks AFL! Stack size = 0 means stack index mask becomes
     // 0xffffffff, even though there's no stack.
     if(vm->stack.capacity < 1) {
-        printf("Zero stack size not allowed.\n");
+        nkiAddError(vm, -1, "Stack capacity is zero.");
         return nkfalse;
     }
 
@@ -868,7 +869,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
                             vm->functionTable[i].externalFunctionId =
                                 functionIdMapping[vm->functionTable[i].externalFunctionId.id];
                         } else {
-                            printf("vm->functionTable[i].externalFunctionId.id > tmpExternalFunctionCount\n");
+                            nkiAddError(vm, -1, "External function ID is outside external function count.");
                             return nkfalse;
                         }
                     }

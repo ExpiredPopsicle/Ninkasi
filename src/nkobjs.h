@@ -126,8 +126,6 @@ void nkiVmObjectClearEntry(
     struct NKVMObject *ob,
     struct NKValue *key);
 
-void nkiVmObjectTableDump(struct NKVM *vm);
-
 // Internal version of nkxVmObjectAcquireHandle.
 void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 

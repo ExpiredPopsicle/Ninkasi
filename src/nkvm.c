@@ -347,22 +347,6 @@ struct NKValue *nkiVmFindGlobalVariable(
     return NULL;
 }
 
-void nkiVmStaticDump(struct NKVM *vm)
-{
-    nkuint32_t i = 0;
-    while(1) {
-
-        printf("%3d: ", i);
-        nkiValueDump(vm, &vm->staticSpace[i]);
-        printf("\n");
-
-        if(i == vm->staticAddressMask) {
-            break;
-        }
-        i++;
-    }
-}
-
 // ----------------------------------------------------------------------
 // External data interface
 

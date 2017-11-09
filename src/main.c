@@ -536,7 +536,6 @@ int main(int argc, char *argv[])
         nkuint32_t lineCount = 0;
         char **lines = NULL;
 
-        nkuint32_t instructionCountMax = (nkuint32_t)1024*(nkuint32_t)1024; // *(nkuint32_t)1024;
         struct NKVM *vm = nkxVmCreate();
         if(!vm) {
             assert(0);
@@ -676,10 +675,8 @@ int main(int argc, char *argv[])
                             vm->instructionAddressMask].opcode != NK_OP_END &&
                         vm->instructions[
                             vm->instructionPointer &
-                            vm->instructionAddressMask].opcode != NK_OP_NOP &&
-                        instructionCountMax)
+                            vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
-                        // printf("InstructionCountMax: %u\n", instructionCountMax);
 
                         // TODO: Give this value an accessor.
                         vm->instructionsLeftBeforeTimeout = 1024;
@@ -746,11 +743,7 @@ int main(int argc, char *argv[])
 
                         //     free(buf.data);
                         // }
-
-                        instructionCountMax--;
                     }
-
-
 
                     {
                         struct NKValue *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
@@ -851,16 +844,7 @@ int main(int argc, char *argv[])
             {
                 struct NKVM *newVm = nkxVmCreate();
 
-                nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
-                nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
-                nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
-                nkxVmRegisterExternalFunction(newVm, "hash", getHash);
-                nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
-                nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
-                nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
-                nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
-                nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
-                nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
+                initInternalFunctions(vm, NULL);
 
                 nkxVmRegisterExternalType(newVm, "footype");
 
@@ -886,20 +870,10 @@ int main(int argc, char *argv[])
         }
 
 
-        nkxVmGarbageCollect(vm);
-        printf("Final object table dump...\n");
-        nkiVmObjectTableDump(vm);
-
-        // nkiVmStringTableDump(&vm->stringTable);
-        // nkxDbgDumpState(vm, stdout);
-
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
-        // nkiVmDestroy(&vm);
         nkxVmDelete(vm);
-
-        // printf("Post-cleanup memory usage: %u\n", vm->currentMemoryUsage);
 
         free(lines[0]);
         free(lines);
