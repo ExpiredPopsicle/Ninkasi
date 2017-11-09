@@ -681,18 +681,18 @@ nkbool nkiSerializeGcState(
     // limits are not set, but right now I think we should go with the
     // most consistency between serialized and deserialized versions
     // of stuff.
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->lastGCPass);
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInterval);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInfo.lastGCPass);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInfo.gcInterval);
 
     // gcInterval needs a hard limit here because the instruction
     // count limit is only enforced on garbage collection intervals.
-    if(vm->gcInterval > 65536) {
-        vm->gcInterval = 65536;
+    if(vm->gcInfo.gcInterval > 65536) {
+        vm->gcInfo.gcInterval = 65536;
     }
 
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcCountdown);
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectInterval);
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcNewObjectCountdown);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInfo.gcCountdown);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInfo.gcNewObjectInterval);
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->gcInfo.gcNewObjectCountdown);
 
     return nktrue;
 }

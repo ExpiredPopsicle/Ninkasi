@@ -188,7 +188,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
 {
     struct NKVMGCState gcState;
     memset(&gcState, 0, sizeof(gcState));
-    gcState.currentGCPass = ++vm->lastGCPass;
+    gcState.currentGCPass = ++vm->gcInfo.lastGCPass;
     gcState.vm = vm;
 
     // Iterate through objects with external handles.

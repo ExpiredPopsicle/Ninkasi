@@ -74,36 +74,43 @@ struct NKVMLimits
     nkuint32_t maxAllocatedMemory;
 };
 
+struct NKGarbageCollectionInfo
+{
+    nkuint32_t lastGCPass;
+    nkuint32_t gcInterval; // TODO: Move to VMLimits, maybe.
+    nkuint32_t gcCountdown;
+    nkuint32_t gcNewObjectInterval; // TODO: Move to VMLimits, maybe.
+    nkuint32_t gcNewObjectCountdown;
+};
+
 /// The VM object itself.
 struct NKVM
 {
+    // Errors.
     struct NKErrorState errorState;
 
-    // Stack data. (TODO: Make per-thread.)
+    // Stack data.
     struct NKVMStack stack;
 
     // Static data.
     struct NKValue *staticSpace;
     nkuint32_t staticAddressMask;
 
+    // Instructions.
     struct NKInstruction *instructions;
     nkuint32_t instructionAddressMask;
-    // TODO: Make per-thread.)
     nkuint32_t instructionPointer;
 
+    // Strings and objects.
     struct NKVMStringTable stringTable;
     struct NKVMObjectTable objectTable;
 
-    // TODO: External data table.
-
-    nkuint32_t lastGCPass;
-    nkuint32_t gcInterval; // TODO: Move to VMLimits, maybe.
-    nkuint32_t gcCountdown;
-    nkuint32_t gcNewObjectInterval; // TODO: Move to VMLimits, maybe.
-    nkuint32_t gcNewObjectCountdown;
-
+    // Functions.
     nkuint32_t functionCount;
     struct NKVMFunction *functionTable;
+
+    // Garbage collection status.
+    struct NKGarbageCollectionInfo gcInfo;
 
     // External C functions. This is a block that represents every
     // external C function linked to the VM, but separate from the

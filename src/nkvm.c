@@ -189,11 +189,11 @@ void nkiVmInit(struct NKVM *vm)
 
     nkiVmStringTableInit(vm);
 
-    vm->lastGCPass = 0;
-    vm->gcInterval = 1024;
-    vm->gcCountdown = vm->gcInterval;
-    vm->gcNewObjectInterval = 256;
-    vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
+    vm->gcInfo.lastGCPass = 0;
+    vm->gcInfo.gcInterval = 1024;
+    vm->gcInfo.gcCountdown = vm->gcInfo.gcInterval;
+    vm->gcInfo.gcNewObjectInterval = 256;
+    vm->gcInfo.gcNewObjectCountdown = vm->gcInfo.gcNewObjectInterval;
 
     vm->functionCount = 0;
     vm->functionTable = NULL;
@@ -284,37 +284,35 @@ void nkiVmDestroy(struct NKVM *vm)
 
 void nkiVmIterate(struct NKVM *vm)
 {
+    const nkuint32_t opcodeMask = (NK_OPCODE_PADDEDCOUNT - 1);
     struct NKInstruction *inst = &vm->instructions[
         vm->instructionPointer & vm->instructionAddressMask];
-    nkuint32_t opcodeId = inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1);
+    nkuint32_t opcodeId = inst->opcode & opcodeMask;
 
     // Handle periodic garbage collection. Do this BEFORE the
     // instruction, so we can handle instruction count limits in here
     // too.
-    vm->gcCountdown--;
-    if(!vm->gcCountdown) {
+    vm->gcInfo.gcCountdown--;
+    if(!vm->gcInfo.gcCountdown) {
 
         // Thanks AFL!
         if(vm->instructionsLeftBeforeTimeout != NK_INVALID_VALUE) {
-            if(vm->instructionsLeftBeforeTimeout < vm->gcInterval) {
+            if(vm->instructionsLeftBeforeTimeout < vm->gcInfo.gcInterval) {
                 nkiAddError(vm, -1, "Instruction count limit reached.");
                 vm->instructionsLeftBeforeTimeout = 0;
                 return;
             }
-            vm->instructionsLeftBeforeTimeout -= vm->gcInterval;
+            vm->instructionsLeftBeforeTimeout -= vm->gcInfo.gcInterval;
         }
 
-        if(!vm->gcNewObjectCountdown) {
+        if(!vm->gcInfo.gcNewObjectCountdown) {
             nkiVmGarbageCollect(vm);
-            vm->gcNewObjectCountdown = vm->gcNewObjectInterval;
+            vm->gcInfo.gcNewObjectCountdown = vm->gcInfo.gcNewObjectInterval;
         }
-        vm->gcCountdown = vm->gcInterval;
+        vm->gcInfo.gcCountdown = vm->gcInfo.gcInterval;
     }
 
     // Do the instruction.
-
-    nkiDbgWriteLine("Executing: %s", nkiVmGetOpcodeName(opcodeId));
-
     nkiOpcodeTable[opcodeId](vm);
     vm->instructionPointer++;
 }

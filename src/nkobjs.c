@@ -182,8 +182,8 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     // Tick the garbage collector so we eventually do another GC pass
     // when we have enough new objects.
-    if(vm->gcNewObjectCountdown) {
-        vm->gcNewObjectCountdown--;
+    if(vm->gcInfo.gcNewObjectCountdown) {
+        vm->gcInfo.gcNewObjectCountdown--;
     }
 
     return newObject->objectTableIndex;

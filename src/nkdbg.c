@@ -271,11 +271,11 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     // state, but we can. Also, we should dump it here regardless of
     // serialization.
     fprintf(stream, "Gc stuff:\n");
-    fprintf(stream, "  lastGCPass: " NK_PRINTF_UINT32 "\n", vm->lastGCPass);
-    fprintf(stream, "  gcInterval: " NK_PRINTF_UINT32 "\n", vm->gcInterval);
-    fprintf(stream, "  gcCountdown: " NK_PRINTF_UINT32 "\n", vm->gcCountdown);
-    fprintf(stream, "  gcNewObjectInterval: " NK_PRINTF_UINT32 "\n", vm->gcNewObjectInterval);
-    fprintf(stream, "  gcNewObjectCountdown: " NK_PRINTF_UINT32 "\n", vm->gcNewObjectCountdown);
+    fprintf(stream, "  lastGCPass: " NK_PRINTF_UINT32 "\n", vm->gcInfo.lastGCPass);
+    fprintf(stream, "  gcInterval: " NK_PRINTF_UINT32 "\n", vm->gcInfo.gcInterval);
+    fprintf(stream, "  gcCountdown: " NK_PRINTF_UINT32 "\n", vm->gcInfo.gcCountdown);
+    fprintf(stream, "  gcNewObjectInterval: " NK_PRINTF_UINT32 "\n", vm->gcInfo.gcNewObjectInterval);
+    fprintf(stream, "  gcNewObjectCountdown: " NK_PRINTF_UINT32 "\n", vm->gcInfo.gcNewObjectCountdown);
 
     // TODO: Memory limits (even if not serialized).
 
