@@ -154,6 +154,66 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
 // ----------------------------------------------------------------------
+// Limits-related stuff
+
+// Note: The first limit to set for sandboxing purposes should always
+// be the maximum allocated memory (nkxSetMaxAllocatedMemory()). The
+// next should be the instruction count limit
+// (nkxSetRemainingInstructionLimit()). These set effective limits for
+// the entire system, instead of limits for specific subsystems.
+
+/// Set the maximum number of strings. Only affects new string creation.
+void nkxSetMaxStrings(struct NKVM *vm, nkuint32_t maxStrings);
+nkuint32_t nkxGetMaxStrings(struct NKVM *vm);
+
+/// Set the maximum string length. Only affects new strings.
+void nkxSetMaxStringLength(struct NKVM *vm, nkuint32_t maxStringLength);
+nkuint32_t nkxGetMaxStringLength(struct NKVM *vm);
+
+/// Set the maximum stack size. Only affects newly pushed values.
+void nkxSetMaxStackSize(struct NKVM *vm, nkuint32_t maxStackSize);
+nkuint32_t nkxGetMaxStackSize(struct NKVM *vm);
+
+/// Set maximum object count. Only affects newly created objects.
+void nkxSetMaxObjects(struct NKVM *vm, nkuint32_t maxObjects);
+nkuint32_t nkxGetMaxObjects(struct NKVM *vm);
+
+/// Set the maximum number of fields per object. Only affects newly
+/// created fields.
+void nkxSetMaxFieldsPerObject(struct NKVM *vm, nkuint32_t maxFieldsPerObject);
+nkuint32_t nkxGetMaxFieldsPerObject(struct NKVM *vm);
+
+/// Set the maximum allocated memory, ONLY counting the actual number
+/// of bytes requested and freed. Only affects new allocations.
+void nkxSetMaxAllocatedMemory(struct NKVM *vm, nkuint32_t maxAllocatedMemory);
+nkuint32_t nkxGetMaxAllocatedMemory(struct NKVM *vm);
+
+/// Set the garbage collection interval, in number of instructions
+/// executed. Garbage collection will only occur if enough new objects
+/// have been created in that time to exceed the "new object interval"
+/// also.
+void nkxSetGarbageCollectionInterval(struct NKVM *vm, nkuint32_t gcInterval);
+nkuint32_t nkxGetGarbageCollectionInterval(struct NKVM *vm);
+
+/// Set the number of objects that can be created before triggering
+/// the next garbage collection pass.
+void nkxSetGarbageCollectionNewObjectInterval(struct NKVM *vm, nkuint32_t gcNewObjectInterval);
+nkuint32_t nkxGetGarbageCollectionNewObjectInterval(struct NKVM *vm);
+
+/// Set the number of instructions to execute before throwing an
+/// error. Set to NK_INVALID_VALUE for no limit (default). Note that
+/// this limit is only checked on intervals where the garbage
+/// collector may activate for performance reasons. Its granularity is
+/// affected by NKGarbageCollectionInfo::gcInterval (settable with
+/// nkxSetGarbageCollectionInterval()).
+void nkxSetRemainingInstructionLimit(struct NKVM *vm, nkuint32_t count);
+
+/// Get the number of instructions left from
+/// nkxSetRemainingInstructionLimit. Note that this value is only
+/// updated on garbage collection intervals!
+nkuint32_t nkxGetRemainingInstructionLimit(struct NKVM *vm);
+
+// ----------------------------------------------------------------------
 // Native C function call interface
 
 /// This structure is passed into C functions called from inside the

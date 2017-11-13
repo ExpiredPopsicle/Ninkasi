@@ -106,7 +106,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
             return &stack->values[0];
         }
 
-        if(stack->capacity > vm->limits.maxStacksize) {
+        if(stack->capacity > vm->limits.maxStackSize) {
             nkiAddError(
                 vm, -1,
                 "Reached stack capacity limit.");

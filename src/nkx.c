@@ -490,3 +490,100 @@ void nkxGetErrorText(struct NKVM *vm, char *buffer)
     return nkiGetErrorText(vm, buffer);
 }
 
+void nkxSetRemainingInstructionLimit(struct NKVM *vm, nkuint32_t count)
+{
+    vm->instructionsLeftBeforeTimeout = count;
+}
+
+nkuint32_t nkxGetRemainingInstructionLimit(struct NKVM *vm)
+{
+    return vm->instructionsLeftBeforeTimeout;
+}
+
+void nkxSetMaxStrings(struct NKVM *vm, nkuint32_t maxStrings)
+{
+    vm->limits.maxStrings = maxStrings;
+}
+
+nkuint32_t nkxGetMaxStrings(struct NKVM *vm)
+{
+    return vm->limits.maxStrings;
+}
+
+void nkxSetMaxStringLength(struct NKVM *vm, nkuint32_t maxStringLength)
+{
+    vm->limits.maxStringLength = maxStringLength;
+}
+
+nkuint32_t nkxGetMaxStringLength(struct NKVM *vm)
+{
+    return vm->limits.maxStringLength;
+}
+
+void nkxSetMaxStackSize(struct NKVM *vm, nkuint32_t maxStackSize)
+{
+    vm->limits.maxStackSize = maxStackSize;
+}
+
+nkuint32_t nkxGetMaxStackSize(struct NKVM *vm)
+{
+    return vm->limits.maxStackSize;
+}
+
+void nkxSetMaxObjects(struct NKVM *vm, nkuint32_t maxObjects)
+{
+    vm->limits.maxObjects = maxObjects;
+}
+
+nkuint32_t nkxGetMaxObjects(struct NKVM *vm)
+{
+    return vm->limits.maxObjects;
+}
+
+void nkxSetMaxFieldsPerObject(struct NKVM *vm, nkuint32_t maxFieldsPerObject)
+{
+    vm->limits.maxFieldsPerObject = maxFieldsPerObject;
+}
+
+nkuint32_t nkxGetMaxFieldsPerObject(struct NKVM *vm)
+{
+    return vm->limits.maxFieldsPerObject;
+}
+
+void nkxSetMaxAllocatedMemory(struct NKVM *vm, nkuint32_t maxAllocatedMemory)
+{
+    vm->limits.maxAllocatedMemory = maxAllocatedMemory;
+}
+
+nkuint32_t nkxGetMaxAllocatedMemory(struct NKVM *vm)
+{
+    return vm->limits.maxAllocatedMemory;
+}
+
+
+void nkxSetGarbageCollectionInterval(struct NKVM *vm, nkuint32_t gcInterval)
+{
+    if(vm->gcInfo.gcCountdown > gcInterval) {
+        vm->gcInfo.gcCountdown = gcInterval;
+    }
+    vm->gcInfo.gcInterval = gcInterval;
+}
+
+nkuint32_t nkxGetGarbageCollectionInterval(struct NKVM *vm)
+{
+    return vm->gcInfo.gcInterval;
+}
+
+void nkxSetGarbageCollectionNewObjectInterval(struct NKVM *vm, nkuint32_t gcNewObjectInterval)
+{
+    if(vm->gcInfo.gcNewObjectCountdown > gcNewObjectInterval) {
+        vm->gcInfo.gcNewObjectCountdown = gcNewObjectInterval;
+    }
+    vm->gcInfo.gcNewObjectInterval = gcNewObjectInterval;
+}
+
+nkuint32_t nkxGetGarbageCollectionNewObjectInterval(struct NKVM *vm)
+{
+    return vm->gcInfo.gcNewObjectInterval;
+}
+

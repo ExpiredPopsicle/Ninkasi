@@ -411,7 +411,7 @@ struct Settings
 {
     nkbool compileOnly;
     const char *filename;
-    struct NKVMLimits limits;
+    nkuint32_t maxMemory;
 };
 
 void printHelp(nkbool isError)
@@ -445,7 +445,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
-    memset(&settings->limits, 0xff, sizeof(settings->limits));
+    settings->maxMemory = NK_INVALID_VALUE;
 
     for(i = 1; i < argc; i++) {
 
@@ -457,7 +457,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
             i++;
             if(i < argc) {
-                settings->limits.maxAllocatedMemory = atoi(argv[i]);
+                settings->maxMemory = atoi(argv[i]);
             } else {
                 fprintf(stderr, "Missing parameter for -m.\n");
                 return nkfalse;
@@ -547,33 +547,27 @@ int main(int argc, char *argv[])
         fprintf(stderr, "No input file specified.\n");
         return 1;
     }
+
     if(!script) {
         fprintf(stderr, "Script failed to even load.\n");
         return 1;
     }
 
     {
-        nkuint32_t lineCount = 0;
-
         struct NKVM *vm = nkxVmCreate();
-        if(!vm) {
-            assert(0);
-            return 1;
-        }
-
         if(checkErrors(vm)) {
             nkxVmDelete(vm);
             return 1;
         }
 
-        lineCount = 0;
-        assert(script);
-
-        vm->limits = settings.limits;
+        nkxSetMaxAllocatedMemory(vm, settings.maxMemory);
 
         initInternalFunctions(vm, NULL);
 
+        // NKVM binary blobs start with \0.
         if(script && script[0] != 0) {
+
+            // Load and compile a script.
 
             struct NKCompilerState *cs = nkxCompilerCreate(vm);
 
@@ -585,7 +579,7 @@ int main(int argc, char *argv[])
 
             } else {
 
-                fprintf(stderr, "Can't create compiler state.\n");
+                fprintf(stderr, "Can't create compiler state. Out of memory?\n");
 
                 return 1;
             }
@@ -597,6 +591,8 @@ int main(int argc, char *argv[])
             }
 
         } else {
+
+            // Load a binary.
 
             struct WriterTestBuffer buf;
             buf.data = script;
@@ -685,8 +681,8 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    // vm->instructionsLeftBeforeTimeout = (1024 * 1024 * 1024) & 0xffff;
-                    vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;
+                    // nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
+                    // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                     while(
                         vm->instructions[

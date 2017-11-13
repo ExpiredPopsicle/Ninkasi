@@ -68,7 +68,7 @@ struct NKVMLimits
     // count.
     nkuint32_t maxStrings;
     nkuint32_t maxStringLength;
-    nkuint32_t maxStacksize;
+    nkuint32_t maxStackSize;
     nkuint32_t maxObjects;
     nkuint32_t maxFieldsPerObject;
     nkuint32_t maxAllocatedMemory;
