@@ -420,6 +420,24 @@ void printHelp(nkbool isError)
     fprintf(stream, "<TODO: help text goes here>\n");
 }
 
+nkbool checkErrors(struct NKVM *vm)
+{
+    if(nkxVmHasErrors(vm)) {
+
+        nkuint32_t errorBufLen = nkxGetErrorLength(vm);
+        char *buf = malloc(errorBufLen);
+        nkxGetErrorText(vm, buf);
+
+        fprintf(stderr, "Errors detected:\n");
+        fprintf(stderr, "%s\n", buf);
+
+        free(buf);
+
+        return nktrue;
+    }
+    return nkfalse;
+}
+
 nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 {
     int i;
@@ -536,21 +554,19 @@ int main(int argc, char *argv[])
 
     {
         nkuint32_t lineCount = 0;
-        char **lines = NULL;
 
         struct NKVM *vm = nkxVmCreate();
         if(!vm) {
             assert(0);
             return 1;
         }
-        if(nkiGetErrorCount(vm)) {
+
+        if(checkErrors(vm)) {
             nkxVmDelete(vm);
-            assert(0);
             return 1;
         }
 
         lineCount = 0;
-        lines = splitLines(script, &lineCount);
         assert(script);
 
         vm->limits = settings.limits;
@@ -574,13 +590,10 @@ int main(int argc, char *argv[])
                 return 1;
             }
 
-            // Dump errors.
-            if(nkiGetErrorCount(vm)) {
-                struct NKError *err = vm->errorState.firstError;
-                while(err) {
-                    printf("error: %s\n", err->errorText);
-                    err = err->next;
-                }
+            if(checkErrors(vm)) {
+                free(script);
+                nkxVmDelete(vm);
+                return 1;
             }
 
         } else {
@@ -765,22 +778,10 @@ int main(int argc, char *argv[])
                 //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);
                 //     nkiVmIterate(vm);
 
-                // FIXME: Standardize error output.
-                if(nkxVmHasErrors(vm)) {
-                    struct NKError *err = vm->errorState.firstError;
-                    fprintf(stderr, "Errors detected...\n");
-                    if(vm->errorState.allocationFailure) {
-                        fprintf(stderr, "Allocation failure!\n");
-                    } else {
-                        while(err) {
-                            fprintf(stderr, "%s\n", err->errorText);
-                            err = err->next;
-                        }
-                    }
+                if(checkErrors(vm)) {
+                    nkxVmDelete(vm);
+                    return 1;
                 }
-
-                //     nkiVmStackDump(vm);
-                //     // nkxVmGarbageCollect(vm);
 
                 // // Function call test.
                 // if(!vm->errorState.firstError) {
@@ -791,20 +792,9 @@ int main(int argc, char *argv[])
 
             } else {
 
-                // FIXME: Standardize error output.
-                fprintf(stdout, "*** AN ERROR WAS DETECTED ***\n");
-                fprintf(stderr, "*** AN ERROR WAS DETECTED ***\n");
-                {
-                    struct NKError *err = vm->errorState.firstError;
-                    if(vm->errorState.allocationFailure) {
-                        fprintf(stderr, "Allocation failure!\n");
-                    } else {
-                        while(err) {
-                            fprintf(stderr, "%s\n", err->errorText);
-                            err = err->next;
-                        }
-                    }
-
+                if(checkErrors(vm)) {
+                    nkxVmDelete(vm);
+                    return 1;
                 }
 
             }
@@ -884,9 +874,6 @@ int main(int argc, char *argv[])
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
         nkxVmDelete(vm);
-
-        free(lines[0]);
-        free(lines);
     }
 
     free(script);

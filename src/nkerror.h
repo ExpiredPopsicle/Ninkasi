@@ -85,4 +85,7 @@ nkbool nkiVmHasErrors(struct NKVM *vm);
 /// runtime errors are both stored here.
 nkuint32_t nkiGetErrorCount(struct NKVM *vm);
 
+nkuint32_t nkiGetErrorLength(struct NKVM *vm);
+void nkiGetErrorText(struct NKVM *vm, char *buffer);
+
 #endif

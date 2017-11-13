@@ -478,3 +478,15 @@ void nkxAddError(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+nkuint32_t nkxGetErrorLength(struct NKVM *vm)
+{
+    // Makes no allocations. No need for wrapper.
+    return nkiGetErrorLength(vm);
+}
+
+void nkxGetErrorText(struct NKVM *vm, char *buffer)
+{
+    // Makes no allocations. No need for wrapper.
+    return nkiGetErrorText(vm, buffer);
+}
+

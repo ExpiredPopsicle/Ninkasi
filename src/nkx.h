@@ -88,13 +88,6 @@ void nkxVmDelete(struct NKVM *vm);
 /// Run the compiled program.
 nkbool nkxVmExecuteProgram(struct NKVM *vm);
 
-/// Get the number of errors that have occurred. Compile errors and
-/// runtime errors are both stored here.
-nkuint32_t nkxGetErrorCount(struct NKVM *vm);
-
-/// Get whether or not the VM has any errors.
-nkbool nkxVmHasErrors(struct NKVM *vm);
-
 /// Run some number of instructions inside the VM and advance the
 /// program counter.
 void nkxVmIterate(struct NKVM *vm, nkuint32_t count);
@@ -306,8 +299,24 @@ nkbool nkxVmSerialize(
 // ----------------------------------------------------------------------
 // Public-facing error stuff
 
+/// Get the number of errors that have occurred. Compile errors and
+/// runtime errors are both stored here.
+nkuint32_t nkxGetErrorCount(struct NKVM *vm);
+
+/// Manually add an error to the error list.
 void nkxAddError(
     struct NKVM *vm,
     const char *str);
+
+/// Get whether or not the VM has any errors.
+nkbool nkxVmHasErrors(struct NKVM *vm);
+
+/// Get the length of the buffer that would be needed to store every
+/// accumulated error so far, including a null terminator.
+nkuint32_t nkxGetErrorLength(struct NKVM *vm);
+
+/// Read all the errors into a buffer with newlines between each
+/// error.
+void nkxGetErrorText(struct NKVM *vm, char *buffer);
 
 #endif // NINKASI_NKX

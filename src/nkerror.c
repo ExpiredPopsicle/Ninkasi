@@ -116,3 +116,58 @@ nkuint32_t nkiGetErrorCount(struct NKVM *vm)
 
     return count;
 }
+
+const char *nkiAllocationFailureStr = "Allocation failure.";
+
+nkuint32_t nkiGetErrorLength(struct NKVM *vm)
+{
+    // Start off with just enough length for a null terminator.
+    nkuint32_t length = 1;
+
+    if(vm->errorState.allocationFailure) {
+
+        // Add length of string AND extra space for a \n.
+        length += strlen(nkiAllocationFailureStr) + 1;
+
+    } else {
+
+        struct NKError *error = vm->errorState.firstError;
+
+        while(error) {
+
+            // Add length of string AND extra space for a \n.
+            length += strlen(error->errorText) + 1;
+            error = error->next;
+
+        }
+
+    }
+
+    return length;
+}
+
+void nkiGetErrorText(struct NKVM *vm, char *buffer)
+{
+    buffer[0] = 0;
+
+    if(vm->errorState.allocationFailure) {
+
+        strcat(buffer, nkiAllocationFailureStr);
+        strcat(buffer, "\n");
+
+    } else {
+
+        struct NKError *error = vm->errorState.firstError;
+
+        while(error) {
+
+            strcat(buffer, error->errorText);
+            strcat(buffer, "\n");
+            error = error->next;
+
+        }
+
+    }
+
+}
+
