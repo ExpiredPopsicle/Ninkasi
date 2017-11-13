@@ -445,7 +445,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
-    settings->maxMemory = NK_INVALID_VALUE;
+    settings->maxMemory = NK_UINT_MAX;
 
     for(i = 1; i < argc; i++) {
 
