@@ -243,19 +243,21 @@ void nkiVmStringTableCleanOldStrings(
             while(str && (lastGCPass != str->lastGCPass && !str->dontGC)) {
 
                 nkuint32_t index = str->stringTableIndex;
-                struct NKVMStringTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+                // struct NKVMStringTableHole *hole =
+                //     nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
 
                 *lastPtr = str->nextInHashBucket;
                 table->stringTable[str->stringTableIndex] = NULL;
                 nkiFree(vm, str);
                 str = *lastPtr;
 
-                // Create a table hole for our new gap.
-                memset(hole, 0, sizeof(*hole));
-                hole->index = index;
-                hole->next = table->tableHoles;
-                table->tableHoles = hole;
+                nkiVmStringTableCreateHole(vm, index);
+
+                // // Create a table hole for our new gap.
+                // memset(hole, 0, sizeof(*hole));
+                // hole->index = index;
+                // hole->next = table->tableHoles;
+                // table->tableHoles = hole;
             }
 
             if(str) {
@@ -264,4 +266,14 @@ void nkiVmStringTableCleanOldStrings(
             }
         }
     }
+}
+
+void nkiVmStringTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
+{
+    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMStringTableHole *hole =
+        nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+    hole->index = holeIndex;
+    hole->next = table->tableHoles;
+    table->tableHoles = hole;
 }

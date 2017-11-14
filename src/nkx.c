@@ -587,3 +587,11 @@ nkuint32_t nkxGetGarbageCollectionNewObjectInterval(struct NKVM *vm)
     return vm->gcInfo.gcNewObjectInterval;
 }
 
+void nkxVmShrink(struct NKVM *vm)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmShrink(vm);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+

@@ -695,6 +695,8 @@ int main(int argc, char *argv[])
 
 
                         nkxVmIterate(vm, 1);
+                        nkxVmGarbageCollect(vm);
+                        nkxVmShrink(vm);
 
                         // nkxDbgDumpState(vm, stdout);
 
@@ -808,6 +810,8 @@ int main(int argc, char *argv[])
         nkiVmStackDump(vm);
 
         nkxVmGarbageCollect(vm);
+        nkxVmShrink(vm);
+        nkxDbgDumpState(vm, stdout);
 
         printf("Final stack again...\n");
         nkiVmStackDump(vm);
@@ -870,6 +874,7 @@ int main(int argc, char *argv[])
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
         nkxVmDelete(vm);
+        vm = NULL;
     }
 
     free(script);

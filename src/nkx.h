@@ -356,6 +356,10 @@ nkbool nkxVmSerialize(
     void *userdata,
     nkbool writeMode);
 
+/// Shrink a VM's memory usage, if we can reduce the size of some of
+/// the tables.
+void nkxVmShrink(struct NKVM *vm);
+
 // ----------------------------------------------------------------------
 // Public-facing error stuff
 

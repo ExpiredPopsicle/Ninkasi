@@ -9,4 +9,6 @@ nkbool nkiVmSerialize(
     void *userdata,
     nkbool writeMode);
 
+void nkiVmShrink(struct NKVM *vm);
+
 #endif // NINKASI_SAVE_H
