@@ -1154,6 +1154,8 @@ void nkiVmShrink(struct NKVM *vm)
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
 
+    // printf("SHRINK: Executing\n");
+
     while(emptyHoleSearch < vm->objectTable.objectTableCapacity) {
         if(!vm->objectTable.objectTable[emptyHoleSearch]) {
 
@@ -1181,28 +1183,29 @@ void nkiVmShrink(struct NKVM *vm)
     emptyHoleSearch = 0;
     objectSearch = 0;
 
-    // while(emptyHoleSearch < vm->stringTable.stringTableCapacity) {
-    //     if(!vm->stringTable.stringTable[emptyHoleSearch]) {
+    while(emptyHoleSearch < vm->stringTable.stringTableCapacity) {
+        if(!vm->stringTable.stringTable[emptyHoleSearch]) {
 
-    //         // Skip up to the empty hole so we only look at moving
-    //         // something from after it into this slot.
-    //         if(objectSearch < emptyHoleSearch) {
-    //             objectSearch = emptyHoleSearch + 1;
-    //         }
+            // Skip up to the empty hole so we only look at moving
+            // something from after it into this slot.
+            if(objectSearch < emptyHoleSearch) {
+                objectSearch = emptyHoleSearch + 1;
+            }
 
-    //         // Find a string to move into this slot.
-    //         while(objectSearch < vm->stringTable.stringTableCapacity) {
-    //             if(vm->stringTable.stringTable[objectSearch]) {
-    //                 // Found something for this hole!
-    //                 nkiVmMoveString(vm, objectSearch, emptyHoleSearch);
-    //                 break;
-    //             }
-    //             objectSearch++;
-    //         }
-    //     }
-    //     emptyHoleSearch++;
-    // }
-
+            // Find a string to move into this slot.
+            while(objectSearch < vm->stringTable.stringTableCapacity) {
+                if(vm->stringTable.stringTable[objectSearch]) {
+                    if(!vm->stringTable.stringTable[objectSearch]->dontGC) {
+                        // Found something for this hole!
+                        nkiVmMoveString(vm, objectSearch, emptyHoleSearch);
+                        break;
+                    }
+                }
+                objectSearch++;
+            }
+        }
+        emptyHoleSearch++;
+    }
 
     {
         nkuint32_t i;
@@ -1245,25 +1248,80 @@ void nkiVmShrink(struct NKVM *vm)
                 sizeof(struct NKVMObject *), newCapacity);
             vm->objectTable.objectTableCapacity = newCapacity;
 
-            // {
-            //     struct NKVMObjectTableHole *hole = vm->objectTable.tableHoles;
-            //     struct NKVMObjectTableHole **prevHole = &vm->objectTable.tableHoles;
-            //     while(hole) {
-            //         while(hole && hole->index >= newCapacity) {
-            //             *prevHole = hole->next;
-            //             nkiFree(vm, hole);
-            //             hole = *prevHole;
-            //         }
-
-            //         if(hole) {
-            //             prevHole = &hole->next;
-            //             hole = hole->next;
-            //         }
-            //     }
-            // }
-
-            nkiVmRecreateObjectAndStringHoles(vm);
-
         }
     }
+
+    {
+        nkuint32_t i;
+        nkuint32_t highestString = 0;
+        nkuint32_t newCapacity = vm->stringTable.stringTableCapacity;
+
+        // Find out what the highest active index is.
+        for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+            if(vm->stringTable.stringTable[i]) {
+                highestString = i;
+            }
+        }
+
+        // // FIXME: Remove debug spam.
+        // printf("SHRINK: Highest string: " NK_PRINTF_UINT32 "\n",
+        //     highestString);
+        // printf("SHRINK: Capacity: " NK_PRINTF_UINT32 "\n",
+        //     newCapacity);
+
+        // See how far we can reduce the string table while still
+        // containing the highest string.
+        while((newCapacity >> 1) > highestString) {
+            newCapacity >>= 1;
+        }
+
+        // We always need a minimum capacity.
+        if(newCapacity < 1) {
+            newCapacity = 1;
+        }
+
+        // Reallocate.
+        if(newCapacity != vm->stringTable.stringTableCapacity) {
+
+            // FIXME: Remove debug spam.
+            printf("SHRINK: Reducing string table: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 "\n",
+                vm->stringTable.stringTableCapacity, newCapacity);
+
+            vm->stringTable.stringTable = nkiReallocArray(
+                vm, vm->stringTable.stringTable,
+                sizeof(struct NKVMString *), newCapacity);
+            vm->stringTable.stringTableCapacity = newCapacity;
+
+        }
+
+    }
+
+    nkiVmRecreateObjectAndStringHoles(vm);
+
+    // Reduce stack size.
+    {
+        nkuint32_t newStackCapacity = vm->stack.capacity;
+        while((newStackCapacity >> 1) > vm->stack.size) {
+            newStackCapacity >>= 1;
+        }
+
+        if(newStackCapacity < 1) {
+            newStackCapacity = 1;
+        }
+
+        if(newStackCapacity != vm->stack.capacity) {
+
+            // FIXME: Remove debug spam.
+            printf("SHRINK: Reducing stack: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 " for size " NK_PRINTF_UINT32 "\n",
+                vm->stack.capacity, newStackCapacity, vm->stack.size);
+
+            vm->stack.values = nkiReallocArray(
+                vm, vm->stack.values,
+                sizeof(struct NKValue*),
+                newStackCapacity);
+
+            vm->stack.capacity = newStackCapacity;
+        }
+    }
+
 }

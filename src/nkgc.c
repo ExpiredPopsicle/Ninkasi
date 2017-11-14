@@ -86,6 +86,10 @@ void nkiVmGarbageCollect_markString(
     if(str) {
         str->lastGCPass = gcState->currentGCPass;
     } else {
+
+        // FIXME: Remove this.
+        printf("Index of bad thing: " NK_PRINTF_UINT32 "\n", value->stringTableEntry);
+
         nkiAddError(
             gcState->vm, -1,
             "GC error: Bad string table index.");
