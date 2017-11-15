@@ -60,21 +60,8 @@ nkuint32_t nkiStringHash(const char *in)
 
 void nkiVmStringTableInit(struct NKVM *vm)
 {
-    struct NKVMTable *table = &vm->stringTable;
-
     memset(&vm->stringsByHash, 0, sizeof(vm->stringsByHash));
-    table->tableHoles = NULL;
-
-    // Create a table with a capacity of a single string.
-    table->stringTable = nkiMalloc(vm, sizeof(struct NKVMString*));
-    table->capacity = 1;
-    table->stringTable[0] = NULL;
-
-    // Create a "hole" object indicating that we have space in the
-    // table.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMTableHole));
-    table->tableHoles->index = 0;
-    table->tableHoles->next = NULL;
+    nkiTableInit(vm, &vm->stringTable);
 }
 
 void nkiVmStringTableDestroy(struct NKVM *vm)

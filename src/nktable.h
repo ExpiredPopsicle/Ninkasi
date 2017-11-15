@@ -65,5 +65,7 @@ struct NKVMTable
     nkuint32_t capacity;
 };
 
+void nkiTableInit(struct NKVM *vm, struct NKVMTable *table);
+
 #endif // NINKASI_TABLE_H
 

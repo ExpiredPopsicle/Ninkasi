@@ -45,20 +45,7 @@
 
 void nkiVmObjectTableInit(struct NKVM *vm)
 {
-    struct NKVMTable *table = &vm->objectTable;
-
-    table->tableHoles = NULL;
-
-    // Create a table of one empty entry.
-    table->objectTable = nkiMalloc(vm, sizeof(struct NKVMObject*));
-    table->capacity = 1;
-    table->objectTable[0] = NULL;
-
-    // Create the hole object that goes with the empty space.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMTableHole));
-    table->tableHoles->index = 0;
-    table->tableHoles->next = NULL;
-
+    nkiTableInit(vm, &vm->objectTable);
     vm->objectsWithExternalHandles = NULL;
 }
 
