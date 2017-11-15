@@ -164,10 +164,7 @@ void nkiVmInit(struct NKVM *vm)
     vm->peakMemoryUsage = 0;
     vm->allocations = NULL;
 
-    vm->limits.maxStrings = NK_UINT_MAX;
-    vm->limits.maxStringLength = NK_UINT_MAX;
     vm->limits.maxStackSize = NK_UINT_MAX;
-    vm->limits.maxObjects = NK_UINT_MAX;
     vm->limits.maxFieldsPerObject = NK_UINT_MAX;
     vm->limits.maxAllocatedMemory = NK_UINT_MAX;
     vm->instructionsLeftBeforeTimeout = NK_INVALID_VALUE;

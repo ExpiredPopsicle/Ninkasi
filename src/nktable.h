@@ -68,6 +68,7 @@ struct NKVMTable
 void nkiTableInit(struct NKVM *vm, struct NKVMTable *table);
 void nkiTableDestroy(struct NKVM *vm, struct NKVMTable *table);
 void nkiTableEraseEntry(struct NKVM *vm, struct NKVMTable *table, nkuint32_t index);
+nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entryData);
 void nkiTableShrink(struct NKVM *vm, struct NKVMTable *table);
 
 // Mostly-internal stuff. FIXME: Only exposed because of massive code

@@ -106,7 +106,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
 {
     struct NKVMTable *table = &vm->stringTable;
     nkuint32_t hash = nkiStringHash(str);
-    nkuint32_t len = 0;
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
@@ -120,74 +119,15 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         cur = cur->nextInHashBucket;
     }
 
-    // Check our length.
-    len = strlen(str);
-    if(len > vm->limits.maxStringLength) {
-        nkiAddError(
-            vm, -1, "Reached string length limit.");
-        return NK_INVALID_VALUE;
-    }
-
     // If we've reach this point, then we don't have the string yet,
     // so we'll go ahead and make a new entry.
     {
+        nkuint32_t len = strlen(str);
+
         struct NKVMString *newString =
             nkiMalloc(vm, sizeof(struct NKVMString) + len + 1);
-        nkuint32_t index = 0;
 
-        if(table->tableHoles) {
-
-            // We can use an existing gap.
-
-            struct NKVMTableHole *hole = table->tableHoles;
-            table->tableHoles = hole->next;
-            index = hole->index;
-            nkiFree(vm, hole);
-
-            // TODO: Remove.
-            nkiDbgWriteLine("Filled a string table hole at index %d", index);
-
-        } else {
-
-            // Looks like we have to re-size the string table.
-
-            nkuint32_t oldCapacity = table->capacity;
-            nkuint32_t newCapacity = oldCapacity << 1;
-            nkuint32_t i;
-
-            // If we're going to have to allocate more space in our table, we
-            // need to check against our VM's string limit.
-            if((newCapacity > vm->limits.maxStrings || !newCapacity)) {
-                nkiAddError(
-                    vm, -1, "Reached string table capacity limit.");
-                return NK_INVALID_VALUE;
-            }
-
-            table->stringTable = nkiReallocArray(
-                vm,
-                table->stringTable,
-                sizeof(struct NKVMString *), newCapacity);
-
-            // Create hole objects for all our empty new space. Not
-            // that we don't create one on the border between the old
-            // and new space because that's where our new entry will
-            // be going.
-            for(i = oldCapacity + 1; i < newCapacity; i++) {
-                struct NKVMTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMTableHole));
-                hole->index = i;
-                hole->next = table->tableHoles;
-                table->tableHoles = hole;
-
-                table->stringTable[i] = NULL;
-            }
-
-            table->capacity = newCapacity;
-            index = oldCapacity;
-
-            // TODO: Remove.
-            nkiDbgWriteLine("Expanded string table to make room for index %d", index);
-        }
+        nkuint32_t index = nkiTableAddEntry(vm, table, newString);
 
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
@@ -196,7 +136,6 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
         vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
-        table->stringTable[index] = newString;
 
         return newString->stringTableIndex;
     }

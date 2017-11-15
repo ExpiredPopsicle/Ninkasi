@@ -98,51 +98,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVMObject *newObject = nkiMalloc(vm, sizeof(struct NKVMObject));
     memset(newObject, 0, sizeof(*newObject));
 
-    if(table->tableHoles) {
-
-        // We can use an existing gap.
-
-        struct NKVMTableHole *hole = table->tableHoles;
-        table->tableHoles = hole->next;
-        index = hole->index;
-        nkiFree(vm, hole);
-
-    } else {
-
-        // FIXME: Limit object table size?
-
-        // Looks like we have to re-size the object table.
-
-        nkuint32_t oldCapacity = table->capacity;
-        nkuint32_t newCapacity = oldCapacity << 1;
-        nkuint32_t i;
-
-        // If we're going to have to allocate more space in our table, we
-        // need to check against our VM's string limit.
-        if((newCapacity > vm->limits.maxObjects || !newCapacity)) {
-            nkiAddError(
-                vm, -1, "Reached object table capacity limit.");
-            return NK_INVALID_VALUE;
-        }
-
-        table->objectTable = nkiReallocArray(
-            vm,
-            table->objectTable,
-            sizeof(struct NKVMObject *), newCapacity);
-
-        table->capacity = newCapacity;
-        index = oldCapacity;
-
-        // Create hole objects for all our empty new space. Not that
-        // we don't create one on the border between the old and new
-        // space because that's where our new entry will be going. Add
-        // holes back-to-front so we end up with holes roughly in
-        // order, and will mostly allocate from the front of memory.
-        for(i = newCapacity - 1; i >= oldCapacity + 1; i--) {
-            table->objectTable[i] = NULL;
-            nkiTableCreateHole(vm, &vm->objectTable, i);
-        }
-    }
+    index = nkiTableAddEntry(vm, table, newObject);
 
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;

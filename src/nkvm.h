@@ -66,10 +66,7 @@ struct NKVMLimits
     // expand (double) its memory usage. So only powers of two are
     // meaningful numbers for string count, stack size, and object
     // count.
-    nkuint32_t maxStrings;
-    nkuint32_t maxStringLength;
     nkuint32_t maxStackSize;
-    nkuint32_t maxObjects;
     nkuint32_t maxFieldsPerObject;
     nkuint32_t maxAllocatedMemory;
 };

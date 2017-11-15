@@ -162,21 +162,9 @@ void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 // (nkxSetRemainingInstructionLimit()). These set effective limits for
 // the entire system, instead of limits for specific subsystems.
 
-/// Set the maximum number of strings. Only affects new string creation.
-void nkxSetMaxStrings(struct NKVM *vm, nkuint32_t maxStrings);
-nkuint32_t nkxGetMaxStrings(struct NKVM *vm);
-
-/// Set the maximum string length. Only affects new strings.
-void nkxSetMaxStringLength(struct NKVM *vm, nkuint32_t maxStringLength);
-nkuint32_t nkxGetMaxStringLength(struct NKVM *vm);
-
 /// Set the maximum stack size. Only affects newly pushed values.
 void nkxSetMaxStackSize(struct NKVM *vm, nkuint32_t maxStackSize);
 nkuint32_t nkxGetMaxStackSize(struct NKVM *vm);
-
-/// Set maximum object count. Only affects newly created objects.
-void nkxSetMaxObjects(struct NKVM *vm, nkuint32_t maxObjects);
-nkuint32_t nkxGetMaxObjects(struct NKVM *vm);
 
 /// Set the maximum number of fields per object. Only affects newly
 /// created fields.
