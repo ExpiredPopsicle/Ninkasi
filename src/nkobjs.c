@@ -45,7 +45,7 @@
 
 void nkiVmObjectTableInit(struct NKVM *vm)
 {
-    struct NKVMObjectTable *table = &vm->objectTable;
+    struct NKVMTable *table = &vm->objectTable;
 
     table->tableHoles = NULL;
 
@@ -78,7 +78,7 @@ void nkiVmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
 
 void nkiVmObjectTableDestroy(struct NKVM *vm)
 {
-    struct NKVMObjectTable *table = &vm->objectTable;
+    struct NKVMTable *table = &vm->objectTable;
 
     // Clear out the main table.
     nkuint32_t i;
@@ -104,7 +104,7 @@ void nkiVmObjectTableDestroy(struct NKVM *vm)
 }
 
 struct NKVMObject *nkiVmObjectTableGetEntryById(
-    struct NKVMObjectTable *table,
+    struct NKVMTable *table,
     nkuint32_t index)
 {
     if(index >= table->capacity) {
@@ -116,7 +116,7 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
 
 void nkiVmObjectTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
 {
-    struct NKVMObjectTable *table = &vm->objectTable;
+    struct NKVMTable *table = &vm->objectTable;
     struct NKVMTableHole *hole =
         nkiMalloc(vm, sizeof(struct NKVMTableHole));
     hole->index = holeIndex;
@@ -127,7 +127,7 @@ void nkiVmObjectTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
 nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVM *vm)
 {
-    struct NKVMObjectTable *table = &vm->objectTable;
+    struct NKVMTable *table = &vm->objectTable;
     nkuint32_t index = ~0;
     struct NKVMObject *newObject = nkiMalloc(vm, sizeof(struct NKVMObject));
     memset(newObject, 0, sizeof(*newObject));
@@ -199,7 +199,7 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVM *vm,
     nkuint32_t lastGCPass)
 {
-    struct NKVMObjectTable *table = &vm->objectTable;
+    struct NKVMTable *table = &vm->objectTable;
     nkuint32_t i;
 
     for(i = 0; i < table->capacity; i++) {

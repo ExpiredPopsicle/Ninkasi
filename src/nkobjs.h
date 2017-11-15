@@ -44,6 +44,8 @@
 #ifndef NINKASI_OBJECTS_H
 #define NINKASI_OBJECTS_H
 
+#include "nktable.h"
+
 /// Dumb linked-list for key/value pairs inside of an object.
 struct NKVMObjectElement
 {
@@ -82,18 +84,11 @@ struct NKVMObject
     void *externalData;
 };
 
-struct NKVMObjectTable
-{
-    struct NKVMTableHole *tableHoles;
-    struct NKVMObject **objectTable;
-    nkuint32_t capacity;
-};
-
 void nkiVmObjectTableInit(struct NKVM *vm);
 void nkiVmObjectTableDestroy(struct NKVM *vm);
 
 struct NKVMObject *nkiVmObjectTableGetEntryById(
-    struct NKVMObjectTable *table,
+    struct NKVMTable *table,
     nkuint32_t index);
 
 nkuint32_t nkiVmObjectTableCreateObject(

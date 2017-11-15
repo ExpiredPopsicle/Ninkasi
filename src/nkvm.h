@@ -101,11 +101,12 @@ struct NKVM
     nkuint32_t instructionAddressMask;
     nkuint32_t instructionPointer;
 
-    // Strings and objects.
+    // Strings.
     struct NKVMTable stringTable;
     struct NKVMString *stringsByHash[nkiVmStringHashTableSize];
 
-    struct NKVMObjectTable objectTable;
+    // Objects.
+    struct NKVMTable objectTable;
     struct NKVMObject *objectsWithExternalHandles;
 
     // Functions.
