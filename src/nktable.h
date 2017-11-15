@@ -67,7 +67,11 @@ struct NKVMTable
 
 void nkiTableInit(struct NKVM *vm, struct NKVMTable *table);
 void nkiTableDestroy(struct NKVM *vm, struct NKVMTable *table);
+
+void nkiTableEraseEntry(struct NKVM *vm, struct NKVMTable *table, nkuint32_t index);
+
 void nkiTableCreateHole(struct NKVM *vm, struct NKVMTable *table, nkuint32_t holeIndex);
+void nkiTableResetHoles(struct NKVM *vm, struct NKVMTable *table);
 
 #endif // NINKASI_TABLE_H
 

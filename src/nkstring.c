@@ -220,13 +220,11 @@ void nkiVmStringTableCleanOldStrings(
 
                 nkuint32_t index = str->stringTableIndex;
 
+                nkiTableEraseEntry(vm, table, index);
+
                 *lastPtr = str->nextInHashBucket;
-                table->stringTable[str->stringTableIndex] = NULL;
                 nkiFree(vm, str);
                 str = *lastPtr;
-
-                // Create a table hole for our new gap.
-                nkiTableCreateHole(vm, &vm->stringTable, index);
             }
 
             if(str) {

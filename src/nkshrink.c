@@ -150,35 +150,8 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 
 void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
 {
-    nkuint32_t i;
-
-    // Free all object table holes.
-    while(vm->objectTable.tableHoles) {
-        struct NKVMTableHole *hole = vm->objectTable.tableHoles;
-        vm->objectTable.tableHoles = hole->next;
-        nkiFree(vm, hole);
-    }
-
-    // Recreate all object table holes.
-    for(i = vm->objectTable.capacity - 1; i != NK_UINT_MAX; i--) {
-        if(!vm->objectTable.objectTable[i]) {
-            nkiTableCreateHole(vm, &vm->objectTable, i);
-        }
-    }
-
-    // Free all string table holes.
-    while(vm->stringTable.tableHoles) {
-        struct NKVMTableHole *hole = vm->stringTable.tableHoles;
-        vm->stringTable.tableHoles = hole->next;
-        nkiFree(vm, hole);
-    }
-
-    // Recreate all string table holes.
-    for(i = vm->stringTable.capacity - 1; i != NK_UINT_MAX; i--) {
-        if(!vm->stringTable.stringTable[i]) {
-            nkiTableCreateHole(vm, &vm->stringTable, i);
-        }
-    }
+    nkiTableResetHoles(vm, &vm->stringTable);
+    nkiTableResetHoles(vm, &vm->objectTable);
 }
 
 void nkiVmShrink(struct NKVM *vm)

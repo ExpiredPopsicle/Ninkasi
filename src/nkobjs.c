@@ -198,11 +198,8 @@ void nkiVmObjectTableCleanOldObjects(
                     }
                 }
 
-                table->objectTable[i] = NULL;
                 nkiVmObjectDelete(vm, ob);
-
-                // Create a table hole for our new gap.
-                nkiTableCreateHole(vm, &vm->objectTable, i);
+                nkiTableEraseEntry(vm, table, i);
             }
         }
     }
