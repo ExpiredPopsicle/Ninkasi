@@ -85,7 +85,5 @@ void nkiVmStringTableCleanOldStrings(
 
 nkuint32_t nkiStringHash(const char *in);
 
-void nkiVmStringTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex);
-
 #endif // NINKASI_VMSTRING_H
 

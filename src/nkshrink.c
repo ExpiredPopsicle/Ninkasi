@@ -162,7 +162,7 @@ void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
     // Recreate all object table holes.
     for(i = vm->objectTable.capacity - 1; i != NK_UINT_MAX; i--) {
         if(!vm->objectTable.objectTable[i]) {
-            nkiVmObjectTableCreateHole(vm, i);
+            nkiTableCreateHole(vm, &vm->objectTable, i);
         }
     }
 
@@ -176,7 +176,7 @@ void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
     // Recreate all string table holes.
     for(i = vm->stringTable.capacity - 1; i != NK_UINT_MAX; i--) {
         if(!vm->stringTable.stringTable[i]) {
-            nkiVmStringTableCreateHole(vm, i);
+            nkiTableCreateHole(vm, &vm->stringTable, i);
         }
     }
 }

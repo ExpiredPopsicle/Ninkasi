@@ -226,7 +226,7 @@ void nkiVmStringTableCleanOldStrings(
                 str = *lastPtr;
 
                 // Create a table hole for our new gap.
-                nkiVmStringTableCreateHole(vm, index);
+                nkiTableCreateHole(vm, &vm->stringTable, index);
             }
 
             if(str) {
@@ -235,14 +235,4 @@ void nkiVmStringTableCleanOldStrings(
             }
         }
     }
-}
-
-void nkiVmStringTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
-{
-    struct NKVMTable *table = &vm->stringTable;
-    struct NKVMTableHole *hole =
-        nkiMalloc(vm, sizeof(struct NKVMTableHole));
-    hole->index = holeIndex;
-    hole->next = table->tableHoles;
-    table->tableHoles = hole;
 }

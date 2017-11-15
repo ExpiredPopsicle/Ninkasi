@@ -147,8 +147,4 @@ void *nkiVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 
-void nkiVmObjectTableCreateHole(
-    struct NKVM *vm,
-    nkuint32_t holeIndex);
-
 #endif // NINKASI_OBJECTS_H
