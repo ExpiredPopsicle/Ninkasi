@@ -41,17 +41,11 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_SAVE_H
-#define NINKASI_SAVE_H
+#ifndef NINKASI_SHRINK_H
+#define NINKASI_SHRINK_H
 
-#include "nktypes.h"
-
-nkbool nkiVmSerialize(
-    struct NKVM *vm,
-    NKVMSerializationWriter writer,
-    void *userdata,
-    nkbool writeMode);
+struct NKVM;
 
 void nkiVmShrink(struct NKVM *vm);
 
-#endif // NINKASI_SAVE_H
+#endif // NINKASI_SHRINK_H

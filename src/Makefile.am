@@ -8,6 +8,6 @@ ninkasi_test_SOURCES = main.c nkcommon.h nkcompil.c nkcompil.h		\
   nkmem.c nkmem.h nkobjs.c nkobjs.h nkopcode.c nkopcode.h nkopt.c	\
   nkopt.h nkstack.c nkstack.h nkstring.c nkstring.h nktoken.c		\
   nktoken.h nktypes.h nkvalue.c nkvalue.h nkvm.c nkvm.h nkx.c nkx.h \
-  nksave.h nksave.c nkgc.c
+  nksave.h nksave.c nkgc.c nkshrink.c nkshrink.h
 
 
