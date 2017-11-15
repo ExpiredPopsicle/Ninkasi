@@ -59,7 +59,7 @@ void nkiVmObjectTableInit(struct NKVM *vm)
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 
-    table->objectsWithExternalHandles = NULL;
+    vm->objectsWithExternalHandles = NULL;
 }
 
 void nkiVmObjectDelete(struct NKVM *vm, struct NKVMObject *ob)
@@ -355,14 +355,14 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
 
     // Add us to the linked list.
     ob->nextObjectWithExternalHandles =
-        vm->objectTable.objectsWithExternalHandles;
+        vm->objectsWithExternalHandles;
     ob->previousExternalHandleListPtr =
-        &vm->objectTable.objectsWithExternalHandles;
-    if(vm->objectTable.objectsWithExternalHandles) {
-        vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
+        &vm->objectsWithExternalHandles;
+    if(vm->objectsWithExternalHandles) {
+        vm->objectsWithExternalHandles->previousExternalHandleListPtr =
             &ob->nextObjectWithExternalHandles;
     }
-    vm->objectTable.objectsWithExternalHandles = ob;
+    vm->objectsWithExternalHandles = ob;
 }
 
 void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)

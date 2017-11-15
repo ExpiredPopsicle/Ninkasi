@@ -45,6 +45,7 @@
 #define NINKASI_VMSTRING_H
 
 #include "nktypes.h"
+#include "nktable.h"
 
 struct NKVMString
 {
@@ -63,23 +64,15 @@ struct NKVMString
 
 #define nkiVmStringHashTableSize 256
 
-struct NKVMStringTable
-{
-    struct NKVMTableHole *tableHoles;
-
-    struct NKVMString **stringTable;
-    nkuint32_t capacity;
-};
-
 void nkiVmStringTableInit(struct NKVM *vm);
 void nkiVmStringTableDestroy(struct NKVM *vm);
 
 struct NKVMString *nkiVmStringTableGetEntryById(
-    struct NKVMStringTable *table,
+    struct NKVMTable *table,
     nkuint32_t index);
 
 const char *nkiVmStringTableGetStringById(
-    struct NKVMStringTable *table,
+    struct NKVMTable *table,
     nkuint32_t index);
 
 nkuint32_t nkiVmStringTableFindOrAddString(

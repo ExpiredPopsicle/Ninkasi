@@ -184,7 +184,7 @@ void nkiVmGarbageCollect(struct NKVM *vm)
     // Iterate through objects with external handles.
     {
         struct NKVMObject *ob;
-        for(ob = vm->objectTable.objectsWithExternalHandles; ob;
+        for(ob = vm->objectsWithExternalHandles; ob;
             ob = ob->nextObjectWithExternalHandles)
         {
             nkiVmGarbageCollect_markObject(&gcState, ob);

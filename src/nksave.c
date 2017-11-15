@@ -233,13 +233,13 @@ nkbool nkiSerializeObject(
     // list.
     if(!writeMode) {
         if(object->externalHandleCount) {
-            if(vm->objectTable.objectsWithExternalHandles) {
-                vm->objectTable.objectsWithExternalHandles->previousExternalHandleListPtr =
+            if(vm->objectsWithExternalHandles) {
+                vm->objectsWithExternalHandles->previousExternalHandleListPtr =
                     &object->nextObjectWithExternalHandles;
             }
-            object->previousExternalHandleListPtr = &vm->objectTable.objectsWithExternalHandles;
-            object->nextObjectWithExternalHandles = vm->objectTable.objectsWithExternalHandles;
-            vm->objectTable.objectsWithExternalHandles = object;
+            object->previousExternalHandleListPtr = &vm->objectsWithExternalHandles;
+            object->nextObjectWithExternalHandles = vm->objectsWithExternalHandles;
+            vm->objectsWithExternalHandles = object;
         }
     }
 

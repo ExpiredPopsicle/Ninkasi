@@ -87,8 +87,6 @@ struct NKVMObjectTable
     struct NKVMTableHole *tableHoles;
     struct NKVMObject **objectTable;
     nkuint32_t capacity;
-
-    struct NKVMObject *objectsWithExternalHandles;
 };
 
 void nkiVmObjectTableInit(struct NKVM *vm);

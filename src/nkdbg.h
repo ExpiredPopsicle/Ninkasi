@@ -48,7 +48,7 @@
 
 #include <stdio.h>
 
-struct NKVMStringTable;
+struct NKVMTable;
 
 int nkiDbgWriteLine(const char *fmt, ...);
 

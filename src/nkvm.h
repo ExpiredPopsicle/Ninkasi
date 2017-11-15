@@ -102,10 +102,11 @@ struct NKVM
     nkuint32_t instructionPointer;
 
     // Strings and objects.
-    struct NKVMStringTable stringTable;
+    struct NKVMTable stringTable;
     struct NKVMString *stringsByHash[nkiVmStringHashTableSize];
 
     struct NKVMObjectTable objectTable;
+    struct NKVMObject *objectsWithExternalHandles;
 
     // Functions.
     nkuint32_t functionCount;

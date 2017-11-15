@@ -326,7 +326,7 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
 
 void nkiVmStringTableDump(struct NKVM *vm)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
     nkuint32_t i;
     printf("String table dump...\n");
 

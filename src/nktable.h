@@ -55,7 +55,13 @@ struct NKVMTableHole
 struct NKVMTable
 {
     struct NKVMTableHole *tableHoles;
-    void **data;
+
+    union {
+        struct NKVMString **stringTable;
+        struct NKVMObject **objectTable;
+        void **data;
+    };
+
     nkuint32_t capacity;
 };
 

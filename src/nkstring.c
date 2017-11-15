@@ -60,7 +60,7 @@ nkuint32_t nkiStringHash(const char *in)
 
 void nkiVmStringTableInit(struct NKVM *vm)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
 
     memset(&vm->stringsByHash, 0, sizeof(vm->stringsByHash));
     table->tableHoles = NULL;
@@ -79,7 +79,7 @@ void nkiVmStringTableInit(struct NKVM *vm)
 
 void nkiVmStringTableDestroy(struct NKVM *vm)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
 
     // Clear out the main table.
     nkuint32_t i;
@@ -106,7 +106,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
 }
 
 struct NKVMString *nkiVmStringTableGetEntryById(
-    struct NKVMStringTable *table, nkuint32_t index)
+    struct NKVMTable *table, nkuint32_t index)
 {
     if(index >= table->capacity) {
         return NULL;
@@ -116,7 +116,7 @@ struct NKVMString *nkiVmStringTableGetEntryById(
 }
 
 const char *nkiVmStringTableGetStringById(
-    struct NKVMStringTable *table,
+    struct NKVMTable *table,
     nkuint32_t index)
 {
     struct NKVMString *vmstr = nkiVmStringTableGetEntryById(table, index);
@@ -128,7 +128,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
     nkuint32_t hash = nkiStringHash(str);
     nkuint32_t len = 0;
 
@@ -230,7 +230,7 @@ void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     nkuint32_t lastGCPass)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
     nkuint32_t i;
 
     for(i = 0; i < nkiVmStringHashTableSize; i++) {
@@ -263,7 +263,7 @@ void nkiVmStringTableCleanOldStrings(
 
 void nkiVmStringTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
 {
-    struct NKVMStringTable *table = &vm->stringTable;
+    struct NKVMTable *table = &vm->stringTable;
     struct NKVMTableHole *hole =
         nkiMalloc(vm, sizeof(struct NKVMTableHole));
     hole->index = holeIndex;
