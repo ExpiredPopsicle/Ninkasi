@@ -148,12 +148,6 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
     }
 }
 
-void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
-{
-    nkiTableResetHoles(vm, &vm->stringTable);
-    nkiTableResetHoles(vm, &vm->objectTable);
-}
-
 void nkiVmShrink(struct NKVM *vm)
 {
     nkuint32_t emptyHoleSearch = 0;
@@ -212,8 +206,6 @@ void nkiVmShrink(struct NKVM *vm)
 
     nkiTableShrink(vm, &vm->objectTable);
     nkiTableShrink(vm, &vm->stringTable);
-
-    nkiVmRecreateObjectAndStringHoles(vm);
 
     // Reduce stack size.
     {
