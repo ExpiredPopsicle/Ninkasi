@@ -678,6 +678,8 @@ int main(int argc, char *argv[])
 
                 if(!nkiGetErrorCount(vm)) {
 
+                    nkuint32_t counter = 0;
+
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
@@ -695,8 +697,12 @@ int main(int argc, char *argv[])
 
 
                         nkxVmIterate(vm, 1);
-                        nkxVmGarbageCollect(vm);
-                        nkxVmShrink(vm);
+                        // nkxVmGarbageCollect(vm);
+
+                        if(counter % 1024 == 0) {
+                            nkxVmShrink(vm);
+                        }
+                        counter++;
 
                         // nkxDbgDumpState(vm, stdout);
 

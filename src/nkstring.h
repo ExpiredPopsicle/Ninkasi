@@ -65,8 +65,6 @@ struct NKVMString
 
 struct NKVMStringTable
 {
-    struct NKVMString *stringsByHash[nkiVmStringHashTableSize];
-
     struct NKVMTableHole *tableHoles;
 
     struct NKVMString **stringTable;

@@ -153,7 +153,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
         // checking.
         nkuint32_t *bucketTracker = nkiMallocArray(vm, sizeof(nkuint32_t), vm->stringTable.capacity);
         for(i = 0; i < nkiVmStringHashTableSize; i++) {
-            struct NKVMString *str = vm->stringTable.stringsByHash[i];
+            struct NKVMString *str = vm->stringsByHash[i];
             while(str) {
                 bucketTracker[str->stringTableIndex] = i;
                 str = str->nextInHashBucket;
@@ -312,7 +312,7 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
 
         for(n = 0; n < nkiVmStringHashTableSize; n++) {
 
-            struct NKVMString *str = vm->stringTable.stringsByHash[n];
+            struct NKVMString *str = vm->stringsByHash[n];
 
             while(str) {
                 assert(vm->stringTable.stringTable[str->stringTableIndex] == str);
@@ -324,14 +324,15 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
 
 }
 
-void nkiVmStringTableDump(struct NKVMStringTable *table)
+void nkiVmStringTableDump(struct NKVM *vm)
 {
+    struct NKVMStringTable *table = &vm->stringTable;
     nkuint32_t i;
     printf("String table dump...\n");
 
     printf("  Hash table...\n");
     for(i = 0; i < nkiVmStringHashTableSize  ; i++) {
-        struct NKVMString *str = table->stringsByHash[i];
+        struct NKVMString *str = vm->stringsByHash[i];
         printf("    %.2x\n", i);
         while(str) {
             printf("      %s\n", str->str);

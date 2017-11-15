@@ -103,6 +103,8 @@ struct NKVM
 
     // Strings and objects.
     struct NKVMStringTable stringTable;
+    struct NKVMString *stringsByHash[nkiVmStringHashTableSize];
+
     struct NKVMObjectTable objectTable;
 
     // Functions.

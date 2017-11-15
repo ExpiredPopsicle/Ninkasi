@@ -57,8 +57,6 @@ struct NKVMTable
     struct NKVMTableHole *tableHoles;
     void **data;
     nkuint32_t capacity;
-
-    struct NKVMObject *objectsWithExternalHandles;
 };
 
 #endif // NINKASI_TABLE_H

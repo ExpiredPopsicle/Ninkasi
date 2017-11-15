@@ -62,7 +62,7 @@ void nkiVmStringTableInit(struct NKVM *vm)
 {
     struct NKVMStringTable *table = &vm->stringTable;
 
-    memset(&table->stringsByHash, 0, sizeof(table->stringsByHash));
+    memset(&vm->stringsByHash, 0, sizeof(vm->stringsByHash));
     table->tableHoles = NULL;
 
     // Create a table with a capacity of a single string.
@@ -102,7 +102,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
     }
 
     // Zero-out the hash table, just for safety.
-    memset(table->stringsByHash, 0, sizeof(table->stringsByHash));
+    memset(vm->stringsByHash, 0, sizeof(vm->stringsByHash));
 }
 
 struct NKVMString *nkiVmStringTableGetEntryById(
@@ -134,7 +134,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
 
     // See if we have this string already.
     struct NKVMString *hashBucket =
-        table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
+        vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
     struct NKVMString *cur = hashBucket;
 
     while(cur) {
@@ -219,7 +219,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         newString->hash = nkiStringHash(str);
         strcpy(newString->str, str);
         newString->nextInHashBucket = hashBucket;
-        table->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
+        vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
         table->stringTable[index] = newString;
 
         return newString->stringTableIndex;
@@ -235,8 +235,8 @@ void nkiVmStringTableCleanOldStrings(
 
     for(i = 0; i < nkiVmStringHashTableSize; i++) {
 
-        struct NKVMString **lastPtr = &table->stringsByHash[i];
-        struct NKVMString *str = table->stringsByHash[i];
+        struct NKVMString **lastPtr = &vm->stringsByHash[i];
+        struct NKVMString *str = vm->stringsByHash[i];
 
         while(str) {
 

@@ -492,10 +492,10 @@ nkbool nkiSerializeStringTable(
                     {
                         const nkuint32_t hashMask = nkiVmStringHashTableSize - 1;
                         struct NKVMString *hashBucket =
-                            vm->stringTable.stringsByHash[
+                            vm->stringsByHash[
                                 vm->stringTable.stringTable[index]->hash & hashMask];
                         vm->stringTable.stringTable[index]->nextInHashBucket = hashBucket;
-                        vm->stringTable.stringsByHash[
+                        vm->stringsByHash[
                             vm->stringTable.stringTable[index]->hash & hashMask] =
                             vm->stringTable.stringTable[index];
                     }

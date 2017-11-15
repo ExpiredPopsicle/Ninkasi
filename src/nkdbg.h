@@ -63,7 +63,7 @@ void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
 void nkiCheckStringTableHoles(struct NKVM *vm);
 
-void nkiVmStringTableDump(struct NKVMStringTable *table);
+void nkiVmStringTableDump(struct NKVM *vm);
 void nkiVmObjectTableDump(struct NKVM *vm);
 void nkiVmStaticDump(struct NKVM *vm);
 
