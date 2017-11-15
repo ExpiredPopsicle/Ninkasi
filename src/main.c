@@ -815,8 +815,14 @@ int main(int argc, char *argv[])
         printf("Final stack...\n");
         nkiVmStackDump(vm);
 
+        printf("Final dumpstate before GC...\n");
+        nkxDbgDumpState(vm, stdout);
+
+        printf("Final GC...\n");
         nkxVmGarbageCollect(vm);
+        printf("Final shrink...\n");
         nkxVmShrink(vm);
+        printf("Final dumpstate...\n");
         nkxDbgDumpState(vm, stdout);
 
         printf("Final stack again...\n");

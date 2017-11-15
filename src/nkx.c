@@ -487,7 +487,7 @@ nkuint32_t nkxGetErrorLength(struct NKVM *vm)
 void nkxGetErrorText(struct NKVM *vm, char *buffer)
 {
     // Makes no allocations. No need for wrapper.
-    return nkiGetErrorText(vm, buffer);
+    nkiGetErrorText(vm, buffer);
 }
 
 void nkxSetRemainingInstructionLimit(struct NKVM *vm, nkuint32_t count)

@@ -153,6 +153,12 @@ void nkiVmShrink(struct NKVM *vm)
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
 
+    // VMs with errors may be in an unpredictable or inconsistent
+    // state. Bail out here, just in case.
+    if(nkiVmHasErrors(vm)) {
+        return;
+    }
+
     while(emptyHoleSearch < vm->objectTable.capacity) {
         if(!vm->objectTable.objectTable[emptyHoleSearch]) {
 
@@ -219,12 +225,10 @@ void nkiVmShrink(struct NKVM *vm)
         }
 
         if(newStackCapacity != vm->stack.capacity) {
-
             vm->stack.values = nkiReallocArray(
                 vm, vm->stack.values,
-                sizeof(struct NKValue*),
+                sizeof(struct NKValue),
                 newStackCapacity);
-
             vm->stack.capacity = newStackCapacity;
         }
     }
