@@ -210,78 +210,8 @@ void nkiVmShrink(struct NKVM *vm)
         emptyHoleSearch++;
     }
 
-    {
-        nkuint32_t i;
-        nkuint32_t highestObject = 0;
-        nkuint32_t newCapacity = vm->objectTable.capacity;
-
-        // Find out what the highest active index is.
-        for(i = 0; i < vm->objectTable.capacity; i++) {
-            if(vm->objectTable.objectTable[i]) {
-                highestObject = i;
-            }
-        }
-
-        // See how far we can reduce the object table while still
-        // containing the highest object.
-        while((newCapacity >> 1) > highestObject) {
-            newCapacity >>= 1;
-        }
-
-        // We always need a minimum capacity.
-        if(newCapacity < 1) {
-            newCapacity = 1;
-        }
-
-        // Reallocate.
-        if(newCapacity != vm->objectTable.capacity) {
-
-            // FIXME: Remove debug spam.
-            printf("SHRINK: Reducing object table: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 "\n",
-                vm->objectTable.capacity, newCapacity);
-
-            vm->objectTable.objectTable = nkiReallocArray(
-                vm, vm->objectTable.objectTable,
-                sizeof(struct NKVMObject *), newCapacity);
-            vm->objectTable.capacity = newCapacity;
-
-        }
-    }
-
-    {
-        nkuint32_t i;
-        nkuint32_t highestString = 0;
-        nkuint32_t newCapacity = vm->stringTable.capacity;
-
-        // Find out what the highest active index is.
-        for(i = 0; i < vm->stringTable.capacity; i++) {
-            if(vm->stringTable.stringTable[i]) {
-                highestString = i;
-            }
-        }
-
-        // See how far we can reduce the string table while still
-        // containing the highest string.
-        while((newCapacity >> 1) > highestString) {
-            newCapacity >>= 1;
-        }
-
-        // We always need a minimum capacity.
-        if(newCapacity < 1) {
-            newCapacity = 1;
-        }
-
-        // Reallocate.
-        if(newCapacity != vm->stringTable.capacity) {
-
-            vm->stringTable.stringTable = nkiReallocArray(
-                vm, vm->stringTable.stringTable,
-                sizeof(struct NKVMString *), newCapacity);
-            vm->stringTable.capacity = newCapacity;
-
-        }
-
-    }
+    nkiTableShrink(vm, &vm->objectTable);
+    nkiTableShrink(vm, &vm->stringTable);
 
     nkiVmRecreateObjectAndStringHoles(vm);
 
