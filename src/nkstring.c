@@ -74,19 +74,8 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
         nkiFree(vm, table->stringTable[i]);
         table->stringTable[i] = NULL;
     }
-    nkiFree(vm, table->stringTable);
-    table->capacity = 0;
 
-    // Clear out the holes list.
-    {
-        struct NKVMTableHole *th = table->tableHoles;
-        while(th) {
-            struct NKVMTableHole *next = th->next;
-            nkiFree(vm, th);
-            th = next;
-        }
-        table->tableHoles = NULL;
-    }
+    nkiTableDestroy(vm, table);
 
     // Zero-out the hash table, just for safety.
     memset(vm->stringsByHash, 0, sizeof(vm->stringsByHash));

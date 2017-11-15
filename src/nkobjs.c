@@ -75,19 +75,8 @@ void nkiVmObjectTableDestroy(struct NKVM *vm)
         }
         table->objectTable[i] = NULL;
     }
-    nkiFree(vm, table->objectTable);
-    table->capacity = 0;
 
-    // Clear out the holes list.
-    {
-        struct NKVMTableHole *th = table->tableHoles;
-        while(th) {
-            struct NKVMTableHole *next = th->next;
-            nkiFree(vm, th);
-            th = next;
-        }
-        table->tableHoles = NULL;
-    }
+    nkiTableDestroy(vm, table);
 }
 
 struct NKVMObject *nkiVmObjectTableGetEntryById(
