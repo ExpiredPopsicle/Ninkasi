@@ -98,8 +98,6 @@ void nkiAddError(
     if(!vm->errorState.firstError) {
         vm->errorState.firstError = newError;
     }
-
-    assert(0);
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)

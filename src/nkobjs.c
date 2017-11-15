@@ -232,17 +232,10 @@ void nkiVmObjectTableCleanOldObjects(
                     }
                 }
 
-                // hole = nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
-
                 table->objectTable[i] = NULL;
                 nkiVmObjectDelete(vm, ob);
 
-                // // Create a table hole for our new gap.
-                // memset(hole, 0, sizeof(*hole));
-                // hole->index = i;
-                // hole->next = table->tableHoles;
-                // table->tableHoles = hole;
-
+                // Create a table hole for our new gap.
                 nkiVmObjectTableCreateHole(vm, i);
             }
         }

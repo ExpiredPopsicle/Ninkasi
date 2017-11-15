@@ -1062,53 +1062,49 @@ void nkiVmMoveObject(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 
 void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 {
+    nkuint32_t i;
+
     assert(vm->stringTable.stringTableCapacity > newSlot);
     assert(vm->stringTable.stringTableCapacity > oldSlot);
     assert(!vm->stringTable.stringTable[newSlot]);
     assert(vm->stringTable.stringTable[oldSlot]);
 
+    // Move the string.
     vm->stringTable.stringTable[oldSlot]->stringTableIndex = newSlot;
     vm->stringTable.stringTable[newSlot] = vm->stringTable.stringTable[oldSlot];
     vm->stringTable.stringTable[oldSlot] = NULL;
 
-    // FIXME: Remove this.
-    printf("SHRINK: Swapping string: " NK_PRINTF_UINT32 ", " NK_PRINTF_UINT32 "\n", oldSlot, newSlot);
-
-    {
-        nkuint32_t i;
-
-        // Rewrite all stack references.
-        for(i = 0; i < vm->stack.size; i++) {
-            if(vm->stack.values[i].type == NK_VALUETYPE_STRING) {
-                if(vm->stack.values[i].stringTableEntry == oldSlot) {
-                    vm->stack.values[i].stringTableEntry = newSlot;
-                }
+    // Rewrite all stack references.
+    for(i = 0; i < vm->stack.size; i++) {
+        if(vm->stack.values[i].type == NK_VALUETYPE_STRING) {
+            if(vm->stack.values[i].stringTableEntry == oldSlot) {
+                vm->stack.values[i].stringTableEntry = newSlot;
             }
         }
+    }
 
-        // Rewrite all static references.
-        for(i = 0; i <= vm->staticAddressMask; i++) {
-            if(vm->staticSpace[i].type == NK_VALUETYPE_STRING) {
-                if(vm->staticSpace[i].stringTableEntry == oldSlot) {
-                    vm->staticSpace[i].stringTableEntry = newSlot;
-                }
+    // Rewrite all static references.
+    for(i = 0; i <= vm->staticAddressMask; i++) {
+        if(vm->staticSpace[i].type == NK_VALUETYPE_STRING) {
+            if(vm->staticSpace[i].stringTableEntry == oldSlot) {
+                vm->staticSpace[i].stringTableEntry = newSlot;
             }
         }
+    }
 
-        // Rewrite all object references in any keys or values.
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
-            struct NKVMObject *ob = vm->objectTable.objectTable[i];
-            if(ob) {
-                nkuint32_t k;
-                for(k = 0; k < nkiVMObjectHashBucketCount; k++) {
-                    struct NKVMObjectElement *el;
-                    for(el = ob->hashBuckets[k]; el; el = el->next) {
-                        if(el->key.type == NK_VALUETYPE_STRING && el->key.stringTableEntry == oldSlot) {
-                            el->key.stringTableEntry = newSlot;
-                        }
-                        if(el->value.type == NK_VALUETYPE_STRING && el->value.stringTableEntry == oldSlot) {
-                            el->value.stringTableEntry = newSlot;
-                        }
+    // Rewrite all object references in any keys or values.
+    for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        struct NKVMObject *ob = vm->objectTable.objectTable[i];
+        if(ob) {
+            nkuint32_t k;
+            for(k = 0; k < nkiVMObjectHashBucketCount; k++) {
+                struct NKVMObjectElement *el;
+                for(el = ob->hashBuckets[k]; el; el = el->next) {
+                    if(el->key.type == NK_VALUETYPE_STRING && el->key.stringTableEntry == oldSlot) {
+                        el->key.stringTableEntry = newSlot;
+                    }
+                    if(el->value.type == NK_VALUETYPE_STRING && el->value.stringTableEntry == oldSlot) {
+                        el->value.stringTableEntry = newSlot;
                     }
                 }
             }
@@ -1153,8 +1149,6 @@ void nkiVmShrink(struct NKVM *vm)
 {
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
-
-    // printf("SHRINK: Executing\n");
 
     while(emptyHoleSearch < vm->objectTable.objectTableCapacity) {
         if(!vm->objectTable.objectTable[emptyHoleSearch]) {
@@ -1219,12 +1213,6 @@ void nkiVmShrink(struct NKVM *vm)
             }
         }
 
-        // // FIXME: Remove debug spam.
-        // printf("SHRINK: Highest object: " NK_PRINTF_UINT32 "\n",
-        //     highestObject);
-        // printf("SHRINK: Capacity: " NK_PRINTF_UINT32 "\n",
-        //     newCapacity);
-
         // See how far we can reduce the object table while still
         // containing the highest object.
         while((newCapacity >> 1) > highestObject) {
@@ -1263,12 +1251,6 @@ void nkiVmShrink(struct NKVM *vm)
             }
         }
 
-        // // FIXME: Remove debug spam.
-        // printf("SHRINK: Highest string: " NK_PRINTF_UINT32 "\n",
-        //     highestString);
-        // printf("SHRINK: Capacity: " NK_PRINTF_UINT32 "\n",
-        //     newCapacity);
-
         // See how far we can reduce the string table while still
         // containing the highest string.
         while((newCapacity >> 1) > highestString) {
@@ -1282,10 +1264,6 @@ void nkiVmShrink(struct NKVM *vm)
 
         // Reallocate.
         if(newCapacity != vm->stringTable.stringTableCapacity) {
-
-            // FIXME: Remove debug spam.
-            printf("SHRINK: Reducing string table: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 "\n",
-                vm->stringTable.stringTableCapacity, newCapacity);
 
             vm->stringTable.stringTable = nkiReallocArray(
                 vm, vm->stringTable.stringTable,
@@ -1310,10 +1288,6 @@ void nkiVmShrink(struct NKVM *vm)
         }
 
         if(newStackCapacity != vm->stack.capacity) {
-
-            // FIXME: Remove debug spam.
-            printf("SHRINK: Reducing stack: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 " for size " NK_PRINTF_UINT32 "\n",
-                vm->stack.capacity, newStackCapacity, vm->stack.size);
 
             vm->stack.values = nkiReallocArray(
                 vm, vm->stack.values,

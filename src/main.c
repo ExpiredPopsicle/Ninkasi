@@ -874,7 +874,6 @@ int main(int argc, char *argv[])
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
 
         nkxVmDelete(vm);
-        vm = NULL;
     }
 
     free(script);
