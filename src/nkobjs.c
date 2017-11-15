@@ -51,11 +51,11 @@ void nkiVmObjectTableInit(struct NKVM *vm)
 
     // Create a table of one empty entry.
     table->objectTable = nkiMalloc(vm, sizeof(struct NKVMObject*));
-    table->objectTableCapacity = 1;
+    table->capacity = 1;
     table->objectTable[0] = NULL;
 
     // Create the hole object that goes with the empty space.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
+    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 
@@ -82,20 +82,20 @@ void nkiVmObjectTableDestroy(struct NKVM *vm)
 
     // Clear out the main table.
     nkuint32_t i;
-    for(i = 0; i < table->objectTableCapacity; i++) {
+    for(i = 0; i < table->capacity; i++) {
         if(table->objectTable[i]) {
             nkiVmObjectDelete(vm, table->objectTable[i]);
         }
         table->objectTable[i] = NULL;
     }
     nkiFree(vm, table->objectTable);
-    table->objectTableCapacity = 0;
+    table->capacity = 0;
 
     // Clear out the holes list.
     {
-        struct NKVMObjectTableHole *th = table->tableHoles;
+        struct NKVMTableHole *th = table->tableHoles;
         while(th) {
-            struct NKVMObjectTableHole *next = th->next;
+            struct NKVMTableHole *next = th->next;
             nkiFree(vm, th);
             th = next;
         }
@@ -107,7 +107,7 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
     struct NKVMObjectTable *table,
     nkuint32_t index)
 {
-    if(index >= table->objectTableCapacity) {
+    if(index >= table->capacity) {
         return NULL;
     }
 
@@ -117,8 +117,8 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
 void nkiVmObjectTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
 {
     struct NKVMObjectTable *table = &vm->objectTable;
-    struct NKVMObjectTableHole *hole =
-        nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
+    struct NKVMTableHole *hole =
+        nkiMalloc(vm, sizeof(struct NKVMTableHole));
     hole->index = holeIndex;
     hole->next = table->tableHoles;
     table->tableHoles = hole;
@@ -136,7 +136,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
         // We can use an existing gap.
 
-        struct NKVMObjectTableHole *hole = table->tableHoles;
+        struct NKVMTableHole *hole = table->tableHoles;
         table->tableHoles = hole->next;
         index = hole->index;
         nkiFree(vm, hole);
@@ -147,7 +147,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
         // Looks like we have to re-size the object table.
 
-        nkuint32_t oldCapacity = table->objectTableCapacity;
+        nkuint32_t oldCapacity = table->capacity;
         nkuint32_t newCapacity = oldCapacity << 1;
         nkuint32_t i;
 
@@ -174,7 +174,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
             table->objectTable[i] = NULL;
         }
 
-        table->objectTableCapacity = newCapacity;
+        table->capacity = newCapacity;
         index = oldCapacity;
     }
 
@@ -202,7 +202,7 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVMObjectTable *table = &vm->objectTable;
     nkuint32_t i;
 
-    for(i = 0; i < table->objectTableCapacity; i++) {
+    for(i = 0; i < table->capacity; i++) {
 
         struct NKVMObject *ob = table->objectTable[i];
 
@@ -210,7 +210,7 @@ void nkiVmObjectTableCleanOldObjects(
 
             if(lastGCPass != ob->lastGCPass) {
 
-                // struct NKVMObjectTableHole *hole = NULL;
+                // struct NKVMTableHole *hole = NULL;
 
                 // Run any external garbage collection callbacks.
                 if(ob->gcCallback.id != NK_INVALID_VALUE) {

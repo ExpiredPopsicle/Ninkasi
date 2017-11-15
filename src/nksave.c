@@ -260,10 +260,10 @@ nkbool nkiSerializeObjectTable(
 {
     nkuint32_t objectCount = 0;
 
-    // FIXME: Ensure objectTableCapacity is a power of two, or find a
+    // FIXME: Ensure capacity is a power of two, or find a
     // better way to store it!
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.objectTableCapacity);
-    if(!nkiIsPow2(vm->objectTable.objectTableCapacity)) {
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.capacity);
+    if(!nkiIsPow2(vm->objectTable.capacity)) {
         nkiAddError(vm, -1, "Object table capacity is not a power of two.");
         return nkfalse;
     }
@@ -272,7 +272,7 @@ nkbool nkiSerializeObjectTable(
 
         // Count up objects if we're writing.
         nkuint32_t i;
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             if(vm->objectTable.objectTable[i]) {
                 objectCount++;
             }
@@ -283,21 +283,21 @@ nkbool nkiSerializeObjectTable(
         // Reallocate the object table if we're reading.
         nkiFree(vm, vm->objectTable.objectTable);
         vm->objectTable.objectTable =
-            nkiMallocArray(vm, sizeof(struct NKVMObject *), vm->objectTable.objectTableCapacity);
+            nkiMallocArray(vm, sizeof(struct NKVMObject *), vm->objectTable.capacity);
         memset(
             vm->objectTable.objectTable, 0,
-            sizeof(struct NKVMObject *) * vm->objectTable.objectTableCapacity);
+            sizeof(struct NKVMObject *) * vm->objectTable.capacity);
 
         // Free the holes.
         while(vm->objectTable.tableHoles) {
-            struct NKVMObjectTableHole *hole = vm->objectTable.tableHoles;
+            struct NKVMTableHole *hole = vm->objectTable.tableHoles;
             vm->objectTable.tableHoles = hole->next;
             nkiFree(vm, hole);
         }
     }
 
     NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
-    if(objectCount > vm->objectTable.objectTableCapacity) {
+    if(objectCount > vm->objectTable.capacity) {
         nkiAddError(vm, -1, "Object count exceeds object table capacity.");
         return nkfalse;
     }
@@ -305,7 +305,7 @@ nkbool nkiSerializeObjectTable(
     if(writeMode) {
 
         nkuint32_t i;
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             struct NKVMObject *object = vm->objectTable.objectTable[i];
             if(object) {
                 assert(i == object->objectTableIndex);
@@ -328,7 +328,7 @@ nkbool nkiSerializeObjectTable(
 
             // Thanks AFL! Holy crap I'm an idiot for letting this one
             // slide by.
-            if(object->objectTableIndex >= vm->objectTable.objectTableCapacity) {
+            if(object->objectTableIndex >= vm->objectTable.capacity) {
                 nkiAddError(vm, -1, "Object index exceeds object table capacity.");
                 return nkfalse;
             }
@@ -344,10 +344,10 @@ nkbool nkiSerializeObjectTable(
     // Recreate holes for read mode.
     if(!writeMode) {
         nkuint32_t i;
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             if(!vm->objectTable.objectTable[i]) {
-                struct NKVMObjectTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMObjectTableHole));
+                struct NKVMTableHole *hole =
+                    nkiMalloc(vm, sizeof(struct NKVMTableHole));
                 hole->next = vm->objectTable.tableHoles;
                 hole->index = i;
                 vm->objectTable.tableHoles = hole;
@@ -362,7 +362,7 @@ nkbool nkiSerializeStringTable(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
 {
-    nkuint32_t capacity = vm->stringTable.stringTableCapacity;
+    nkuint32_t capacity = vm->stringTable.capacity;
 
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
 
@@ -370,19 +370,19 @@ nkbool nkiSerializeStringTable(
     // capacity, if we're in READ mode.
     if(!writeMode) {
         nkiVmStringTableDestroy(vm);
-        vm->stringTable.stringTableCapacity = capacity;
+        vm->stringTable.capacity = capacity;
 
         // Thanks AFL! String table size can cause a 32-bit integer
         // overflow after being multiplied by the size of the string
         // pointer. (FIXME: We might not need this after the addition
         // of nkiMallocArray.)
-        if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.stringTableCapacity) {
+        if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.capacity) {
             nkiAddError(vm, -1, "String table too large.");
             return nkfalse;
         }
 
         vm->stringTable.stringTable =
-            nkiMallocArray(vm, sizeof(struct NKVMString*), vm->stringTable.stringTableCapacity);
+            nkiMallocArray(vm, sizeof(struct NKVMString*), vm->stringTable.capacity);
 
         // Note: Memset takes a size_t here, which on 64-bit bit can
         // take higher values than our nkuint32_t type passed into
@@ -390,11 +390,11 @@ nkbool nkiSerializeStringTable(
         // than it's possible for us to allocate, even with the same
         // equation!
         memset(vm->stringTable.stringTable, 0,
-            vm->stringTable.stringTableCapacity * sizeof(struct NKVMString*));
+            vm->stringTable.capacity * sizeof(struct NKVMString*));
     }
 
     // Thanks AFL!
-    if(!nkiIsPow2(vm->stringTable.stringTableCapacity)) {
+    if(!nkiIsPow2(vm->stringTable.capacity)) {
         nkiAddError(vm, -1, "String table capacity is not a power of two.");
         return nkfalse;
     }
@@ -405,7 +405,7 @@ nkbool nkiSerializeStringTable(
         // Count up the number of actual entries.
         if(writeMode) {
             nkuint32_t i;
-            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+            for(i = 0; i < vm->stringTable.capacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
                     actualCount++;
                 }
@@ -417,7 +417,7 @@ nkbool nkiSerializeStringTable(
         if(writeMode) {
 
             nkuint32_t i;
-            for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+            for(i = 0; i < vm->stringTable.capacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
                     char *tmp = vm->stringTable.stringTable[i]->str;
                     NKI_SERIALIZE_BASIC(nkuint32_t, i);
@@ -433,7 +433,7 @@ nkbool nkiSerializeStringTable(
 
             // Delete all hole objects. We'll recreate them later.
             while(vm->stringTable.tableHoles) {
-                struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+                struct NKVMTableHole *hole = vm->stringTable.tableHoles;
                 vm->stringTable.tableHoles = hole->next;
                 nkiFree(vm, hole);
             }
@@ -444,7 +444,7 @@ nkbool nkiSerializeStringTable(
                 char *tmpStr = NULL;
 
                 NKI_SERIALIZE_BASIC(nkuint32_t, index);
-                if(index >= vm->stringTable.stringTableCapacity) {
+                if(index >= vm->stringTable.capacity) {
                     nkiAddError(vm, -1, "String index exceeds string table capacity.");
                     return nkfalse;
                 }
@@ -508,14 +508,14 @@ nkbool nkiSerializeStringTable(
                 nkuint32_t i;
 
                 while(vm->stringTable.tableHoles) {
-                    struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+                    struct NKVMTableHole *hole = vm->stringTable.tableHoles;
                     vm->stringTable.tableHoles = hole->next;
                     nkiFree(vm, hole);
                 }
 
-                for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+                for(i = 0; i < vm->stringTable.capacity; i++) {
                     if(!vm->stringTable.stringTable[i]) {
-                        struct NKVMStringTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+                        struct NKVMTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMTableHole));
                         newHole->index = i;
                         newHole->next = vm->stringTable.tableHoles;
                         vm->stringTable.tableHoles = newHole;
@@ -910,7 +910,7 @@ nkbool nkiSerializeExternalTypes(
 
         nkuint32_t i;
 
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             if(vm->objectTable.objectTable[i]) {
                 if(vm->objectTable.objectTable[i]->externalDataType.id != NK_INVALID_VALUE) {
                     if(vm->objectTable.objectTable[i]->externalDataType.id < serializedTypeCount) {

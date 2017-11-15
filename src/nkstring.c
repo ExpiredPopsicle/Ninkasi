@@ -67,12 +67,12 @@ void nkiVmStringTableInit(struct NKVM *vm)
 
     // Create a table with a capacity of a single string.
     table->stringTable = nkiMalloc(vm, sizeof(struct NKVMString*));
-    table->stringTableCapacity = 1;
+    table->capacity = 1;
     table->stringTable[0] = NULL;
 
     // Create a "hole" object indicating that we have space in the
     // table.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 }
@@ -83,18 +83,18 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
 
     // Clear out the main table.
     nkuint32_t i;
-    for(i = 0; i < table->stringTableCapacity; i++) {
+    for(i = 0; i < table->capacity; i++) {
         nkiFree(vm, table->stringTable[i]);
         table->stringTable[i] = NULL;
     }
     nkiFree(vm, table->stringTable);
-    table->stringTableCapacity = 0;
+    table->capacity = 0;
 
     // Clear out the holes list.
     {
-        struct NKVMStringTableHole *th = table->tableHoles;
+        struct NKVMTableHole *th = table->tableHoles;
         while(th) {
-            struct NKVMStringTableHole *next = th->next;
+            struct NKVMTableHole *next = th->next;
             nkiFree(vm, th);
             th = next;
         }
@@ -108,7 +108,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
 struct NKVMString *nkiVmStringTableGetEntryById(
     struct NKVMStringTable *table, nkuint32_t index)
 {
-    if(index >= table->stringTableCapacity) {
+    if(index >= table->capacity) {
         return NULL;
     }
 
@@ -163,7 +163,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
 
             // We can use an existing gap.
 
-            struct NKVMStringTableHole *hole = table->tableHoles;
+            struct NKVMTableHole *hole = table->tableHoles;
             table->tableHoles = hole->next;
             index = hole->index;
             nkiFree(vm, hole);
@@ -175,7 +175,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
 
             // Looks like we have to re-size the string table.
 
-            nkuint32_t oldCapacity = table->stringTableCapacity;
+            nkuint32_t oldCapacity = table->capacity;
             nkuint32_t newCapacity = oldCapacity << 1;
             nkuint32_t i;
 
@@ -197,8 +197,8 @@ nkuint32_t nkiVmStringTableFindOrAddString(
             // and new space because that's where our new entry will
             // be going.
             for(i = oldCapacity + 1; i < newCapacity; i++) {
-                struct NKVMStringTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+                struct NKVMTableHole *hole =
+                    nkiMalloc(vm, sizeof(struct NKVMTableHole));
                 hole->index = i;
                 hole->next = table->tableHoles;
                 table->tableHoles = hole;
@@ -206,7 +206,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                 table->stringTable[i] = NULL;
             }
 
-            table->stringTableCapacity = newCapacity;
+            table->capacity = newCapacity;
             index = oldCapacity;
 
             // TODO: Remove.
@@ -264,8 +264,8 @@ void nkiVmStringTableCleanOldStrings(
 void nkiVmStringTableCreateHole(struct NKVM *vm, nkuint32_t holeIndex)
 {
     struct NKVMStringTable *table = &vm->stringTable;
-    struct NKVMStringTableHole *hole =
-        nkiMalloc(vm, sizeof(struct NKVMStringTableHole));
+    struct NKVMTableHole *hole =
+        nkiMalloc(vm, sizeof(struct NKVMTableHole));
     hole->index = holeIndex;
     hole->next = table->tableHoles;
     table->tableHoles = hole;

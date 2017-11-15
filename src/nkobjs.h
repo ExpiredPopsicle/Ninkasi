@@ -82,17 +82,11 @@ struct NKVMObject
     void *externalData;
 };
 
-struct NKVMObjectTableHole
-{
-    struct NKVMObjectTableHole *next;
-    nkuint32_t index;
-};
-
 struct NKVMObjectTable
 {
-    struct NKVMObjectTableHole *tableHoles;
+    struct NKVMTableHole *tableHoles;
     struct NKVMObject **objectTable;
-    nkuint32_t objectTableCapacity;
+    nkuint32_t capacity;
 
     struct NKVMObject *objectsWithExternalHandles;
 };

@@ -73,5 +73,7 @@
 #include "nkmem.h"
 #include "nkfail.h"
 #include "nksave.h"
+#include "nkshrink.h"
+#include "nktable.h"
 
 #endif // NINKASI_COMMON_H

@@ -45,8 +45,8 @@
 
 void nkiVmMoveObject(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 {
-    assert(vm->objectTable.objectTableCapacity > newSlot);
-    assert(vm->objectTable.objectTableCapacity > oldSlot);
+    assert(vm->objectTable.capacity > newSlot);
+    assert(vm->objectTable.capacity > oldSlot);
     assert(!vm->objectTable.objectTable[newSlot]);
     assert(vm->objectTable.objectTable[oldSlot]);
 
@@ -76,7 +76,7 @@ void nkiVmMoveObject(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
         }
 
         // Rewrite all object references in any keys or values.
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             struct NKVMObject *ob = vm->objectTable.objectTable[i];
             if(ob) {
                 nkuint32_t k;
@@ -100,8 +100,8 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 {
     nkuint32_t i;
 
-    assert(vm->stringTable.stringTableCapacity > newSlot);
-    assert(vm->stringTable.stringTableCapacity > oldSlot);
+    assert(vm->stringTable.capacity > newSlot);
+    assert(vm->stringTable.capacity > oldSlot);
     assert(!vm->stringTable.stringTable[newSlot]);
     assert(vm->stringTable.stringTable[oldSlot]);
 
@@ -129,7 +129,7 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
     }
 
     // Rewrite all object references in any keys or values.
-    for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+    for(i = 0; i < vm->objectTable.capacity; i++) {
         struct NKVMObject *ob = vm->objectTable.objectTable[i];
         if(ob) {
             nkuint32_t k;
@@ -154,13 +154,13 @@ void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
 
     // Free all object table holes.
     while(vm->objectTable.tableHoles) {
-        struct NKVMObjectTableHole *hole = vm->objectTable.tableHoles;
+        struct NKVMTableHole *hole = vm->objectTable.tableHoles;
         vm->objectTable.tableHoles = hole->next;
         nkiFree(vm, hole);
     }
 
     // Recreate all object table holes.
-    for(i = vm->objectTable.objectTableCapacity - 1; i != NK_UINT_MAX; i--) {
+    for(i = vm->objectTable.capacity - 1; i != NK_UINT_MAX; i--) {
         if(!vm->objectTable.objectTable[i]) {
             nkiVmObjectTableCreateHole(vm, i);
         }
@@ -168,13 +168,13 @@ void nkiVmRecreateObjectAndStringHoles(struct NKVM *vm)
 
     // Free all string table holes.
     while(vm->stringTable.tableHoles) {
-        struct NKVMStringTableHole *hole = vm->stringTable.tableHoles;
+        struct NKVMTableHole *hole = vm->stringTable.tableHoles;
         vm->stringTable.tableHoles = hole->next;
         nkiFree(vm, hole);
     }
 
     // Recreate all string table holes.
-    for(i = vm->stringTable.stringTableCapacity - 1; i != NK_UINT_MAX; i--) {
+    for(i = vm->stringTable.capacity - 1; i != NK_UINT_MAX; i--) {
         if(!vm->stringTable.stringTable[i]) {
             nkiVmStringTableCreateHole(vm, i);
         }
@@ -186,7 +186,7 @@ void nkiVmShrink(struct NKVM *vm)
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
 
-    while(emptyHoleSearch < vm->objectTable.objectTableCapacity) {
+    while(emptyHoleSearch < vm->objectTable.capacity) {
         if(!vm->objectTable.objectTable[emptyHoleSearch]) {
 
             // Skip up to the empty hole so we only look at moving
@@ -196,7 +196,7 @@ void nkiVmShrink(struct NKVM *vm)
             }
 
             // Find an object to move into this slot.
-            while(objectSearch < vm->objectTable.objectTableCapacity) {
+            while(objectSearch < vm->objectTable.capacity) {
                 if(vm->objectTable.objectTable[objectSearch]) {
                     if(!vm->objectTable.objectTable[objectSearch]->externalHandleCount) {
                         // Found something for this hole!
@@ -213,7 +213,7 @@ void nkiVmShrink(struct NKVM *vm)
     emptyHoleSearch = 0;
     objectSearch = 0;
 
-    while(emptyHoleSearch < vm->stringTable.stringTableCapacity) {
+    while(emptyHoleSearch < vm->stringTable.capacity) {
         if(!vm->stringTable.stringTable[emptyHoleSearch]) {
 
             // Skip up to the empty hole so we only look at moving
@@ -223,7 +223,7 @@ void nkiVmShrink(struct NKVM *vm)
             }
 
             // Find a string to move into this slot.
-            while(objectSearch < vm->stringTable.stringTableCapacity) {
+            while(objectSearch < vm->stringTable.capacity) {
                 if(vm->stringTable.stringTable[objectSearch]) {
                     if(!vm->stringTable.stringTable[objectSearch]->dontGC) {
                         // Found something for this hole!
@@ -240,10 +240,10 @@ void nkiVmShrink(struct NKVM *vm)
     {
         nkuint32_t i;
         nkuint32_t highestObject = 0;
-        nkuint32_t newCapacity = vm->objectTable.objectTableCapacity;
+        nkuint32_t newCapacity = vm->objectTable.capacity;
 
         // Find out what the highest active index is.
-        for(i = 0; i < vm->objectTable.objectTableCapacity; i++) {
+        for(i = 0; i < vm->objectTable.capacity; i++) {
             if(vm->objectTable.objectTable[i]) {
                 highestObject = i;
             }
@@ -261,16 +261,16 @@ void nkiVmShrink(struct NKVM *vm)
         }
 
         // Reallocate.
-        if(newCapacity != vm->objectTable.objectTableCapacity) {
+        if(newCapacity != vm->objectTable.capacity) {
 
             // FIXME: Remove debug spam.
             printf("SHRINK: Reducing object table: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 "\n",
-                vm->objectTable.objectTableCapacity, newCapacity);
+                vm->objectTable.capacity, newCapacity);
 
             vm->objectTable.objectTable = nkiReallocArray(
                 vm, vm->objectTable.objectTable,
                 sizeof(struct NKVMObject *), newCapacity);
-            vm->objectTable.objectTableCapacity = newCapacity;
+            vm->objectTable.capacity = newCapacity;
 
         }
     }
@@ -278,10 +278,10 @@ void nkiVmShrink(struct NKVM *vm)
     {
         nkuint32_t i;
         nkuint32_t highestString = 0;
-        nkuint32_t newCapacity = vm->stringTable.stringTableCapacity;
+        nkuint32_t newCapacity = vm->stringTable.capacity;
 
         // Find out what the highest active index is.
-        for(i = 0; i < vm->stringTable.stringTableCapacity; i++) {
+        for(i = 0; i < vm->stringTable.capacity; i++) {
             if(vm->stringTable.stringTable[i]) {
                 highestString = i;
             }
@@ -299,12 +299,12 @@ void nkiVmShrink(struct NKVM *vm)
         }
 
         // Reallocate.
-        if(newCapacity != vm->stringTable.stringTableCapacity) {
+        if(newCapacity != vm->stringTable.capacity) {
 
             vm->stringTable.stringTable = nkiReallocArray(
                 vm, vm->stringTable.stringTable,
                 sizeof(struct NKVMString *), newCapacity);
-            vm->stringTable.stringTableCapacity = newCapacity;
+            vm->stringTable.capacity = newCapacity;
 
         }
 
