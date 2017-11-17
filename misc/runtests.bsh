@@ -1,0 +1,48 @@
+#!/bin/bash
+
+function addTerm()
+{
+    local AFLTYPE=S
+    if [ "${TERMCOUNTER}" == "" ]; then
+        TERMCOUNTER=0
+        AFLTYPE=M
+        echo "New master term"
+    else
+        echo "Adding term ${TERMCOUNTER}"
+    fi
+
+    local XPOS="$(expr \( "${TERMCOUNTER}" \% 4 \) \* 80 \* 6)"
+    local YPOS="$(expr \( "${TERMCOUNTER}" / 4 \) \* 25 \* 14 + 32)"
+
+    xterm \
+        -geom "80x25+${XPOS}+${YPOS}" \
+        -e afl-fuzz \
+        -t 1000 \
+        -i afl_in \
+        -o afl_out \
+        -"${AFLTYPE}" "afl-${TERMCOUNTER}" \
+        src/ninkasi_test - &
+
+    TERMCOUNTER=$(expr "${TERMCOUNTER}" + 1)
+}
+
+for i in $(seq 2 16); do
+	echo $i
+    addTerm
+done
+
+# addTerm
+# addTerm
+# wait
+
+# xterm -geom 80x25 -e afl-fuzz -t 1000 -i afl_in -o afl_out -M afl-1 src/ninkasi_test &
+
+# for i in $(seq 2 16); do
+# 	echo $i
+# 	xterm -geom 80x25 -e afl-fuzz -t 1000 -i afl_in -o afl_out -S afl-$i src/ninkasi_test &
+# done
+
+# wait
+
+
+watch afl-whatsup -s afl_out
