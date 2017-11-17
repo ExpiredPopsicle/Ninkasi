@@ -140,10 +140,9 @@ void nkiTableShrink(struct NKVM *vm, struct NKVMTable *table)
         newCapacity >>= 1;
     }
 
-    // We always need a minimum capacity.
-    if(newCapacity < 1) {
-        newCapacity = 1;
-    }
+    // Thanks AFL! The minimum capacity check was causing
+    // uninitialized data to leak in here. (We'd realloc to a bigger
+    // array and then not fill it with anything.)
 
     // Reallocate.
     if(newCapacity != table->capacity) {

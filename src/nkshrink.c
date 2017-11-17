@@ -229,7 +229,11 @@ void nkiVmShrink(struct NKVM *vm)
                 vm, vm->stack.values,
                 sizeof(struct NKValue),
                 newStackCapacity);
+
             vm->stack.capacity = newStackCapacity;
+
+            // Thanks AFL!
+            vm->stack.indexMask = vm->stack.capacity - 1;
         }
     }
 

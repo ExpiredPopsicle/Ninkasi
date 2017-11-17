@@ -159,6 +159,11 @@ void nkiVmStringTableCleanOldStrings(
 
                 nkuint32_t index = str->stringTableIndex;
 
+                if(index == NK_INVALID_VALUE) {
+                    nkiAddError(vm, -1, "Bad string index in garbage collector.");
+                    return;
+                }
+
                 nkiTableEraseEntry(vm, table, index);
 
                 *lastPtr = str->nextInHashBucket;

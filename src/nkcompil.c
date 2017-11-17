@@ -131,6 +131,9 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
 {
     struct NKCompilerStateContext *oldContext =
         cs->context;
+
+    assert(cs->context);
+
     cs->context = cs->context->parent;
 
     // Free variable data.
@@ -784,7 +787,10 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
             cs->context->stackFrameOffset++;
             varTmp = nkiCompilerAddVariable(cs, argumentName, nktrue);
 
-            varTmp->doNotPopWhenOutOfScope = nktrue;
+            // Thanks AFL!
+            if(varTmp) {
+                varTmp->doNotPopWhenOutOfScope = nktrue;
+            }
 
             functionArgumentCount++;
 
@@ -821,20 +827,29 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // Add the function id itself as a variable inside the function
     // (because it's on the stack anyway).
     varTmp = nkiCompilerAddVariable(cs, "_functionId", nktrue);
-    varTmp->doNotPopWhenOutOfScope = nktrue;
+    // Thanks AFL!
+    if(varTmp) {
+        varTmp->doNotPopWhenOutOfScope = nktrue;
+    }
     cs->context->stackFrameOffset++;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
     // match. This will be pushed before the CALL.
     varTmp = nkiCompilerAddVariable(cs, "_argumentCount", nktrue);
-    varTmp->doNotPopWhenOutOfScope = nktrue;
+    // Thanks AFL!
+    if(varTmp) {
+        varTmp->doNotPopWhenOutOfScope = nktrue;
+    }
     cs->context->stackFrameOffset++;
 
     // The CALL instruction will push this onto the stack
     // automatically.
     varTmp = nkiCompilerAddVariable(cs, "_returnPointer", nktrue);
-    varTmp->doNotPopWhenOutOfScope = nktrue;
+    // Thanks AFL!
+    if(varTmp) {
+        varTmp->doNotPopWhenOutOfScope = nktrue;
+    }
 
     // Skip ')'.
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_CLOSE) {

@@ -526,6 +526,8 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     }
 }
 
+#define ERROR_CODE 1
+
 int main(int argc, char *argv[])
 {
     struct Settings settings;
@@ -533,7 +535,7 @@ int main(int argc, char *argv[])
     nkuint32_t scriptSize = 0;
 
     if(!parseCmdLine(argc, argv, &settings)) {
-        return 1;
+        return ERROR_CODE;
     }
 
     // Load script file.
@@ -545,19 +547,20 @@ int main(int argc, char *argv[])
         }
     } else {
         fprintf(stderr, "No input file specified.\n");
-        return 1;
+        return ERROR_CODE;
     }
 
     if(!script) {
         fprintf(stderr, "Script failed to even load.\n");
-        return 1;
+        return ERROR_CODE;
     }
 
     {
         struct NKVM *vm = nkxVmCreate();
         if(checkErrors(vm)) {
+            free(script);
             nkxVmDelete(vm);
-            return 1;
+            return ERROR_CODE;
         }
 
         nkxSetMaxAllocatedMemory(vm, settings.maxMemory);
@@ -581,13 +584,13 @@ int main(int argc, char *argv[])
 
                 fprintf(stderr, "Can't create compiler state. Out of memory?\n");
 
-                return 1;
+                return ERROR_CODE;
             }
 
             if(checkErrors(vm)) {
                 free(script);
                 nkxVmDelete(vm);
-                return 1;
+                return ERROR_CODE;
             }
 
         } else {
@@ -601,7 +604,7 @@ int main(int argc, char *argv[])
 
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
                 printf("Deserialization fail.\n");
-                return 1;
+                return ERROR_CODE;
             }
         }
 
@@ -649,7 +652,7 @@ int main(int argc, char *argv[])
 
             if(!outputFilename) {
                 fprintf(stderr, "Cannot determine output file for %s.\n", settings.filename);
-                return 1;
+                return ERROR_CODE;
             }
 
             buf.data = NULL;
@@ -663,7 +666,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr,
                     "Cannot open %s for writing.\n",
                     outputFilename);
-                return 1;
+                return ERROR_CODE;
             }
             assert(out);
             fwrite(buf.data, buf.size, 1, out);
@@ -783,8 +786,9 @@ int main(int argc, char *argv[])
                 //     nkiVmIterate(vm);
 
                 if(checkErrors(vm)) {
+                    free(script);
                     nkxVmDelete(vm);
-                    return 1;
+                    return ERROR_CODE;
                 }
 
                 // // Function call test.
@@ -797,8 +801,9 @@ int main(int argc, char *argv[])
             } else {
 
                 if(checkErrors(vm)) {
+                    free(script);
                     nkxVmDelete(vm);
-                    return 1;
+                    return ERROR_CODE;
                 }
 
             }
@@ -842,7 +847,7 @@ int main(int argc, char *argv[])
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
                 if(!c) {
                     printf("Error occurred during serialization.\n");
-                    return 1;
+                    return ERROR_CODE;
                 }
             }
 

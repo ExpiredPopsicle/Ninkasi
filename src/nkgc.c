@@ -100,9 +100,15 @@ void nkiVmGarbageCollect_addObject(
         &gcState->vm->objectTable,
         value->objectId);
 
-    if(ob->lastGCPass != gcState->currentGCPass) {
-        struct NKVMValueGCEntry *newEntry = nkiVmGcStateMakeEntry(gcState);
-        newEntry->object = ob;
+    if(ob) {
+        if(ob->lastGCPass != gcState->currentGCPass) {
+            struct NKVMValueGCEntry *newEntry = nkiVmGcStateMakeEntry(gcState);
+            newEntry->object = ob;
+        }
+    } else {
+        // Thanks AFL!
+        nkiAddError(gcState->vm, -1, "Bad object reference in garbage collector.");
+        return;
     }
 }
 

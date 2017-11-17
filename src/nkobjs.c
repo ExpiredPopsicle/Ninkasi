@@ -100,13 +100,21 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     index = nkiTableAddEntry(vm, table, newObject);
 
+    // Thanks AFL! This check/error might not be needed anymore, but
+    // only because we removed the part where we would assign it to
+    // the table slot ourselves (which would be disasterous if that
+    // index was NK_INVALID_VALUE).
+    if(index == NK_INVALID_VALUE) {
+        nkiFree(vm, newObject);
+        return NK_INVALID_VALUE;
+    }
+
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
     newObject->gcCallback.id = NK_INVALID_VALUE;
     newObject->serializationCallback.id = NK_INVALID_VALUE;
     newObject->externalDataType.id = NK_INVALID_VALUE;
     newObject->externalData = NULL;
-    table->objectTable[index] = newObject;
 
     // Tick the garbage collector so we eventually do another GC pass
     // when we have enough new objects.
@@ -131,8 +139,6 @@ void nkiVmObjectTableCleanOldObjects(
         if(ob) {
 
             if(lastGCPass != ob->lastGCPass) {
-
-                // struct NKVMTableHole *hole = NULL;
 
                 // Run any external garbage collection callbacks.
                 if(ob->gcCallback.id != NK_INVALID_VALUE) {
