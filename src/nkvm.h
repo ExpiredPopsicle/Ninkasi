@@ -126,12 +126,11 @@ struct NKVM
 
     // TODO: Add a global variable table and global variable lookup,
     // so we don't have to keep the compiler around.
-    struct GlobalVariableRecord
+    struct NKGlobalVariableRecord
     {
         nkuint32_t staticPosition;
-        const char *name;
+        char *name;
     } *globalVariables;
-    char *globalVariableNameStorage;
     nkuint32_t globalVariableCount;
 
     // Memory usage stuff.

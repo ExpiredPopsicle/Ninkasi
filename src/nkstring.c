@@ -129,6 +129,11 @@ nkuint32_t nkiVmStringTableFindOrAddString(
 
         nkuint32_t index = nkiTableAddEntry(vm, table, newString);
 
+        if(index == NK_INVALID_VALUE) {
+            nkiFree(vm, newString);
+            return NK_INVALID_VALUE;
+        }
+
         newString->stringTableIndex = index;
         newString->lastGCPass = 0;
         newString->dontGC = nkfalse;

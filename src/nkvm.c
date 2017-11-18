@@ -197,7 +197,6 @@ void nkiVmInit(struct NKVM *vm)
 
     vm->globalVariableCount = 0;
     vm->globalVariables = NULL;
-    vm->globalVariableNameStorage = NULL;
 
     nkiVmObjectTableInit(vm);
 
@@ -247,8 +246,14 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);
 
-        nkiFree(vm, vm->globalVariables);
-        nkiFree(vm, vm->globalVariableNameStorage);
+        // Free global variable records.
+        {
+            nkuint32_t n;
+            for(n = 0; n < vm->globalVariableCount; n++) {
+                nkiFree(vm, vm->globalVariables[n].name);
+            }
+            nkiFree(vm, vm->globalVariables);
+        }
 
         nkiVmObjectTableDestroy(vm);
 
@@ -271,6 +276,10 @@ void nkiVmDestroy(struct NKVM *vm)
             }
             nkiFree(vm, vm->externalTypeNames);
         }
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+        nkiDumpLeakData(vm);
+#endif
 
         NK_CLEAR_FAILURE_RECOVERY();
     }

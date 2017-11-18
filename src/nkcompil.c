@@ -998,38 +998,26 @@ void nkiCompilerFinalize(
         // Run through the variable list once and count up how much
         // memory we need.
         nkuint32_t count = 0;
-        nkuint32_t nameStorageNeeded = 0;
         struct NKCompilerStateContextVariable *var =
             cs->context->variables;
         while(var) {
             count++;
-            nameStorageNeeded += strlen(var->name) + 1;
             var = var->next;
         }
 
         // Allocate that.
-        cs->vm->globalVariableNameStorage = nkiMalloc(
-            cs->vm, nameStorageNeeded);
         cs->vm->globalVariables =
-            nkiMallocArray(cs->vm, sizeof(struct GlobalVariableRecord), count);
+            nkiMallocArray(cs->vm, sizeof(struct NKGlobalVariableRecord), count);
         cs->vm->globalVariableCount = count;
 
         // Now run through it all again and actually assign data.
         var = cs->context->variables;
-        {
-            char *nameWritePtr = cs->vm->globalVariableNameStorage;
-            count = 0;
-
-            while(var) {
-
-                cs->vm->globalVariables[count].staticPosition = var->position;
-                cs->vm->globalVariables[count].name = nameWritePtr;
-                strcpy(nameWritePtr, var->name);
-                nameWritePtr += strlen(var->name) + 1;
-
-                count++;
-                var = var->next;
-            }
+        count = 0;
+        while(var) {
+            cs->vm->globalVariables[count].staticPosition = var->position;
+            cs->vm->globalVariables[count].name = nkiStrdup(cs->vm, var->name);
+            count++;
+            var = var->next;
         }
     }
 

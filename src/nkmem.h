@@ -55,6 +55,8 @@
 #ifndef NINKASI_MEM_H
 #define NINKASI_MEM_H
 
+#define NK_EXTRA_FANCY_LEAK_TRACKING_LINUX 0
+
 struct NKMemoryHeader
 {
     nkuint32_t size;
@@ -62,13 +64,26 @@ struct NKMemoryHeader
 
     struct NKMemoryHeader *nextAllocation;
     struct NKMemoryHeader **prevAllocationPtr;
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+    char *stackTrace;
+#endif
 };
 
-void *nkiMalloc(struct NKVM *vm, nkuint32_t size);
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+#define nkiMalloc(vm, size) nkiMalloc_real(__FILE__, __FUNCTION__, __LINE__, vm, size)
+#else
+#define nkiMalloc(vm, size) nkiMalloc_real(NULL, NULL, 0, vm, size)
+#endif
+
+void *nkiMalloc_real(const char *filename, const char *function, int lineNumber, struct NKVM *vm, nkuint32_t size);
+
 void *nkiMallocArray(struct NKVM *vm, nkuint32_t size, nkuint32_t count);
 void nkiFree(struct NKVM *vm, void *data);
 void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size);
 void *nkiReallocArray(struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t count);
 char *nkiStrdup(struct NKVM *vm, const char *str);
+
+void nkiDumpLeakData(struct NKVM *vm);
 
 #endif // NINKASI_MEM_H

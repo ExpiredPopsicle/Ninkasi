@@ -811,46 +811,47 @@ nkbool nkiSerializeGlobalsList(
 {
     nkuint32_t i;
 
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
-
     // If we're loading a file, nuke whatever might be in the VM
     // already.
     if(!writeMode) {
+        for(i = 0; i < vm->globalVariableCount; i++) {
+            // FIXME: Remove this.
+            // assert(vm->globalVariables);
+            printf("FREEING THINGY " NK_PRINTF_UINT32 "/" NK_PRINTF_UINT32 "\n", i, vm->globalVariableCount);
+            // sleep(1);
+            nkiFree(vm, vm->globalVariables[i].name);
+        }
         nkiFree(vm, vm->globalVariables);
-        nkiFree(vm, vm->globalVariableNameStorage);
+        vm->globalVariables = NULL;
+    }
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
+
+    if(!writeMode) {
         vm->globalVariables = nkiMallocArray(
             vm, sizeof(vm->globalVariables[0]),
             vm->globalVariableCount);
     }
 
+    // // If we're loading a file, nuke whatever might be in the VM
+    // // already.
+    // if(!writeMode) {
+    //     for(i = 0; i < vm->globalVariableCount; i++) {
+    //         // assert(vm->globalVariables);
+    //         printf("FREEING THINGY " NK_PRINTF_UINT32 "/" NK_PRINTF_UINT32 "\n", i, vm->globalVariableCount);
+    //         sleep(1);
+    //         nkiFree(vm, vm->globalVariables[i].name);
+    //     }
+    //     nkiFree(vm, vm->globalVariables);
+    //     vm->globalVariables = nkiMallocArray(
+    //         vm, sizeof(vm->globalVariables[0]),
+    //         vm->globalVariableCount);
+    // }
+
     // Load/save each global name and index.
     for(i = 0; i < vm->globalVariableCount; i++) {
         NKI_SERIALIZE_STRING(vm->globalVariables[i].name);
         NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariables[i].staticPosition);
-    }
-
-    // Convert individually heap-allocated names to a single chunk
-    // of memory.
-    if(!writeMode) {
-
-        char *storagePtr;
-        nkuint32_t storageSize = 0;
-
-        for(i = 0; i < vm->globalVariableCount; i++) {
-            storageSize += strlen(vm->globalVariables[i].name) + 1;
-        }
-
-        vm->globalVariableNameStorage = nkiMalloc(vm, storageSize);
-
-        storagePtr = vm->globalVariableNameStorage;
-
-        for(i = 0; i < vm->globalVariableCount; i++) {
-            nkuint32_t len = strlen(vm->globalVariables[i].name) + 1;
-            memcpy(storagePtr, vm->globalVariables[i].name, len);
-            nkiFree(vm, (char*)vm->globalVariables[i].name);
-            vm->globalVariables[i].name = storagePtr;
-            storagePtr += len;
-        }
     }
 
     return nktrue;

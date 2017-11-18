@@ -43,7 +43,32 @@
 
 #include "nkcommon.h"
 
-void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
+#if __linux__
+#include <malloc.h>
+#include <execinfo.h>
+#include <signal.h>
+#endif
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+// Note: Uses malloc directly!
+static void nkiMemAppendHeapString(char **base, const char *appender)
+{
+    char *s = malloc(strlen(*base) + strlen(appender) + 1);
+    s[0] = 0;
+    strcat(s, *base);
+    strcat(s, appender);
+    free(*base);
+    *base = s;
+}
+#endif
+
+// FIXME: Remove this.
+char *lastMarker = NULL;
+
+
+void *nkiMalloc_real(
+    const char *filename, const char *function,
+    int lineNumber, struct NKVM *vm, nkuint32_t size)
 {
     // This MUST be set if we ever have even a chance of reaching this
     // function!
@@ -97,6 +122,32 @@ void *nkiMalloc(struct NKVM *vm, nkuint32_t size)
             }
             vm->allocations = header;
 
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+            {
+                const int stackLength = 256;
+                void *stackArray[stackLength];
+                char **symbols;
+                size_t size;
+                char *stackText = malloc(1);
+                char tmp[256];
+
+                stackText[0] = 0;
+
+                size = backtrace(stackArray, stackLength);
+                symbols = backtrace_symbols(stackArray, size);
+
+                snprintf(tmp, sizeof(tmp) - 1, "Location: %s:%s:%d\n", filename, function, lineNumber);
+                nkiMemAppendHeapString(&stackText, tmp);
+
+                for(unsigned int i = 0; i < size && symbols; i++) {
+                    nkiMemAppendHeapString(&stackText, symbols[i]);
+                    nkiMemAppendHeapString(&stackText, "\n");
+                }
+
+                header->stackTrace = stackText;
+            }
+#endif
+
             return header + 1;
 
         } else {
@@ -126,6 +177,10 @@ void nkiFree(struct NKVM *vm, void *data)
                 header->prevAllocationPtr;
         }
         *header->prevAllocationPtr = header->nextAllocation;
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+        free(header->stackTrace);
+#endif
 
         vm->freeReplacement(header, vm->mallocAndFreeReplacementUserData);
     }
@@ -189,5 +244,18 @@ void *nkiReallocArray(struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t c
     }
 
     return nkiRealloc(vm, data, size * count);
+}
+
+void nkiDumpLeakData(struct NKVM *vm)
+{
+    struct NKMemoryHeader *header = vm->allocations;
+    while(header) {
+        fprintf(stderr, "Leak detected! %p\n", (header+1));
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+        fprintf(stderr, "%s\n", header->stackTrace);
+#endif
+        header = header->nextAllocation;
+    }
+    assert(!vm->allocations);
 }
 

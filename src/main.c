@@ -526,7 +526,7 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     }
 }
 
-#define ERROR_CODE 1
+#define ERROR_CODE 0
 
 int main(int argc, char *argv[])
 {

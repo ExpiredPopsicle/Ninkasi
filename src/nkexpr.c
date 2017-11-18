@@ -416,16 +416,26 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                         functionCallNode->children[0] = indexIntoNode;
                         functionCallNode->children[1] = NULL;
 
+                        // FIXME: Remove this.
+                        lastMarker = "nkiCompilerParseExpression11.33";
+
                         if(!functionCallNode->opOrValue->str ||
                             !nkiCompilerExpressionParseFunctioncall(
                                 functionCallNode, cs))
                         {
                             nkiFree(cs->vm, functionCallNode->opOrValue->str);
-                            nkiFree(cs->vm, functionCallNode);
+                            nkiFree(cs->vm, functionCallNode->opOrValue);
+                            functionCallNode->opOrValue = NULL;
+                            functionCallNode->children[0] = NULL;
+                            nkiCompilerDeleteExpressionNode(cs->vm, functionCallNode);
+                            // nkiFree(cs->vm, functionCallNode);
                             NK_CLEANUP_INLOOP();
                             nkiCompilerPopRecursion(cs);
                             return NULL;
                         }
+
+                        // FIXME: Remove this.
+                        lastMarker = "nkiCompilerParseExpression11.35";
 
                         // Make sure the "self" value stays on the stack.
                         indexIntoNode->opOrValue->type =
@@ -446,6 +456,9 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                         }
                         postfixNode = functionCallNode;
                     }
+
+                    // FIXME: Remove this.
+                    lastMarker = "nkiCompilerParseExpression11.4";
 
                 } else {
                     nkiCompilerAddError(cs, "Expected identifier after '.'.");
@@ -495,6 +508,9 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                 return NULL;
             }
         }
+
+        // FIXME: Remove this.
+        lastMarker = "nkiCompilerParseExpression12";
 
         // Attach prefix and postfix operations.
         if(firstPostfixOp) {
