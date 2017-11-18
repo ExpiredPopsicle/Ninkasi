@@ -75,6 +75,10 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
             nkuint32_t oldSize = testBuf->size;
             testBuf->size += size;
             testBuf->data = realloc(testBuf->data, testBuf->size);
+            if(!testBuf->data) {
+                fprintf(stderr, "Realloc failure to size: " NK_PRINTF_UINT32 "\n", testBuf->size);
+                assert(testBuf->data);
+            }
             memcpy(testBuf->data + oldSize, data, size);
 
         } else {
@@ -566,6 +570,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
             if(!b) {
                 printf("Deserialization of previously serialized VM state failed.\n");
                 // assert(b);
+                nkxVmDelete(newVm);
+                newVm = NULL;
             }
         }
 
@@ -765,7 +771,10 @@ int main(int argc, char *argv[])
                         if(counter % 1024 == 0) {
                             nkxVmShrink(vm);
                         }
+
                         if(counter % 1100 == 0) {
+                            nkxVmGarbageCollect(vm);
+                            nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
                             vm = testSerializer(vm);
                             if(!vm || checkErrors(vm)) {
@@ -775,8 +784,6 @@ int main(int argc, char *argv[])
                             }
                         }
 
-                        //     // nkxVmShrink(vm);
-                        // }
                         counter++;
 
                         // nkxDbgDumpState(vm, stdout);
