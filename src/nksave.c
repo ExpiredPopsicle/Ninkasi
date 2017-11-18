@@ -811,14 +811,10 @@ nkbool nkiSerializeGlobalsList(
 {
     nkuint32_t i;
 
-    // If we're loading a file, nuke whatever might be in the VM
-    // already.
+    // If we're loading a file, nuke whatever global variable list
+    // might be in the VM already.
     if(!writeMode) {
         for(i = 0; i < vm->globalVariableCount; i++) {
-            // FIXME: Remove this.
-            // assert(vm->globalVariables);
-            printf("FREEING THINGY " NK_PRINTF_UINT32 "/" NK_PRINTF_UINT32 "\n", i, vm->globalVariableCount);
-            // sleep(1);
             nkiFree(vm, vm->globalVariables[i].name);
         }
         nkiFree(vm, vm->globalVariables);
@@ -827,26 +823,12 @@ nkbool nkiSerializeGlobalsList(
 
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
 
+    // Realloc if we're reading in.
     if(!writeMode) {
         vm->globalVariables = nkiMallocArray(
             vm, sizeof(vm->globalVariables[0]),
             vm->globalVariableCount);
     }
-
-    // // If we're loading a file, nuke whatever might be in the VM
-    // // already.
-    // if(!writeMode) {
-    //     for(i = 0; i < vm->globalVariableCount; i++) {
-    //         // assert(vm->globalVariables);
-    //         printf("FREEING THINGY " NK_PRINTF_UINT32 "/" NK_PRINTF_UINT32 "\n", i, vm->globalVariableCount);
-    //         sleep(1);
-    //         nkiFree(vm, vm->globalVariables[i].name);
-    //     }
-    //     nkiFree(vm, vm->globalVariables);
-    //     vm->globalVariables = nkiMallocArray(
-    //         vm, sizeof(vm->globalVariables[0]),
-    //         vm->globalVariableCount);
-    // }
 
     // Load/save each global name and index.
     for(i = 0; i < vm->globalVariableCount; i++) {

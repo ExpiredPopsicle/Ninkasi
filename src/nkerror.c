@@ -98,9 +98,6 @@ void nkiAddError(
     if(!vm->errorState.firstError) {
         vm->errorState.firstError = newError;
     }
-
-    // // FIXME: Remove this.
-    // assert(0);
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)

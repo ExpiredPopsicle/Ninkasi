@@ -62,10 +62,6 @@ static void nkiMemAppendHeapString(char **base, const char *appender)
 }
 #endif
 
-// FIXME: Remove this.
-char *lastMarker = NULL;
-
-
 void *nkiMalloc_real(
     const char *filename, const char *function,
     int lineNumber, struct NKVM *vm, nkuint32_t size)
