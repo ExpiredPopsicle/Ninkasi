@@ -793,9 +793,13 @@ nkbool nkiSerializeFunctionTable(
                     nkiAddError(vm, -1, "External function ID is outside external function count.");
                     return nkfalse;
                 }
+
+                if(vm->functionTable[i].externalFunctionId.id == NK_INVALID_VALUE) {
+                    nkiAddError(vm, -1, "Cannot find new mapping for external function during deserialization.");
+                    return nkfalse;
+                }
             }
         }
-
     }
 
     if(!writeMode) {

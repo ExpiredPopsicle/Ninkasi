@@ -355,6 +355,9 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
 void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
 {
+    // FIXME: Remove.
+    printf("Seralize callback hit!\n");
+
     // TODO: Make this standard, or find a way to make sure
     // serialization callbacks aren't called by a normal program.
     if(!data->vm->serializationState.writer) {
@@ -508,6 +511,12 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     nkxVmRegisterExternalFunction(vm, "testHandle2", testHandle2);
     nkxVmRegisterExternalFunction(vm, "setGCCallbackThing", setGCCallbackThing);
 
+    // FIXME: FIX THE DEMO. DON'T REGISTER THIS LATE.
+    nkxVmRegisterExternalFunction(vm, "doGCCallbackThing", doGCCallbackThing);
+    nkxVmRegisterExternalFunction(vm, "doSerializationCallbackThing", doSerializationCallbackThing);
+
+    nkxVmRegisterExternalType(vm, "footype");
+
     if(cs) {
 
         nkxCompilerCreateCFunctionVariable(cs, "cfunc", testVMFunc);
@@ -525,6 +534,59 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
 
     }
 }
+
+struct NKVM *testSerializer(struct NKVM *vm)
+{
+    struct WriterTestBuffer buf;
+    memset(&buf, 0, sizeof(buf));
+    // printf("Testing serializer...\n");
+
+    {
+        nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+        if(!c) {
+            printf("Error occurred during serialization.\n");
+            return NULL;
+        }
+    }
+
+    {
+        // FILE *out1 = fopen("stest1.txt", "w+");
+        // nkxDbgDumpState(vm, stdout);
+        // fclose(out1);
+    }
+
+    {
+        struct NKVM *newVm = nkxVmCreate();
+
+        initInternalFunctions(newVm, NULL);
+
+        // printf("Deserializing...\n");
+        {
+            nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+            if(!b) {
+                printf("Deserialization of previously serialized VM state failed.\n");
+                // assert(b);
+            }
+        }
+
+        {
+            // FILE *out2 = fopen("stest2.txt", "w+");
+            // nkxDbgDumpState(newVm, stdout);
+            // fclose(out2);
+        }
+
+        nkxVmDelete(vm);
+        vm = newVm;
+    }
+
+    free(buf.data);
+
+    // printf("Testing serializer done.\n");
+
+    return vm;
+}
+
+
 
 #define ERROR_CODE 0
 
@@ -697,14 +759,24 @@ int main(int argc, char *argv[])
                             vm->instructionPointer &
                             vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
-
-
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
 
                         if(counter % 1024 == 0) {
                             nkxVmShrink(vm);
                         }
+                        if(counter % 1100 == 0) {
+                            // assert(!nkxGetErrorCount(vm));
+                            vm = testSerializer(vm);
+                            if(!vm || checkErrors(vm)) {
+                                free(script);
+                                nkxVmDelete(vm);
+                                return ERROR_CODE;
+                            }
+                        }
+
+                        //     // nkxVmShrink(vm);
+                        // }
                         counter++;
 
                         // nkxDbgDumpState(vm, stdout);
@@ -860,7 +932,7 @@ int main(int argc, char *argv[])
             {
                 struct NKVM *newVm = nkxVmCreate();
 
-                initInternalFunctions(vm, NULL);
+                initInternalFunctions(newVm, NULL);
 
                 nkxVmRegisterExternalType(newVm, "footype");
 

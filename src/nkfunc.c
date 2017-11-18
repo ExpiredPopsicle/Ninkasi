@@ -152,6 +152,8 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunction(
     const char *name,
     NKVMFunctionCallback func)
 {
+    // FIXME: DO NOT ALLOW THIS TO RUN AFTER THE VM IS FINALIZED!
+
     // Lookup function first, to make sure we aren't making duplicate
     // functions. (We're probably at compile time right now so we can
     // spend some time searching for this.)

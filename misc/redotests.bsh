@@ -2,7 +2,8 @@
 
 set -e
 
-for i in afl_out/*/crashes/*; do
+for i in crashes/*; do
+#for i in afl_out/*/crashes/*; do
 #for i in afl_in/*; do
 	echo "CHECKING ERRORS: $i"
 	valgrind src/ninkasi_test $i
