@@ -80,6 +80,15 @@ struct NKGarbageCollectionInfo
     nkuint32_t gcNewObjectCountdown;
 };
 
+// FIXME: Implement stuff to use this.
+struct NKVMExternalSubsystemData
+{
+    const char *name;
+    NKVMInternalFunctionID serializationCallback;
+    NKVMInternalFunctionID cleanupCallback;
+    void *data;
+};
+
 /// The VM object itself.
 struct NKVM
 {
