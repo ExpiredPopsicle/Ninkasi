@@ -203,6 +203,14 @@ nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entr
         // order, and will mostly allocate from the front of memory.
         for(i = newCapacity - 1; i >= oldCapacity + 1; i--) {
             table->data[i] = NULL;
+        }
+
+        // We do this as a separate pass because hole creation
+        // allocates memory and is therefor susceptible to
+        // out-of-memory failures. We want to make sure the new table
+        // is fully zeroed-out so that we can still do cleanup
+        // operations if we suffer a catastrophic failure.
+        for(i = newCapacity - 1; i >= oldCapacity + 1; i--) {
             nkiTableCreateHole(vm, table, i);
         }
     }

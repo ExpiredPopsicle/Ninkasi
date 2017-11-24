@@ -84,9 +84,24 @@ struct NKGarbageCollectionInfo
 struct NKVMExternalSubsystemData
 {
     const char *name;
-    NKVMInternalFunctionID serializationCallback;
-    NKVMInternalFunctionID cleanupCallback;
+
+    // Called by the serialization system. NOT stored as a function ID
+    // like the serialization callback on objects, because this data
+    // is assumed to be set up by external systems in C and the
+    // function pointer is not, itself, required to be serialized.
+    NKVMFunctionCallback serializationCallback;
+
+    // Called on VM destruction. This function is responsible for
+    // cleaning up the data stored on this object, but also objects
+    // owned by this system in the case of an allocation failure. The
+    // reason for this is that the normal garbage collector cleanup
+    // function cannot run once the allocation failure flag has been
+    // set.
+    NKVMFunctionCallback cleanupCallback;
+
     void *data;
+
+    struct NKVMExternalSubsystemData *nextInHashTable;
 };
 
 /// The VM object itself.
@@ -170,6 +185,8 @@ struct NKVM
     } serializationState;
 
     nkuint32_t instructionsLeftBeforeTimeout;
+
+    struct NKVMExternalSubsystemData *subsystemDataTable[nkiVmExternalSubsystemHashTableSize];
 };
 
 /// Initialize an already-allocated VM.
@@ -240,6 +257,30 @@ NKVMExternalDataTypeID nkiVmFindExternalType(
 /// Get a type name.
 const char *nkiVmGetExternalTypeName(
     struct NKVM *vm, NKVMExternalDataTypeID id);
+
+void *nkiGetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name);
+
+void nkiSetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    void *data);
+
+void nkiSetExternalSubsystemSerializationCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback serializationCallback);
+
+void nkiSetExternalSubsystemCleanupCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback cleanupCallback);
+
+struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    nkbool create);
 
 #endif // NINKASI_VM_H
 

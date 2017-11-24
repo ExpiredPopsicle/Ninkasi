@@ -207,6 +207,8 @@ void nkiVmInit(struct NKVM *vm)
 
     vm->externalTypeNames = NULL;
     vm->externalTypeCount = 0;
+
+    memset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -215,6 +217,26 @@ void nkiVmDestroy(struct NKVM *vm)
 
         // Catastrophic failure cleanup mode. Do not trust most
         // internal pointers and use the allocation tracker directly.
+
+        // The external data table is still good. Make sure we run all
+        // of our cleanup functions.
+        nkuint32_t i;
+        for(i = 0; i < nkiVmExternalSubsystemHashTableSize; i++) {
+            while(vm->subsystemDataTable[i]) {
+                struct NKVMExternalSubsystemData *data = vm->subsystemDataTable[i];
+                struct NKVMExternalSubsystemData *next = data->nextInHashTable;
+                if(data->cleanupCallback) {
+                    struct NKVMFunctionCallbackData funcData;
+                    memset(&funcData, 0, sizeof(funcData));
+                    funcData.vm = vm;
+                    data->cleanupCallback(&funcData);
+                }
+                nkiFree(vm, data);
+                vm->subsystemDataTable[i] = next;
+            }
+        }
+
+        // Now just free every allocation we've made.
         while(vm->allocations) {
             struct NKMemoryHeader *next = vm->allocations->nextAllocation;
             free(vm->allocations);
@@ -228,6 +250,49 @@ void nkiVmDestroy(struct NKVM *vm)
         NK_FAILURE_RECOVERY_DECL();
 
         NK_SET_FAILURE_RECOVERY_VOID();
+
+
+        // Run all external subsystem data cleanup callbacks.
+        {
+            nkuint32_t n;
+            struct NKVMExternalSubsystemData *data;
+            for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
+
+                data = vm->subsystemDataTable[n];
+
+                while(vm->subsystemDataTable[n]) {
+
+                    struct NKVMExternalSubsystemData *next = data->nextInHashTable;
+
+                    // if(data->cleanupCallback.id != NK_INVALID_VALUE) {
+                    //     if(data->cleanupCallback.id < vm->functionCount) {
+                    //         struct NKVMFunction *func = &vm->functionTable[data->cleanupCallback.id];
+                    //         if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                    //             if(func->externalFunctionId.id < vm->externalFunctionCount) {
+                    //                 struct NKValue funcValue;
+                    //                 memset(&funcValue, 0, sizeof(funcValue));
+                    //                 funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                    //                 funcValue.functionId = data->cleanupCallback;
+                    //                 nkiVmCallFunction(vm, &funcValue, 0, NULL, NULL);
+                    //             }
+                    //         }
+                    //     }
+                    // }
+
+                    if(data->cleanupCallback) {
+                        struct NKVMFunctionCallbackData funcData;
+                        memset(&funcData, 0, sizeof(funcData));
+                        funcData.vm = vm;
+                        data->cleanupCallback(&funcData);
+                    }
+
+                    nkiFree(vm, data);
+                    data = next;
+                }
+                vm->subsystemDataTable[n] = NULL;
+            }
+        }
+
 
         // Nuke the entire static address space and stack, then force
         // a final garbage collection pass before we start making the
@@ -400,5 +465,79 @@ const char *nkiVmGetExternalTypeName(
         return "";
     }
     return vm->externalTypeNames[id.id];
+}
+
+struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    nkbool create)
+{
+    nkuint32_t hash = nkiStringHash(name);
+    nkuint32_t bucketIndex = hash & (nkiVmExternalSubsystemHashTableSize - 1);
+    struct NKVMExternalSubsystemData *el = vm->subsystemDataTable[bucketIndex];
+
+    while(el) {
+        if(!strcmp(el->name, name)) {
+            return el;
+        }
+        el = el->nextInHashTable;
+    }
+
+    if(create) {
+        el = nkiMalloc(vm, sizeof(*el));
+        memset(el, 0, sizeof(*el));
+        el->nextInHashTable = vm->subsystemDataTable[bucketIndex];
+        vm->subsystemDataTable[bucketIndex] = el;
+        return el;
+    }
+
+    return NULL;
+}
+
+void *nkiGetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name)
+{
+    struct NKVMExternalSubsystemData *externalSubsystemData =
+        nkiFindExternalSubsystemData(vm, name, nkfalse);
+
+    if(externalSubsystemData) {
+        return externalSubsystemData->data;
+    }
+
+    return NULL;
+}
+
+void nkiSetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    void *data)
+{
+    struct NKVMExternalSubsystemData *externalSubsystemData =
+        nkiFindExternalSubsystemData(vm, name, nktrue);
+
+    externalSubsystemData->data = data;
+}
+
+void nkiSetExternalSubsystemSerializationCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback serializationCallback)
+{
+    struct NKVMExternalSubsystemData *externalSubsystemData =
+        nkiFindExternalSubsystemData(vm, name, nktrue);
+
+    externalSubsystemData->serializationCallback = serializationCallback;
+}
+
+void nkiSetExternalSubsystemCleanupCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback cleanupCallback)
+{
+    struct NKVMExternalSubsystemData *externalSubsystemData =
+        nkiFindExternalSubsystemData(vm, name, nktrue);
+
+    externalSubsystemData->cleanupCallback = cleanupCallback;
 }
 

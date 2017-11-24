@@ -564,3 +564,48 @@ void nkxVmShrink(struct NKVM *vm)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void *nkxGetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    void *ret = NULL;
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiGetExternalSubsystemData(vm, name);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+void nkxSetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    void *data)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiSetExternalSubsystemData(vm, name, data);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxSetExternalSubsystemSerializationCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback serializationCallback)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiSetExternalSubsystemSerializationCallback(vm, name, serializationCallback);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxSetExternalSubsystemCleanupCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback cleanupCallback)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiSetExternalSubsystemCleanupCallback(vm, name, cleanupCallback);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+

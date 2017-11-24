@@ -916,7 +916,72 @@ nkbool nkiSerializeExternalTypes(
     return nktrue;
 }
 
-#define NKI_VERSION 1
+nkbool nkiSerializeExternalSubsystemData(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    // FIXME: Finish this.
+
+    nkuint32_t externalSubsystemDataCount = 0;
+    nkuint32_t n;
+
+    // First count up the existing subsystem data.
+    for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
+        struct NKVMExternalSubsystemData *data = vm->subsystemDataTable[n];
+        while(data) {
+            externalSubsystemDataCount++;
+            data = data->nextInHashTable;
+        }
+    }
+
+    // Save/load the subsystem data count.
+    NKI_SERIALIZE_BASIC(nkuint32_t, externalSubsystemDataCount);
+
+    if(writeMode) {
+
+        for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
+            struct NKVMExternalSubsystemData *data = vm->subsystemDataTable[n];
+            while(data) {
+                if(data->serializationCallback) {
+                    struct NKVMFunctionCallbackData funcData;
+                    NKI_SERIALIZE_STRING(data->name);
+                    memset(&funcData, 0, sizeof(funcData));
+                    funcData.vm = vm;
+                    data->serializationCallback(&funcData);
+                }
+                data = data->nextInHashTable;
+            }
+        }
+
+    } else {
+
+        for(n = 0; n < externalSubsystemDataCount; n++) {
+            char *name;
+            struct NKVMExternalSubsystemData *data;
+
+            NKI_SERIALIZE_STRING(name);
+            data = nkiFindExternalSubsystemData(vm, name, nkfalse);
+            nkiFree(vm, name);
+
+            if(!data) {
+                nkiAddError(vm, -1, "External subsystem for serialized external subsystem data cannot be found.");
+                return nkfalse;
+            }
+
+            if(data->serializationCallback) {
+                struct NKVMFunctionCallbackData funcData;
+                memset(&funcData, 0, sizeof(funcData));
+                funcData.vm = vm;
+                data->serializationCallback(&funcData);
+            }
+
+        }
+    }
+
+    return nktrue;
+}
+
+#define NKI_VERSION 2
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
@@ -990,6 +1055,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalTypes(vm, writer, userdata, writeMode));
+
+    // Serialized external subsystem data.
+    NKI_WRAPSERIALIZE(
+        nkiSerializeExternalSubsystemData(vm, writer, userdata, writeMode));
 
     return nktrue;
 }

@@ -74,7 +74,8 @@ struct NKVMObject
     // This has an internal function ID type, because it must actually
     // be callable by VM code, but only external functions are valid
     // here. Putting the wrong type here will throw an error when it
-    // is actually called.
+    // is actually called. Also, it's not a function pointer because
+    // we can actually serialize these things.
     NKVMInternalFunctionID gcCallback;
 
     // Same specifics as gcCallback.

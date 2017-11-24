@@ -302,6 +302,27 @@ void *nkxVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 
+// External subsystem stuff.
+
+void *nkxGetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name);
+
+void nkxSetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name,
+    void *data);
+
+void nkxSetExternalSubsystemSerializationCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback serializationCallback);
+
+void nkxSetExternalSubsystemCleanupCallback(
+    struct NKVM *vm,
+    const char *name,
+    NKVMFunctionCallback cleanupCallback);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

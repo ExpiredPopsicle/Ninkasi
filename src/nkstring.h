@@ -63,6 +63,7 @@ struct NKVMString
 };
 
 #define nkiVmStringHashTableSize 256
+#define nkiVmExternalSubsystemHashTableSize 16
 
 void nkiVmStringTableInit(struct NKVM *vm);
 void nkiVmStringTableDestroy(struct NKVM *vm);
