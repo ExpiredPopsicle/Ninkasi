@@ -231,6 +231,7 @@ void nkiVmDestroy(struct NKVM *vm)
                     funcData.vm = vm;
                     data->cleanupCallback(&funcData);
                 }
+                nkiFree(vm, data->name);
                 nkiFree(vm, data);
                 vm->subsystemDataTable[i] = next;
             }
@@ -255,14 +256,12 @@ void nkiVmDestroy(struct NKVM *vm)
         // Run all external subsystem data cleanup callbacks.
         {
             nkuint32_t n;
-            struct NKVMExternalSubsystemData *data;
-            for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
 
-                data = vm->subsystemDataTable[n];
+            for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
 
                 while(vm->subsystemDataTable[n]) {
 
-                    struct NKVMExternalSubsystemData *next = data->nextInHashTable;
+                    struct NKVMExternalSubsystemData *next = vm->subsystemDataTable[n]->nextInHashTable;
 
                     // if(data->cleanupCallback.id != NK_INVALID_VALUE) {
                     //     if(data->cleanupCallback.id < vm->functionCount) {
@@ -279,15 +278,16 @@ void nkiVmDestroy(struct NKVM *vm)
                     //     }
                     // }
 
-                    if(data->cleanupCallback) {
+                    if(vm->subsystemDataTable[n]->cleanupCallback) {
                         struct NKVMFunctionCallbackData funcData;
                         memset(&funcData, 0, sizeof(funcData));
                         funcData.vm = vm;
-                        data->cleanupCallback(&funcData);
+                        vm->subsystemDataTable[n]->cleanupCallback(&funcData);
                     }
 
-                    nkiFree(vm, data);
-                    data = next;
+                    nkiFree(vm, vm->subsystemDataTable[n]->name);
+                    nkiFree(vm, vm->subsystemDataTable[n]);
+                    vm->subsystemDataTable[n] = next;
                 }
                 vm->subsystemDataTable[n] = NULL;
             }
@@ -487,6 +487,7 @@ struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
         el = nkiMalloc(vm, sizeof(*el));
         memset(el, 0, sizeof(*el));
         el->nextInHashTable = vm->subsystemDataTable[bucketIndex];
+        el->name = nkiStrdup(vm, name);
         vm->subsystemDataTable[bucketIndex] = el;
         return el;
     }

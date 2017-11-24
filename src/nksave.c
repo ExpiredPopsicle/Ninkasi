@@ -157,6 +157,27 @@ nkbool nkiSerializeErrorState(
 
     return nktrue;
 }
+
+#define NKI_SERIALIZE_PUSHSERIALIZERSTATE()                             \
+    NKVMSerializationWriter oldWriter = vm->serializationState.writer;  \
+    void *oldUserdata = vm->serializationState.userdata;                \
+    nkbool oldWriteMode = vm->serializationState.writeMode;             \
+    vm->serializationState.writer = writer;                             \
+    vm->serializationState.userdata = userdata;                         \
+    vm->serializationState.writeMode = writeMode;
+
+#define NKI_SERIALIZE_POPSERIALIZERSTATE()              \
+    vm->serializationState.userdata = oldUserdata;      \
+    vm->serializationState.writer = oldWriter;          \
+    vm->serializationState.writeMode = oldWriteMode;
+
+#define NKI_SERIALIZE_WRAPCALLBACK(x)           \
+    do {                                        \
+        NKI_SERIALIZE_PUSHSERIALIZERSTATE();    \
+        x;                                      \
+        NKI_SERIALIZE_POPSERIALIZERSTATE();     \
+    } while(0)
+
 nkbool nkiSerializeObject(
     struct NKVM *vm, struct NKVMObject *object,
     NKVMSerializationWriter writer, void *userdata,
@@ -212,18 +233,8 @@ nkbool nkiSerializeObject(
                     argValue.type = NK_VALUETYPE_OBJECTID;
                     argValue.objectId = object->objectTableIndex;
 
-                    {
-                        NKVMSerializationWriter oldWriter = vm->serializationState.writer;
-                        void *oldUserdata = vm->serializationState.userdata;
-                        nkbool oldWriteMode = vm->serializationState.writeMode;
-                        vm->serializationState.writer = writer;
-                        vm->serializationState.userdata = userdata;
-                        vm->serializationState.writeMode = writeMode;
-                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
-                        vm->serializationState.userdata = oldUserdata;
-                        vm->serializationState.writer = oldWriter;
-                        vm->serializationState.writeMode = oldWriteMode;
-                    }
+                    NKI_SERIALIZE_WRAPCALLBACK(
+                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
                 }
             }
         }
@@ -947,7 +958,9 @@ nkbool nkiSerializeExternalSubsystemData(
                     NKI_SERIALIZE_STRING(data->name);
                     memset(&funcData, 0, sizeof(funcData));
                     funcData.vm = vm;
-                    data->serializationCallback(&funcData);
+
+                    NKI_SERIALIZE_WRAPCALLBACK(
+                        data->serializationCallback(&funcData));
                 }
                 data = data->nextInHashTable;
             }
@@ -972,7 +985,9 @@ nkbool nkiSerializeExternalSubsystemData(
                 struct NKVMFunctionCallbackData funcData;
                 memset(&funcData, 0, sizeof(funcData));
                 funcData.vm = vm;
-                data->serializationCallback(&funcData);
+
+                NKI_SERIALIZE_WRAPCALLBACK(
+                    data->serializationCallback(&funcData));
             }
 
         }

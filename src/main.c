@@ -414,6 +414,30 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 
 // ----------------------------------------------------------------------
 
+void testSubsystemCleanup(struct NKVMFunctionCallbackData *data)
+{
+}
+
+void testSubsystemSerialize(struct NKVMFunctionCallbackData *data)
+{
+    char tmpBuf[256];
+    char *testData = nkxGetExternalSubsystemData(data->vm, "testSubsystem");
+    memset(tmpBuf, 0, sizeof(tmpBuf));
+    strcpy(tmpBuf, testData);
+    // if(data->vm->serializationState.writeMode) {
+
+    data->vm->serializationState.writer(
+        tmpBuf, strlen(testData),
+        data->vm->serializationState.userdata,
+        data->vm->serializationState.writeMode);
+    // }
+
+    printf("subsystem: Serialize(%s): %s\n", data->vm->serializationState.writeMode ? "write" : "read", tmpBuf);
+}
+
+
+// ----------------------------------------------------------------------
+
 struct Settings
 {
     nkbool compileOnly;
@@ -520,6 +544,10 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     nkxVmRegisterExternalFunction(vm, "doSerializationCallbackThing", doSerializationCallbackThing);
 
     nkxVmRegisterExternalType(vm, "footype");
+
+    nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
+    nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
+    nkxSetExternalSubsystemData(vm, "testSubsystem", "ASDFASDFASDFASDFASDFASDF");
 
     if(cs) {
 

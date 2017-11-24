@@ -83,7 +83,7 @@ struct NKGarbageCollectionInfo
 // FIXME: Implement stuff to use this.
 struct NKVMExternalSubsystemData
 {
-    const char *name;
+    char *name;
 
     // Called by the serialization system. NOT stored as a function ID
     // like the serialization callback on objects, because this data
