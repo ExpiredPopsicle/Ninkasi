@@ -139,6 +139,7 @@ void nkiCompilerOptimizeConstants(
     if((*node)->children[0]) {
         nkiCompilerOptimizeConstants(vm, &(*node)->children[0]);
     }
+
     if((*node)->children[1]) {
         nkiCompilerOptimizeConstants(vm, &(*node)->children[1]);
     }
@@ -177,7 +178,10 @@ void nkiCompilerOptimizeConstants(
                     nkint32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
                     nkint32_t c1Val = (*node)->children[1] ? atoi((*node)->children[1]->opOrValue->str) : 0;
                     nkint32_t val = 0;
-                    char tmp[32];
+
+                    // Using the same size we use for the floating
+                    // point conversions.
+                    char tmp[NK_PRINTF_INTCHARSNEED];
 
                     // Do the actual operation.
                     NK_APPLY_MATH();
@@ -200,12 +204,16 @@ void nkiCompilerOptimizeConstants(
                     float c0Val = (*node)->children[0] ? atof((*node)->children[0]->opOrValue->str) : 0;
                     float c1Val = (*node)->children[1] ? atof((*node)->children[1]->opOrValue->str) : 0;
                     float val = 0;
-                    char tmp[32];
+                    char tmp[NK_PRINTF_FLOATCHARSNEEDED + 1];
 
                     // Do the actual operation.
                     NK_APPLY_MATH();
 
-                    // TODO: Use sprintf_s.
+                    // We aren't using sprintf_s here for DOS
+                    // compatibility.
+
+                    // TODO: Make an optional sprintf_s version for
+                    // non-DOS systems.
 
                     // Set the string for the result.
                     sprintf(tmp, "%f", val);

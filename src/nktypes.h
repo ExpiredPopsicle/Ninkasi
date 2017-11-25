@@ -73,6 +73,9 @@
 #   define NK_PRINTF_INT32 "%ld"
 #   define NK_PRINTF_UINT32 "%lu"
 #endif
+#define NK_PRINTF_FLOATCHARSNEEDED 48
+#define NK_PRINTF_UINTCHARSNEED    20
+#define NK_PRINTF_INTCHARSNEED     21
 
 #define nkfalse ((nkbool)0)
 #define nktrue ((nkbool)1)
