@@ -700,6 +700,8 @@ int main(int argc, char *argv[])
 
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
                 printf("Deserialization fail.\n");
+                free(script);
+                nkxVmDelete(vm);
                 return ERROR_CODE;
             }
         }
@@ -748,6 +750,8 @@ int main(int argc, char *argv[])
 
             if(!outputFilename) {
                 fprintf(stderr, "Cannot determine output file for %s.\n", settings.filename);
+                free(script);
+                nkxVmDelete(vm);
                 return ERROR_CODE;
             }
 
