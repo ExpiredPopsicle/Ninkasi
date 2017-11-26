@@ -38,6 +38,7 @@ void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
         // TODO: Free external data on all objects maintained by this
         // system.
 
+        free(internalData->testString);
         free(internalData);
         subsystemTest_debugOnly_dataCount--;
     }
@@ -66,9 +67,13 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
             if(internalData->testString) {
                 free(internalData->testString);
             }
-            internalData->testString = malloc(1 + len);
-            if(!internalData->testString) {
-                return;
+            if(len) {
+                internalData->testString = malloc(1 + len);
+                if(!internalData->testString) {
+                    return;
+                }
+            } else {
+                internalData->testString = NULL;
             }
         }
 
@@ -81,27 +86,27 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
 
 void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 {
-    struct SubsystemTest_InternalData *internalData = malloc(sizeof(struct SubsystemTest_InternalData));
-
     printf("subsystemTest: Initializing on VM: %p\n", vm);
 
-    if(nkxGetExternalSubsystemData(vm, "subsystemTest")) {
-        return;
+    if(!nkxGetExternalSubsystemData(vm, "subsystemTest")) {
+
+        struct SubsystemTest_InternalData *internalData = malloc(sizeof(struct SubsystemTest_InternalData));
+
+        subsystemTest_debugOnly_dataCount++;
+        internalData->widgetTypeId = nkxVmRegisterExternalType(vm, "subsystemTest_widget");
+        internalData->testString = NULL;
+
+        if(cs) {
+            // TODO: Set up variables for C funcs.
+        }
+
+        nkxSetExternalSubsystemData(vm, "subsystemTest", internalData);
+        nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
+        nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
+
+        atexit(subsystemTest_debugOnly_exitCheck);
+
     }
-
-    subsystemTest_debugOnly_dataCount++;
-    internalData->widgetTypeId = nkxVmRegisterExternalType(vm, "subsystemTest_widget");
-    internalData->testString = NULL;
-
-    if(cs) {
-        // TODO: Set up variables for C funcs.
-    }
-
-    nkxSetExternalSubsystemData(vm, "subsystemTest", internalData);
-    nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
-    nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
-
-    atexit(subsystemTest_debugOnly_exitCheck);
 }
 
 
