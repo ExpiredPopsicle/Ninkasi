@@ -26,6 +26,39 @@ void subsystemTest_debugOnly_exitCheck(void)
     assert(subsystemTest_debugOnly_dataCount == 0);
 }
 
+void subsystemTest_setTestString(struct NKVMFunctionCallbackData *data)
+{
+    struct SubsystemTest_InternalData *internalData =
+        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_setTestString")) return;
+
+    if(internalData->testString) {
+        free(internalData->testString);
+        internalData->testString = NULL;
+    }
+
+    internalData->testString = strdup(nkxValueToString(data->vm, &data->arguments[0]));
+}
+
+void subsystemTest_getTestString(struct NKVMFunctionCallbackData *data)
+{
+    struct SubsystemTest_InternalData *internalData =
+        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
+    if(!nkxFunctionCallbackCheckArgCount(data, 0, "subsystemTest_getTestString")) return;
+
+    nkxValueSetString(data->vm, &data->returnValue, internalData->testString);
+}
+
+void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
+{
+    struct SubsystemTest_InternalData *internalData =
+        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
+
+    if(!nkxFunctionCallbackCheckArgCount(data, 0, "subsystemTest_printTestString")) return;
+
+    printf("subsystemTest_print: %s\n", internalData->testString);
+}
+
 void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData =
@@ -77,10 +110,13 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
             }
         }
 
-        data->vm->serializationState.writer(
-            internalData->testString, len,
-            data->vm->serializationState.userdata,
-            data->vm->serializationState.writeMode);
+        if(internalData->testString) {
+            data->vm->serializationState.writer(
+                internalData->testString, len,
+                data->vm->serializationState.userdata,
+                data->vm->serializationState.writeMode);
+            internalData->testString[len] = 0;
+        }
     }
 }
 
@@ -96,17 +132,26 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         internalData->widgetTypeId = nkxVmRegisterExternalType(vm, "subsystemTest_widget");
         internalData->testString = NULL;
 
-        if(cs) {
-            // TODO: Set up variables for C funcs.
-        }
-
         nkxSetExternalSubsystemData(vm, "subsystemTest", internalData);
-        nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
-        nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
 
         atexit(subsystemTest_debugOnly_exitCheck);
-
     }
+
+    nkxVmRegisterExternalFunction(vm, "subsystemTest_setTestString", subsystemTest_setTestString);
+    nkxVmRegisterExternalFunction(vm, "subsystemTest_getTestString", subsystemTest_getTestString);
+    nkxVmRegisterExternalFunction(vm, "subsystemTest_printTestString", subsystemTest_printTestString);
+
+    if(cs) {
+
+        printf("subsystemTest: Registering variables: %p\n", cs);
+
+        nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_setTestString", subsystemTest_setTestString);
+        nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_getTestString", subsystemTest_getTestString);
+        nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_printTestString", subsystemTest_printTestString);
+    }
+
+    nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
+    nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
 }
 
 

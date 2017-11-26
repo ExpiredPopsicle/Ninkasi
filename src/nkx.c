@@ -295,7 +295,7 @@ nkbool nkxFunctionCallbackCheckArgCount(
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(nkfalse);
 
-    if(data->argumentCount != 1) {
+    if(data->argumentCount != argCount) {
         struct NKDynString *dynStr = nkiDynStrCreate(
             data->vm, "Bad argument count in ");
         nkiDynStrAppend(dynStr, functionName);
@@ -608,4 +608,29 @@ void nkxSetExternalSubsystemCleanupCallback(
     nkiSetExternalSubsystemCleanupCallback(vm, name, cleanupCallback);
     NK_CLEAR_FAILURE_RECOVERY();
 }
+
+void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiValueSetInt(vm, value, intData);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiValueSetFloat(vm, value, floatData);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiValueSetString(vm, value, str);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
 

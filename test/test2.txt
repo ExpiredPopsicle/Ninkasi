@@ -509,3 +509,7 @@ function selfRecursionTest(x, y)
 print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 
 
+subsystemTest_setTestString("Dickbutt");
+subsystemTest_printTestString();
+
+

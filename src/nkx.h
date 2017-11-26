@@ -153,6 +153,20 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 /// be deleted next garbage collection pass.
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
+
+
+/// Write an integer into an NKValue.
+void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData);
+
+/// Write a float into an NKValue.
+void nkxValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
+
+/// Write a string into an NKValue. This actually finds or creates a
+/// string table entry for the given string, then assigns the ID of
+/// that entry to the value.
+void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
+
+
 // ----------------------------------------------------------------------
 // Limits-related stuff
 
