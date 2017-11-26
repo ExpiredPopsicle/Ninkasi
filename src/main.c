@@ -55,6 +55,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "subtest.h"
+
 // ----------------------------------------------------------------------
 
 struct WriterTestBuffer
@@ -526,6 +528,8 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
 void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
 {
+    subsystemTest_initLibrary(vm, cs);
+
     nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
     nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
     nkxVmRegisterExternalFunction(vm, "cfunc", testVMFunc);
