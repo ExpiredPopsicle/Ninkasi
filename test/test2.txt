@@ -1,5 +1,6 @@
 
 
+subsystemTest_setTestString("Dickbutt");
 
 for(var x = 0; x < 10; ++x) {
     var c = newobject;
@@ -509,7 +510,6 @@ function selfRecursionTest(x, y)
 print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 
 
-subsystemTest_setTestString("Dickbutt");
 subsystemTest_printTestString();
 
 
