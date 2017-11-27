@@ -17,6 +17,11 @@ struct SubsystemTest_InternalData
     char *testString;
 };
 
+struct SubsystemTest_WidgetData
+{
+    nkuint32_t data;
+};
+
 // This function exists only to check that every piece of data we've
 // created has been cleaned up, meaning that we're still able to clean
 // up our data in case the VM has a catastrophic (allocation) error.
@@ -25,6 +30,14 @@ void subsystemTest_debugOnly_exitCheck(void)
 {
     assert(subsystemTest_debugOnly_dataCount == 0);
 }
+
+// ----------------------------------------------------------------------
+// Functions callable from script code
+
+// These functions all have a lot of common boilerplate to ensure that
+// the internal data exists. Normally I would abstract that all away
+// with a #define or something, but this is example code so it's
+// better to leave it for the sake of demonstration.
 
 void subsystemTest_setTestString(struct NKVMFunctionCallbackData *data)
 {
@@ -58,6 +71,9 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
 
     printf("subsystemTest_print: %s\n", internalData->testString);
 }
+
+// ----------------------------------------------------------------------
+// Cleanup, init, serialization, etc
 
 void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
 {

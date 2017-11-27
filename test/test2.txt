@@ -1,6 +1,7 @@
 
 
 subsystemTest_setTestString("Dickbutt");
+subsystemTest_setTestString();
 
 for(var x = 0; x < 10; ++x) {
     var c = newobject;
