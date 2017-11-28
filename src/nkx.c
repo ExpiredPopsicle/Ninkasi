@@ -277,6 +277,26 @@ const char *nkxValueToString(struct NKVM *vm, struct NKValue *value)
     return ret;
 }
 
+nkint32_t nkxValueToInt(struct NKVM *vm, struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    nkint32_t ret = 0;
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiValueToInt(vm, value);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+nkint32_t nkxValueToFloat(struct NKVM *vm, struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    float ret = 0;
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiValueToFloat(vm, value);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
 void nkxForceCatastrophicFailure(struct NKVM *vm)
 {
     NK_FAILURE_RECOVERY_DECL();
@@ -568,11 +588,15 @@ void *nkxGetExternalSubsystemData(
     struct NKVM *vm,
     const char *name)
 {
-    NK_FAILURE_RECOVERY_DECL();
+    // This one needs to stay as non-errorable, even in case of
+    // allocation failure. Otherwise subsystems can't clean up their
+    // data.
+
+    // NK_FAILURE_RECOVERY_DECL();
     void *ret = NULL;
-    NK_SET_FAILURE_RECOVERY(ret);
+    // NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiGetExternalSubsystemData(vm, name);
-    NK_CLEAR_FAILURE_RECOVERY();
+    // NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
 
@@ -633,4 +657,12 @@ void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void nkxCreateObject(struct NKVM *vm, struct NKValue *outValue)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    outValue->type = NK_VALUETYPE_OBJECTID;
+    outValue->objectId = nkiVmObjectTableCreateObject(vm);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
 

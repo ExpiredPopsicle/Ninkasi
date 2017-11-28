@@ -61,6 +61,10 @@ void nkiErrorStateDestroy(struct NKVM *vm)
     struct NKError *e = vm->errorState.firstError;
     while(e) {
         struct NKError *next = e->next;
+
+        // FIXME: Remove this.
+        printf("Deleting error: %p/%p\n", e, e->errorText);
+
         nkiFree(vm, e->errorText);
         nkiFree(vm, e);
         e = next;
@@ -82,15 +86,12 @@ void nkiAddError(
         vm,
         sizeof(struct NKError));
 
-    newError->errorText =
-        nkiMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
-
-    newError->errorText[0] = 0;
-    sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
-
     newError->next = NULL;
+    newError->errorText = NULL;
 
-    // Add error to the error list.
+    // Add error to the error list. We do this first in case the
+    // nkiMalloc to create the string fails, so we still have access
+    // to the error when it comes time to clean up the VM.
     if(vm->errorState.lastError) {
         vm->errorState.lastError->next = newError;
     }
@@ -98,6 +99,14 @@ void nkiAddError(
     if(!vm->errorState.firstError) {
         vm->errorState.firstError = newError;
     }
+
+    // Now add the string.
+    newError->errorText =
+        nkiMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
+
+    newError->errorText[0] = 0;
+    sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
+
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)

@@ -105,7 +105,11 @@ nkbool nkiSerializeString_load(
     *outData = nkiMalloc(vm, len + 1);
 
     // Read actual string.
-    NKI_SERIALIZE_DATA(*outData, len);
+    if(!writer(*outData, len, userdata, writeMode)) {
+        nkiFree(vm, *outData);
+        return nkfalse;
+    }
+
     (*outData)[len] = 0;
 
     return nktrue;
@@ -126,9 +130,14 @@ nkbool nkiSerializeErrorState(
 {
     nkuint32_t errorCount = nkiGetErrorCount(vm);
 
+    // FIXME: Remove this.
+    printf("subsystemTest at ES 1: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     // Save error count.
     NKI_SERIALIZE_BASIC(nkuint32_t, errorCount);
-    NKI_SERIALIZE_BASIC(nkbool, vm->errorState.allocationFailure);
+
+    // FIXME: Remove this.
+    printf("subsystemTest at ES 2: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     if(writeMode) {
 
@@ -146,12 +155,19 @@ nkbool nkiSerializeErrorState(
         struct NKError **lastPtr = &vm->errorState.firstError;
 
         for(errorNum = 0; errorNum < errorCount; errorNum++) {
-            struct NKError *newError = nkiMalloc(vm, sizeof(struct NKError));
-            NKI_SERIALIZE_STRING(newError->errorText);
+            char *errorText;
+            struct NKError *newError;
+            NKI_SERIALIZE_STRING(errorText);
+            newError = nkiMalloc(vm, sizeof(struct NKError));
+            newError->errorText = errorText;
             newError->next = NULL;
             *lastPtr = newError;
             lastPtr = &newError->next;
+            vm->errorState.lastError = newError;
         }
+
+        // FIXME: Remove this.
+        printf("Done serializing errors.\n");
 
     }
 
@@ -270,11 +286,12 @@ nkbool nkiSerializeObjectTable(
     void *userdata, nkbool writeMode)
 {
     nkuint32_t objectCount = 0;
+    nkuint32_t capacity = vm->objectTable.capacity;
 
     // FIXME: Ensure capacity is a power of two, or find a
     // better way to store it!
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->objectTable.capacity);
-    if(!nkiIsPow2(vm->objectTable.capacity)) {
+    NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
+    if(!nkiIsPow2(capacity)) {
         nkiAddError(vm, -1, "Object table capacity is not a power of two.");
         return nkfalse;
     }
@@ -293,11 +310,14 @@ nkbool nkiSerializeObjectTable(
 
         // Reallocate the object table if we're reading.
         nkiFree(vm, vm->objectTable.objectTable);
+        vm->objectTable.objectTable = NULL;
         vm->objectTable.objectTable =
-            nkiMallocArray(vm, sizeof(struct NKVMObject *), vm->objectTable.capacity);
+            nkiMallocArray(vm, sizeof(struct NKVMObject *), capacity);
         memset(
             vm->objectTable.objectTable, 0,
-            sizeof(struct NKVMObject *) * vm->objectTable.capacity);
+            sizeof(struct NKVMObject *) * capacity);
+
+        vm->objectTable.capacity = capacity;
 
         // Free the holes.
         while(vm->objectTable.tableHoles) {
@@ -610,22 +630,28 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
 
 nkbool nkiSerializeStatics(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
+    nkuint32_t staticAddressMask = vm->staticAddressMask;
+
     // Check that a valid mask is 2^n-1. (Or just find a better way to
     // store it.)
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->staticAddressMask);
-    if(!nkiIsPow2(vm->staticAddressMask + 1)) {
+    NKI_SERIALIZE_BASIC(nkuint32_t, staticAddressMask);
+    if(!nkiIsPow2(staticAddressMask + 1)) {
         nkiAddError(vm, -1, "Static space address mask is not a power of two minus one.");
         return nkfalse;
     }
 
-    if(vm->staticAddressMask >= NK_UINT_MAX) {
+    if(staticAddressMask >= NK_UINT_MAX) {
         nkiAddError(vm, -1, "Static space address mask is too large.");
         return nkfalse;
     }
 
+    vm->staticAddressMask = staticAddressMask;
+
     // Make new static space for read mode.
     if(!writeMode) {
         nkiFree(vm, vm->staticSpace);
+        // Set to NULL first in case nkiMallocArray throws an error.
+        vm->staticSpace = NULL;
         vm->staticSpace = nkiMallocArray(vm, sizeof(struct NKValue), vm->staticAddressMask + 1);
     }
 
@@ -825,6 +851,7 @@ nkbool nkiSerializeGlobalsList(
     void *userdata, nkbool writeMode)
 {
     nkuint32_t i;
+    nkuint32_t globalVariableCount = vm->globalVariableCount;
 
     // If we're loading a file, nuke whatever global variable list
     // might be in the VM already.
@@ -836,13 +863,19 @@ nkbool nkiSerializeGlobalsList(
         vm->globalVariables = NULL;
     }
 
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->globalVariableCount);
+    NKI_SERIALIZE_BASIC(nkuint32_t, globalVariableCount);
 
     // Realloc if we're reading in.
     if(!writeMode) {
         vm->globalVariables = nkiMallocArray(
             vm, sizeof(vm->globalVariables[0]),
-            vm->globalVariableCount);
+            globalVariableCount);
+
+        // FIXME: Check for overflow.
+        memset(vm->globalVariables, 0,
+            sizeof(vm->globalVariables[0]) * vm->globalVariableCount);
+
+        vm->globalVariableCount = globalVariableCount;
     }
 
     // Load/save each global name and index.
@@ -1000,6 +1033,9 @@ nkbool nkiSerializeExternalSubsystemData(
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
+    // FIXME: Remove this.
+    printf("subsystemTest at 0: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     // Serialize format marker.
     {
         const char *formatMarker = "\0NKVM";
@@ -1012,6 +1048,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
+    // FIXME: Remove this.
+    printf("subsystemTest at 1: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     // Serialize version number.
     {
         nkuint32_t version = NKI_VERSION;
@@ -1022,17 +1061,32 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         }
     }
 
+    // FIXME: Remove this.
+    printf("subsystemTest at 2: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     NKI_WRAPSERIALIZE(
         nkiSerializeInstructions(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    printf("subsystemTest at 2.1: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     NKI_WRAPSERIALIZE(
         nkiSerializeErrorState(vm, writer, userdata, writeMode));
 
+    // FIXME: Remove this.
+    printf("subsystemTest at 2.2: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     NKI_WRAPSERIALIZE(
         nkiSerializeStatics(vm, writer, userdata, writeMode));
 
+    // FIXME: Remove this.
+    printf("subsystemTest at 2.3: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     NKI_WRAPSERIALIZE(
         nkiSerializeStack(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    printf("subsystemTest at 3: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     // Instruction pointer.
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionPointer);
@@ -1045,6 +1099,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     NKI_WRAPSERIALIZE(
         nkiSerializeFunctionTable(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    printf("subsystemTest at 4: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     // Serialize object table and objects. This MUST happen after the
     // functions, because deserialization routines are set up there.
@@ -1068,12 +1125,21 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Skip userdata (serialize it outside the VM and hook it up
     // before/after).
 
+    // FIXME: Remove this.
+    printf("subsystemTest at 5: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalTypes(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    printf("subsystemTest at 6: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     // Serialized external subsystem data.
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalSubsystemData(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    printf("subsystemTest at 7: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
     return nktrue;
 }

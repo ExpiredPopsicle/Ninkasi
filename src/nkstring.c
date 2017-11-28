@@ -70,9 +70,11 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
 
     // Clear out the main table.
     nkuint32_t i;
-    for(i = 0; i < table->capacity; i++) {
-        nkiFree(vm, table->stringTable[i]);
-        table->stringTable[i] = NULL;
+    if(table && table->stringTable) {
+        for(i = 0; i < table->capacity; i++) {
+            nkiFree(vm, table->stringTable[i]);
+            table->stringTable[i] = NULL;
+        }
     }
 
     nkiTableDestroy(vm, table);

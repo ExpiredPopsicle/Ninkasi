@@ -702,7 +702,14 @@ int main(int argc, char *argv[])
             buf.readPtr = 0;
             buf.size = scriptSize;
 
+            // FIXME: Remove this.
+            printf("subsystemTest before deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
+
+                // FIXME: Remove this.
+                printf("subsystemTest after bad deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
+
                 printf("Deserialization fail.\n");
                 free(script);
                 nkxVmDelete(vm);

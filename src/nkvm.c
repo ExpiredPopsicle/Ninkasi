@@ -200,9 +200,10 @@ void nkiVmInit(struct NKVM *vm)
 
     nkiVmObjectTableInit(vm);
 
-    // Start with a single static value.
-    vm->staticSpace = nkiMalloc(vm, sizeof(struct NKValue));
-    memset(vm->staticSpace, 0, sizeof(struct NKValue));
+    // Start with two static values (so our static value mask starts
+    // off at 1).
+    vm->staticSpace = nkiMalloc(vm, 2 * sizeof(struct NKValue));
+    memset(vm->staticSpace, 0, 2 * sizeof(struct NKValue));
     vm->staticAddressMask = 1;
 
     vm->externalTypeNames = NULL;
@@ -293,12 +294,15 @@ void nkiVmDestroy(struct NKVM *vm)
             }
         }
 
-
         // Nuke the entire static address space and stack, then force
         // a final garbage collection pass before we start making the
         // VM unusable, so that GC callbacks get hit for external data
         // and that stuff can clean up in a conventional manner.
         nkiVmStackClear(vm);
+
+        // FIXME: Remove this.
+        printf("vm->staticAddressMask: " NK_PRINTF_UINT32 "\n", vm->staticAddressMask);
+
         memset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));

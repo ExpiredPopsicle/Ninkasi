@@ -60,13 +60,20 @@ void nkiTableDestroy(struct NKVM *vm, struct NKVMTable *table)
 {
     nkuint32_t i;
 
-    // Maybe remove this?
-    for(i = 0; i < table->capacity; i++) {
-        assert(!table->data[i]);
+    // Tolerance for half-setup VMs.
+    if(!table) {
+        return;
     }
 
-    nkiFree(vm, table->data);
-    table->data = NULL;
+    // Maybe remove this?
+    if(table->data) {
+        for(i = 0; i < table->capacity; i++) {
+            assert(!table->data[i]);
+        }
+        nkiFree(vm, table->data);
+        table->data = NULL;
+    }
+
     table->capacity = 0;
 
     // Clear out the holes list.

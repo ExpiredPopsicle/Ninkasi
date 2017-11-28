@@ -1,7 +1,9 @@
 
 
 subsystemTest_setTestString("Dickbutt");
-subsystemTest_setTestString();
+var subsystemTestObject = subsystemTest_widgetCreate();
+subsystemTest_widgetSetData(subsystemTestObject, 12345);
+print("Widget test 1: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
 
 for(var x = 0; x < 10; ++x) {
     var c = newobject;
@@ -512,5 +514,4 @@ print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 
 
 subsystemTest_printTestString();
-
-
+print("Widget test: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");

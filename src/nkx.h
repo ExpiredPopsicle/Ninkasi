@@ -131,6 +131,10 @@ struct NKValue *nkxVmFindGlobalVariable(
 /// hold onto it.
 const char *nkxValueToString(struct NKVM *vm, struct NKValue *value);
 
+nkint32_t nkxValueToInt(struct NKVM *vm, struct NKValue *value);
+
+nkint32_t nkxValueToFloat(struct NKVM *vm, struct NKValue *value);
+
 /// Force a catastrophic failure. This is mainly to test error
 /// recovery by C functions and callbacks.
 void nkxForceCatastrophicFailure(struct NKVM *vm);
@@ -293,6 +297,10 @@ NKVMExternalDataTypeID nkxVmFindExternalType(
 /// Get a type name.
 const char *nkxVmGetExternalTypeName(
     struct NKVM *vm, NKVMExternalDataTypeID id);
+
+void nkxCreateObject(
+    struct NKVM *vm,
+    struct NKValue *outValue);
 
 /// Set the external type of an object.
 void nkxVmObjectSetExternalType(

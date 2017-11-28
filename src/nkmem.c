@@ -226,7 +226,11 @@ void *nkiMallocArray(struct NKVM *vm, nkuint32_t size, nkuint32_t count)
         return NULL;
     }
 
-    return nkiMalloc(vm, size * count);
+    void *mem = nkiMalloc(vm, size * count);
+
+    memset(mem, 0, size * count);
+
+    return mem;
 }
 
 // Thanks AFL! Looks like we needed one for realloc, too.
