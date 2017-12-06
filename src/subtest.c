@@ -27,10 +27,14 @@ struct SubsystemTest_WidgetData
 // This function exists only to check that every piece of data we've
 // created has been cleaned up, meaning that we're still able to clean
 // up our data in case the VM has a catastrophic (allocation) error.
+// This is only for testing. Use of atexit() to register this kind of
+// callback is not endorsed.
 static nkuint32_t subsystemTest_debugOnly_dataCount = 0;
 void subsystemTest_debugOnly_exitCheck(void)
 {
-    printf("Debug data count: " NK_PRINTF_UINT32 "\n", subsystemTest_debugOnly_dataCount);
+    printf(
+        "Debug data count: " NK_PRINTF_UINT32 "\n",
+        subsystemTest_debugOnly_dataCount);
     assert(subsystemTest_debugOnly_dataCount == 0);
 }
 
@@ -40,10 +44,14 @@ void subsystemTest_debugOnly_exitCheck(void)
 void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData =
-        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
-    if(!nkxFunctionCallbackCheckArgCount(data, 0, "subsystemTest_widgetCreate")) return;
+        nkxGetExternalSubsystemDataOrError(data->vm, "subsystemTest");
+
+    if(!nkxFunctionCallbackCheckArguments(data, "subsystemTest_widgetCreate", 0)) {
+        return;
+    }
+
     if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.\n");
+        return;
     }
 
     {
@@ -63,25 +71,25 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
 
 void subsystemTest_widgetSetData(struct NKVMFunctionCallbackData *data)
 {
-    struct SubsystemTest_InternalData *internalData =
-        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
-    if(!nkxFunctionCallbackCheckArgCount(data, 2, "subsystemTest_widgetSetData")) return;
-    if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.\n");
+    struct SubsystemTest_InternalData *internalData;
+    struct SubsystemTest_WidgetData *widgetData;
+
+    nkxFunctionCallbackCheckArguments(
+        data, "subsystemTest_widgetSetData", 2,
+        NK_VALUETYPE_OBJECTID,
+        NK_VALUETYPE_INT);
+
+    internalData = nkxGetExternalSubsystemDataOrError(
+        data->vm, "subsystemTest");
+
+    widgetData = nkxFunctionCallbackGetExternalDataArgument(
+        data, "subsystemTest_widgetSetData", 0, internalData->widgetTypeId);
+
+    if(nkxVmHasErrors(data->vm)) {
+        return;
     }
 
-    if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSetData.\n");
-    }
-
-    if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
-        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetSetData.\n");
-    }
-
-    {
-        struct SubsystemTest_WidgetData *widgetData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
-        widgetData->data = nkxValueToInt(data->vm, &data->arguments[1]);
-    }
+    widgetData->data = nkxValueToInt(data->vm, &data->arguments[1]);
 }
 
 void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
@@ -90,20 +98,22 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetGetData")) return;
     if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.\n");
+        nkxAddError(data->vm, "subsystemTest data not registered.");
     }
 
     if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetGetData.\n");
+        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetGetData.");
     }
 
     if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
-        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetGetData.\n");
+        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetGetData.");
     }
 
     {
         struct SubsystemTest_WidgetData *widgetData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
-        nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
+        if(widgetData) {
+            nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
+        }
     }
 }
 
@@ -116,15 +126,15 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) return;
     if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.\n");
+        nkxAddError(data->vm, "subsystemTest data not registered.");
     }
 
     if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.\n");
+        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.");
     }
 
     if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
-        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetSerializeData.\n");
+        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetSerializeData.");
     }
 
     {
@@ -149,11 +159,11 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) return;
     if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.\n");
+        nkxAddError(data->vm, "subsystemTest data not registered.");
     }
 
     if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.\n");
+        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.");
     }
 
     printf("data: %p\n", data);

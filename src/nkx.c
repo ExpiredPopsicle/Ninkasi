@@ -666,3 +666,119 @@ void nkxCreateObject(struct NKVM *vm, struct NKValue *outValue)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+// TODO: Move this to an nki function, add the wrapper, and then do
+// the usual dynstring stuff to print the function name correctly in
+// the error messages.
+nkbool nkxFunctionCallbackCheckArguments(
+    struct NKVMFunctionCallbackData *data,
+    const char *functionName,
+    nkuint32_t expectedArgumentCount,
+    ...)
+{
+    va_list args;
+    nkuint32_t i;
+
+    // Check argument count first.
+    if(expectedArgumentCount != data->argumentCount) {
+        const char errorTextBase[] =
+            "%s: Expected " NK_PRINTF_UINT32 " arguments, but passed " NK_PRINTF_UINT32 ".";
+        char errorText[128];
+
+        if(strlen(errorTextBase) + strlen(functionName) +
+            NK_PRINTF_UINTCHARSNEED * 2 >= sizeof(errorText))
+        {
+            nkxAddError(data->vm, "Incorrect argument count, and function name too long to report.");
+        } else {
+            sprintf(errorText, errorTextBase, functionName, expectedArgumentCount, data->argumentCount);
+            nkxAddError(data->vm, errorText);
+        }
+        return nkfalse;
+    }
+
+    va_start(args, expectedArgumentCount);
+
+    for(i = 0; i < expectedArgumentCount; i++) {
+
+        enum NKValueType thisType = va_arg(args, enum NKValueType);
+
+        if(data->arguments[i].type != thisType) {
+
+            char errorText[128];
+            const char *expectedType = nkiValueTypeGetName(thisType);
+            const char *gotType = nkiValueTypeGetName(data->arguments[i].type);
+            const char errorTextBase[] = "%s: Argument " NK_PRINTF_UINT32 ": Expected %s but passed %s.";
+
+            if(strlen(errorTextBase) +
+                strlen(functionName) +
+                NK_PRINTF_UINTCHARSNEED +
+                strlen(expectedType) +
+                strlen(gotType) >= sizeof(errorText))
+            {
+                nkxAddError(data->vm, "Incorrect argument, and function name too long to report.");
+            } else {
+                sprintf(errorText, errorTextBase, functionName, i, expectedType, gotType);
+                nkxAddError(data->vm, errorText);
+            }
+
+            return nkfalse;
+        }
+
+    }
+
+    va_end(args);
+
+    return nktrue;
+}
+
+// TODO: Move this to an nki function, add the wrapper, and then do
+// the usual dynstring stuff to print the function name correctly in
+// the error messages.
+void *nkxGetExternalSubsystemDataOrError(
+    struct NKVM *vm,
+    const char *name)
+{
+    void *ret = nkxGetExternalSubsystemData(vm, name);
+
+    if(!ret) {
+        char errorText[128];
+        const char errorTextBase[] = "Could not find subsystem data: %s.";
+        if(strlen(errorTextBase) + strlen(name) >= sizeof(errorText)) {
+            nkxAddError(vm, "Could not find subsystem data and subsystem name too long.");
+        } else {
+            sprintf(errorText, errorTextBase, name);
+            nkxAddError(vm, errorText);
+        }
+        return NULL;
+    }
+
+    return ret;
+}
+
+// TODO: Move this to an nki function, add the wrapper, and then do
+// the usual dynstring stuff to print the function name correctly in
+// the error messages.
+void *nkxFunctionCallbackGetExternalDataArgument(
+    struct NKVMFunctionCallbackData *data,
+    const char *functionName,
+    nkuint32_t argumentNumber,
+    NKVMExternalDataTypeID externalDataType)
+{
+    if(argumentNumber >= data->argumentCount) {
+        nkxAddError(data->vm, "Tried to decode a bad argument.");
+        return NULL;
+    }
+
+    if(data->arguments[argumentNumber].type != NK_VALUETYPE_OBJECTID) {
+        nkxAddError(data->vm, "Tried to find external data on a non-object.");
+        return NULL;
+    }
+
+    if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != externalDataType.id) {
+        nkxAddError(data->vm, "External object type mismatch.");
+        return NULL;
+    }
+
+    return nkxVmObjectGetExternalData(data->vm, &data->arguments[argumentNumber]);
+}
+
+

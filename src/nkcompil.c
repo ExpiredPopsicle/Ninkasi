@@ -49,40 +49,34 @@ void nkiCompilerAddInstruction(
 {
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
-        // TODO: Remove this.
-        nkiDbgWriteLine("Expanding VM instruction space.");
+        nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
+        nkuint32_t newSize = oldSize << 1;
 
         // FIXME: Add a dynamic or settable memory limit.
         if(cs->vm->instructionAddressMask >= 0xfffff) {
             nkiCompilerAddError(cs, "Too many instructions.");
         }
 
+        cs->vm->instructionAddressMask <<= 1;
+        cs->vm->instructionAddressMask |= 1;
 
-        {
-            nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
-            nkuint32_t newSize = oldSize << 1;
-
-            cs->vm->instructionAddressMask <<= 1;
-            cs->vm->instructionAddressMask |= 1;
-
-            // This is a HARD limit because of the implementation and
-            // must be spearate from the settable limit.
-            if(cs->vm->instructionAddressMask >= ~(nkuint32_t)0) {
-                nkiCompilerAddError(cs, "Too many instructions. Hit address space limit.");
-                cs->vm->instructionAddressMask >>= 1;
-            }
-
-            cs->vm->instructions = nkiReallocArray(
-                cs->vm,
-                cs->vm->instructions,
-                sizeof(struct NKInstruction),
-                newSize);
-
-            // Clear the new area to NOPs.
-            memset(
-                cs->vm->instructions + oldSize, 0,
-                (newSize - oldSize) * sizeof(struct NKInstruction));
+        // This is a HARD limit because of the implementation and
+        // must be spearate from the settable limit.
+        if(cs->vm->instructionAddressMask >= ~(nkuint32_t)0) {
+            nkiCompilerAddError(cs, "Too many instructions. Hit address space limit.");
+            cs->vm->instructionAddressMask >>= 1;
         }
+
+        cs->vm->instructions = nkiReallocArray(
+            cs->vm,
+            cs->vm->instructions,
+            sizeof(struct NKInstruction),
+            newSize);
+
+        // Clear the new area to NOPs.
+        memset(
+            cs->vm->instructions + oldSize, 0,
+            (newSize - oldSize) * sizeof(struct NKInstruction));
     }
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;
@@ -425,11 +419,6 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
     }
-
-    // FIXME: Remove this.
-    nkiDbgWriteLine(
-        "Entering nkiCompilerCompileStatement with stackFrameOffset: %u",
-        cs->context->stackFrameOffset);
 
     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_INVALID) {
         nkiCompilerAddError(cs, "Ran out of tokens to parse.");
@@ -817,9 +806,6 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
     // Store the functionArgumentCount on the function object.
     functionObject->argumentCount = functionArgumentCount;
-
-    // FIXME: Remove this.
-    nkiDbgWriteLine("Function argument count is: %d", functionArgumentCount);
 
     // Store the function start address on the function object.
     functionObject->firstInstructionIndex = cs->instructionWriteIndex;

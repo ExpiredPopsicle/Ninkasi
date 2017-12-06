@@ -61,10 +61,6 @@ void nkiErrorStateDestroy(struct NKVM *vm)
     struct NKError *e = vm->errorState.firstError;
     while(e) {
         struct NKError *next = e->next;
-
-        // FIXME: Remove this.
-        printf("Deleting error: %p/%p\n", e, e->errorText);
-
         nkiFree(vm, e->errorText);
         nkiFree(vm, e);
         e = next;
@@ -102,7 +98,7 @@ void nkiAddError(
 
     // Now add the string.
     newError->errorText =
-        nkiMalloc(vm, strlen(str) + 2 + sizeof(lineNumber) * 8 + 1);
+        nkiMalloc(vm, strlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);

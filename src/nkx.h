@@ -280,6 +280,39 @@ NKVMExternalFunctionID nkxVmRegisterExternalFunction(
 NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
     struct NKVM *vm, NKVMExternalFunctionID externalFunctionId);
 
+/// Decode arguments for an external function call. Returns nkfalse on
+/// error. expectedArgumentCount not matching the passed argument
+/// count is an error.
+///
+/// Errors in parameter decoding are automatically added to the VM
+/// state. See nkxAddError for details on how errors are added.
+///
+/// Varargs arguments are NKValueTypes, corresponding to expected
+/// argument types.
+///
+/// Example usage:
+///
+///   if(!nkxFunctionCallbackDecodeArguments(
+///       data, "someGenericFunction", 3,
+///       NK_VALUETYPE_INT,
+///       NK_VALUETYPE_FLOAT,
+///       NK_VALUETYPE_STRING)) return;
+///
+nkbool nkxFunctionCallbackCheckArguments(
+    struct NKVMFunctionCallbackData *data,
+    const char *functionName,
+    nkuint32_t expectedArgumentCount,
+    ...);
+
+/// Decodes and type-checks a piece of external data on an object.
+/// Adds an error to the VM state and returns NULL if the type does
+/// not match.
+void *nkxFunctionCallbackGetExternalDataArgument(
+    struct NKVMFunctionCallbackData *data,
+    const char *functionName,
+    nkuint32_t argumentNumber,
+    NKVMExternalDataTypeID externalDataType);
+
 // ----------------------------------------------------------------------
 // External data interface
 
@@ -326,7 +359,15 @@ void *nkxVmObjectGetExternalData(
 
 // External subsystem stuff.
 
+/// Get a pointer to a subsystem's external data by name. Returns NULL
+/// if it is not set (or is set to NULL).
 void *nkxGetExternalSubsystemData(
+    struct NKVM *vm,
+    const char *name);
+
+/// Same as above, but adds an error if the subsystem data does not
+/// exist. (Just to reduce function callback boilterplate.)
+void *nkxGetExternalSubsystemDataOrError(
     struct NKVM *vm,
     const char *name);
 

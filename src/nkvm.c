@@ -253,7 +253,6 @@ void nkiVmDestroy(struct NKVM *vm)
 
         NK_SET_FAILURE_RECOVERY_VOID();
 
-
         // Run all external subsystem data cleanup callbacks.
         {
             nkuint32_t n;
@@ -263,21 +262,6 @@ void nkiVmDestroy(struct NKVM *vm)
                 while(vm->subsystemDataTable[n]) {
 
                     struct NKVMExternalSubsystemData *next = vm->subsystemDataTable[n]->nextInHashTable;
-
-                    // if(data->cleanupCallback.id != NK_INVALID_VALUE) {
-                    //     if(data->cleanupCallback.id < vm->functionCount) {
-                    //         struct NKVMFunction *func = &vm->functionTable[data->cleanupCallback.id];
-                    //         if(func->externalFunctionId.id != NK_INVALID_VALUE) {
-                    //             if(func->externalFunctionId.id < vm->externalFunctionCount) {
-                    //                 struct NKValue funcValue;
-                    //                 memset(&funcValue, 0, sizeof(funcValue));
-                    //                 funcValue.type = NK_VALUETYPE_FUNCTIONID;
-                    //                 funcValue.functionId = data->cleanupCallback;
-                    //                 nkiVmCallFunction(vm, &funcValue, 0, NULL, NULL);
-                    //             }
-                    //         }
-                    //     }
-                    // }
 
                     if(vm->subsystemDataTable[n]->cleanupCallback) {
                         struct NKVMFunctionCallbackData funcData;
@@ -299,10 +283,6 @@ void nkiVmDestroy(struct NKVM *vm)
         // VM unusable, so that GC callbacks get hit for external data
         // and that stuff can clean up in a conventional manner.
         nkiVmStackClear(vm);
-
-        // FIXME: Remove this.
-        printf("vm->staticAddressMask: " NK_PRINTF_UINT32 "\n", vm->staticAddressMask);
-
         memset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));

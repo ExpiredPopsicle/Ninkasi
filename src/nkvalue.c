@@ -88,6 +88,10 @@ nkbool nkiValueDump(
 
 const char *nkiValueTypeGetName(enum NKValueType type)
 {
+    // Note: Don't do any heap allocations starting here. It's called
+    // straight from some nkx functions without the error handler
+    // setup.
+
     switch(type) {
 
         case NK_VALUETYPE_INT:

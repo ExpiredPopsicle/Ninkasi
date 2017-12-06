@@ -281,9 +281,9 @@ void testVMFunc(struct NKVMFunctionCallbackData *data)
     data->returnValue.intData = 565656;
 
     if(data->argumentCount != 1) {
-        nkiAddError(
+        nkxAddError(
             data->vm,
-            -1, "Bad argument count in testVMFunc.");
+            "Bad argument count in testVMFunc.");
         return;
     }
 
@@ -365,7 +365,8 @@ void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
     printf("Seralize callback hit!\n");
 
     // TODO: Make this standard, or find a way to make sure
-    // serialization callbacks aren't called by a normal program.
+    // serialization callbacks aren't called by a normal program. This
+    // is important for sandboxing!
     if(!data->vm->serializationState.writer) {
         return;
     }
