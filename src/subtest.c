@@ -43,14 +43,15 @@ void subsystemTest_debugOnly_exitCheck(void)
 
 void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
 {
-    struct SubsystemTest_InternalData *internalData =
-        nkxGetExternalSubsystemDataOrError(data->vm, "subsystemTest");
+    struct SubsystemTest_InternalData *internalData;
 
-    if(!nkxFunctionCallbackCheckArguments(data, "subsystemTest_widgetCreate", 0)) {
-        return;
-    }
+    nkxFunctionCallbackCheckArguments(
+        data, "subsystemTest_widgetCreate", 0);
 
-    if(!internalData) {
+    internalData = nkxGetExternalSubsystemDataOrError(
+        data->vm, "subsystemTest");
+
+    if(nkxVmHasErrors(data->vm)) {
         return;
     }
 
@@ -94,26 +95,24 @@ void subsystemTest_widgetSetData(struct NKVMFunctionCallbackData *data)
 
 void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
 {
-    struct SubsystemTest_InternalData *internalData =
-        nkxGetExternalSubsystemData(data->vm, "subsystemTest");
-    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetGetData")) return;
-    if(!internalData) {
-        nkxAddError(data->vm, "subsystemTest data not registered.");
+    struct SubsystemTest_InternalData *internalData;
+    struct SubsystemTest_WidgetData *widgetData;
+
+    nkxFunctionCallbackCheckArguments(
+        data, "subsystemTest_widgetGetData", 1,
+        NK_VALUETYPE_OBJECTID);
+
+    internalData = nkxGetExternalSubsystemDataOrError(data->vm, "subsystemTest");
+
+    widgetData = nkxFunctionCallbackGetExternalDataArgument(
+        data, "subsystemTest_widgetGetData", 0, internalData->widgetTypeId);
+
+    if(nkxVmHasErrors(data->vm)) {
+        return;
     }
 
-    if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetGetData.");
-    }
-
-    if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
-        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetGetData.");
-    }
-
-    {
-        struct SubsystemTest_WidgetData *widgetData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
-        if(widgetData) {
-            nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
-        }
+    if(widgetData) {
+        nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
     }
 }
 

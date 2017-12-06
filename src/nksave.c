@@ -862,9 +862,11 @@ nkbool nkiSerializeGlobalsList(
             vm, sizeof(vm->globalVariables[0]),
             globalVariableCount);
 
-        // FIXME: Check for overflow.
+        // We don't need to check for overflow here, because
+        // nkiMallocArray would have longjmp'd away by now if there
+        // was one.
         memset(vm->globalVariables, 0,
-            sizeof(vm->globalVariables[0]) * vm->globalVariableCount);
+            sizeof(vm->globalVariables[0]) * globalVariableCount);
 
         vm->globalVariableCount = globalVariableCount;
     }

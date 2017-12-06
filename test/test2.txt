@@ -514,7 +514,6 @@ print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 
 
 subsystemTest_printTestString();
-print("Widget test 2: ", subsystemTest_widgetGetData(123), "\n");
 print("Widget test 3: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
 
 
