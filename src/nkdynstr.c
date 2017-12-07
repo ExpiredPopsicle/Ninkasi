@@ -81,6 +81,16 @@ void nkiDynStrAppendInt32(struct NKDynString *dynStr, nkint32_t value)
     nkiDynStrAppend(dynStr, tmp);
 }
 
+void nkiDynStrAppendUint32(struct NKDynString *dynStr, nkuint32_t value)
+{
+    // +1 for terminator, +1 for '-'.
+    char tmp[NK_PRINTF_UINTCHARSNEED + 1];
+    sprintf(tmp,
+        NK_PRINTF_UINT32,
+        value);
+    nkiDynStrAppend(dynStr, tmp);
+}
+
 void nkiDynStrAppendFloat(struct NKDynString *dynStr, float value)
 {
     // +1 for terminator, +1 for '-', +1 for '.'.
