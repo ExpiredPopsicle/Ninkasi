@@ -740,10 +740,13 @@ void *nkxGetExternalSubsystemDataOrError(
     void *ret = nkxGetExternalSubsystemData(vm, name);
 
     if(!ret) {
+
+        struct NKDynString *dynStr = NULL;
+
         NK_FAILURE_RECOVERY_DECL();
         NK_SET_FAILURE_RECOVERY(NULL);
 
-        struct NKDynString *dynStr = nkiDynStrCreate(
+        dynStr = nkiDynStrCreate(
             vm, "Could not find subsystem data: ");
         nkiDynStrAppend(dynStr, name);
         nkiAddError(
