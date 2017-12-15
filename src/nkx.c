@@ -828,4 +828,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
     return ret;
 }
 
-
+nkbool nkxSerializerGetWriteMode(struct NKVM *vm)
+{
+    return vm->serializationState.writeMode;
+}

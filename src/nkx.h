@@ -432,6 +432,11 @@ nkbool nkxVmSerialize(
 /// the tables.
 void nkxVmShrink(struct NKVM *vm);
 
+/// Returns nktrue if the VM is currenty writing data out, and nkfalse
+/// if the VM is currently reading data in. Used within serialization
+/// callbacks.
+nkbool nkxSerializerGetWriteMode(struct NKVM *vm);
+
 // ----------------------------------------------------------------------
 // Public-facing error stuff
 

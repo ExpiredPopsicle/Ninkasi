@@ -118,9 +118,6 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
 
 void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
 {
-    // printf("subsystemTest: Widget serialization callback hit. Mode: %s\n",
-    //     data->vm->serializationState.writeMode ? "write" : "read");
-
     struct SubsystemTest_InternalData *internalData =
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
     if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) return;
@@ -270,7 +267,7 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
             data->vm->serializationState.userdata,
             data->vm->serializationState.writeMode);
 
-        if(!data->vm->serializationState.writeMode) {
+        if(!nkxSerializerGetWriteMode(data->vm)) {
             if(internalData->testString) {
                 free(internalData->testString);
             }
