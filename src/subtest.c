@@ -10,6 +10,15 @@
 #include <string.h>
 #include <stdio.h>
 
+// TODO: Move this.
+nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
+{
+    return vm->serializationState.writer(
+        data, size,
+        vm->serializationState.userdata,
+        vm->serializationState.writeMode);
+}
+
 struct SubsystemTest_InternalData
 {
     NKVMExternalDataTypeID widgetTypeId;
@@ -145,10 +154,7 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
             nkxVmObjectSetExternalData(data->vm, &data->arguments[0], widgetData);
         }
 
-        data->vm->serializationState.writer(
-            widgetData, sizeof(*widgetData),
-            data->vm->serializationState.userdata,
-            data->vm->serializationState.writeMode);
+        nkxSerializeData(data->vm, widgetData, sizeof(*widgetData));
     }
 }
 
@@ -269,10 +275,7 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
     if(internalData) {
 
         nkuint32_t len = internalData->testString ? strlen(internalData->testString) : 0;
-        data->vm->serializationState.writer(
-            &len, sizeof(len),
-            data->vm->serializationState.userdata,
-            data->vm->serializationState.writeMode);
+        nkxSerializeData(data->vm, &len, sizeof(len));
 
         if(!nkxSerializerGetWriteMode(data->vm)) {
             if(internalData->testString) {
@@ -289,10 +292,7 @@ void subsystemTest_serialize(struct NKVMFunctionCallbackData *data)
         }
 
         if(internalData->testString) {
-            data->vm->serializationState.writer(
-                internalData->testString, len,
-                data->vm->serializationState.userdata,
-                data->vm->serializationState.writeMode);
+            nkxSerializeData(data->vm, internalData->testString, len);
             internalData->testString[len] = 0;
         }
     }
