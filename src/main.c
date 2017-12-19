@@ -629,6 +629,9 @@ struct NKVM *testSerializer(struct NKVM *vm)
 
 #define ERROR_CODE 0
 
+// FIXME: Remove this!
+extern nkuint32_t nkiMemFailRate;
+
 int main(int argc, char *argv[])
 {
     struct Settings settings;
@@ -671,6 +674,23 @@ int main(int argc, char *argv[])
         // NKVM binary blobs start with \0.
         if(script && script[0] != 0) {
 
+            // First, scan for some directives...
+            {
+                nkuint32_t lineCount = 0;
+                char **lines = splitLines(script, &lineCount);
+                nkuint32_t i;
+                for(i = 0; i < lineCount; i++) {
+                    const char *memFailPct = "// #failrate: ";
+                    if(strlen(lines[i]) >= strlen(memFailPct)) {
+                        if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
+                            nkiMemFailRate = atoi(lines[i] + strlen(memFailPct));
+                        }
+                    }
+                }
+                free(lines[0]);
+                free(lines);
+            }
+
             // Load and compile a script.
 
             struct NKCompilerState *cs = nkxCompilerCreate(vm);
@@ -684,7 +704,8 @@ int main(int argc, char *argv[])
             } else {
 
                 fprintf(stderr, "Can't create compiler state. Out of memory?\n");
-
+                free(script);
+                nkxVmDelete(vm);
                 return ERROR_CODE;
             }
 

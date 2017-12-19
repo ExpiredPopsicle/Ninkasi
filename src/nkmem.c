@@ -62,10 +62,24 @@ static void nkiMemAppendHeapString(char **base, const char *appender)
 }
 #endif
 
+// FIXME: Remove these!
+nkuint32_t nkiMemFailRate = 0;
+nkuint32_t nkiNumAllocs = 0;
+
 void *nkiMalloc_real(
     const char *filename, const char *function,
     int lineNumber, struct NKVM *vm, nkuint32_t size)
 {
+    // FIXME: Remove this!
+    if(nkiMemFailRate) {
+        nkiNumAllocs++;
+        if(nkiNumAllocs >= nkiMemFailRate) {
+            nkiNumAllocs = 0;
+            NK_CATASTROPHE();
+            return NULL;
+        }
+    }
+
     // This MUST be set if we ever have even a chance of reaching this
     // function!
     assert(vm->catastrophicFailureJmpBuf);

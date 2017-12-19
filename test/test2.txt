@@ -1,4 +1,4 @@
-
+// #failrate: 10000
 
 subsystemTest_setTestString("Dickbutt");
 var subsystemTestObject = subsystemTest_widgetCreate();

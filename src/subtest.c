@@ -59,6 +59,8 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
         struct SubsystemTest_WidgetData *newData = malloc(sizeof(struct SubsystemTest_WidgetData));
         newData->data = 5678;
 
+        subsystemTest_debugOnly_dataCount++;
+
         nkxCreateObject(data->vm, &data->returnValue);
         nkxVmObjectSetExternalType(
             data->vm, &data->returnValue, internalData->widgetTypeId);
@@ -138,6 +140,7 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
 
         if(!widgetData) {
             widgetData = malloc(sizeof(*widgetData));
+            subsystemTest_debugOnly_dataCount++;
             widgetData->data = 0;
             nkxVmObjectSetExternalData(data->vm, &data->arguments[0], widgetData);
         }
@@ -174,6 +177,10 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
     {
         struct SubsystemTest_WidgetData *widgetData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
         free(widgetData);
+        if(widgetData) {
+            assert(subsystemTest_debugOnly_dataCount);
+            subsystemTest_debugOnly_dataCount--;
+        }
         nkxVmObjectSetExternalData(data->vm, &data->arguments[0], NULL);
     }
 }
