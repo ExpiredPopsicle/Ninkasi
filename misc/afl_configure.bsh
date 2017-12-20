@@ -1,0 +1,1 @@
+CC=afl-gcc CFLAGS="-rdynamic -O0" LDFLAGS="-rdynamic -O0" ./configure
