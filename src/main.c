@@ -57,6 +57,9 @@
 
 #include "subtest.h"
 
+// FIXME: Remove this.
+extern nkuint32_t nkiVmCount;
+
 // ----------------------------------------------------------------------
 
 struct WriterTestBuffer
@@ -484,7 +487,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
-    settings->maxMemory = NK_UINT_MAX;
+    settings->maxMemory = 65536 * 256; //NK_UINT_MAX;
 
     for(i = 1; i < argc; i++) {
 
@@ -581,7 +584,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
 {
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
-    // printf("Testing serializer...\n");
+
+    printf("Testing serializer...\n");
 
     {
         nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
@@ -603,12 +607,18 @@ struct NKVM *testSerializer(struct NKVM *vm)
 
         initInternalFunctions(newVm, NULL);
 
-        // printf("Deserializing...\n");
+        printf("Deserializing...\n");
         {
             nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
             if(!b) {
+
+                // FIXME: Remove this.
+                //newVm->errorState.allocationFailure = nktrue;
+
                 printf("Deserialization of previously serialized VM state failed.\n");
                 // assert(b);
+
+                printf("Deleting new VM...\n");
                 nkxVmDelete(newVm);
                 newVm = NULL;
             }
@@ -619,6 +629,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
             // nkxDbgDumpState(newVm, stdout);
             // fclose(out2);
         }
+
+        printf("Deleting old VM...\n");
 
         nkxVmDelete(vm);
         vm = newVm;

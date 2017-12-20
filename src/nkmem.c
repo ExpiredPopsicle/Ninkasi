@@ -66,6 +66,17 @@ static void nkiMemAppendHeapString(char **base, const char *appender)
 nkuint32_t nkiMemFailRate = 0;
 nkuint32_t nkiNumAllocs = 0;
 
+nkuint32_t nkiMemGetAllocCount(struct NKVM *vm)
+{
+    nkuint32_t i = 0;
+    struct NKMemoryHeader *header = vm->allocations;
+    while(header) {
+        i++;
+        header = header->nextAllocation;
+    }
+    return i;
+}
+
 void *nkiMalloc_real(
     const char *filename, const char *function,
     int lineNumber, struct NKVM *vm, nkuint32_t size)
@@ -76,6 +87,7 @@ void *nkiMalloc_real(
         if(nkiNumAllocs >= nkiMemFailRate) {
             nkiNumAllocs = 0;
             NK_CATASTROPHE();
+            assert(0);
             return NULL;
         }
     }
@@ -113,7 +125,13 @@ void *nkiMalloc_real(
             newChunkSize,
             vm->mallocAndFreeReplacementUserData);
 
+        // FIXME: Remove this.
+        // printf("MALLOC: %p " NK_PRINTF_UINT32 "\n", header+1, nkiMemGetAllocCount(vm));
+
         if(header) {
+
+            // FIXME: Remove this.
+            vm->allocationCount++;
 
             header->size = size;
             header->vm = vm;
@@ -155,8 +173,11 @@ void *nkiMalloc_real(
                 }
 
                 header->stackTrace = stackText;
+                free(symbols);
             }
 #endif
+            // FIXME: Remove this.
+            assert(vm->allocationCount == nkiMemGetAllocCount(vm));
 
             return header + 1;
 
@@ -171,15 +192,26 @@ void *nkiMalloc_real(
         }
     }
 
+    // FIXME: Remove this.
+    assert(vm->allocationCount == nkiMemGetAllocCount(vm));
+
     // Zero-size allocation.
     return NULL;
 }
 
 void nkiFree(struct NKVM *vm, void *data)
 {
+    // // FIXME: Remove this.
+    // if(data) {
+    //     printf("FREE: %p " NK_PRINTF_UINT32 "\n", data, nkiMemGetAllocCount(vm));
+    // }
+
     if(data) {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
         vm->currentMemoryUsage -= header->size + sizeof(struct NKMemoryHeader);
+
+        // FIXME: Remove this.
+        vm->allocationCount--;
 
         // Snip us out of the allocations list.
         if(header->nextAllocation) {
@@ -194,6 +226,9 @@ void nkiFree(struct NKVM *vm, void *data)
 
         vm->freeReplacement(header, vm->mallocAndFreeReplacementUserData);
     }
+
+    // FIXME: Remove this.
+    assert(vm->allocationCount == nkiMemGetAllocCount(vm));
 }
 
 void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)

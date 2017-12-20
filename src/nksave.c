@@ -302,6 +302,10 @@ nkbool nkiSerializeObjectTable(
         // Reallocate the object table if we're reading.
         nkiFree(vm, vm->objectTable.objectTable);
         vm->objectTable.objectTable = NULL;
+
+        // FIXME: Remove this.
+        printf("ASDFASDFASDF " NK_PRINTF_UINT32 "\n", capacity);
+
         vm->objectTable.objectTable =
             nkiMallocArray(vm, sizeof(struct NKVMObject *), capacity);
         memset(
@@ -492,6 +496,9 @@ nkbool nkiSerializeStringTable(
                     // Allocate new string entry.
                     vm->stringTable.stringTable[index] =
                         nkiMalloc(vm, size);
+
+                    // FIXME: Remove this.
+                    printf("String allocated for deserialization: " NK_PRINTF_UINT32 ": %p\n", index, vm->stringTable.stringTable[index]);
 
                     // Clear it out.
                     memset(vm->stringTable.stringTable[index], 0, size);
@@ -791,14 +798,21 @@ nkbool nkiSerializeFunctionTable(
     }
 
     // Internal function table time.
+    {
+        nkuint32_t tmpFunctionCount = vm->functionCount;
+        NKI_SERIALIZE_BASIC(nkuint32_t, tmpFunctionCount);
 
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->functionCount);
-
-    // Reallocate internal function table for read mode.
-    if(!writeMode) {
-        nkiFree(vm, vm->functionTable);
-        vm->functionTable = nkiMallocArray(vm, sizeof(struct NKVMFunction), vm->functionCount);
-        memset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
+        // Reallocate internal function table for read mode.
+        if(!writeMode) {
+            struct NKVMFunction *newTable =
+                nkiMallocArray(vm,
+                    sizeof(struct NKVMFunction), tmpFunctionCount);
+            assert(newTable);
+            nkiFree(vm, vm->functionTable);
+            vm->functionTable = newTable;
+            vm->functionCount = tmpFunctionCount;
+            memset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
+        }
     }
 
     for(i = 0; i < vm->functionCount; i++) {

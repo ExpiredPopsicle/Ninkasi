@@ -55,7 +55,7 @@
 #ifndef NINKASI_MEM_H
 #define NINKASI_MEM_H
 
-#define NK_EXTRA_FANCY_LEAK_TRACKING_LINUX 0
+#define NK_EXTRA_FANCY_LEAK_TRACKING_LINUX 1
 
 struct NKMemoryHeader
 {

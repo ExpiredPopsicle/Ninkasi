@@ -153,6 +153,9 @@ const char *nkiVmGetOpcodeName(enum NKOpcode op)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
+// FIXME: Remove this.
+nkuint32_t nkiVmCount = 0;
+
 void nkiVmInit(struct NKVM *vm)
 {
     // NOTE: By the time this function is called, the
@@ -163,6 +166,9 @@ void nkiVmInit(struct NKVM *vm)
     vm->currentMemoryUsage = 0;
     vm->peakMemoryUsage = 0;
     vm->allocations = NULL;
+
+    // FIXME: Remove this.
+    vm->allocationCount = 0;
 
     vm->limits.maxStackSize = NK_UINT_MAX;
     vm->limits.maxFieldsPerObject = NK_UINT_MAX;
@@ -210,10 +216,17 @@ void nkiVmInit(struct NKVM *vm)
     vm->externalTypeCount = 0;
 
     memset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
+
+    // FIXME: Remove this.
+    nkiVmCount++;
 }
 
 void nkiVmDestroy(struct NKVM *vm)
 {
+    // FIXME: Remove this.
+    static nkuint32_t destroyCount = 0;
+    printf("nkiVmDestroy: " NK_PRINTF_UINT32 "\n", destroyCount++);
+
     if(vm->errorState.allocationFailure) {
 
         // Catastrophic failure cleanup mode. Do not trust most
@@ -241,9 +254,16 @@ void nkiVmDestroy(struct NKVM *vm)
         // Now just free every allocation we've made.
         while(vm->allocations) {
             struct NKMemoryHeader *next = vm->allocations->nextAllocation;
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+            free(vm->allocations->stackTrace);
+#endif
             free(vm->allocations);
             vm->allocations = next;
         }
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+        nkiDumpLeakData(vm);
+#endif
 
     } else {
 
@@ -332,6 +352,12 @@ void nkiVmDestroy(struct NKVM *vm)
 
         NK_CLEAR_FAILURE_RECOVERY();
     }
+
+    assert(!vm->allocations);
+
+    // FIXME: Remove this.
+    nkiVmCount--;
+    printf("Remaining VMs: " NK_PRINTF_UINT32 "\n", nkiVmCount);
 }
 
 // ----------------------------------------------------------------------

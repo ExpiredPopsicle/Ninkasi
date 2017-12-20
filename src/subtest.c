@@ -101,7 +101,7 @@ void subsystemTest_freeWrapper(void *data)
 void subsystemTest_debugOnly_exitCheck(void)
 {
     struct SubsystemTest_MallocHeader *header = subsystemTest_allocationList;
-    printf("First header: %p\n", header);
+
     while(header) {
         printf("Block still allocated: %p: %s\n", header + 1, header->description);
         header = header->nextBlock;
@@ -264,8 +264,8 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
     }
 
 
-    // FIXME: Remove this.
-    assert(!data->vm->errorState.allocationFailure);
+    // // FIXME: Remove this.
+    // assert(!data->vm->errorState.allocationFailure);
 }
 
 // ----------------------------------------------------------------------
@@ -330,16 +330,18 @@ void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
         // system.
         {
             nkuint32_t i;
-            for(i = 0; i < data->vm->objectTable.capacity; i++) {
-                struct NKVMObject *ob = data->vm->objectTable.objectTable[i];
-                if(ob && ob->externalDataType.id == internalData->widgetTypeId.id) {
-                    if(ob->externalData) {
-                        subsystemTest_freeWrapper(ob->externalData);
+            if(data->vm->objectTable.objectTable) {
+                for(i = 0; i < data->vm->objectTable.capacity; i++) {
+                    struct NKVMObject *ob = data->vm->objectTable.objectTable[i];
+                    if(ob && ob->externalDataType.id == internalData->widgetTypeId.id) {
+                        if(ob->externalData) {
+                            subsystemTest_freeWrapper(ob->externalData);
 
-                        printf("Free widgetData: %p\n", ob->externalData);
+                            printf("Free widgetData: %p\n", ob->externalData);
 
-                        ob->externalData = NULL;
-                        ob->externalDataType.id = NK_INVALID_VALUE;
+                            ob->externalData = NULL;
+                            ob->externalDataType.id = NK_INVALID_VALUE;
+                        }
                     }
                 }
             }
@@ -408,11 +410,25 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 
     printf("subsystemTest: Initializing on VM: %p\n", vm);
 
-    // Internal data might already exist, because this function gets
-    // called multiple times (once for setup that applies to
-    // everything (both compiled and deserialized), and once for setup
-    // that applies to the compiler.
-    if(!nkxGetExternalSubsystemData(vm, "subsystemTest")) {
+    internalData = nkxGetExternalSubsystemData(vm, "subsystemTest");
+
+    if(nkxVmHasErrors(vm)) {
+        return;
+    }
+
+    // Two most important things for cleanup purposes. Set these up
+    // before anything. DO NOT set up the subsystemTest internalData,
+    // unless these calls succeed, or it will be unable to deallocate
+    // the internal data, and this system will be unable to remove the
+    // dangling pointer from the system.
+    //
+    // TL;DR: Always setup cleanup functions before setting up data
+    // that may need to be cleaned up.
+    nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
+    nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
+
+    if(!internalData) {
+
         internalData = subsystemTest_mallocWrapper(
             sizeof(struct SubsystemTest_InternalData),
             "subsystemTest_initLibrary");
@@ -421,16 +437,17 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         internalData->testString = NULL;
         nkxSetExternalSubsystemData(vm, "subsystemTest", internalData);
 
+        atexit(subsystemTest_debugOnly_exitCheck);
+
         if(nkxVmHasErrors(vm)) {
             nkxSetExternalSubsystemData(vm, "subsystemTest", NULL);
             subsystemTest_freeWrapper(internalData);
+            internalData = NULL;
+            return;
         }
 
-        atexit(subsystemTest_debugOnly_exitCheck);
-    }
 
-    internalData = nkxGetExternalSubsystemData(vm, "subsystemTest");
-    if(!internalData) return;
+    }
 
     nkxVmRegisterExternalFunction(vm, "subsystemTest_setTestString", subsystemTest_setTestString);
     nkxVmRegisterExternalFunction(vm, "subsystemTest_getTestString", subsystemTest_getTestString);
@@ -459,8 +476,19 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         // nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetGCData", subsystemTest_widgetGCData);
     }
 
-    nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
-    nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
+    // // Internal data might already exist, because this function gets
+    // // called multiple times (once for setup that applies to
+    // // everything (both compiled and deserialized), and once for setup
+    // // that applies to the compiler.
+    // if(!nkxGetExternalSubsystemData(vm, "subsystemTest")) {
+    // }
+
+    // // If we had any error setting up the cleanup callback, then we
+    // // need to clean up the internalData NOW.
+    // if(nkxVmHasErrors(vm)) {
+    //     nkxSetExternalSubsystemData(vm, "subsystemTest", NULL);
+    //     subsystemTest_freeWrapper(internalData);
+    // }
 }
 
 

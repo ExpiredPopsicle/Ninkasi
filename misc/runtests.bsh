@@ -16,12 +16,12 @@ function addTerm()
 
     xterm \
         -geom "80x25+${XPOS}+${YPOS}" \
-        -e afl-fuzz \
+        -e "afl-fuzz \
         -t 1000 \
         -i afl_in \
         -o afl_out \
         -"${AFLTYPE}" "afl-${TERMCOUNTER}" \
-        src/ninkasi_test - &
+        src/ninkasi_test - ; sleep 10"&
 
     TERMCOUNTER=$(expr "${TERMCOUNTER}" + 1)
 }

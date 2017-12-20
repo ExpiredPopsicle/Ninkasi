@@ -164,6 +164,9 @@ struct NKVM
     nkuint32_t peakMemoryUsage;
 
     struct NKMemoryHeader *allocations;
+    // FIXME: Remove this.
+    nkuint32_t allocationCount;
+
     void *(*mallocReplacement)(nkuint32_t size, void *userData);
     void (*freeReplacement)(void *ptr, void *userData);
     void *mallocAndFreeReplacementUserData;
