@@ -456,6 +456,11 @@ void printHelp(nkbool isError)
 
 nkbool checkErrors(struct NKVM *vm)
 {
+    if(!vm) {
+        fprintf(stderr, "Error: VM has gone missing.\n");
+        return nktrue;
+    }
+
     if(nkxVmHasErrors(vm)) {
 
         nkuint32_t errorBufLen = nkxGetErrorLength(vm);
@@ -581,7 +586,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
     {
         nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
         if(!c) {
-            printf("Error occurred during serialization.\n");
+            printf("Error occurred during serialization. 2\n");
+            nkxVmDelete(vm);
             return NULL;
         }
     }
@@ -837,17 +843,26 @@ int main(int argc, char *argv[])
                             nkxVmShrink(vm);
                         }
 
+
+
+                        // Test the serializer at weird intervals.
                         if(counter % 1100 == 0) {
                             nkxVmGarbageCollect(vm);
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
                             vm = testSerializer(vm);
                             if(!vm || checkErrors(vm)) {
-                                free(script);
-                                nkxVmDelete(vm);
-                                return ERROR_CODE;
+                                // free(script);
+                                // printf("Cleaning up VM...\n");
+                                // nkxVmDelete(vm);
+                                // printf("VM cleanup done.\n");
+                                // return ERROR_CODE;
+                                printf("testSerializer failed\n");
+                                break;
                             }
                         }
+
+
 
                         counter++;
 
@@ -913,7 +928,7 @@ int main(int argc, char *argv[])
                         // }
                     }
 
-                    {
+                    if(vm) {
                         struct NKValue *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
                         if(v) {
                             printf("Value found: %s\n", nkxValueToString(vm, v));
@@ -990,7 +1005,9 @@ int main(int argc, char *argv[])
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
                 if(!c) {
-                    printf("Error occurred during serialization.\n");
+                    printf("Error occurred during serialization. 1\n");
+                    free(script);
+                    nkxVmDelete(vm);
                     return ERROR_CODE;
                 }
             }

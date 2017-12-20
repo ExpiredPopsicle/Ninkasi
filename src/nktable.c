@@ -208,7 +208,12 @@ nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entr
         // space because that's where our new entry will be going. Add
         // holes back-to-front so we end up with holes roughly in
         // order, and will mostly allocate from the front of memory.
-        for(i = newCapacity - 1; i >= oldCapacity + 1; i--) {
+        //
+        // Note: Our new object is going to go into the slot at
+        // oldCapacity, but we're filling it with NULL here because
+        // the hole creation could fail and leave us with a dangling
+        // pointer.
+        for(i = newCapacity - 1; i >= oldCapacity; i--) {
             table->data[i] = NULL;
         }
 

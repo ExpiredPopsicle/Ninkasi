@@ -1,5 +1,9 @@
+// #failrate: 10000
 
-
+subsystemTest_setTestString("Dickbutt");
+var subsystemTestObject = subsystemTest_widgetCreate();
+subsystemTest_widgetSetData(subsystemTestObject, 12345);
+print("Widget test 1: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
 
 for(var x = 0; x < 10; ++x) {
     var c = newobject;
@@ -366,7 +370,7 @@ function anotherObTest()
 var butts = newobject;
 butts["asdf"] = anotherObTest;
 butts["asdf"]();
-for(i = 0; i < 2000; ++i) {
+for(i = 0; i < 200; ++i) {
     // print("GC abuse iteration: ");
     // print(i);
     // print("\n");
@@ -507,5 +511,12 @@ function selfRecursionTest(x, y)
 }
 
 print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
+
+
+subsystemTest_printTestString();
+print("Widget test 3: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
+// print("Widget test 4: ", subsystemTest_widgetGetData(1234), "\n");
+
+
 
 
