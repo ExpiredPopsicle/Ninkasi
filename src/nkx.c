@@ -59,6 +59,8 @@ struct NKVM *nkxVmCreateEx(
 {
     NK_FAILURE_RECOVERY_DECL();
 
+    printf("--- VM setup start ---\n");
+
     struct NKVM *vm = params->mallocReplacement(
         sizeof(struct NKVM),
         params->mallocAndFreeReplacementUserData);
@@ -76,6 +78,8 @@ struct NKVM *nkxVmCreateEx(
     nkiVmInit(vm);
 
     NK_CLEAR_FAILURE_RECOVERY();
+
+    printf("--- VM setup complete ---\n");
 
     return vm;
 }

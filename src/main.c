@@ -625,25 +625,21 @@ struct NKVM *testSerializer(struct NKVM *vm)
                 // assert(b);
 
                 printf("Deleting new VM...\n");
+                assert(nkiVmCount == 2);
                 nkxVmDelete(newVm);
+                assert(nkiVmCount == 1);
                 newVm = NULL;
             }
         }
 
-        {
-            // FILE *out2 = fopen("stest2.txt", "w+");
-            // nkxDbgDumpState(newVm, stdout);
-            // fclose(out2);
-        }
-
         printf("Deleting old VM...\n");
 
-        assert(nkiVmCount == 2);
+        // assert(nkiVmCount == 2);
 
         nkxVmDelete(vm);
 
         printf("VM COUNT: " NK_PRINTF_UINT32 "\n", nkiVmCount);
-        assert(nkiVmCount == 1);
+        // assert(nkiVmCount == 1);
 
         vm = newVm;
     }
@@ -652,7 +648,7 @@ struct NKVM *testSerializer(struct NKVM *vm)
 
     // printf("Testing serializer done.\n");
 
-    assert(nkiVmCount == 1);
+    // assert(nkiVmCount == 1);
 
     return vm;
 }
