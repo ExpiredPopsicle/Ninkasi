@@ -585,6 +585,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
 
+    assert(nkiVmCount == 1);
+
     printf("Testing serializer...\n");
 
     {
@@ -596,6 +598,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
         }
     }
 
+    assert(nkiVmCount == 1);
+
     {
         // FILE *out1 = fopen("stest1.txt", "w+");
         // nkxDbgDumpState(vm, stdout);
@@ -604,6 +608,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
 
     {
         struct NKVM *newVm = nkxVmCreate();
+
+        assert(nkiVmCount == 2);
 
         initInternalFunctions(newVm, NULL);
 
@@ -632,13 +638,21 @@ struct NKVM *testSerializer(struct NKVM *vm)
 
         printf("Deleting old VM...\n");
 
+        assert(nkiVmCount == 2);
+
         nkxVmDelete(vm);
+
+        printf("VM COUNT: " NK_PRINTF_UINT32 "\n", nkiVmCount);
+        assert(nkiVmCount == 1);
+
         vm = newVm;
     }
 
     free(buf.data);
 
     // printf("Testing serializer done.\n");
+
+    assert(nkiVmCount == 1);
 
     return vm;
 }
@@ -840,6 +854,8 @@ int main(int argc, char *argv[])
                     // nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
+                    assert(nkiVmCount == 1);
+
                     while(
                         vm->instructions[
                             vm->instructionPointer &
@@ -848,12 +864,18 @@ int main(int argc, char *argv[])
                             vm->instructionPointer &
                             vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
+                        assert(nkiVmCount == 1);
+
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
+
+                        assert(nkiVmCount == 1);
 
                         if(counter % 1024 == 0) {
                             nkxVmShrink(vm);
                         }
+
+                        assert(nkiVmCount == 1);
 
 
 
@@ -862,7 +884,9 @@ int main(int argc, char *argv[])
                             nkxVmGarbageCollect(vm);
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
+                            assert(nkiVmCount == 1);
                             vm = testSerializer(vm);
+                            assert(nkiVmCount == 1 || nkiVmCount == 0);
                             if(!vm || checkErrors(vm)) {
                                 // free(script);
                                 // printf("Cleaning up VM...\n");
@@ -872,9 +896,10 @@ int main(int argc, char *argv[])
                                 printf("testSerializer failed\n");
                                 break;
                             }
+                            assert(nkiVmCount == 1);
                         }
 
-
+                        assert(nkiVmCount == 1);
 
                         counter++;
 

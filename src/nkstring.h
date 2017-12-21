@@ -80,11 +80,17 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str);
 
+// VM teardown function. Does not create holes. Use only during VM
+// destruction.
+void nkiVmStringTableCleanAllStrings(
+    struct NKVM *vm);
+
 void nkiVmStringTableCleanOldStrings(
     struct NKVM *vm,
     nkuint32_t lastGCPass);
 
 nkuint32_t nkiStringHash(const char *in);
+
 
 #endif // NINKASI_VMSTRING_H
 

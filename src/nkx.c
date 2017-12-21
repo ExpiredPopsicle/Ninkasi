@@ -93,8 +93,9 @@ void nkxVmDelete(struct NKVM *vm)
 {
     if(vm) {
         nkiVmDestroy(vm);
+        vm->freeReplacement(
+            vm, vm->mallocAndFreeReplacementUserData);
     }
-    free(vm);
 }
 
 nkbool nkxVmExecuteProgram(struct NKVM *vm)

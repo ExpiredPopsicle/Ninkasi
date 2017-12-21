@@ -148,4 +148,8 @@ void *nkiVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 
+// VM-teardown function. Does not create table holes.
+void nkiVmObjectTableCleanAllObjects(
+    struct NKVM *vm);
+
 #endif // NINKASI_OBJECTS_H

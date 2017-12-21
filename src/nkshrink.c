@@ -148,6 +148,8 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
     }
 }
 
+extern nkuint32_t nkiVmCount;
+
 void nkiVmShrink(struct NKVM *vm)
 {
     nkuint32_t emptyHoleSearch = 0;
@@ -236,5 +238,4 @@ void nkiVmShrink(struct NKVM *vm)
             vm->stack.indexMask = vm->stack.capacity - 1;
         }
     }
-
 }

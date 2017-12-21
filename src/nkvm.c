@@ -227,13 +227,11 @@ void nkiVmDestroy(struct NKVM *vm)
     static nkuint32_t destroyCount = 0;
     printf("nkiVmDestroy: " NK_PRINTF_UINT32 "\n", destroyCount++);
 
-    if(vm->errorState.allocationFailure) {
+    printf("nkiVmDestroy: a\n");
 
-        // Catastrophic failure cleanup mode. Do not trust most
-        // internal pointers and use the allocation tracker directly.
-
-        // The external data table is still good. Make sure we run all
-        // of our cleanup functions.
+    // The external data table is still good, regardless of allocation
+    // failure status. Make sure we run all of our cleanup functions.
+    {
         nkuint32_t i;
         for(i = 0; i < nkiVmExternalSubsystemHashTableSize; i++) {
             while(vm->subsystemDataTable[i]) {
@@ -250,6 +248,16 @@ void nkiVmDestroy(struct NKVM *vm)
                 vm->subsystemDataTable[i] = next;
             }
         }
+    }
+
+    if(vm->errorState.allocationFailure) {
+
+        printf("nkiVmDestroy: b\n");
+
+        // Catastrophic failure cleanup mode. Do not trust most
+        // internal pointers and use the allocation tracker directly.
+
+        printf("nkiVmDestroy: c\n");
 
         // Now just free every allocation we've made.
         while(vm->allocations) {
@@ -265,7 +273,11 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiDumpLeakData(vm);
 #endif
 
+        printf("nkiVmDestroy: d\n");
+
     } else {
+
+        printf("nkiVmDestroy: e\n");
 
         // Standard cleanup mode.
 
@@ -273,30 +285,29 @@ void nkiVmDestroy(struct NKVM *vm)
 
         NK_SET_FAILURE_RECOVERY_VOID();
 
-        // Run all external subsystem data cleanup callbacks.
-        {
-            nkuint32_t n;
+        printf("nkiVmDestroy: f\n");
 
-            for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
+        // // Run all external subsystem data cleanup callbacks.
+        // {
+        //     nkuint32_t n;
+        //     for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
+        //         while(vm->subsystemDataTable[n]) {
+        //             struct NKVMExternalSubsystemData *next = vm->subsystemDataTable[n]->nextInHashTable;
+        //             if(vm->subsystemDataTable[n]->cleanupCallback) {
+        //                 struct NKVMFunctionCallbackData funcData;
+        //                 memset(&funcData, 0, sizeof(funcData));
+        //                 funcData.vm = vm;
+        //                 vm->subsystemDataTable[n]->cleanupCallback(&funcData);
+        //             }
+        //             nkiFree(vm, vm->subsystemDataTable[n]->name);
+        //             nkiFree(vm, vm->subsystemDataTable[n]);
+        //             vm->subsystemDataTable[n] = next;
+        //         }
+        //         vm->subsystemDataTable[n] = NULL;
+        //     }
+        // }
 
-                while(vm->subsystemDataTable[n]) {
-
-                    struct NKVMExternalSubsystemData *next = vm->subsystemDataTable[n]->nextInHashTable;
-
-                    if(vm->subsystemDataTable[n]->cleanupCallback) {
-                        struct NKVMFunctionCallbackData funcData;
-                        memset(&funcData, 0, sizeof(funcData));
-                        funcData.vm = vm;
-                        vm->subsystemDataTable[n]->cleanupCallback(&funcData);
-                    }
-
-                    nkiFree(vm, vm->subsystemDataTable[n]->name);
-                    nkiFree(vm, vm->subsystemDataTable[n]);
-                    vm->subsystemDataTable[n] = next;
-                }
-                vm->subsystemDataTable[n] = NULL;
-            }
-        }
+        printf("nkiVmDestroy: g\n");
 
         // Nuke the entire static address space and stack, then force
         // a final garbage collection pass before we start making the
@@ -306,7 +317,26 @@ void nkiVmDestroy(struct NKVM *vm)
         memset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));
-        nkiVmGarbageCollect(vm);
+
+        printf("nkiVmDestroy: g0\n");
+
+        // FIXME!!! VM cleanup is failing because some of these
+        // require allocations to run. We'll need to run GC callbacks
+        // directly for objects.
+
+        // nkiVmGarbageCollect(vm);
+        printf("nkiVmDestroy: g01\n");
+        // nkiVmStringTableCleanOldStrings(vm, 0);
+        // printf("nkiVmDestroy: g02\n");
+        // nkiVmStringTableCleanOldStrings(vm, 1);
+        nkiVmStringTableCleanAllStrings(vm);
+        printf("nkiVmDestroy: g03\n");
+        // nkiVmObjectTableCleanOldObjects(vm, 0);
+        nkiVmObjectTableCleanAllObjects(vm);
+        printf("nkiVmDestroy: g04\n");
+        // nkiVmObjectTableCleanOldObjects(vm, 1);
+
+        printf("nkiVmDestroy: g1\n");
 
         nkiVmStringTableDestroy(vm);
 
@@ -314,6 +344,8 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiErrorStateDestroy(vm);
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);
+
+        printf("nkiVmDestroy: h\n");
 
         // Free global variable records.
         {

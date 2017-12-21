@@ -125,6 +125,53 @@ nkuint32_t nkiVmObjectTableCreateObject(
     return newObject->objectTableIndex;
 }
 
+void nkiVmObjectTableCleanupObject(
+    struct NKVM *vm,
+    nkuint32_t objectTableIndex)
+{
+    struct NKVMTable *table = &vm->objectTable;
+    struct NKVMObject *ob = table->objectTable[objectTableIndex];
+
+    if(ob) {
+
+        // Run any external garbage collection callbacks.
+        if(ob->gcCallback.id != NK_INVALID_VALUE) {
+            if(ob->gcCallback.id < vm->functionCount) {
+                struct NKVMFunction *func = &vm->functionTable[ob->gcCallback.id];
+                if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                    if(func->externalFunctionId.id < vm->externalFunctionCount) {
+                        struct NKValue funcValue;
+                        struct NKValue argValue;
+                        memset(&funcValue, 0, sizeof(funcValue));
+                        funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                        funcValue.functionId = ob->gcCallback;
+                        memset(&argValue, 0, sizeof(argValue));
+                        argValue.type = NK_VALUETYPE_OBJECTID;
+                        argValue.objectId = objectTableIndex;
+                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+                    }
+                }
+            }
+        }
+
+        // Destroy the object itself.
+        nkiVmObjectDelete(vm, ob);
+    }
+
+}
+
+void nkiVmObjectTableCleanAllObjects(
+    struct NKVM *vm)
+{
+    struct NKVMTable *table = &vm->objectTable;
+    nkuint32_t i;
+
+    for(i = 0; i < table->capacity; i++) {
+        nkiVmObjectTableCleanupObject(vm, i);
+        table->objectTable[i] = NULL;
+    }
+}
+
 void nkiVmObjectTableCleanOldObjects(
     struct NKVM *vm,
     nkuint32_t lastGCPass)
@@ -140,27 +187,30 @@ void nkiVmObjectTableCleanOldObjects(
 
             if(lastGCPass != ob->lastGCPass) {
 
-                // Run any external garbage collection callbacks.
-                if(ob->gcCallback.id != NK_INVALID_VALUE) {
-                    if(ob->gcCallback.id < vm->functionCount) {
-                        struct NKVMFunction *func = &vm->functionTable[ob->gcCallback.id];
-                        if(func->externalFunctionId.id != NK_INVALID_VALUE) {
-                            if(func->externalFunctionId.id < vm->externalFunctionCount) {
-                                struct NKValue funcValue;
-                                struct NKValue argValue;
-                                memset(&funcValue, 0, sizeof(funcValue));
-                                funcValue.type = NK_VALUETYPE_FUNCTIONID;
-                                funcValue.functionId = ob->gcCallback;
-                                memset(&argValue, 0, sizeof(argValue));
-                                argValue.type = NK_VALUETYPE_OBJECTID;
-                                argValue.objectId = i;
-                                nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
-                            }
-                        }
-                    }
-                }
+                // // Run any external garbage collection callbacks.
+                // if(ob->gcCallback.id != NK_INVALID_VALUE) {
+                //     if(ob->gcCallback.id < vm->functionCount) {
+                //         struct NKVMFunction *func = &vm->functionTable[ob->gcCallback.id];
+                //         if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                //             if(func->externalFunctionId.id < vm->externalFunctionCount) {
+                //                 struct NKValue funcValue;
+                //                 struct NKValue argValue;
+                //                 memset(&funcValue, 0, sizeof(funcValue));
+                //                 funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                //                 funcValue.functionId = ob->gcCallback;
+                //                 memset(&argValue, 0, sizeof(argValue));
+                //                 argValue.type = NK_VALUETYPE_OBJECTID;
+                //                 argValue.objectId = i;
+                //                 nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+                //             }
+                //         }
+                //     }
+                // }
 
-                nkiVmObjectDelete(vm, ob);
+                // nkiVmObjectDelete(vm, ob);
+
+                nkiVmObjectTableCleanupObject(vm, i);
+
                 nkiTableEraseEntry(vm, table, i);
             }
         }
