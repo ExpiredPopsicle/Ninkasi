@@ -26,7 +26,7 @@ function addTerm()
     TERMCOUNTER=$(expr "${TERMCOUNTER}" + 1)
 }
 
-for i in $(seq 2 16); do
+for i in $(seq 2 24); do
 	echo $i
     addTerm
 done

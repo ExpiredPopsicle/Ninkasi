@@ -585,7 +585,7 @@ struct NKVM *testSerializer(struct NKVM *vm)
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
 
-    assert(nkiVmCount == 1);
+    // assert(nkiVmCount == 1);
 
     printf("Testing serializer...\n");
 
@@ -598,7 +598,7 @@ struct NKVM *testSerializer(struct NKVM *vm)
         }
     }
 
-    assert(nkiVmCount == 1);
+    // assert(nkiVmCount == 1);
 
     {
         // FILE *out1 = fopen("stest1.txt", "w+");
@@ -609,7 +609,7 @@ struct NKVM *testSerializer(struct NKVM *vm)
     {
         struct NKVM *newVm = nkxVmCreate();
 
-        assert(nkiVmCount == 2);
+        // assert(nkiVmCount == 2);
 
         initInternalFunctions(newVm, NULL);
 
@@ -625,9 +625,9 @@ struct NKVM *testSerializer(struct NKVM *vm)
                 // assert(b);
 
                 printf("Deleting new VM...\n");
-                assert(nkiVmCount == 2);
+                // assert(nkiVmCount == 2);
                 nkxVmDelete(newVm);
-                assert(nkiVmCount == 1);
+                // assert(nkiVmCount == 1);
                 newVm = NULL;
             }
         }
@@ -721,26 +721,28 @@ int main(int argc, char *argv[])
 
             // Load and compile a script.
 
-            struct NKCompilerState *cs = nkxCompilerCreate(vm);
+            {
+                struct NKCompilerState *cs = nkxCompilerCreate(vm);
 
-            if(cs) {
+                if(cs) {
 
-                initInternalFunctions(vm, cs);
-                nkxCompilerCompileScript(cs, script);
-                nkxCompilerFinalize(cs);
+                    initInternalFunctions(vm, cs);
+                    nkxCompilerCompileScript(cs, script);
+                    nkxCompilerFinalize(cs);
 
-            } else {
+                } else {
 
-                fprintf(stderr, "Can't create compiler state. Out of memory?\n");
-                free(script);
-                nkxVmDelete(vm);
-                return ERROR_CODE;
-            }
+                    fprintf(stderr, "Can't create compiler state. Out of memory?\n");
+                    free(script);
+                    nkxVmDelete(vm);
+                    return ERROR_CODE;
+                }
 
-            if(checkErrors(vm)) {
-                free(script);
-                nkxVmDelete(vm);
-                return ERROR_CODE;
+                if(checkErrors(vm)) {
+                    free(script);
+                    nkxVmDelete(vm);
+                    return ERROR_CODE;
+                }
             }
 
         } else {
@@ -850,7 +852,7 @@ int main(int argc, char *argv[])
                     // nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
-                    assert(nkiVmCount == 1);
+                    // assert(nkiVmCount == 1);
 
                     while(
                         vm->instructions[
@@ -860,18 +862,18 @@ int main(int argc, char *argv[])
                             vm->instructionPointer &
                             vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
-                        assert(nkiVmCount == 1);
+                        // assert(nkiVmCount == 1);
 
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
 
-                        assert(nkiVmCount == 1);
+                        // assert(nkiVmCount == 1);
 
                         if(counter % 1024 == 0) {
                             nkxVmShrink(vm);
                         }
 
-                        assert(nkiVmCount == 1);
+                        // assert(nkiVmCount == 1);
 
 
 
@@ -880,9 +882,9 @@ int main(int argc, char *argv[])
                             nkxVmGarbageCollect(vm);
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
-                            assert(nkiVmCount == 1);
+                            // assert(nkiVmCount == 1);
                             vm = testSerializer(vm);
-                            assert(nkiVmCount == 1 || nkiVmCount == 0);
+                            // assert(nkiVmCount == 1 || nkiVmCount == 0);
                             if(!vm || checkErrors(vm)) {
                                 // free(script);
                                 // printf("Cleaning up VM...\n");
@@ -892,10 +894,10 @@ int main(int argc, char *argv[])
                                 printf("testSerializer failed\n");
                                 break;
                             }
-                            assert(nkiVmCount == 1);
+                            // assert(nkiVmCount == 1);
                         }
 
-                        assert(nkiVmCount == 1);
+                        // assert(nkiVmCount == 1);
 
                         counter++;
 

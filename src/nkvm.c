@@ -273,11 +273,7 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiDumpLeakData(vm);
 #endif
 
-        printf("nkiVmDestroy: d\n");
-
     } else {
-
-        printf("nkiVmDestroy: e\n");
 
         // Standard cleanup mode.
 

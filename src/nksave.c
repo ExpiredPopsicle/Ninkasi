@@ -482,6 +482,7 @@ nkbool nkiSerializeStringTable(
                     nkuint32_t size = stringLen + structAndPaddingSize;
 
                     if(stringLen >= NK_UINT_MAX - structAndPaddingSize) {
+                        nkiFree(vm, tmpStr);
                         nkiAddError(vm, -1, "A string is longer than the addressable space to load it into.");
                         return nkfalse;
                     }
@@ -489,6 +490,7 @@ nkbool nkiSerializeStringTable(
                     // Thanks AFL! Bail out if the binary has two
                     // strings in the same slot.
                     if(vm->stringTable.stringTable[index]) {
+                        nkiFree(vm, tmpStr);
                         nkiAddError(vm, -1, "Two strings occupy the same slot in the string table.");
                         return nkfalse;
                     }
@@ -732,31 +734,15 @@ nkbool nkiSerializeGcState(
     return nktrue;
 }
 
-// Saves the external function table or match up existing external
-// functions to loaded external functions at read time, then load/save
-// internal functions that might reference them.
-nkbool nkiSerializeFunctionTable(
+// This is the inner part of the function table serialization. If this
+// fails we can still clean up functionIdMapping in the outer function.
+nkbool nkiSerializeFunctionTable_inner(
     struct NKVM *vm, NKVMSerializationWriter writer,
-    void *userdata, nkbool writeMode)
+    void *userdata, nkbool writeMode,
+    NKVMExternalFunctionID *functionIdMapping,
+    nkuint32_t tmpExternalFunctionCount)
 {
-    NKVMExternalFunctionID *functionIdMapping = NULL;
-    nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
     nkuint32_t i;
-
-    // Start with external functions.
-
-    NKI_SERIALIZE_BASIC(nkuint32_t, tmpExternalFunctionCount);
-
-    // Allocate space for a temporary table where we'll keep track of
-    // the mapping of the external function IDs in the serialized data
-    // to the ones we already have already in the VM.
-    if(!writeMode) {
-        functionIdMapping = nkiMallocArray(
-            vm, sizeof(NKVMInternalFunctionID), tmpExternalFunctionCount);
-        memset(
-            functionIdMapping, NK_INVALID_VALUE,
-            tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
-    }
 
     for(i = 0; i < tmpExternalFunctionCount; i++) {
 
@@ -807,7 +793,9 @@ nkbool nkiSerializeFunctionTable(
             struct NKVMFunction *newTable =
                 nkiMallocArray(vm,
                     sizeof(struct NKVMFunction), tmpFunctionCount);
-            assert(newTable);
+            if(!newTable) {
+                return nkfalse;
+            }
             nkiFree(vm, vm->functionTable);
             vm->functionTable = newTable;
             vm->functionCount = tmpFunctionCount;
@@ -844,11 +832,43 @@ nkbool nkiSerializeFunctionTable(
         }
     }
 
+    return nktrue;
+}
+
+// Saves the external function table or match up existing external
+// functions to loaded external functions at read time, then load/save
+// internal functions that might reference them.
+nkbool nkiSerializeFunctionTable(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    NKVMExternalFunctionID *functionIdMapping = NULL;
+    nkbool ret;
+    nkuint32_t tmpExternalFunctionCount = vm->externalFunctionCount;
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, tmpExternalFunctionCount);
+
+    // Allocate space for a temporary table where we'll keep track of
+    // the mapping of the external function IDs in the serialized data
+    // to the ones we already have already in the VM.
+    if(!writeMode) {
+        functionIdMapping = nkiMallocArray(
+            vm, sizeof(NKVMInternalFunctionID), tmpExternalFunctionCount);
+        memset(
+            functionIdMapping, NK_INVALID_VALUE,
+            tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
+    }
+
+    ret = nkiSerializeFunctionTable_inner(
+        vm, writer, userdata, writeMode,
+        functionIdMapping,
+        tmpExternalFunctionCount);
+
     if(!writeMode) {
         nkiFree(vm, functionIdMapping);
     }
 
-    return nktrue;
+    return ret;
 }
 
 nkbool nkiSerializeGlobalsList(
