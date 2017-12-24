@@ -78,8 +78,6 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
 
-        // printf("Reallocating stack\n");
-
         // TODO: Add an adjustable stack size limit.
         if(stack->capacity > 0xffff) {
 
@@ -123,27 +121,12 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
         memset(
             &stack->values[stack->size], 0,
             sizeof(struct NKValue) * (stack->capacity - stack->size));
-
-    // } else {
-
-    //     printf("NOT reallocating stack\n");
-
     }
 
     {
         struct NKValue *ret = &stack->values[stack->size];
-
-        // printf("ret:                            %p\n", ret);
-        // printf("stack->values:                  %p\n", stack->values);
-        // printf("stack->values[stack->capacity]: %p\n", &stack->values[stack->capacity]);
-        // printf("stack->capacity:                %u\n", stack->capacity);
-        // printf("size:                           %u\n", stack->size);
-
         assert(ret < stack->values + stack->capacity);
-
         stack->size++;
-
-        // assert(ret < stack->capacity);
         return ret;
     }
 }
@@ -219,17 +202,6 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
     }
 
     stack->size -= count;
-}
-
-void nkiVmStackDump(struct NKVM *vm)
-{
-    nkuint32_t i;
-    struct NKVMStack *stack = &vm->stack;
-    for(i = 0; i < stack->size; i++) {
-        printf("%3d: ", i);
-        nkiValueDump(vm, nkiVmStackPeek(vm, i));
-        printf("\n");
-    }
 }
 
 struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)

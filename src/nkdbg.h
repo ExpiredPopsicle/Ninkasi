@@ -54,18 +54,30 @@ int nkiDbgWriteLine(const char *fmt, ...);
 
 void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
 
-
 // FIXME: Move this into nkx.
 
 /// Dump the entire state of the VM. For comparison when testing
 /// serialized data.
 void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
+/// Verify that the holes in the string table match the entries that
+/// are actually NULL, but no more and no less.
 void nkiCheckStringTableHoles(struct NKVM *vm);
 
+/// Dump the contents of the string table to stdout for debugging.
 void nkiVmStringTableDump(struct NKVM *vm);
+
+/// Dump the contents of the object table to stdout for debugging.
 void nkiVmObjectTableDump(struct NKVM *vm);
+
+/// Dump the contents of the static area to stdout for debugging.
 void nkiVmStaticDump(struct NKVM *vm);
+
+/// Dump the contents of the stack to stdout for debugging.
+void nkiVmStackDump(struct NKVM *vm);
+
+/// Dump a value to stdout for debugging purposes.
+nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
 
 #endif // NINKASI_VMDBG_H
 

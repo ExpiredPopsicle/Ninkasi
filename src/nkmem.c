@@ -66,7 +66,8 @@ static void nkiMemAppendHeapString(char **base, const char *appender)
 nkuint32_t nkiMemFailRate = 0;
 nkuint32_t nkiNumAllocs = 0;
 
-nkuint32_t nkiMemGetAllocCount(struct NKVM *vm)
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+static nkuint32_t nkiMemGetAllocCount(struct NKVM *vm)
 {
     nkuint32_t i = 0;
     struct NKMemoryHeader *header = vm->allocations;
@@ -76,6 +77,7 @@ nkuint32_t nkiMemGetAllocCount(struct NKVM *vm)
     }
     return i;
 }
+#endif
 
 void *nkiMalloc_real(
     const char *filename, const char *function,
@@ -125,9 +127,6 @@ void *nkiMalloc_real(
             newChunkSize,
             vm->mallocAndFreeReplacementUserData);
 
-        // FIXME: Remove this.
-        // printf("MALLOC: %p " NK_PRINTF_UINT32 "\n", header+1, nkiMemGetAllocCount(vm));
-
         if(header) {
 
             // FIXME: Remove this.
@@ -176,8 +175,10 @@ void *nkiMalloc_real(
                 free(symbols);
             }
 #endif
-            // FIXME: Remove this.
+
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
             assert(vm->allocationCount == nkiMemGetAllocCount(vm));
+#endif
 
             return header + 1;
 
@@ -192,8 +193,9 @@ void *nkiMalloc_real(
         }
     }
 
-    // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
     assert(vm->allocationCount == nkiMemGetAllocCount(vm));
+#endif
 
     // Zero-size allocation.
     return NULL;
@@ -201,11 +203,6 @@ void *nkiMalloc_real(
 
 void nkiFree(struct NKVM *vm, void *data)
 {
-    // // FIXME: Remove this.
-    // if(data) {
-    //     printf("FREE: %p " NK_PRINTF_UINT32 "\n", data, nkiMemGetAllocCount(vm));
-    // }
-
     if(data) {
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
         vm->currentMemoryUsage -= header->size + sizeof(struct NKMemoryHeader);
@@ -223,12 +220,12 @@ void nkiFree(struct NKVM *vm, void *data)
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
         free(header->stackTrace);
 #endif
-
         vm->freeReplacement(header, vm->mallocAndFreeReplacementUserData);
     }
 
-    // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
     assert(vm->allocationCount == nkiMemGetAllocCount(vm));
+#endif
 }
 
 void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)

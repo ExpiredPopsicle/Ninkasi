@@ -153,16 +153,10 @@ void nkiTableShrink(struct NKVM *vm, struct NKVMTable *table)
 
     // Reallocate.
     if(newCapacity != table->capacity) {
-
-        // FIXME: Remove debug spam.
-        printf("SHRINK: Reducing table: " NK_PRINTF_UINT32 " to " NK_PRINTF_UINT32 "\n",
-            table->capacity, newCapacity);
-
         table->objectTable = nkiReallocArray(
             vm, table->objectTable,
             sizeof(struct NKVMObject *), newCapacity);
         table->capacity = newCapacity;
-
     }
 
     // Deal with the fact that our holes list is completely wrong.

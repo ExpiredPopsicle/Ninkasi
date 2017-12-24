@@ -84,9 +84,6 @@ struct NKValue
     };
 };
 
-/// Dump a value to stdout for debugging purposes.
-nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
-
 /// Get a string representation for a type.
 const char *nkiValueTypeGetName(enum NKValueType type);
 

@@ -303,9 +303,6 @@ nkbool nkiSerializeObjectTable(
         nkiFree(vm, vm->objectTable.objectTable);
         vm->objectTable.objectTable = NULL;
 
-        // FIXME: Remove this.
-        printf("ASDFASDFASDF " NK_PRINTF_UINT32 "\n", capacity);
-
         vm->objectTable.objectTable =
             nkiMallocArray(vm, sizeof(struct NKVMObject *), capacity);
         memset(
@@ -498,9 +495,6 @@ nkbool nkiSerializeStringTable(
                     // Allocate new string entry.
                     vm->stringTable.stringTable[index] =
                         nkiMalloc(vm, size);
-
-                    // FIXME: Remove this.
-                    printf("String allocated for deserialization: " NK_PRINTF_UINT32 ": %p\n", index, vm->stringTable.stringTable[index]);
 
                     // Clear it out.
                     memset(vm->stringTable.stringTable[index], 0, size);

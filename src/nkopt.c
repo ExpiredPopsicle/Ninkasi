@@ -186,7 +186,7 @@ void nkiCompilerOptimizeConstants(
                     // Do the actual operation.
                     NK_APPLY_MATH();
 
-                    // TODO: Use sprintf_s.
+                    // TODO: Use sprintf_s on non-DOS systems.
 
                     // Set the string for the result.
                     sprintf(tmp, NK_PRINTF_INT32, val);

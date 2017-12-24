@@ -74,9 +74,6 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count);
 /// stack's current range.
 struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index);
 
-/// Dump the contents of the stack to stdout for debugging.
-void nkiVmStackDump(struct NKVM *vm);
-
 /// Init the stack on the VM object.
 void nkiVmStackInit(struct NKVM *vm);
 

@@ -205,17 +205,24 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData =
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
-    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) return;
+
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) {
+        return;
+    }
+
     if(!internalData) {
         nkxAddError(data->vm, "subsystemTest data not registered.");
+        return;
     }
 
     if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
         nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.");
+        return;
     }
 
     if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
         nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetSerializeData.");
+        return;
     }
 
     {
@@ -239,13 +246,24 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData =
         nkxGetExternalSubsystemData(data->vm, "subsystemTest");
-    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) return;
+
+    if(!nkxFunctionCallbackCheckArgCount(data, 1, "subsystemTest_widgetSerializeData")) {
+        return;
+    }
+
     if(!internalData) {
         nkxAddError(data->vm, "subsystemTest data not registered.");
+        return;
     }
 
     if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetSerializeData.");
+        nkxAddError(data->vm, "Expected an object in subsystemTest_widgetGCData.");
+        return;
+    }
+
+    if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
+        nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetGCData.\n");
+        return;
     }
 
     printf("data: %p\n", data);
@@ -253,19 +271,11 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
     printf("data->arguments: %p\n", data->arguments);
     printf("internalData: %p\n", internalData);
 
-    // if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != internalData->widgetTypeId.id) {
-    //     nkxAddError(data->vm, "Expected a widget in subsystemTest_widgetSerializeData.\n");
-    // }
-
     {
         struct SubsystemTest_WidgetData *widgetData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
         subsystemTest_freeWrapper(widgetData);
         nkxVmObjectSetExternalData(data->vm, &data->arguments[0], NULL);
     }
-
-
-    // // FIXME: Remove this.
-    // assert(!data->vm->errorState.allocationFailure);
 }
 
 // ----------------------------------------------------------------------

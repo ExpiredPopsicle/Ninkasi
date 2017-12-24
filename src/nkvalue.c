@@ -43,49 +43,6 @@
 
 #include "nkcommon.h"
 
-nkbool nkiValueDump(
-    struct NKVM *vm, struct NKValue *value)
-{
-    // TODO: Function pointer table here?
-    switch(value->type) {
-
-        case NK_VALUETYPE_INT:
-            printf(NK_PRINTF_INT32, value->intData);
-            break;
-
-        case NK_VALUETYPE_FLOAT:
-            printf("%f", value->floatData);
-            break;
-
-        case NK_VALUETYPE_STRING: {
-            const char *str = nkiVmStringTableGetStringById(
-                &vm->stringTable,
-                value->stringTableEntry);
-            if(!str) str = "<bad id>";
-            printf("string:" NK_PRINTF_UINT32 ":%s", value->stringTableEntry, str);
-        } break;
-
-        case NK_VALUETYPE_NIL:
-            printf("<nil>");
-            break;
-
-        case NK_VALUETYPE_FUNCTIONID:
-            printf("<function:" NK_PRINTF_UINT32 ">", value->functionId.id);
-            break;
-
-        case NK_VALUETYPE_OBJECTID:
-            printf("<object:" NK_PRINTF_UINT32 ">", value->objectId);
-            break;
-
-        default:
-            printf(
-                "nkiValueDump unimplemented for type %s",
-                nkiValueTypeGetName(value->type));
-            return nkfalse;
-    }
-    return nktrue;
-}
-
 const char *nkiValueTypeGetName(enum NKValueType type)
 {
     // Note: Don't do any heap allocations starting here. It's called

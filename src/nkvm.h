@@ -173,8 +173,6 @@ struct NKVM
 
     jmp_buf *catastrophicFailureJmpBuf;
 
-    // TODO: Make accessor for this.
-    // TODO: Make key/value pairs for multiple subsystems to use?
     void *userData;
 
     char **externalTypeNames;
