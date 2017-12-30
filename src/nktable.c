@@ -183,17 +183,33 @@ nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entr
         nkuint32_t newCapacity = oldCapacity << 1;
         nkuint32_t i;
 
+        // Handle 32-bit address space exhaustion. Well, I suppose
+        // it's more like 31-bit in this case, because we never reach
+        // 0xffffffff, only 0x80000000, before overflowing to zero.
         if(!newCapacity) {
             nkiAddError(
                 vm, -1, "Address space exhaustion when adding item to table.");
             return NK_INVALID_VALUE;
         }
 
+        // Here's something really important to note. Because of the
+        // allocation failure longjmp(), this assignment will *never*
+        // complete in the case of realloc failure. In fact, it won't
+        // even deallocate the old array. If this nkiReallocArray()
+        // call fails, then the table, and recorded capacity will
+        // remain unchanged.
+        //
+        // This is important, because it means that the object and
+        // string table contents and ranges will remain sane in case
+        // of catastrophic failure, allowing save VM and external data
+        // cleanup.
         table->data = nkiReallocArray(
             vm,
             table->stringTable,
             sizeof(void *), newCapacity);
 
+        // Set table capacity AFTER we successfully realloc, so the
+        // allocation and ranges don't ever mismatch.
         table->capacity = newCapacity;
         index = oldCapacity;
 

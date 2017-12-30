@@ -382,6 +382,40 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
 // ----------------------------------------------------------------------
 // Cleanup, init, serialization, etc
 
+nkbool nkxGetNextObjectOfExternalType(
+    struct NKVM *vm,
+    struct NKVMExternalDataTypeID type,
+    struct NKValue *outValue,
+    nkuint32_t *startIndex)
+{
+    outValue->type = NK_VALUETYPE_OBJECTID;
+    outValue->objectId = NK_INVALID_VALUE;
+
+    // Incomplete VM setup?
+    if(!vm->objectTable.objectTable) {
+        return nkfalse;
+    }
+
+    while(*startIndex < vm->objectTable.capacity) {
+
+        struct NKVMObject *ob = vm->objectTable.objectTable[*startIndex];
+
+        if(ob) {
+            if(ob->externalDataType.id == type.id) {
+                outValue->objectId = *startIndex;
+            }
+        }
+
+        (*startIndex)++;
+
+        if(outValue->objectId != NK_INVALID_VALUE) {
+            return nktrue;
+        }
+    }
+
+    return nkfalse;
+}
+
 void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData;
@@ -390,6 +424,17 @@ void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
         data->vm, "subsystemTest");
 
     if(internalData) {
+
+        struct NKValue ob;
+        nkuint32_t index = 0;
+        while(nkxGetNextObjectOfExternalType(data->vm, internalData->widgetTypeId, &ob, &index)) {
+            // FIXME: Won't currently work for cleanup of OOMs,
+            // because nkxVmObjectGetExternalData can throw errors,
+            // and will refuse to start if the OOM flag is set.
+            void *objectExternalData = nkxVmObjectGetExternalData(data->vm, &ob);
+            printf("OBJECT FOUND FOR CLEANUP: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 " - %p\n",
+                ob.objectId, index, objectExternalData);
+        }
 
         // TODO: Free external data on all objects maintained by this
         // system. (This approach touches internal VM data directly,

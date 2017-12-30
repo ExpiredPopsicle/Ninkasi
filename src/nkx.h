@@ -391,6 +391,12 @@ void nkxSetExternalSubsystemCleanupCallback(
     const char *name,
     NKVMFunctionCallback cleanupCallback);
 
+nkbool nkxGetNextObjectOfExternalType(
+    struct NKVM *vm,
+    struct NKVMExternalDataTypeID type,
+    struct NKValue *outValue,
+    nkuint32_t *startIndex);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 

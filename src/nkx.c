@@ -459,6 +459,8 @@ void nkxVmObjectSetExternalData(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+// Hmm... No error checking harness here because we might use this for
+// cleanup. But we need it because we could add errors inside this!
 void *nkxVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object)
