@@ -492,6 +492,10 @@ void nkiSetExternalSubsystemData(
     struct NKVMExternalSubsystemData *externalSubsystemData =
         nkiFindExternalSubsystemData(vm, name, nktrue);
 
+    if(!externalSubsystemData->cleanupCallback) {
+        nkiAddError(vm, -1, "Setting external subsystem data before cleanup callback.");
+    }
+
     externalSubsystemData->data = data;
 }
 

@@ -371,6 +371,9 @@ void *nkxGetExternalSubsystemDataOrError(
     struct NKVM *vm,
     const char *name);
 
+/// Set a pointer to external subsystem data for a specific system. It
+/// is an error to call this before
+/// nkxSetExternalSubsystemCleanupCallback().
 void nkxSetExternalSubsystemData(
     struct NKVM *vm,
     const char *name,
@@ -381,6 +384,8 @@ void nkxSetExternalSubsystemSerializationCallback(
     const char *name,
     NKVMFunctionCallback serializationCallback);
 
+/// Set a cleanup function for some external subsystem. This must be
+/// called before nkxSetExternalSubsystemData().
 void nkxSetExternalSubsystemCleanupCallback(
     struct NKVM *vm,
     const char *name,
@@ -436,6 +441,10 @@ void nkxVmShrink(struct NKVM *vm);
 /// if the VM is currently reading data in. Used within serialization
 /// callbacks.
 nkbool nkxSerializerGetWriteMode(struct NKVM *vm);
+
+/// Read in or write out a chunk of data, depending on current write
+/// mode. See nkxSerializerGetWriteMode().
+nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size);
 
 // ----------------------------------------------------------------------
 // Public-facing error stuff

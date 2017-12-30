@@ -833,3 +833,12 @@ nkbool nkxSerializerGetWriteMode(struct NKVM *vm)
 {
     return vm->serializationState.writeMode;
 }
+
+nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
+{
+    return vm->serializationState.writer(
+        data, size,
+        vm->serializationState.userdata,
+        vm->serializationState.writeMode);
+}
+
