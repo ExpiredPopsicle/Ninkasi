@@ -463,6 +463,13 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
             }
             break;
 
+        case NK_TOKENTYPE_DO:
+            // "do/while" statements.
+            if(!nkiCompilerCompileDoWhileStatement(cs)) {
+                return nkfalse;
+            }
+            break;
+
         case NK_TOKENTYPE_FOR:
             // "for" statements.
             if(!nkiCompilerCompileForStatement(cs)) {
@@ -1250,6 +1257,78 @@ nkbool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
 
     nkiCompilerPopRecursion(cs);
     return nktrue;
+}
+
+nkbool nkiCompilerCompileDoWhileStatement(struct NKCompilerState *cs)
+{
+    nkuint32_t startAddress = cs->instructionWriteIndex;
+
+    if(!nkiCompilerPushRecursion(cs)) {
+        return nkfalse;
+    }
+
+    // Setup context.
+    nkiCompilerPushContext(cs);
+    cs->context->isLoopContext = nktrue;
+    nkiCompilerPushContext(cs);
+
+    // Skip "do"
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_DO)) {
+        nkiCompilerPopContextCount(cs, 2);
+        nkiCompilerPopRecursion(cs);
+        return nkfalse;
+    }
+
+    // Generate code to execute if test passes.
+    nkiCompilerPushContext(cs);
+    if(!nkiCompilerCompileStatement(cs)) {
+        nkiCompilerPopContextCount(cs, 3);
+        nkiCompilerPopRecursion(cs);
+        return nkfalse;
+    }
+    nkiCompilerPopContext(cs);
+
+    // Skip "while("
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_WHILE) ||
+        !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_OPEN))
+    {
+        nkiCompilerPopContextCount(cs, 2);
+        nkiCompilerPopRecursion(cs);
+        return nkfalse;
+    }
+
+    // Generate the expression code.
+    if(!nkiCompilerCompileExpression(cs)) {
+        nkiCompilerPopContextCount(cs, 2);
+        nkiCompilerPopRecursion(cs);
+        return nkfalse;
+    }
+
+    // Skip ")"
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {
+        nkiCompilerPopContextCount(cs, 2);
+        nkiCompilerPopRecursion(cs);
+        return nkfalse;
+    }
+
+    // Emit conditional jump back to start.
+    nkiCompilerAddInstructionSimple(cs, NK_OP_NOT, nktrue);
+    nkiCompilerEmitJumpIfZero(cs, startAddress);
+
+    // Tear down context.
+    nkiCompilerPopContext(cs);
+    nkiCompilerFixupBreakJumpForContext(cs);
+    nkiCompilerPopContext(cs);
+
+    nkiCompilerPopRecursion(cs);
+
+    // Skip ";"
+    if(!nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_SEMICOLON)) {
+        return nkfalse;
+    }
+
+    return nktrue;
+
 }
 
 nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)

@@ -459,6 +459,8 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "while")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
+            } else if(!strcmp(tmp, "do")) {
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DO, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "for")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, tokenList);
             } else if(!strcmp(tmp, "newobject")) {

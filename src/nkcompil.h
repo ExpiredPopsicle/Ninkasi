@@ -173,6 +173,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileIfStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs);
+nkbool nkiCompilerCompileDoWhileStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs);
 
