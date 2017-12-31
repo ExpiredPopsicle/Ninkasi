@@ -656,7 +656,7 @@ void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    nkiValueSetString(vm, value, str);
+    nkiValueSetString(vm, value, str ? str : "");
     NK_CLEAR_FAILURE_RECOVERY();
 }
 

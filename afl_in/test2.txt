@@ -1,4 +1,17 @@
-// #failrate: 10000
+//// #failrate: 10000
+
+
+do {
+    print("Inside do { } while(0)\n");
+} while(0);
+
+var doWhileCountdown = 10;
+do {
+    print("Inside do { } while(doWhileCountdown) (", doWhileCountdown, ")\n");
+    --doWhileCountdown;
+} while(doWhileCountdown);
+
+
 
 subsystemTest_setTestString("Dickbutt");
 var subsystemTestObject = subsystemTest_widgetCreate();
@@ -516,7 +529,4 @@ print("Self recursion test: ", selfRecursionTest(10, 0), "\n");
 subsystemTest_printTestString();
 print("Widget test 3: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
 // print("Widget test 4: ", subsystemTest_widgetGetData(1234), "\n");
-
-
-
 
