@@ -48,8 +48,13 @@ static nkuint32_t subsystemTest_debugOnly_dataCount = 0;
 // malloc() replacement.
 void *subsystemTest_mallocWrapper(nkuint32_t size, const char *description)
 {
-    struct SubsystemTest_MallocHeader *header =
-        malloc(size + sizeof(struct SubsystemTest_MallocHeader));
+    struct SubsystemTest_MallocHeader *header = NULL;
+
+    if(size == 0) {
+        return NULL;
+    }
+
+    header = malloc(size + sizeof(struct SubsystemTest_MallocHeader));
 
     if(!header) {
         return NULL;
@@ -60,7 +65,7 @@ void *subsystemTest_mallocWrapper(nkuint32_t size, const char *description)
 
     // Add to allocation list.
     header->nextBlock = subsystemTest_allocationList;
-    if(header->nextBlock) {
+     if(header->nextBlock) {
         header->nextBlock->prevPtr = &header->nextBlock;
     }
     header->prevPtr = &subsystemTest_allocationList;
