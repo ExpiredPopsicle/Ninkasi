@@ -71,8 +71,6 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
     if(userdata) {
 
         struct WriterTestBuffer *testBuf = (struct WriterTestBuffer *)userdata;
-        printf("testBuf = %p\n", testBuf);
-        printf("testBuf->data 1 = %p\n", testBuf->data);
 
         if(writeMode) {
 
@@ -88,8 +86,6 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
         } else {
 
             if(size <= testBuf->size - testBuf->readPtr) {
-                printf("testBuf->data 2 = %p\n", testBuf->data);
-                printf("size = " NK_PRINTF_UINT32 "\n", size);
                 memcpy(data, testBuf->data + testBuf->readPtr, size);
                 testBuf->readPtr += size;
             } else {
@@ -760,28 +756,8 @@ int main(int argc, char *argv[])
             buf.readPtr = 0;
             buf.size = scriptSize;
 
-            // FIXME: Remove this.
-            printf("subsystemTest before deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
-
-                // FIXME: Remove this.
-                printf("AAAA: Bad sanity check maybe\n");
-                nkiVmObjectTableSanityCheck(vm);
-                printf("AAAA: Bad sanity check done\n");
-
-                // FIXME: Remove this.
-                printf("subsystemTest after bad deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
-
-                printf("Deserialization fail.\n");
                 free(script);
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
                 nkxVmDelete(vm);
                 return ERROR_CODE;
             }
@@ -1046,29 +1022,17 @@ int main(int argc, char *argv[])
             memset(&buf, 0, sizeof(buf));
             printf("Serializing...\n");
 
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
 
                 if(!c) {
                     printf("Error occurred during serialization. 1\n");
                     free(script);
 
-                    // FIXME: Remove this.
-                    nkiVmObjectTableSanityCheck(vm);
-
                     nkxVmDelete(vm);
                     return ERROR_CODE;
                 }
             }
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
 
             {
                 // FILE *out1 = fopen("stest1.txt", "w+");

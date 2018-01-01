@@ -567,9 +567,7 @@ void nkiOpcode_call(struct NKVM *vm)
 
         // Actual function call.
         if(externalFunc->CFunctionCallback) {
-            printf("calling: %p\n", externalFunc->CFunctionCallback);
             externalFunc->CFunctionCallback(&data);
-            printf("call success: %p\n", externalFunc->CFunctionCallback);
         } else {
             nkiAddError(vm, -1, "Attempted to call a C function that doesn't exist.");
         }

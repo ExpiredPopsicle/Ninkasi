@@ -463,8 +463,6 @@ nkbool nkxGetNextObjectOfExternalType(
 
         struct NKVMObject *ob = vm->objectTable.objectTable[*startIndex];
 
-        printf("AAAA: Reading object table (%p) at " NK_PRINTF_UINT32 " as %p\n", &vm->objectTable, *startIndex, ob);
-
         if(ob) {
             if(ob->externalDataType.id == type.id) {
                 outValue->objectId = *startIndex;

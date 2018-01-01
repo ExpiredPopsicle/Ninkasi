@@ -251,14 +251,8 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKValue *key,
     nkbool noAdd)
 {
-    // FIXME: Remove this.
-    printf("AAAA: nkiVmObjectFindOrAddEntry 1\n");
-
     struct NKVMObjectElement **obList =
         &ob->hashBuckets[nkiValueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
-
-    // FIXME: Remove this.
-    printf("AAAA: nkiVmObjectFindOrAddEntry 2\n");
 
     struct NKVMObjectElement *el = *obList;
     while(el) {
@@ -267,12 +261,6 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
         }
         el = el->next;
     }
-
-    // FIXME: Remove this.
-    printf("AAAA: nkiVmObjectFindOrAddEntry 3\n");
-
-    // FIXME!!! We want non-existant things to return nil, and not be
-    // added to the list if we're just reading!
 
     // If we can't find the entry, make a new one.
     if(!el) {
@@ -292,9 +280,6 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
         if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
             ob->size--;
 
-            // FIXME: Remove this.
-            printf("AAAA: nkiVmObjectFindOrAddEntry error!\n");
-
             nkiAddError(
                 vm, -1,
                 "Reached object field count limit.");
@@ -303,9 +288,6 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
             return NULL;
         }
     }
-
-    // FIXME: Remove this.
-    printf("AAAA: nkiVmObjectFindOrAddEntry 4\n");
 
     return &el->value;
 }
@@ -318,7 +300,7 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
 struct NKVMObject *nkiVmGetObjectFromValue(struct NKVM *vm, struct NKValue *value)
 {
     if(!value) {
-        nkiAddError(vm, -1, "Bad value in nkiVmGetObjectFromValue.\n");
+        nkiAddError(vm, -1, "Bad value in nkiVmGetObjectFromValue.");
         return NULL;
     }
 

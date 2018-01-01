@@ -48,13 +48,9 @@
 // error checking and handling.
 #define NKI_WRAPSERIALIZE(x)                    \
     do {                                        \
-        /* FIXME: Remove this. */               \
-        nkiVmObjectTableSanityCheck(vm);        \
         if(!(x)) {                              \
             return nkfalse;                     \
         }                                       \
-        /* FIXME: Remove this. */               \
-        nkiVmObjectTableSanityCheck(vm);        \
     } while(0)
 
 #define NKI_SERIALIZE_DATA(data, size)                              \
@@ -221,18 +217,11 @@ nkbool nkiSerializeObject(
     NKVMSerializationWriter writer, void *userdata,
     nkbool writeMode)
 {
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
-    // FIXME: Remove this.
-    printf("AAAA: Object serialization 1\n");
-
-    // FIXME: Remove this. We do it in the parent function.
+    // FIXME: Remove this. We do it in the parent function. Doing so
+    // will break the binary format, so do it once we want to reset
+    // test cases.
     nkuint32_t objectTableIndex = object->objectTableIndex;
     NKI_SERIALIZE_BASIC(nkuint32_t, objectTableIndex);
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
@@ -241,17 +230,8 @@ nkbool nkiSerializeObject(
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
     NKI_SERIALIZE_BASIC(NKVMExternalDataTypeID, object->externalDataType);
 
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
-    // FIXME: Remove this.
-    printf("AAAA: Object serialization 2\n");
-
     // Serialize all hash buckets.
     if(writeMode) {
-
-        // FIXME: Remove this.
-        printf("AAAA: Object serialization 2a.1\n");
 
         nkuint32_t n;
         for(n = 0; n < nkiVMObjectHashBucketCount; n++) {
@@ -263,13 +243,7 @@ nkbool nkiSerializeObject(
             }
         }
 
-        // FIXME: Remove this.
-        printf("AAAA: Object serialization 2a.2\n");
-
     } else {
-
-        // FIXME: Remove this.
-        printf("AAAA: Object serialization 2b.1\n");
 
         nkuint32_t loadedSize = object->size;
         nkuint32_t n;
@@ -280,39 +254,15 @@ nkbool nkiSerializeObject(
             memset(&key, 0, sizeof(key));
             NKI_SERIALIZE_BASIC(struct NKValue, key);
 
-            // FIXME: Remove this.
-            printf("AAAA: Object serialization 2b.1.1\n");
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
             value = nkiVmObjectFindOrAddEntry(vm, object, &key, nkfalse);
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
-            // FIXME: Remove this.
-            printf("AAAA: Object serialization 2b.1.2\n");
 
             if(value) {
                 NKI_SERIALIZE_BASIC(struct NKValue, *value);
             }
 
-            // FIXME: Remove this.
-            printf("AAAA: Object serialization 2b.1.3\n");
-
         }
 
-        // FIXME: Remove this.
-        printf("AAAA: Object serialization 2b.2\n");
-
     }
-
-    // FIXME: Remove this.
-    printf("AAAA: Object serialization 3\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     // External serialization callback.
     if(object->serializationCallback.id != NK_INVALID_VALUE) {
@@ -336,12 +286,6 @@ nkbool nkiSerializeObject(
         }
     }
 
-    // FIXME: Remove this.
-    printf("AAAA: Object serialization 4\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
     // If we're loading, we need to reconstruct the external handle
     // list.
     if(!writeMode) {
@@ -355,9 +299,6 @@ nkbool nkiSerializeObject(
             vm->objectsWithExternalHandles = object;
         }
     }
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     return nktrue;
 }
@@ -377,26 +318,13 @@ nkbool nkiSerializeObjectTable(
     nkuint32_t objectCount = 0;
     nkuint32_t capacity = vm->objectTable.capacity;
 
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
-    // FIXME: Remove this.
-    printf("AAAA: Object table serialization 1\n");
-
     // FIXME: Ensure capacity is a power of two, or find a
     // better way to store it!
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
     if(!nkiIsPow2(capacity)) {
         nkiAddError(vm, -1, "Object table capacity is not a power of two.");
-
-        // FIXME: Remove this.
-        nkiVmObjectTableSanityCheck(vm);
-
         return nkfalse;
     }
-
-    // FIXME: Remove this.
-    printf("AAAA: Object table serialization 2\n");
 
     if(writeMode) {
 
@@ -422,8 +350,6 @@ nkbool nkiSerializeObjectTable(
 
         vm->objectTable.capacity = capacity;
 
-        printf("AAAA: Object table (%p) allocated with cap: " NK_PRINTF_UINT32 "\n", &vm->objectTable, vm->objectTable.capacity);
-
         // Free the holes.
         while(vm->objectTable.tableHoles) {
             struct NKVMTableHole *hole = vm->objectTable.tableHoles;
@@ -432,65 +358,33 @@ nkbool nkiSerializeObjectTable(
         }
     }
 
-    // FIXME: Remove this.
-    printf("AAAA: Object table serialization 3\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
     NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
     if(objectCount > vm->objectTable.capacity) {
         nkiAddError(vm, -1, "Object count exceeds object table capacity.");
         return nkfalse;
     }
 
-    // FIXME: Remove this.
-    printf("AAAA: Object table serialization 4\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
     if(writeMode) {
 
         nkuint32_t i;
-
-        // FIXME: Remove this.
-        printf("AAAA: Object table serialization 4a.1\n");
 
         for(i = 0; i < vm->objectTable.capacity; i++) {
             struct NKVMObject *object = vm->objectTable.objectTable[i];
             if(object) {
                 assert(i == object->objectTableIndex);
                 NKI_SERIALIZE_BASIC(nkuint32_t, object->objectTableIndex);
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
                 NKI_WRAPSERIALIZE(
                     nkiSerializeObject(
                         vm, object,
                         writer, userdata, writeMode));
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
             }
         }
-
-        // FIXME: Remove this.
-        printf("AAAA: Object table serialization 4a.2\n");
 
     } else {
 
         nkuint32_t i;
 
-        // FIXME: Remove this.
-        printf("AAAA: Object table serialization 4b.1\n");
-
         for(i = 0; i < objectCount; i++) {
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.1\n");
 
             struct NKVMObject *object = NULL;
             nkuint32_t index = 0;
@@ -503,97 +397,35 @@ nkbool nkiSerializeObjectTable(
             memset(object, 0, sizeof(struct NKVMObject));
             object->objectTableIndex = index;
 
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.2\n");
-
-            // FIXME: Remove this.
-            printf("AAAA: Allocated object (%p)\n", object);
-
             // Thanks AFL! Holy crap I'm an idiot for letting this one
             // slide by.
             if(index >= vm->objectTable.capacity) {
                 nkiAddError(vm, -1, "Object index exceeds object table capacity.");
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
                 nkiFree(vm, object);
                 return nkfalse;
             }
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.3\n");
 
             if(vm->objectTable.objectTable[index]) {
                 nkiAddError(vm, -1, "Tried to load two object into the same location.");
-
-                printf("AAAA: Freeing object (1): %p\n", object);
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
                 nkiFree(vm, object);
                 return nkfalse;
             }
 
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.4\n");
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table cap: " NK_PRINTF_UINT32 "\n", vm->objectTable.capacity);
-            printf("AAAA: Setting object table (%p) at " NK_PRINTF_UINT32 " to %p\n", &vm->objectTable, object->objectTableIndex, object);
-
             vm->objectTable.objectTable[index] = object;
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.5\n");
 
             if(!nkiSerializeObject(
                     vm, object,
                     writer, userdata, writeMode))
             {
-
-                // FIXME: Remove this.
-                printf("AAAA: Object table serialization 4b.1.6\n");
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
-                // nkiFree(vm, object);
-                // vm->objectTable.objectTable[index] = NULL;
-
-                // FIXME: Remove this.
-                printf("AAAA: Object table serialization 4b.1.6.1\n");
-
-                // FIXME: Remove this.
-                nkiVmObjectTableSanityCheck(vm);
-
+                // Note: We are NOT going to free the partially
+                // constructed object here. After nkiSerializeObject
+                // starts, we're going to consider it a valid object
+                // as far as the VM is concerned and it will be
+                // cleaned up in the normal VM destroy.
                 return nkfalse;
             }
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.7\n");
-
-            // FIXME: Remove this.
-            nkiVmObjectTableSanityCheck(vm);
-
-            // FIXME: Remove this.
-            printf("AAAA: Object table serialization 4b.1.5\n");
         }
-
-        // FIXME: Remove this.
-        printf("AAAA: Object table serialization 4b.2\n");
-
     }
-
-    // FIXME: Remove this.
-    printf("AAAA: Object table serialization 5\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     // Recreate holes for read mode.
     if(!writeMode) {
@@ -608,9 +440,6 @@ nkbool nkiSerializeObjectTable(
             }
         }
     }
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     return nktrue;
 }
@@ -1408,20 +1237,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeFunctionTable(vm, writer, userdata, writeMode));
 
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
-
-    printf("AAAA: Object table serialize start\n");
-
     // Serialize object table and objects. This MUST happen after the
     // functions, because deserialization routines are set up there.
     NKI_WRAPSERIALIZE(
         nkiSerializeObjectTable(vm, writer, userdata, writeMode));
-
-    printf("AAAA: Object table serialize end\n");
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     NKI_WRAPSERIALIZE(
         nkiSerializeGlobalsList(vm, writer, userdata, writeMode));
@@ -1446,9 +1265,6 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Serialized external subsystem data.
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalSubsystemData(vm, writer, userdata, writeMode));
-
-    // FIXME: Remove this.
-    nkiVmObjectTableSanityCheck(vm);
 
     return nktrue;
 }
