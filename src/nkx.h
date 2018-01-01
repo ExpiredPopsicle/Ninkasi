@@ -260,6 +260,11 @@ void nkxVmObjectSetSerializationCallback(
     struct NKValue *object,
     NKVMExternalFunctionID callbackFunction);
 
+/// Get the native callback ID to handle serialization of the object.
+NKVMExternalFunctionID nkxVmObjectGetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object);
+
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
 /// for duplicates. You may have to use this if you do not know if a

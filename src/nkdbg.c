@@ -447,3 +447,15 @@ nkbool nkiValueDump(
     }
     return nktrue;
 }
+
+void nkiVmObjectTableSanityCheck(struct NKVM *vm)
+{
+    struct NKVMTable *table = &vm->objectTable;
+    nkuint32_t i;
+    for(i = 0; i < table->capacity; i++) {
+        if(table->objectTable[i]) {
+            assert(table->objectTable[i]->objectTableIndex == i);
+        }
+    }
+}
+

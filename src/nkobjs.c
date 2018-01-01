@@ -166,6 +166,8 @@ void nkiVmObjectTableCleanAllObjects(
     struct NKVMTable *table = &vm->objectTable;
     nkuint32_t i;
 
+    nkiVmObjectTableSanityCheck(vm);
+
     for(i = 0; i < table->capacity; i++) {
         nkiVmObjectTableCleanupObject(vm, i);
         table->objectTable[i] = NULL;
@@ -249,8 +251,14 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKValue *key,
     nkbool noAdd)
 {
+    // FIXME: Remove this.
+    printf("AAAA: nkiVmObjectFindOrAddEntry 1\n");
+
     struct NKVMObjectElement **obList =
         &ob->hashBuckets[nkiValueHash(vm, key) & (nkiVMObjectHashBucketCount - 1)];
+
+    // FIXME: Remove this.
+    printf("AAAA: nkiVmObjectFindOrAddEntry 2\n");
 
     struct NKVMObjectElement *el = *obList;
     while(el) {
@@ -259,6 +267,9 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
         }
         el = el->next;
     }
+
+    // FIXME: Remove this.
+    printf("AAAA: nkiVmObjectFindOrAddEntry 3\n");
 
     // FIXME!!! We want non-existant things to return nil, and not be
     // added to the list if we're just reading!
@@ -271,21 +282,30 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
             return NULL;
         }
 
-        ob->size++;
-        if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
-            ob->size--;
-            nkiAddError(
-                vm, -1,
-                "Reached object field count limit.");
-            return NULL;
-        }
-
         el = nkiMalloc(vm, sizeof(struct NKVMObjectElement));
         memset(el, 0, sizeof(struct NKVMObjectElement));
         el->next = *obList;
         el->key = *key;
         *obList = el;
+
+        ob->size++;
+        if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
+            ob->size--;
+
+            // FIXME: Remove this.
+            printf("AAAA: nkiVmObjectFindOrAddEntry error!\n");
+
+            nkiAddError(
+                vm, -1,
+                "Reached object field count limit.");
+
+
+            return NULL;
+        }
     }
+
+    // FIXME: Remove this.
+    printf("AAAA: nkiVmObjectFindOrAddEntry 4\n");
 
     return &el->value;
 }
@@ -297,6 +317,11 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
 // be a cleanup-safe call.
 struct NKVMObject *nkiVmGetObjectFromValue(struct NKVM *vm, struct NKValue *value)
 {
+    if(!value) {
+        nkiAddError(vm, -1, "Bad value in nkiVmGetObjectFromValue.\n");
+        return NULL;
+    }
+
     if(value->type == NK_VALUETYPE_OBJECTID) {
         struct NKVMObject *ob = nkiVmObjectTableGetEntryById(
             &vm->objectTable, value->objectId);
@@ -441,6 +466,29 @@ void nkiVmObjectSetSerializationCallback(
     }
 
     ob->serializationCallback = internalFunctionId;
+}
+
+NKVMExternalFunctionID nkiVmObjectGetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    struct NKVMInternalFunctionID internalId = { NK_INVALID_VALUE };
+    struct NKVMExternalFunctionID externalId = { NK_INVALID_VALUE };
+
+    if(!ob) {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectGetSerializationCallback.");
+        return externalId;
+    }
+
+    internalId = ob->serializationCallback;
+
+    if(internalId.id < vm->functionCount) {
+        externalId = vm->functionTable[internalId.id].externalFunctionId;
+    }
+
+    return externalId;
 }
 
 void nkiVmObjectSetExternalType(

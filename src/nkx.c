@@ -92,6 +92,10 @@ struct NKVM *nkxVmCreate(void)
 void nkxVmDelete(struct NKVM *vm)
 {
     if(vm) {
+
+        // FIXME: Remove this.
+        nkiVmObjectTableSanityCheck(vm);
+
         nkiVmDestroy(vm);
         vm->freeReplacement(
             vm, vm->mallocAndFreeReplacementUserData);
@@ -376,6 +380,18 @@ void nkxVmObjectSetSerializationCallback(
     NK_SET_FAILURE_RECOVERY_VOID();
     nkiVmObjectSetSerializationCallback(vm, object, callbackFunction);
     NK_CLEAR_FAILURE_RECOVERY();
+}
+
+NKVMExternalFunctionID nkxVmObjectGetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    NKVMExternalFunctionID ret = { NK_INVALID_VALUE };
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiVmObjectGetSerializationCallback(vm, object);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
 }
 
 NKVMExternalFunctionID nkxVmRegisterExternalFunction(
@@ -833,6 +849,11 @@ nkbool nkxSerializerGetWriteMode(struct NKVM *vm)
 
 nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
 {
+    if(!vm->serializationState.writer) {
+        nkiAddError(vm, -1, "Attempted to access serialization writer outside of serialization.");
+        return nkfalse;
+    }
+
     return vm->serializationState.writer(
         data, size,
         vm->serializationState.userdata,

@@ -79,5 +79,9 @@ void nkiVmStackDump(struct NKVM *vm);
 /// Dump a value to stdout for debugging purposes.
 nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
 
+/// Check that every object in the object table has an index value
+/// that matches its actual index.
+void nkiVmObjectTableSanityCheck(struct NKVM *vm);
+
 #endif // NINKASI_VMDBG_H
 

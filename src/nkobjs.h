@@ -130,6 +130,10 @@ void nkiVmObjectSetSerializationCallback(
     struct NKValue *object,
     NKVMExternalFunctionID callbackFunction);
 
+NKVMExternalFunctionID nkiVmObjectGetSerializationCallback(
+    struct NKVM *vm,
+    struct NKValue *object);
+
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,

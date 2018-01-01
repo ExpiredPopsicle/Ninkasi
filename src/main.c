@@ -71,6 +71,8 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
     if(userdata) {
 
         struct WriterTestBuffer *testBuf = (struct WriterTestBuffer *)userdata;
+        printf("testBuf = %p\n", testBuf);
+        printf("testBuf->data 1 = %p\n", testBuf->data);
 
         if(writeMode) {
 
@@ -85,7 +87,9 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 
         } else {
 
-            if(testBuf->readPtr + size <= testBuf->size) {
+            if(size <= testBuf->size - testBuf->readPtr) {
+                printf("testBuf->data 2 = %p\n", testBuf->data);
+                printf("size = " NK_PRINTF_UINT32 "\n", size);
                 memcpy(data, testBuf->data + testBuf->readPtr, size);
                 testBuf->readPtr += size;
             } else {
@@ -345,17 +349,29 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
         return;
     }
 
+    // {
+    //     struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
+    //     if(id.id != NK_INVALID_VALUE) {
+    //         printf("This thing isn't a basic object!\n");
+    //         return;
+    //     }
+    // }
+
     assert(data->argumentCount == 1);
     printf("GC callback called.\n");
     {
         NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
+        // if(strcmp(nkxVmGetExternalTypeName(vm, id), "footype")) {
+        //     printf("This thing isn't a basic object!\n");
+        //     return;
+        // }
         printf("GCing external of type %s\n", nkxVmGetExternalTypeName(data->vm, id));
     }
 
     {
         char *externalData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
         printf("GCing external data: %s\n", externalData);
-        free(externalData);
+        // free(externalData);
     }
 }
 
@@ -395,11 +411,18 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
     doGCCallbackThing_id =
         nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
 
+    {
+        struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
+        if(id.id != NK_INVALID_VALUE) {
+            printf("This thing isn't a basic object!\n");
+            return;
+        }
+    }
+
     nkxVmObjectSetGarbageCollectionCallback(
         data->vm, &data->arguments[0], doGCCallbackThing_id);
 
-    nkxVmObjectSetExternalData(data->vm, &data->arguments[0], strdup("butts"));
-
+    nkxVmObjectSetExternalData(data->vm, &data->arguments[0], "butts");
 
     {
         NKVMExternalFunctionID serializationCallbackId = nkxVmRegisterExternalFunction(
@@ -485,6 +508,9 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
     settings->maxMemory = 65536 * 256; //NK_UINT_MAX;
+
+    // AFL default.
+    // settings->maxMemory = 45000000;
 
     for(i = 1; i < argc; i++) {
 
@@ -737,13 +763,25 @@ int main(int argc, char *argv[])
             // FIXME: Remove this.
             printf("subsystemTest before deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
+            // FIXME: Remove this.
+            nkiVmObjectTableSanityCheck(vm);
+
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
+
+                // FIXME: Remove this.
+                printf("AAAA: Bad sanity check maybe\n");
+                nkiVmObjectTableSanityCheck(vm);
+                printf("AAAA: Bad sanity check done\n");
 
                 // FIXME: Remove this.
                 printf("subsystemTest after bad deserialization: %p\n", nkxGetExternalSubsystemData(vm, "subsystemTest"));
 
                 printf("Deserialization fail.\n");
                 free(script);
+
+                // FIXME: Remove this.
+                nkiVmObjectTableSanityCheck(vm);
+
                 nkxVmDelete(vm);
                 return ERROR_CODE;
             }
@@ -1008,15 +1046,29 @@ int main(int argc, char *argv[])
             memset(&buf, 0, sizeof(buf));
             printf("Serializing...\n");
 
+            // FIXME: Remove this.
+            nkiVmObjectTableSanityCheck(vm);
+
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+
+                // FIXME: Remove this.
+                nkiVmObjectTableSanityCheck(vm);
+
                 if(!c) {
                     printf("Error occurred during serialization. 1\n");
                     free(script);
+
+                    // FIXME: Remove this.
+                    nkiVmObjectTableSanityCheck(vm);
+
                     nkxVmDelete(vm);
                     return ERROR_CODE;
                 }
             }
+
+            // FIXME: Remove this.
+            nkiVmObjectTableSanityCheck(vm);
 
             {
                 // FILE *out1 = fopen("stest1.txt", "w+");

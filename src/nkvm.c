@@ -409,10 +409,12 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
 
     ret.id = vm->externalTypeCount;
 
-    vm->externalTypeCount++;
+    // Note: Increment after reallocation to maintain correct state at
+    // all times, in case of alloc failure.
     vm->externalTypeNames = nkiReallocArray(
         vm, vm->externalTypeNames,
-        sizeof(*(vm->externalTypeNames)), vm->externalTypeCount);
+        sizeof(*(vm->externalTypeNames)), vm->externalTypeCount + 1);
+    vm->externalTypeCount++;
 
     vm->externalTypeNames[ret.id] = nkiStrdup(vm, name);
 
