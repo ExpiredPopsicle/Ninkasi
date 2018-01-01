@@ -279,8 +279,6 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
         return;
     }
 
-    printf("Now in subsystemTest_widgetSerializeData\n");
-
     nkxFunctionCallbackCheckArguments(
         data, "subsystemTest_widgetSerializeData", 1,
         NK_VALUETYPE_OBJECTID);
@@ -295,11 +293,7 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
         return;
     }
 
-    printf("subsystemTest_widgetSerializeData: 5\n");
-
     if(!widgetData) {
-
-        printf("subsystemTest_widgetSerializeData: 6\n");
 
         widgetData = subsystemTest_mallocWrapper(
             sizeof(*widgetData),
@@ -309,12 +303,8 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
             nkxAddError(data->vm, "Malloc failed in subsystemTest_widgetSerializeData.");
         }
 
-        printf("subsystemTest_widgetSerializeData: 7\n");
-
         widgetData->data = 0;
         nkxVmObjectSetExternalData(data->vm, &data->arguments[0], widgetData);
-
-        printf("subsystemTest_widgetSerializeData: 8\n");
 
         // No more type remapping. Ensure that all garbage collection
         // and type data is now consistent.
@@ -326,13 +316,7 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
             data->vm, &data->arguments[0], internalData->widgetSerializeCallbackId);
     }
 
-    printf("subsystemTest_widgetSerializeData: 9\n");
-
     nkxSerializeData(data->vm, widgetData, sizeof(*widgetData));
-
-    printf("subsystemTest_widgetSerializeData: 10\n");
-
-    printf("Returning from subsystemTest_widgetSerializeData\n");
 }
 
 void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
