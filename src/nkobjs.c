@@ -293,6 +293,8 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
 // ----------------------------------------------------------------------
 // Object interface
 
+// Note: No error additions or allocations in here, because this must
+// be a cleanup-safe call.
 struct NKVMObject *nkiVmGetObjectFromValue(struct NKVM *vm, struct NKValue *value)
 {
     if(value->type == NK_VALUETYPE_OBJECTID) {
@@ -484,6 +486,8 @@ void nkiVmObjectSetExternalData(
     }
 }
 
+// Note: No error additions or allocations in here, because this must
+// be a cleanup-safe call.
 void *nkiVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object)
@@ -492,9 +496,6 @@ void *nkiVmObjectGetExternalData(
     struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
     if(ob) {
         ret = ob->externalData;
-    } else {
-        nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectGetExternalData.");
     }
     return ret;
 }

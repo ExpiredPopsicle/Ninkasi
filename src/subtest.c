@@ -434,28 +434,7 @@ void subsystemTest_cleanup(struct NKVMFunctionCallbackData *data)
             void *objectExternalData = nkxVmObjectGetExternalData(data->vm, &ob);
             printf("OBJECT FOUND FOR CLEANUP: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 " - %p\n",
                 ob.objectId, index, objectExternalData);
-        }
-
-        // TODO: Free external data on all objects maintained by this
-        // system. (This approach touches internal VM data directly,
-        // and we need to make something a little nicer.)
-        {
-            nkuint32_t i;
-            if(data->vm->objectTable.objectTable) {
-                for(i = 0; i < data->vm->objectTable.capacity; i++) {
-                    struct NKVMObject *ob = data->vm->objectTable.objectTable[i];
-                    if(ob && ob->externalDataType.id == internalData->widgetTypeId.id) {
-                        if(ob->externalData) {
-                            subsystemTest_freeWrapper(ob->externalData);
-
-                            printf("Free widgetData: %p\n", ob->externalData);
-
-                            ob->externalData = NULL;
-                            ob->externalDataType.id = NK_INVALID_VALUE;
-                        }
-                    }
-                }
-            }
+            subsystemTest_freeWrapper(objectExternalData);
         }
 
         // Free all of our internal data that's not attached to single

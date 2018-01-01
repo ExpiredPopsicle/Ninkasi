@@ -86,6 +86,33 @@ nkbool nkiSerializeString_save(
     return nktrue;
 }
 
+nkbool nkiSerializeString_loadInPlace(
+    struct NKVM *vm,
+    NKVMSerializationWriter writer,
+    void *userdata,
+    nkuint32_t maxBufferSize,
+    char *outData)
+{
+    nkbool writeMode = nkfalse;
+    nkuint32_t len = 0;
+
+    // Read length.
+    NKI_SERIALIZE_BASIC(nkuint32_t, len);
+    if(len >= maxBufferSize) { // ">=" Because of null terminator.
+        nkiAddError(vm, -1, "String too long to deserialize.");
+        return nkfalse;
+    }
+
+    // Read actual string.
+    if(!writer(outData, len, userdata, writeMode)) {
+        return nkfalse;
+    }
+
+    outData[len] = 0;
+
+    return nktrue;
+}
+
 nkbool nkiSerializeString_load(
     struct NKVM *vm,
     NKVMSerializationWriter writer,
@@ -97,7 +124,7 @@ nkbool nkiSerializeString_load(
 
     // Read length.
     NKI_SERIALIZE_BASIC(nkuint32_t, len);
-    if(len >= NK_UINT_MAX) {
+    if(len >= NK_UINT_MAX) { // ">=" Because of null terminator.
         nkiAddError(vm, -1, "String too long to deserialize.");
         return nkfalse;
     }
@@ -916,22 +943,66 @@ nkbool nkiSerializeExternalTypes(
     nkuint32_t i;
     nkuint32_t *typeMapping = NULL;
 
+    nkuint32_t longestTypeNameLength = 0;
+    char *rawTypeMappingBuf = NULL;
+    char *nameTempBuf = NULL;
+
+    for(i = 0; i < vm->externalTypeCount; i++) {
+        // The serializer can't really handle >32-bit lengths anyway,
+        // but just be aware that we might be truncating something.
+        // Obviously that's a degenerate case for names, but we still
+        // need to protect against bad data.
+        nkuint32_t nameLen = (nkuint32_t)strlen(vm->externalTypeNames[i]);
+        if(nameLen > longestTypeNameLength) {
+            longestTypeNameLength = nameLen;
+        }
+    }
+
     NKI_SERIALIZE_BASIC(nkuint32_t, serializedTypeCount);
 
     // Allocate an array if we have to map types between the binary
-    // and existing types.
+    // and existing types. Also make room (in this single allocation)
+    // for the longest type name we could possibly use.
     if(!writeMode) {
-        typeMapping = nkiMallocArray(vm, sizeof(nkuint32_t), serializedTypeCount);
+
+        nkuint32_t typeMappingAllocationSize = serializedTypeCount * sizeof(nkuint32_t);
+        nkuint32_t fullTempBufferAllocationSize = typeMappingAllocationSize + longestTypeNameLength + 1;
+
+        // Check for overflow in the typeMappingAllocationSize
+        // calculation.
+        if(serializedTypeCount >= ~(nkuint32_t)0 / sizeof(nkuint32_t)) {
+            return nkfalse;
+        }
+
+        // Check for overflow in fullTempBufferAllocationSize.
+        if(longestTypeNameLength + 1 >= ~(nkuint32_t)0 - typeMappingAllocationSize) {
+            return nkfalse;
+        }
+
+        if(longestTypeNameLength + 1 == 0) {
+            return nkfalse;
+        }
+
+        rawTypeMappingBuf = nkiMalloc(vm, fullTempBufferAllocationSize);
+        typeMapping = (nkuint32_t*)rawTypeMappingBuf;
+        nameTempBuf = rawTypeMappingBuf + typeMappingAllocationSize;
     }
 
     for(i = 0; i < serializedTypeCount; i++) {
 
-        char *typeName = NULL;
-        if(writeMode) {
+        char *typeName = nameTempBuf;
+        if(!writeMode) {
             typeName = vm->externalTypeNames[i];
         }
 
-        NKI_SERIALIZE_STRING(typeName);
+        if(writeMode) {
+            NKI_SERIALIZE_STRING(typeName);
+        } else {
+            if(!nkiSerializeString_loadInPlace(vm, writer, userdata, longestTypeNameLength + 1, typeName)) {
+                nkiFree(vm, rawTypeMappingBuf);
+                return nkfalse;
+            }
+        }
 
         if(!writeMode) {
 
@@ -955,9 +1026,9 @@ nkbool nkiSerializeExternalTypes(
         }
     }
 
-    // If we're loading, go through the entire object table and
-    // reassign every external type ID based on the mapping we figured
-    // out.
+    // If we're loading, go through the entire (JUST LOADED) object
+    // table and reassign every external type ID based on the mapping
+    // we figured out.
     if(!writeMode) {
 
         nkuint32_t i;
@@ -969,13 +1040,14 @@ nkbool nkiSerializeExternalTypes(
                         vm->objectTable.objectTable[i]->externalDataType.id =
                             typeMapping[vm->objectTable.objectTable[i]->externalDataType.id];
                     } else {
+                        nkiFree(vm, rawTypeMappingBuf);
                         return nkfalse;
                     }
                 }
             }
         }
 
-        nkiFree(vm, typeMapping);
+        nkiFree(vm, rawTypeMappingBuf);
     }
 
     return nktrue;

@@ -113,8 +113,9 @@ void *nkiMalloc_real(
 
         // Check size against memory limit.
         nkuint32_t newChunkSize = size + sizeof(struct NKMemoryHeader);
-        if(vm->currentMemoryUsage > vm->limits.maxAllocatedMemory ||
-            newChunkSize > vm->limits.maxAllocatedMemory - vm->currentMemoryUsage)
+        if(newChunkSize < size ||
+           vm->currentMemoryUsage > vm->limits.maxAllocatedMemory ||
+           newChunkSize > vm->limits.maxAllocatedMemory - vm->currentMemoryUsage)
         {
             // VM allocation failure (hit user-set limit).
             nkiErrorStateSetAllocationFailFlag(vm);

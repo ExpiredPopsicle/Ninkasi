@@ -459,18 +459,13 @@ void nkxVmObjectSetExternalData(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-// Hmm... No error checking harness here because we might use this for
-// cleanup. But we need it because we could add errors inside this!
+// No error handler, and no internal allocations. This is a
+// cleanup-safe call.
 void *nkxVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object)
 {
-    void *ret = NULL;
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY(ret);
-    ret = nkiVmObjectGetExternalData(vm, object);
-    NK_CLEAR_FAILURE_RECOVERY();
-    return ret;
+    return nkiVmObjectGetExternalData(vm, object);
 }
 
 nkbool nkxVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
