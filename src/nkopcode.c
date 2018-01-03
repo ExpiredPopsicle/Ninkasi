@@ -234,8 +234,20 @@ void nkiOpcode_divide(struct NKVM *vm)
     switch(type) {
 
         case NK_VALUETYPE_INT: {
+
             nkint32_t val2 = nkiValueToInt(vm, in2);
-            if(val2 == 0) {
+
+            // TODO: Check the -1/-2147483648 case in DOS, to make
+            // sure we got the 32-bit literal correct for non-32-bit
+            // mode.
+            //
+            // Oh yeah. TIL there's more than one way to cause a
+            // SIGFPE with integer division.
+
+
+            if(val2 == 0 ||
+                (val2 == -1 && in1->intData == -2147483648L))
+            {
                 nkiAddError(
                     vm, -1,
                     "Integer divide-by-zero.");

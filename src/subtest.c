@@ -235,6 +235,10 @@ void subsystemTest_widgetSetData(struct NKVMFunctionCallbackData *data)
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
 
+    if(!internalData) {
+        return;
+    }
+
     widgetData = nkxFunctionCallbackGetExternalDataArgument(
         data, "subsystemTest_widgetSetData", 0, internalData->widgetTypeId);
 
@@ -242,7 +246,9 @@ void subsystemTest_widgetSetData(struct NKVMFunctionCallbackData *data)
         return;
     }
 
-    widgetData->data = nkxValueToInt(data->vm, &data->arguments[1]);
+    if(widgetData) {
+        widgetData->data = nkxValueToInt(data->vm, &data->arguments[1]);
+    }
 }
 
 void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
@@ -257,6 +263,10 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
 
+    if(!internalData) {
+        return;
+    }
+
     widgetData = nkxFunctionCallbackGetExternalDataArgument(
         data, "subsystemTest_widgetGetData", 0, internalData->widgetTypeId);
 
@@ -264,7 +274,9 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
         return;
     }
 
-    nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
+    if(widgetData) {
+        nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
+    }
 }
 
 void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
@@ -285,6 +297,10 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
 
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
+
+    if(!internalData) {
+        return;
+    }
 
     widgetData = nkxFunctionCallbackGetExternalDataArgument(
         data, "subsystemTest_widgetSerializeData", 0, internalData->widgetTypeId);
