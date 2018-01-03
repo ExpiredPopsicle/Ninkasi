@@ -9,11 +9,11 @@ COUNTER=0
 for i in afl_out/*/crashes/*; do
 #for i in afl_in/*; do
 	echo "CHECKING ERRORS: $i"
-	#valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i
+	valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i
 	#valgrind --leak-check=full --track-origins=yes src/ninkasi_test $i
 	#valgrind --error-exitcode=1 src/ninkasi_test $i
 	#/usr/bin/time src/ninkasi_test >/dev/null
-	afl-showmap -o trace.txt -c -- src/ninkasi_test $i
+	#afl-showmap -o trace.txt -c -- src/ninkasi_test $i
 	#afl-showmap -o trace.txt -c -- ./nk2 $i
 done
 COUNTER=$(expr $COUNTER \+ 1)

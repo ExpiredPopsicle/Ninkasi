@@ -140,15 +140,36 @@ void nkiVmObjectTableCleanupObject(
                 struct NKVMFunction *func = &vm->functionTable[ob->gcCallback.id];
                 if(func->externalFunctionId.id != NK_INVALID_VALUE) {
                     if(func->externalFunctionId.id < vm->externalFunctionCount) {
+
                         struct NKValue funcValue;
                         struct NKValue argValue;
+                        struct NKVMFunctionCallbackData data;
+
                         memset(&funcValue, 0, sizeof(funcValue));
                         funcValue.type = NK_VALUETYPE_FUNCTIONID;
                         funcValue.functionId = ob->gcCallback;
                         memset(&argValue, 0, sizeof(argValue));
                         argValue.type = NK_VALUETYPE_OBJECTID;
                         argValue.objectId = objectTableIndex;
-                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+
+                        memset(&data, 0, sizeof(data));
+
+                        if(func->externalFunctionId.id < vm->externalFunctionCount) {
+
+                            struct NKVMExternalFunction *externalFunc =
+                                &vm->externalFunctionTable[func->externalFunctionId.id];
+
+                            if(externalFunc->CFunctionCallback) {
+
+                                data.vm = vm;
+                                data.argumentCount = 1;
+                                data.arguments = &argValue;
+                                externalFunc->CFunctionCallback(&data);
+
+                                // nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
+                            }
+
+                        }
                     }
                 }
             }

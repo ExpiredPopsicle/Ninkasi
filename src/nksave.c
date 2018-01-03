@@ -225,6 +225,21 @@ nkbool nkiSerializeObject(
 
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
+
+    // If we're loading, we need to reconstruct the external handle
+    // list.
+    if(!writeMode) {
+        if(object->externalHandleCount) {
+            if(vm->objectsWithExternalHandles) {
+                vm->objectsWithExternalHandles->previousExternalHandleListPtr =
+                    &object->nextObjectWithExternalHandles;
+            }
+            object->previousExternalHandleListPtr = &vm->objectsWithExternalHandles;
+            object->nextObjectWithExternalHandles = vm->objectsWithExternalHandles;
+            vm->objectsWithExternalHandles = object;
+        }
+    }
+
     NKI_SERIALIZE_BASIC(nkuint32_t, object->lastGCPass);
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->gcCallback);
     NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
@@ -283,20 +298,6 @@ nkbool nkiSerializeObject(
                         nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
                 }
             }
-        }
-    }
-
-    // If we're loading, we need to reconstruct the external handle
-    // list.
-    if(!writeMode) {
-        if(object->externalHandleCount) {
-            if(vm->objectsWithExternalHandles) {
-                vm->objectsWithExternalHandles->previousExternalHandleListPtr =
-                    &object->nextObjectWithExternalHandles;
-            }
-            object->previousExternalHandleListPtr = &vm->objectsWithExternalHandles;
-            object->nextObjectWithExternalHandles = vm->objectsWithExternalHandles;
-            vm->objectsWithExternalHandles = object;
         }
     }
 
@@ -477,6 +478,9 @@ nkbool nkiSerializeStringTable(
         // equation!
         memset(vm->stringTable.stringTable, 0,
             vm->stringTable.capacity * sizeof(struct NKVMString*));
+
+        // FIXME: Remove this.
+        printf("ASDF: String table at %p\n", vm->stringTable.stringTable);
     }
 
     // Thanks AFL!
@@ -722,16 +726,19 @@ nkbool nkiSerializeStatics(struct NKVM *vm, NKVMSerializationWriter writer, void
 
 nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.size);
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->stack.capacity);
-    if(!nkiIsPow2(vm->stack.capacity)) {
+    nkuint32_t stackSize = vm->stack.size;
+    nkuint32_t stackCapacity = vm->stack.capacity;
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, stackSize);
+    NKI_SERIALIZE_BASIC(nkuint32_t, stackCapacity);
+    if(!nkiIsPow2(stackCapacity)) {
         nkiAddError(vm, -1, "Stack capacity is not a power of two.");
         return nkfalse;
     }
 
     // Thanks AFL! Stack size = 0 means stack index mask becomes
     // 0xffffffff, even though there's no stack.
-    if(vm->stack.capacity < 1) {
+    if(stackCapacity < 1) {
         nkiAddError(vm, -1, "Stack capacity is zero.");
         return nkfalse;
     }
@@ -740,10 +747,19 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
 
     // Make new stack space for read mode.
     if(!writeMode) {
-        nkiFree(vm, vm->stack.values);
+        //     nkiFree(vm, vm->stack.values);
+        //     vm->stack.values = NULL;
 
-        vm->stack.values = nkiMallocArray(vm,
-            sizeof(struct NKValue), vm->stack.capacity);
+        //     vm->stack.values = nkiMallocArray(vm,
+        //         sizeof(struct NKValue), vm->stack.capacity);
+
+        nkiVmStackClear(vm);
+        vm->stack.values = nkiReallocArray(vm,
+            vm->stack.values, sizeof(struct NKValue),
+            stackCapacity);
+
+        vm->stack.capacity = stackCapacity;
+        vm->stack.size = stackSize;
 
         // Thanks AFL!
         if(!vm->stack.values) {

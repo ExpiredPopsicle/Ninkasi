@@ -756,12 +756,17 @@ int main(int argc, char *argv[])
             buf.readPtr = 0;
             buf.size = scriptSize;
 
+            printf("ADSF0\n");
+
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
+                printf("ADSF2: String table at %p\n", vm->stringTable.stringTable);
                 free(script);
                 nkxVmDelete(vm);
                 return ERROR_CODE;
             }
         }
+
+       printf("ADSF1\n");
 
         if(settings.compileOnly) {
 

@@ -78,7 +78,12 @@ void nkiAddError(
     nkint32_t lineNumber,
     const char *str)
 {
-    struct NKError *newError = nkiMalloc(
+    struct NKError *newError = NULL;
+
+    // FIXME: Remove this.
+    printf("ASDF: Error: %s\n", str);
+
+    newError = nkiMalloc(
         vm,
         sizeof(struct NKError));
 

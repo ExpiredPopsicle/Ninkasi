@@ -342,11 +342,21 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
 
     printf("Widget deleting\n");
 
-    nkxFunctionCallbackCheckArguments(
-        data, "subsystemTest_widgetGCData", 1,
-        NK_VALUETYPE_OBJECTID);
+    // NOTE: Do not use nkxFunctionCallbackGetExternalDataArgument.
+    if(data->argumentCount != 1) {
+        nkxAddError(data->vm, "Bad argument count in subsystemTest_widgetGCData.");
+        return;
+    }
 
-    internalData = nkxGetExternalSubsystemDataOrError(
+    if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
+        nkxAddError(data->vm, "Bad argument in subsystemTest_widgetGCData.");
+        return;
+    }
+
+    // NOTE: Do not use nkxGetExternalSubsystemDataOrError here! That
+    // can cause an allocation, and this could run in allocation fail
+    // cleanup mode!
+    internalData = nkxGetExternalSubsystemData(
         data->vm, "subsystemTest");
 
     // This is a GC callback, so it can run in cases where maybe the

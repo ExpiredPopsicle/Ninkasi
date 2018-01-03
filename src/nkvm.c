@@ -153,11 +153,23 @@ const char *nkiVmGetOpcodeName(enum NKOpcode op)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
+// FIXME: Remove this.
+static nkuint32_t vmCount = 0;
+void nkiCheckVmCount(void)
+{
+    printf("Remaining VM obs: " NK_PRINTF_UINT32 "\n", vmCount);
+    assert(vmCount == 0);
+}
+
 void nkiVmInit(struct NKVM *vm)
 {
     // NOTE: By the time this function is called, the
     // catastrophicFailureJmpBuf field should already be set. Do not
     // overwrite it.
+
+    // FIXME: Remove this.
+    vmCount++;
+    atexit(nkiCheckVmCount);
 
     // Init memory management before almost anything else.
     vm->currentMemoryUsage = 0;
@@ -213,10 +225,14 @@ void nkiVmInit(struct NKVM *vm)
     vm->externalTypeCount = 0;
 
     memset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
+
 }
 
 void nkiVmDestroy(struct NKVM *vm)
 {
+    // FIXME: Remove this.
+    printf("ASDF: Destroying VM: %p\n", vm);
+
     // The external data table is still good, regardless of allocation
     // failure status. Make sure we run all of our cleanup functions.
     {
@@ -238,7 +254,13 @@ void nkiVmDestroy(struct NKVM *vm)
         }
     }
 
+    // FIXME: Remove this.
+    printf("ASDF: Destroyed VM 2\n");
+
     if(vm->errorState.allocationFailure) {
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2a\n");
 
         // Catastrophic failure cleanup mode. Do not trust most
         // internal pointers and use the allocation tracker directly.
@@ -257,13 +279,22 @@ void nkiVmDestroy(struct NKVM *vm)
         nkiDumpLeakData(vm);
 #endif
 
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2a5\n");
+
     } else {
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2b\n");
 
         // Standard cleanup mode.
 
         NK_FAILURE_RECOVERY_DECL();
 
         NK_SET_FAILURE_RECOVERY_VOID();
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2b1\n");
 
         // Nuke the entire static address space and stack, then force
         // a final garbage collection pass before we start making the
@@ -274,15 +305,31 @@ void nkiVmDestroy(struct NKVM *vm)
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));
 
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2c\n");
+
         nkiVmObjectTableCleanAllObjects(vm);
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2c1\n");
+
         nkiVmStringTableCleanAllStrings(vm);
 
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2c2\n");
+
         nkiVmStringTableDestroy(vm);
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2d\n");
 
         nkiVmStackDestroy(vm);
         nkiErrorStateDestroy(vm);
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);
+
+        // FIXME: Remove this.
+        printf("ASDF: Destroyed VM 2e\n");
 
         // Free global variable records.
         {
@@ -323,7 +370,12 @@ void nkiVmDestroy(struct NKVM *vm)
     }
 
     assert(!vm->allocations);
-}
+
+    // FIXME: Remove this.
+    printf("ASDF: Destroyed VM: %p\n", vm);
+
+    vmCount--;
+ }
 
 // ----------------------------------------------------------------------
 // Iteration

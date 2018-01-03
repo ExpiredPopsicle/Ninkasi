@@ -557,10 +557,16 @@ void nkiOpcode_call(struct NKVM *vm)
             return;
         }
 
+        // FIXME: Remove this.
+        printf("ASDF: Alloc for call\n");
+
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
         data.arguments = nkiMallocArray(vm, sizeof(struct NKValue), argumentCount);
+
+        // FIXME: Remove this.
+        printf("ASDF: Alloc for call 2\n");
 
         // Note: We're not simply giving the function a stack pointer,
         // because then the called function would have to worry about
@@ -580,7 +586,9 @@ void nkiOpcode_call(struct NKVM *vm)
         // Actual function call.
         if(externalFunc->CFunctionCallback) {
             externalFunc->CFunctionCallback(&data);
+            nkiFree(vm, data.arguments);
         } else {
+            nkiFree(vm, data.arguments);
             nkiAddError(vm, -1, "Attempted to call a C function that doesn't exist.");
         }
 
@@ -593,8 +601,6 @@ void nkiOpcode_call(struct NKVM *vm)
         if(NK_CHECK_CATASTROPHE()) {
             NK_CATASTROPHE();
         }
-
-        nkiFree(vm, data.arguments);
 
         // Pop all the arguments.
         nkiVmStackPopN(vm, argumentCount + 2);

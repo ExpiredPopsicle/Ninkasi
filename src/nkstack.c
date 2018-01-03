@@ -67,16 +67,19 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
     // Make a stack if we don't have one. This can happen with weird
     // binaries.
     if(!stack->capacity) {
-        stack->capacity = 1;
         stack->values = nkiReallocArray(
             vm,
             stack->values,
             stack->capacity, sizeof(struct NKValue));
         memset(stack->values, 0, sizeof(struct NKValue));
+        stack->capacity = 1;
     }
 
     // Grow the stack if necessary.
     if(stack->size == stack->capacity) {
+
+        nkuint32_t newStackCapacity = stack->capacity;
+        nkuint32_t newStackIndexMask = stack->indexMask;
 
         // TODO: Add an adjustable stack size limit.
         if(stack->capacity > 0xffff) {
@@ -93,30 +96,33 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
         // cause the stack size to keep doubling anyway, but without
         // any actual allocation. Now the stack capacity change
         // happens AFTER the overflow check.
-        stack->capacity <<= 1;
+        newStackCapacity <<= 1;
 
         // TODO: Make a more reasonable stack space limit than "we ran
         // out of 32-bit integer".
-        if(!stack->capacity) {
+        if(!newStackCapacity) {
             nkiAddError(
                 vm, -1,
                 "Stack ran out of address space.");
             return &stack->values[0];
         }
 
-        if(stack->capacity > vm->limits.maxStackSize) {
+        if(newStackCapacity > vm->limits.maxStackSize) {
             nkiAddError(
                 vm, -1,
                 "Reached stack capacity limit.");
             return &stack->values[0];
         }
 
-        stack->indexMask <<= 1;
-        stack->indexMask |= 1;
+        newStackIndexMask <<= 1;
+        newStackIndexMask |= 1;
         stack->values = nkiReallocArray(
             vm,
             stack->values,
-            stack->capacity, sizeof(struct NKValue));
+            newStackCapacity, sizeof(struct NKValue));
+
+        stack->capacity = newStackCapacity;
+        stack->indexMask = newStackIndexMask;
 
         memset(
             &stack->values[stack->size], 0,
@@ -212,10 +218,14 @@ struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
 void nkiVmStackClear(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
-    nkiFree(vm, stack->values);
-    stack->values = nkiMalloc(vm, sizeof(struct NKValue));
-    memset(stack->values, 0, sizeof(struct NKValue));
+    // nkiFree(vm, stack->values);
+    // stack->values = nkiMalloc(vm, sizeof(struct NKValue));
+
+    // FIXME: Remove this.
+    printf("Clearing stack with capacity: " NK_PRINTF_UINT32 "\n", vm->stack.capacity);
+
+    memset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;
-    stack->capacity = 1;
-    stack->indexMask = 0;
+    // stack->capacity = 1;
+    // stack->indexMask = 0;
 }
