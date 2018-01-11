@@ -482,6 +482,14 @@ void nkiOpcode_call(struct NKVM *vm)
     NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
     struct NKVMFunction *funcOb = NULL;
 
+    // FIXME: Remove this.
+    printf("STACK TOP TYPE IS (2): " NK_PRINTF_UINT32 "\n", vm->stack.values[vm->stack.size - 1].type_uint);
+    printf("STACK TOP TYPE IS (3): " NK_PRINTF_UINT32 "\n", nkiVmStackPeek(vm, (vm->stack.size - 1))->type_uint);
+    printf("ASDFASDF: " NK_PRINTF_UINT32 "\n", vm->stack.size);
+    printf("ASDFASDF: " NK_PRINTF_UINT32 "\n", vm->stack.indexMask);
+    // FIXME: Remove this.
+    assert(vm->stack.indexMask == vm->stack.capacity - 1);
+
     // PEEK at the top of the stack. That's _argumentCount.
     argumentCount = nkiValueToInt(vm, nkiVmStackPeek(vm, (vm->stack.size - 1)));
 

@@ -84,8 +84,11 @@ void nkiVmStackDestroy(struct NKVM *vm);
 /// fill it in).
 struct NKValue *nkiVmStackPush_internal(struct NKVM *vm);
 
-/// Clear the entire stack.
-void nkiVmStackClear(struct NKVM *vm);
+/// Clear the entire stack. Memory will only be reduced if freeMem is
+/// set to nktrue, but this will cause an extra reallocation and
+/// should NOT be used in places where an allocation error could cause
+/// issues (such as VM cleanup).
+void nkiVmStackClear(struct NKVM *vm, nkbool freeMem);
 
 #endif // NINKASI_VMSTACK_H
 

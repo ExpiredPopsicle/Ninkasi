@@ -300,7 +300,7 @@ void nkiVmDestroy(struct NKVM *vm)
         // a final garbage collection pass before we start making the
         // VM unusable, so that GC callbacks get hit for external data
         // and that stuff can clean up in a conventional manner.
-        nkiVmStackClear(vm);
+        nkiVmStackClear(vm, nkfalse);
         memset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));

@@ -217,9 +217,9 @@ nkbool nkiSerializeObject(
     NKVMSerializationWriter writer, void *userdata,
     nkbool writeMode)
 {
-    // FIXME: Remove this. We do it in the parent function. Doing so
-    // will break the binary format, so do it once we want to reset
-    // test cases.
+    // FIXME: Remove this. We do it in the parent function. Removing
+    // this will break backwards compatibility in the binary format,
+    // so do it once we want to reset test cases.
     nkuint32_t objectTableIndex = object->objectTableIndex;
     NKI_SERIALIZE_BASIC(nkuint32_t, objectTableIndex);
 
@@ -478,9 +478,6 @@ nkbool nkiSerializeStringTable(
         // equation!
         memset(vm->stringTable.stringTable, 0,
             vm->stringTable.capacity * sizeof(struct NKVMString*));
-
-        // FIXME: Remove this.
-        printf("ASDF: String table at %p\n", vm->stringTable.stringTable);
     }
 
     // Thanks AFL!
@@ -736,6 +733,12 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
         return nkfalse;
     }
 
+    // Check stack capacity limit.
+    if(stackCapacity > vm->limits.maxStackSize) {
+        nkiAddError(vm, -1, "Stack capacity is too large for limit.");
+        return nkfalse;
+    }
+
     // Thanks AFL! Stack size = 0 means stack index mask becomes
     // 0xffffffff, even though there's no stack.
     if(stackCapacity < 1) {
@@ -753,12 +756,13 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
         //     vm->stack.values = nkiMallocArray(vm,
         //         sizeof(struct NKValue), vm->stack.capacity);
 
-        nkiVmStackClear(vm);
+        nkiVmStackClear(vm, nktrue);
         vm->stack.values = nkiReallocArray(vm,
             vm->stack.values, sizeof(struct NKValue),
             stackCapacity);
 
         vm->stack.capacity = stackCapacity;
+        vm->stack.indexMask = stackCapacity - 1;
         vm->stack.size = stackSize;
 
         // Thanks AFL!

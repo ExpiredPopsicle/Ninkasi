@@ -215,17 +215,19 @@ struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
     return &vm->stack.values[index & vm->stack.indexMask];
 }
 
-void nkiVmStackClear(struct NKVM *vm)
+void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
 {
     struct NKVMStack *stack = &vm->stack;
-    // nkiFree(vm, stack->values);
-    // stack->values = nkiMalloc(vm, sizeof(struct NKValue));
 
     // FIXME: Remove this.
     printf("Clearing stack with capacity: " NK_PRINTF_UINT32 "\n", vm->stack.capacity);
 
     memset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;
-    // stack->capacity = 1;
-    // stack->indexMask = 0;
+
+    if(freeMem) {
+        stack->values = nkiReallocArray(vm, stack->values, sizeof(struct NKValue), 1);
+        stack->capacity = 1;
+        stack->indexMask = 1;
+    }
 }
