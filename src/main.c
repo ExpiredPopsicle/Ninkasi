@@ -874,17 +874,7 @@ int main(int argc, char *argv[])
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
 
-                            {
-                                FILE *preSerializeStateFile = fopen("pre.txt", "wb+");
-                                FILE *postSerializeStateFile = fopen("post.txt", "wb+");
-
-                                nkxDbgDumpState(vm, preSerializeStateFile);
-                                vm = testSerializer(vm);
-                                nkxDbgDumpState(vm, postSerializeStateFile);
-
-                                fclose(preSerializeStateFile);
-                                fclose(postSerializeStateFile);
-                            }
+                            vm = testSerializer(vm);
 
                             if(!vm || checkErrors(vm)) {
                                 // free(script);
