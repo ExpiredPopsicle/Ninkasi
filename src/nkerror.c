@@ -107,8 +107,6 @@ void nkiAddError(
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
-
-    assert(0);
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)
