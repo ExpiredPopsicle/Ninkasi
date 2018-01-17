@@ -279,28 +279,6 @@ nkbool nkiSerializeObject(
 
     }
 
-    // External serialization callback.
-    if(object->serializationCallback.id != NK_INVALID_VALUE) {
-        if(object->serializationCallback.id < vm->functionCount) {
-            struct NKVMFunction *func = &vm->functionTable[object->serializationCallback.id];
-            if(func->externalFunctionId.id != NK_INVALID_VALUE) {
-                if(func->externalFunctionId.id < vm->externalFunctionCount) {
-                    struct NKValue funcValue;
-                    struct NKValue argValue;
-                    memset(&funcValue, 0, sizeof(funcValue));
-                    funcValue.type = NK_VALUETYPE_FUNCTIONID;
-                    funcValue.functionId = object->serializationCallback;
-                    memset(&argValue, 0, sizeof(argValue));
-                    argValue.type = NK_VALUETYPE_OBJECTID;
-                    argValue.objectId = object->objectTableIndex;
-
-                    NKI_SERIALIZE_WRAPCALLBACK(
-                        nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
-                }
-            }
-        }
-    }
-
     return nktrue;
 }
 
@@ -1142,8 +1120,6 @@ nkbool nkiSerializeExternalSubsystemData(
     struct NKVM *vm, NKVMSerializationWriter writer,
     void *userdata, nkbool writeMode)
 {
-    // FIXME: Finish this.
-
     nkuint32_t externalSubsystemDataCount = 0;
     nkuint32_t n;
 
@@ -1203,6 +1179,58 @@ nkbool nkiSerializeExternalSubsystemData(
     return nktrue;
 }
 
+nkbool nkiSerializeExternalObjects(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    nkuint32_t i;
+
+    for(i = 0; i < vm->objectTable.capacity; i++) {
+
+        struct NKVMObject *object = vm->objectTable.objectTable[i];
+
+        if(object) {
+
+            if(object->externalDataType.id != NK_INVALID_VALUE) {
+
+                if(object->externalDataType.id < vm->externalTypeCount) {
+
+                    // FIXME: Remove this.
+                    printf("NNN: %s external data of type: %s\n",
+                        writeMode ? "Saving" : "Loading", vm->externalTypeNames[object->externalDataType.id]);
+
+                } else {
+                    nkiAddError(vm, -1, "External type value out of range.");
+                }
+            }
+
+            if(object->serializationCallback.id != NK_INVALID_VALUE) {
+                if(object->serializationCallback.id < vm->functionCount) {
+                    struct NKVMFunction *func = &vm->functionTable[object->serializationCallback.id];
+                    if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+                        if(func->externalFunctionId.id < vm->externalFunctionCount) {
+                            struct NKValue funcValue;
+                            struct NKValue argValue;
+                            memset(&funcValue, 0, sizeof(funcValue));
+                            funcValue.type = NK_VALUETYPE_FUNCTIONID;
+                            funcValue.functionId = object->serializationCallback;
+                            memset(&argValue, 0, sizeof(argValue));
+                            argValue.type = NK_VALUETYPE_OBJECTID;
+                            argValue.objectId = object->objectTableIndex;
+
+                            NKI_SERIALIZE_WRAPCALLBACK(
+                                nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return nktrue;
+}
+
+
 #define NKI_VERSION 2
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
@@ -1244,9 +1272,12 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Instruction pointer.
     NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionPointer);
 
+    // String table.
     NKI_WRAPSERIALIZE(
         nkiSerializeStringTable(vm, writer, userdata, writeMode));
 
+    // Garbage collector state. FIXME: Maybe we should just GC before
+    // saving and after loading.
     NKI_WRAPSERIALIZE(
         nkiSerializeGcState(vm, writer, userdata, writeMode));
 
@@ -1281,6 +1312,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Serialized external subsystem data.
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalSubsystemData(vm, writer, userdata, writeMode));
+
+    // Individual external objects.
+    NKI_WRAPSERIALIZE(
+        nkiSerializeExternalObjects(vm, writer, userdata, writeMode));
 
     return nktrue;
 }
