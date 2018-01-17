@@ -164,9 +164,9 @@ void nkiVmObjectTableCleanupObject(
                                 data.vm = vm;
                                 data.argumentCount = 1;
                                 data.arguments = &argValue;
+
                                 externalFunc->CFunctionCallback(&data);
 
-                                // nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL);
                             }
 
                         }
@@ -187,9 +187,8 @@ void nkiVmObjectTableCleanAllObjects(
     struct NKVMTable *table = &vm->objectTable;
     nkuint32_t i;
 
-    nkiVmObjectTableSanityCheck(vm);
-
     for(i = 0; i < table->capacity; i++) {
+
         nkiVmObjectTableCleanupObject(vm, i);
         table->objectTable[i] = NULL;
     }
@@ -345,13 +344,19 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
         return;
     }
 
-    // FIXME: Check for integer overflow.
     ob->externalHandleCount++;
 
     // If we already have a handle count, it means the object is
     // in the linked list of handles, so we'll just increment the
     // counter and return.
     if(ob->externalHandleCount > 1) {
+        return;
+    }
+
+    // Check for integer overflow.
+    if(ob->externalHandleCount == 0) {
+        ob->externalHandleCount = NK_UINT_MAX;
+        nkiAddError(vm, -1, "Integer overflow in handle count.");
         return;
     }
 
@@ -550,3 +555,4 @@ void *nkiVmObjectGetExternalData(
     }
     return ret;
 }
+

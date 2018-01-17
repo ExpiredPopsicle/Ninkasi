@@ -83,5 +83,10 @@ nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
 /// that matches its actual index.
 void nkiVmObjectTableSanityCheck(struct NKVM *vm);
 
+/// Check that every object in the object table is in the linked list
+/// if it's has outstanding external handles, or not in the linked
+/// list if it does not.
+void nkiExternalHandleSanityCheck(struct NKVM *vm);
+
 #endif // NINKASI_VMDBG_H
 
