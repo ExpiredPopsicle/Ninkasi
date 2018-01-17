@@ -464,3 +464,28 @@ void nkiVmObjectTableSanityCheck(struct NKVM *vm)
         }
     }
 }
+
+void nkiExternalHandleSanityCheck(struct NKVM *vm)
+{
+    if(vm) {
+        struct NKVMTable *table = &vm->objectTable;
+        if(table) {
+            if(table->objectTable) {
+                nkuint32_t i;
+                for(i = 0; i < table->capacity; i++) {
+                    struct NKVMObject *ob = table->objectTable[i];
+                    if(ob) {
+                        assert(ob->objectTableIndex == i);
+                        if(ob->externalHandleCount) {
+                            // assert(ob->nextObjectWithExternalHandles);
+                            assert(ob->previousExternalHandleListPtr);
+                        } else {
+                            assert(!ob->nextObjectWithExternalHandles);
+                            assert(!ob->previousExternalHandleListPtr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
