@@ -80,16 +80,12 @@ struct NKGarbageCollectionInfo
     nkuint32_t gcNewObjectCountdown;
 };
 
-// FIXME: Implement stuff to use this.
 struct NKVMExternalSubsystemData
 {
     char *name;
 
-    // Called by the serialization system. NOT stored as a function ID
-    // like the serialization callback on objects, because this data
-    // is assumed to be set up by external systems in C and the
-    // function pointer is not, itself, required to be serialized.
-    NKVMFunctionCallback serializationCallback;
+    // Called by the serialization system.
+    NKVMSubsystemSerializationCallback serializationCallback;
 
     // Called on VM destruction. This function is responsible for
     // cleaning up the data stored on this object, but also objects
@@ -97,7 +93,7 @@ struct NKVMExternalSubsystemData
     // reason for this is that the normal garbage collector cleanup
     // function cannot run once the allocation failure flag has been
     // set.
-    NKVMFunctionCallback cleanupCallback;
+    NKVMSubsystemCleanupCallback cleanupCallback;
 
     void *data;
 
@@ -263,20 +259,20 @@ void *nkiGetExternalSubsystemData(
     struct NKVM *vm,
     const char *name);
 
-void nkiSetExternalSubsystemData(
-    struct NKVM *vm,
-    const char *name,
-    void *data);
+// void nkiSetExternalSubsystemData(
+//     struct NKVM *vm,
+//     const char *name,
+//     void *data);
 
-void nkiSetExternalSubsystemSerializationCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback serializationCallback);
+// void nkiSetExternalSubsystemSerializationCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback serializationCallback);
 
-void nkiSetExternalSubsystemCleanupCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback cleanupCallback);
+// void nkiSetExternalSubsystemCleanupCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback cleanupCallback);
 
 struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
     struct NKVM *vm,

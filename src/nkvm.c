@@ -242,10 +242,7 @@ void nkiVmDestroy(struct NKVM *vm)
                 struct NKVMExternalSubsystemData *data = vm->subsystemDataTable[i];
                 struct NKVMExternalSubsystemData *next = data->nextInHashTable;
                 if(data->cleanupCallback) {
-                    struct NKVMFunctionCallbackData funcData;
-                    memset(&funcData, 0, sizeof(funcData));
-                    funcData.vm = vm;
-                    data->cleanupCallback(&funcData);
+                    data->cleanupCallback(vm, data->data);
                 }
                 nkiFree(vm, data->name);
                 nkiFree(vm, data);
@@ -538,40 +535,40 @@ void *nkiGetExternalSubsystemData(
     return NULL;
 }
 
-void nkiSetExternalSubsystemData(
-    struct NKVM *vm,
-    const char *name,
-    void *data)
-{
-    struct NKVMExternalSubsystemData *externalSubsystemData =
-        nkiFindExternalSubsystemData(vm, name, nktrue);
+// void nkiSetExternalSubsystemData(
+//     struct NKVM *vm,
+//     const char *name,
+//     void *data)
+// {
+//     struct NKVMExternalSubsystemData *externalSubsystemData =
+//         nkiFindExternalSubsystemData(vm, name, nktrue);
 
-    if(!externalSubsystemData->cleanupCallback) {
-        nkiAddError(vm, -1, "Setting external subsystem data before cleanup callback.");
-    }
+//     if(!externalSubsystemData->cleanupCallback) {
+//         nkiAddError(vm, -1, "Setting external subsystem data before cleanup callback.");
+//     }
 
-    externalSubsystemData->data = data;
-}
+//     externalSubsystemData->data = data;
+// }
 
-void nkiSetExternalSubsystemSerializationCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback serializationCallback)
-{
-    struct NKVMExternalSubsystemData *externalSubsystemData =
-        nkiFindExternalSubsystemData(vm, name, nktrue);
+// void nkiSetExternalSubsystemSerializationCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback serializationCallback)
+// {
+//     struct NKVMExternalSubsystemData *externalSubsystemData =
+//         nkiFindExternalSubsystemData(vm, name, nktrue);
 
-    externalSubsystemData->serializationCallback = serializationCallback;
-}
+//     externalSubsystemData->serializationCallback = serializationCallback;
+// }
 
-void nkiSetExternalSubsystemCleanupCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback cleanupCallback)
-{
-    struct NKVMExternalSubsystemData *externalSubsystemData =
-        nkiFindExternalSubsystemData(vm, name, nktrue);
+// void nkiSetExternalSubsystemCleanupCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback cleanupCallback)
+// {
+//     struct NKVMExternalSubsystemData *externalSubsystemData =
+//         nkiFindExternalSubsystemData(vm, name, nktrue);
 
-    externalSubsystemData->cleanupCallback = cleanupCallback;
-}
+//     externalSubsystemData->cleanupCallback = cleanupCallback;
+// }
 

@@ -614,38 +614,38 @@ void *nkxGetExternalSubsystemData(
     return ret;
 }
 
-void nkxSetExternalSubsystemData(
-    struct NKVM *vm,
-    const char *name,
-    void *data)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-    nkiSetExternalSubsystemData(vm, name, data);
-    NK_CLEAR_FAILURE_RECOVERY();
-}
+// void nkxSetExternalSubsystemData(
+//     struct NKVM *vm,
+//     const char *name,
+//     void *data)
+// {
+//     NK_FAILURE_RECOVERY_DECL();
+//     NK_SET_FAILURE_RECOVERY_VOID();
+//     nkiSetExternalSubsystemData(vm, name, data);
+//     NK_CLEAR_FAILURE_RECOVERY();
+// }
 
-void nkxSetExternalSubsystemSerializationCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback serializationCallback)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-    nkiSetExternalSubsystemSerializationCallback(vm, name, serializationCallback);
-    NK_CLEAR_FAILURE_RECOVERY();
-}
+// void nkxSetExternalSubsystemSerializationCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback serializationCallback)
+// {
+//     NK_FAILURE_RECOVERY_DECL();
+//     NK_SET_FAILURE_RECOVERY_VOID();
+//     nkiSetExternalSubsystemSerializationCallback(vm, name, serializationCallback);
+//     NK_CLEAR_FAILURE_RECOVERY();
+// }
 
-void nkxSetExternalSubsystemCleanupCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback cleanupCallback)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-    nkiSetExternalSubsystemCleanupCallback(vm, name, cleanupCallback);
-    NK_CLEAR_FAILURE_RECOVERY();
-}
+// void nkxSetExternalSubsystemCleanupCallback(
+//     struct NKVM *vm,
+//     const char *name,
+//     NKVMFunctionCallback cleanupCallback)
+// {
+//     NK_FAILURE_RECOVERY_DECL();
+//     NK_SET_FAILURE_RECOVERY_VOID();
+//     nkiSetExternalSubsystemCleanupCallback(vm, name, cleanupCallback);
+//     NK_CLEAR_FAILURE_RECOVERY();
+// }
 
 void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
 {
@@ -860,3 +860,38 @@ nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
         vm->serializationState.writeMode);
 }
 
+
+nkbool nkxInitSubsystem(
+    struct NKVM *vm, struct NKCompilerState *cs,
+    const char *name,
+    void *internalData,
+    NKVMSubsystemCleanupCallback cleanupCallback,
+    NKVMSubsystemSerializationCallback serializationCallback)
+{
+    struct NKVMExternalSubsystemData *subsystemData = NULL;
+    nkbool ret = nktrue;
+
+    if(nkxVmHasErrors(vm)) {
+
+        nkxAddError(vm, "Attempting to initialize a subsystem on a broken VM.");
+        return nkfalse;
+
+    } else {
+
+        NK_FAILURE_RECOVERY_DECL();
+        NK_SET_FAILURE_RECOVERY(nkfalse);
+
+        subsystemData = nkiFindExternalSubsystemData(
+            vm, name, nktrue);
+
+        NK_CLEAR_FAILURE_RECOVERY();
+
+        if(subsystemData) {
+            subsystemData->serializationCallback = serializationCallback;
+            subsystemData->cleanupCallback = cleanupCallback;
+            subsystemData->data = internalData;
+        }
+    }
+
+    return ret;
+}

@@ -1163,16 +1163,16 @@ nkbool nkiSerializeExternalSubsystemData(
 
         for(n = 0; n < nkiVmExternalSubsystemHashTableSize; n++) {
             struct NKVMExternalSubsystemData *data = vm->subsystemDataTable[n];
-            while(data) {
-                if(data->serializationCallback) {
-                    struct NKVMFunctionCallbackData funcData;
-                    NKI_SERIALIZE_STRING(data->name);
-                    memset(&funcData, 0, sizeof(funcData));
-                    funcData.vm = vm;
 
+            while(data) {
+
+                NKI_SERIALIZE_STRING(data->name);
+
+                if(data->serializationCallback) {
                     NKI_SERIALIZE_WRAPCALLBACK(
-                        data->serializationCallback(&funcData));
+                        data->serializationCallback(vm, data->data));
                 }
+
                 data = data->nextInHashTable;
             }
         }
@@ -1193,12 +1193,8 @@ nkbool nkiSerializeExternalSubsystemData(
             }
 
             if(data->serializationCallback) {
-                struct NKVMFunctionCallbackData funcData;
-                memset(&funcData, 0, sizeof(funcData));
-                funcData.vm = vm;
-
                 NKI_SERIALIZE_WRAPCALLBACK(
-                    data->serializationCallback(&funcData));
+                    data->serializationCallback(vm, data->data));
             }
 
         }

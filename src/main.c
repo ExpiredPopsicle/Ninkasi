@@ -332,8 +332,8 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
     }
 }
 
-// This should probably be tracked separately for each VM.
-static NKVMExternalFunctionID doGCCallbackThing_id;
+// // This should probably be tracked separately for each VM.
+// static NKVMExternalFunctionID doGCCallbackThing_id;
 
 void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
@@ -394,44 +394,44 @@ void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
 
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
-    if(data->argumentCount != 1) {
-        nkiAddError(
-            data->vm,
-            -1, "Bad argument count in setGCCallbackThing.");
-        return;
-    }
+    // if(data->argumentCount != 1) {
+    //     nkiAddError(
+    //         data->vm,
+    //         -1, "Bad argument count in setGCCallbackThing.");
+    //     return;
+    // }
 
-    assert(data->argumentCount == 1);
-    printf("Setting GC callback.\n");
+    // assert(data->argumentCount == 1);
+    // printf("Setting GC callback.\n");
 
-    doGCCallbackThing_id =
-        nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
+    // doGCCallbackThing_id =
+    //     nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
 
-    {
-        struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
-        if(id.id != NK_INVALID_VALUE) {
-            printf("This thing isn't a basic object!\n");
-            return;
-        }
-    }
+    // {
+    //     struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
+    //     if(id.id != NK_INVALID_VALUE) {
+    //         printf("This thing isn't a basic object!\n");
+    //         return;
+    //     }
+    // }
 
-    nkxVmObjectSetGarbageCollectionCallback(
-        data->vm, &data->arguments[0], doGCCallbackThing_id);
+    // nkxVmObjectSetGarbageCollectionCallback(
+    //     data->vm, &data->arguments[0], doGCCallbackThing_id);
 
-    nkxVmObjectSetExternalData(data->vm, &data->arguments[0], "butts");
+    // nkxVmObjectSetExternalData(data->vm, &data->arguments[0], "butts");
 
-    {
-        NKVMExternalFunctionID serializationCallbackId = nkxVmRegisterExternalFunction(
-            data->vm, "doSerializationCallbackThing", doSerializationCallbackThing);
-        nkxVmObjectSetSerializationCallback(
-            data->vm, &data->arguments[0], serializationCallbackId);
-    }
+    // {
+    //     NKVMExternalFunctionID serializationCallbackId = nkxVmRegisterExternalFunction(
+    //         data->vm, "doSerializationCallbackThing", doSerializationCallbackThing);
+    //     nkxVmObjectSetSerializationCallback(
+    //         data->vm, &data->arguments[0], serializationCallbackId);
+    // }
 
-    {
-        NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");
-        printf("Registered external type %s\n", nkxVmGetExternalTypeName(data->vm, id));
-        nkxVmObjectSetExternalType(data->vm, &data->arguments[0], id);
-    }
+    // {
+    //     NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");
+    //     printf("Registered external type %s\n", nkxVmGetExternalTypeName(data->vm, id));
+    //     nkxVmObjectSetExternalType(data->vm, &data->arguments[0], id);
+    // }
 }
 
 // ----------------------------------------------------------------------
@@ -577,9 +577,9 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
 
     nkxVmRegisterExternalType(vm, "footype");
 
-    nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
-    nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
-    nkxSetExternalSubsystemData(vm, "testSubsystem", "ASDFASDFASDFASDFASDFASDF");
+    // nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
+    // nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
+    // nkxSetExternalSubsystemData(vm, "testSubsystem", "ASDFASDFASDFASDFASDFASDF");
 
     if(cs) {
 
@@ -699,8 +699,6 @@ int main(int argc, char *argv[])
 
         nkxSetMaxAllocatedMemory(vm, settings.maxMemory);
 
-        initInternalFunctions(vm, NULL);
-
         // NKVM binary blobs start with \0.
         if(script && script[0] != 0) {
 
@@ -755,6 +753,8 @@ int main(int argc, char *argv[])
             buf.data = script;
             buf.readPtr = 0;
             buf.size = scriptSize;
+
+            initInternalFunctions(vm, NULL);
 
             printf("ADSF0\n");
 

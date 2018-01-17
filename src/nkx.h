@@ -402,6 +402,14 @@ nkbool nkxGetNextObjectOfExternalType(
     struct NKValue *outValue,
     nkuint32_t *startIndex);
 
+nkbool nkxInitSubsystem(
+    struct NKVM *vm,
+    struct NKCompilerState *cs,
+    const char *name,
+    void *internalData,
+    NKVMSubsystemCleanupCallback cleanupCallback,
+    NKVMSubsystemSerializationCallback serializationCallback);
+
 // ----------------------------------------------------------------------
 // Public compiler interface
 
