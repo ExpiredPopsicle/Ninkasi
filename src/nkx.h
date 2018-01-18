@@ -325,7 +325,9 @@ void *nkxFunctionCallbackGetExternalDataArgument(
 /// to make sure duplicates don't creep in. It's an
 /// initialization-time thing.
 NKVMExternalDataTypeID nkxVmRegisterExternalType(
-    struct NKVM *vm, const char *name);
+    struct NKVM *vm, const char *name,
+    NKVMSubsystemSerializationCallback serializationCallback,
+    NKVMSubsystemCleanupCallback cleanupCallback);
 
 /// Search through all existing types for a matching name. Returns a
 /// NKVMExternalDataTypeID with NK_INVALID_VALUE on failure.

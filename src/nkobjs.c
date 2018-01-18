@@ -134,6 +134,28 @@ void nkiVmObjectTableCleanupObject(
 
     if(ob) {
 
+        if(ob->externalDataType.id != NK_INVALID_VALUE) {
+
+            if(ob->externalDataType.id < vm->externalTypeCount) {
+
+                NKVMSubsystemCleanupCallback cleanupCallback =
+                    vm->externalTypes[ob->externalDataType.id].cleanupCallback;
+
+                // FIXME: Remove this.
+                printf("NNN: %s external data of type: %s\n",
+                    "Cleaning",
+                    vm->externalTypes ? vm->externalTypes[ob->externalDataType.id].name : "badtype");
+
+                if(cleanupCallback) {
+                    cleanupCallback(vm, ob->externalData);
+                    ob->externalData = NULL;
+                }
+
+            } else {
+                nkiAddError(vm, -1, "External type value out of range.");
+            }
+        }
+
         // Run any external garbage collection callbacks.
         if(ob->gcCallback.id != NK_INVALID_VALUE) {
             if(ob->gcCallback.id < vm->functionCount) {

@@ -261,10 +261,10 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     }
 
     // External types.
-    fprintf(stream, "externalTypeNames: " NK_PRINTF_UINT32 "\n", vm->externalTypeCount);
+    fprintf(stream, "externalTypes: " NK_PRINTF_UINT32 "\n", vm->externalTypeCount);
     for(i = 0; i < vm->externalTypeCount; i++) {
         fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
-        fprintf(stream, "    name: %s\n", vm->externalTypeNames[i]);
+        fprintf(stream, "    name: %s\n", vm->externalTypes[i].name);
     }
 
     // GC stuff? I dunno if we should include that in the serialized

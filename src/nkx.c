@@ -419,12 +419,15 @@ NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
 }
 
 NKVMExternalDataTypeID nkxVmRegisterExternalType(
-    struct NKVM *vm, const char *name)
+    struct NKVM *vm, const char *name,
+    NKVMSubsystemSerializationCallback serializationCallback,
+    NKVMSubsystemCleanupCallback cleanupCallback)
 {
     NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
-    ret = nkiVmRegisterExternalType(vm, name);
+    ret = nkiVmRegisterExternalType(
+        vm, name, serializationCallback, cleanupCallback);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -820,12 +823,13 @@ void *nkxFunctionCallbackGetExternalDataArgument(
 
     } else if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != externalDataType.id) {
 
-         struct NKDynString *dynStr = nkiDynStrCreate(
+        struct NKDynString *dynStr = nkiDynStrCreate(
             data->vm, functionName);
         nkiDynStrAppend(dynStr, ": Argument ");
         nkiDynStrAppendUint32(dynStr, argumentNumber);
         nkiDynStrAppend(dynStr, ": Type mismatch. Expected ");
-        nkiDynStrAppend(dynStr, data->vm->externalTypeNames[externalDataType.id]);
+        nkiDynStrAppend(dynStr,
+            data->vm->externalTypes ? data->vm->externalTypes[externalDataType.id].name : "badtype");
         nkiDynStrAppend(dynStr, ".");
         nkiAddError(
             data->vm, -1, dynStr->data);

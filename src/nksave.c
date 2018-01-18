@@ -983,13 +983,17 @@ nkbool nkiSerializeExternalTypes(
 
     if(!writeMode) {
         for(i = 0; i < vm->externalTypeCount; i++) {
+
             // The serializer can't really handle >32-bit lengths anyway,
             // but just be aware that we might be truncating something.
             // Obviously that's a degenerate case for names, but we still
             // need to protect against bad data.
-            nkuint32_t nameLen = (nkuint32_t)strlen(vm->externalTypeNames[i]);
-            if(nameLen > longestTypeNameLength) {
-                longestTypeNameLength = nameLen;
+
+            if(vm->externalTypes && vm->externalTypes[i].name) {
+                nkuint32_t nameLen = (nkuint32_t)strlen(vm->externalTypes[i].name);
+                if(nameLen > longestTypeNameLength) {
+                    longestTypeNameLength = nameLen;
+                }
             }
         }
     }
@@ -1033,7 +1037,12 @@ nkbool nkiSerializeExternalTypes(
 
         char *typeName = nameTempBuf;
         if(writeMode) {
-            typeName = vm->externalTypeNames[i];
+            if(vm->externalTypes && vm->externalTypes[i].name) {
+                typeName = vm->externalTypes[i].name;
+            } else {
+                nkiFree(vm, rawTypeMappingBuf);
+                return nkfalse;
+            }
         }
 
         if(writeMode) {
@@ -1054,9 +1063,15 @@ nkbool nkiSerializeExternalTypes(
                 return nkfalse;
             }
 
+            // FIXME: Add type remapping back in. Possibly just by
+            // deleting this block of code...
+
             // No more type remapping. Verify that the loaded type
             // matches what we have already in the VM.
-            if(strcmp(typeName, vm->externalTypeNames[i])) {
+            if(!vm->externalTypes ||
+                !vm->externalTypes[i].name ||
+                strcmp(typeName, vm->externalTypes[i].name))
+            {
                 nkiAddError(vm, -1, "Type name mismatch inside binary.");
                 nkiFree(vm, rawTypeMappingBuf);
                 return nkfalse;
@@ -1070,8 +1085,11 @@ nkbool nkiSerializeExternalTypes(
             // Search for an existing type with the same name as the
             // one we're loading.
             for(n = 0; n < vm->externalTypeCount; n++) {
-                if(!strcmp(vm->externalTypeNames[n], typeName)) {
 
+                if(vm->externalTypes &&
+                    vm->externalTypes[n].name &&
+                    !strcmp(vm->externalTypes[n].name, typeName))
+                {
                     typeMapping[i] = n;
 
                     // No more type remapping.
@@ -1195,9 +1213,17 @@ nkbool nkiSerializeExternalObjects(
 
                 if(object->externalDataType.id < vm->externalTypeCount) {
 
+                    NKVMSubsystemSerializationCallback serializationCallback =
+                        vm->externalTypes[object->externalDataType.id].serializationCallback;
+
                     // FIXME: Remove this.
                     printf("NNN: %s external data of type: %s\n",
-                        writeMode ? "Saving" : "Loading", vm->externalTypeNames[object->externalDataType.id]);
+                        writeMode ? "Saving" : "Loading",
+                        vm->externalTypes ? vm->externalTypes[object->externalDataType.id].name : "badtype");
+
+                    if(serializationCallback) {
+                        serializationCallback(vm, object->externalData);
+                    }
 
                 } else {
                     nkiAddError(vm, -1, "External type value out of range.");

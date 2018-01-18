@@ -575,7 +575,7 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     nkxVmRegisterExternalFunction(vm, "doGCCallbackThing", doGCCallbackThing);
     nkxVmRegisterExternalFunction(vm, "doSerializationCallbackThing", doSerializationCallbackThing);
 
-    nkxVmRegisterExternalType(vm, "footype");
+    nkxVmRegisterExternalType(vm, "footype", NULL, NULL);
 
     // nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
     // nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
@@ -1051,7 +1051,6 @@ int main(int argc, char *argv[])
 
                 initInternalFunctions(newVm, NULL);
 
-                nkxVmRegisterExternalType(newVm, "footype");
 
                 printf("Deserializing...\n");
                 {

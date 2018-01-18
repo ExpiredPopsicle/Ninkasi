@@ -221,7 +221,7 @@ void nkiVmInit(struct NKVM *vm)
     memset(vm->staticSpace, 0, 2 * sizeof(struct NKValue));
     vm->staticAddressMask = 1;
 
-    vm->externalTypeNames = NULL;
+    vm->externalTypes = NULL;
     vm->externalTypeCount = 0;
 
     memset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
@@ -353,10 +353,12 @@ void nkiVmDestroy(struct NKVM *vm)
         // Free external type data.
         {
             nkuint32_t n;
-            for(n = 0; n < vm->externalTypeCount; n++) {
-                nkiFree(vm, vm->externalTypeNames[n]);
+            if(vm->externalTypes) {
+                for(n = 0; n < vm->externalTypeCount; n++) {
+                    nkiFree(vm, vm->externalTypes[n].name);
+                }
+                nkiFree(vm, vm->externalTypes);
             }
-            nkiFree(vm, vm->externalTypeNames);
         }
 
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
@@ -444,28 +446,40 @@ struct NKValue *nkiVmFindGlobalVariable(
 // External data interface
 
 NKVMExternalDataTypeID nkiVmRegisterExternalType(
-    struct NKVM *vm, const char *name)
+    struct NKVM *vm, const char *name,
+    NKVMSubsystemSerializationCallback serializationCallback,
+    NKVMSubsystemCleanupCallback cleanupCallback)
 {
     NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
     if(ret.id != NK_INVALID_VALUE) {
-        return ret;
+        nkiAddError(vm, -1, "Attempted to register an external type twice.");
+        return (NKVMExternalDataTypeID){ NK_INVALID_VALUE };
     }
 
     if(vm->externalTypeCount == NK_INVALID_VALUE) {
         nkiAddError(vm, -1, "Allocated too many types.");
-        return ret;
+        return (NKVMExternalDataTypeID){ NK_INVALID_VALUE };
     }
 
     ret.id = vm->externalTypeCount;
 
     // Note: Increment after reallocation to maintain correct state at
     // all times, in case of alloc failure.
-    vm->externalTypeNames = nkiReallocArray(
-        vm, vm->externalTypeNames,
-        sizeof(*(vm->externalTypeNames)), vm->externalTypeCount + 1);
+    vm->externalTypes = nkiReallocArray(
+        vm, vm->externalTypes,
+        sizeof(*(vm->externalTypes)),
+        vm->externalTypeCount + 1);
     vm->externalTypeCount++;
 
-    vm->externalTypeNames[ret.id] = nkiStrdup(vm, name);
+    memset(
+        &vm->externalTypes[ret.id], 0,
+        sizeof(vm->externalTypes[ret.id]));
+
+    vm->externalTypes[ret.id].name = nkiStrdup(vm, name);
+    vm->externalTypes[ret.id].serializationCallback =
+        serializationCallback;
+    vm->externalTypes[ret.id].cleanupCallback =
+        cleanupCallback;
 
     return ret;
 }
@@ -475,10 +489,13 @@ NKVMExternalDataTypeID nkiVmFindExternalType(
 {
     NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
     nkuint32_t i;
-    for(i = 0; i < vm->externalTypeCount; i++) {
-        if(!strcmp(vm->externalTypeNames[i], name)) {
-            ret.id = i;
-            return ret;
+
+    if(vm->externalTypes) {
+        for(i = 0; i < vm->externalTypeCount; i++) {
+            if(!strcmp(vm->externalTypes[i].name, name)) {
+                ret.id = i;
+                return ret;
+            }
         }
     }
     return ret;
@@ -490,7 +507,7 @@ const char *nkiVmGetExternalTypeName(
     if(id.id >= vm->externalTypeCount) {
         return "";
     }
-    return vm->externalTypeNames[id.id];
+    return vm->externalTypes[id.id].name;
 }
 
 struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(

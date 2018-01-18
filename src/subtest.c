@@ -337,52 +337,76 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
 
 void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
 {
+    // struct SubsystemTest_InternalData *internalData;
+    // struct SubsystemTest_WidgetData *widgetData;
+
+    // printf("Widget deleting\n");
+
+    // // NOTE: Do not use nkxFunctionCallbackGetExternalDataArgument.
+    // if(data->argumentCount != 1) {
+    //     nkxAddError(data->vm, "Bad argument count in subsystemTest_widgetGCData.");
+    //     return;
+    // }
+
+    // if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
+    //     nkxAddError(data->vm, "Bad argument in subsystemTest_widgetGCData.");
+    //     return;
+    // }
+
+    // // NOTE: Do not use nkxGetExternalSubsystemDataOrError here! That
+    // // can cause an allocation, and this could run in allocation fail
+    // // cleanup mode!
+    // internalData = nkxGetExternalSubsystemData(
+    //     data->vm, "subsystemTest");
+
+    // // This is a GC callback, so it can run in cases where maybe the
+    // // VM or subsystem data weren't entirely set up, so we have to be
+    // // careful about potential null dereferences.
+    // if(internalData) {
+
+    //     // TODO: Make this check, that the serialization function is
+    //     // the one we think it is, a normal function, or find a better
+    //     // way to sanity-check external types to make sure all their
+    //     // GC and serializer callbacks match, like storing that data
+    //     // on the type info itself.
+    //     if(nkxVmObjectGetSerializationCallback(
+    //             data->vm, &data->arguments[0]).id !=
+    //         internalData->widgetSerializeCallbackId.id)
+    //     {
+    //         nkxAddError(data->vm, "Tried to garbage collect a widget that was possibly set up incorrectly.");
+    //         return;
+    //     }
+
+    //     widgetData = nkxFunctionCallbackGetExternalDataArgument(
+    //         data, "subsystemTest_widgetGCData", 0, internalData->widgetTypeId);
+
+    //     if(widgetData) {
+    //         subsystemTest_freeWrapper(widgetData);
+    //         nkxVmObjectSetExternalData(data->vm, &data->arguments[0], NULL);
+    //     }
+    // }
+}
+
+void subsystemTest_widgetGCData2(struct NKVM *vm, void *data)
+{
     struct SubsystemTest_InternalData *internalData;
-    struct SubsystemTest_WidgetData *widgetData;
+    struct SubsystemTest_WidgetData *widgetData =
+        (struct SubsystemTest_WidgetData *)data;
 
     printf("Widget deleting\n");
-
-    // NOTE: Do not use nkxFunctionCallbackGetExternalDataArgument.
-    if(data->argumentCount != 1) {
-        nkxAddError(data->vm, "Bad argument count in subsystemTest_widgetGCData.");
-        return;
-    }
-
-    if(data->arguments[0].type != NK_VALUETYPE_OBJECTID) {
-        nkxAddError(data->vm, "Bad argument in subsystemTest_widgetGCData.");
-        return;
-    }
 
     // NOTE: Do not use nkxGetExternalSubsystemDataOrError here! That
     // can cause an allocation, and this could run in allocation fail
     // cleanup mode!
     internalData = nkxGetExternalSubsystemData(
-        data->vm, "subsystemTest");
+        vm, "subsystemTest");
 
     // This is a GC callback, so it can run in cases where maybe the
     // VM or subsystem data weren't entirely set up, so we have to be
     // careful about potential null dereferences.
     if(internalData) {
-
-        // TODO: Make this check, that the serialization function is
-        // the one we think it is, a normal function, or find a better
-        // way to sanity-check external types to make sure all their
-        // GC and serializer callbacks match, like storing that data
-        // on the type info itself.
-        if(nkxVmObjectGetSerializationCallback(
-                data->vm, &data->arguments[0]).id !=
-            internalData->widgetSerializeCallbackId.id)
-        {
-            nkxAddError(data->vm, "Tried to garbage collect a widget that was possibly set up incorrectly.");
-            return;
-        }
-
-        widgetData = nkxFunctionCallbackGetExternalDataArgument(
-            data, "subsystemTest_widgetGCData", 0, internalData->widgetTypeId);
-
         if(widgetData) {
             subsystemTest_freeWrapper(widgetData);
-            nkxVmObjectSetExternalData(data->vm, &data->arguments[0], NULL);
         }
     }
 }
@@ -597,7 +621,12 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
     internalData = subsystemTest_mallocWrapper(
         sizeof(struct SubsystemTest_InternalData),
         "subsystemTest_initLibrary");
-    internalData->widgetTypeId = nkxVmRegisterExternalType(vm, "subsystemTest_widget");
+
+    internalData->widgetTypeId = nkxVmRegisterExternalType(
+        vm, "subsystemTest_widget",
+        NULL,
+        subsystemTest_widgetGCData2);
+
     internalData->testString = NULL;
 
     if(!nkxInitSubsystem(
