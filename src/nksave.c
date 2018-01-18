@@ -1207,10 +1207,9 @@ nkbool nkiSerializeExternalObjects(
 
         struct NKVMObject *object = vm->objectTable.objectTable[i];
 
+        // Run any external data serialization routines.
         if(object) {
-
             if(object->externalDataType.id != NK_INVALID_VALUE) {
-
                 if(object->externalDataType.id < vm->externalTypeCount) {
 
                     NKVMSubsystemSerializationCallback serializationCallback =
@@ -1230,26 +1229,26 @@ nkbool nkiSerializeExternalObjects(
                 }
             }
 
-            if(object->serializationCallback.id != NK_INVALID_VALUE) {
-                if(object->serializationCallback.id < vm->functionCount) {
-                    struct NKVMFunction *func = &vm->functionTable[object->serializationCallback.id];
-                    if(func->externalFunctionId.id != NK_INVALID_VALUE) {
-                        if(func->externalFunctionId.id < vm->externalFunctionCount) {
-                            struct NKValue funcValue;
-                            struct NKValue argValue;
-                            memset(&funcValue, 0, sizeof(funcValue));
-                            funcValue.type = NK_VALUETYPE_FUNCTIONID;
-                            funcValue.functionId = object->serializationCallback;
-                            memset(&argValue, 0, sizeof(argValue));
-                            argValue.type = NK_VALUETYPE_OBJECTID;
-                            argValue.objectId = object->objectTableIndex;
+            // if(object->serializationCallback.id != NK_INVALID_VALUE) {
+            //     if(object->serializationCallback.id < vm->functionCount) {
+            //         struct NKVMFunction *func = &vm->functionTable[object->serializationCallback.id];
+            //         if(func->externalFunctionId.id != NK_INVALID_VALUE) {
+            //             if(func->externalFunctionId.id < vm->externalFunctionCount) {
+            //                 struct NKValue funcValue;
+            //                 struct NKValue argValue;
+            //                 memset(&funcValue, 0, sizeof(funcValue));
+            //                 funcValue.type = NK_VALUETYPE_FUNCTIONID;
+            //                 funcValue.functionId = object->serializationCallback;
+            //                 memset(&argValue, 0, sizeof(argValue));
+            //                 argValue.type = NK_VALUETYPE_OBJECTID;
+            //                 argValue.objectId = object->objectTableIndex;
 
-                            NKI_SERIALIZE_WRAPCALLBACK(
-                                nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
-                        }
-                    }
-                }
-            }
+            //                 NKI_SERIALIZE_WRAPCALLBACK(
+            //                     nkiVmCallFunction(vm, &funcValue, 1, &argValue, NULL));
+            //             }
+            //         }
+            //     }
+            // }
         }
     }
 
