@@ -241,8 +241,6 @@ nkbool nkiSerializeObject(
     }
 
     NKI_SERIALIZE_BASIC(nkuint32_t, object->lastGCPass);
-    NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->gcCallback);
-    NKI_SERIALIZE_BASIC(NKVMInternalFunctionID, object->serializationCallback);
     NKI_SERIALIZE_BASIC(NKVMExternalDataTypeID, object->externalDataType);
 
     // Serialize all hash buckets.

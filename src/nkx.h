@@ -245,26 +245,6 @@ void nkxSetUserData(struct NKVM *vm, void *userData);
 /// Get the user data pointer set with nkxSetUserData.
 void *nkxGetUserData(struct NKVM *vm);
 
-/// Set a native (C-side) callback to fire off immediately before an
-/// object is deleted from the VM. callbackFunction is the native
-/// function id returned from nkxVmRegisterExternalFunction().
-void nkxVmObjectSetGarbageCollectionCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction);
-
-/// Set a native (C-side) callback to handle serialization of the
-/// object.
-void nkxVmObjectSetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction);
-
-/// Get the native callback ID to handle serialization of the object.
-NKVMExternalFunctionID nkxVmObjectGetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object);
-
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
 /// for duplicates. You may have to use this if you do not know if a

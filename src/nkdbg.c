@@ -228,8 +228,6 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                     }
                 }
             }
-            fprintf(stream, "      gcCallback: " NK_PRINTF_UINT32 "\n", ob->gcCallback.id);
-            fprintf(stream, "      serializationCallback: " NK_PRINTF_UINT32 "\n", ob->serializationCallback.id);
             fprintf(stream, "      externalDataType: " NK_PRINTF_UINT32 "\n", ob->externalDataType.id);
         }
     }

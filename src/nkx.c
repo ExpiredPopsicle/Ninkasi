@@ -360,40 +360,6 @@ void *nkxGetUserData(struct NKVM *vm)
     return vm->userData;
 }
 
-void nkxVmObjectSetGarbageCollectionCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-    nkiVmObjectSetGarbageCollectionCallback(vm, object, callbackFunction);
-    NK_CLEAR_FAILURE_RECOVERY();
-}
-
-// void nkxVmObjectSetSerializationCallback(
-//     struct NKVM *vm,
-//     struct NKValue *object,
-//     NKVMExternalFunctionID callbackFunction)
-// {
-//     NK_FAILURE_RECOVERY_DECL();
-//     NK_SET_FAILURE_RECOVERY_VOID();
-//     nkiVmObjectSetSerializationCallback(vm, object, callbackFunction);
-//     NK_CLEAR_FAILURE_RECOVERY();
-// }
-
-NKVMExternalFunctionID nkxVmObjectGetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object)
-{
-    NKVMExternalFunctionID ret = { NK_INVALID_VALUE };
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY(ret);
-    ret = nkiVmObjectGetSerializationCallback(vm, object);
-    NK_CLEAR_FAILURE_RECOVERY();
-    return ret;
-}
-
 NKVMExternalFunctionID nkxVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,

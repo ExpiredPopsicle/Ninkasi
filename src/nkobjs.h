@@ -71,16 +71,6 @@ struct NKVMObject
     struct NKVMObject **previousExternalHandleListPtr;
     nkuint32_t externalHandleCount;
 
-    // This has an internal function ID type, because it must actually
-    // be callable by VM code, but only external functions are valid
-    // here. Putting the wrong type here will throw an error when it
-    // is actually called. Also, it's not a function pointer because
-    // we can actually serialize these things.
-    NKVMInternalFunctionID gcCallback;
-
-    // Same specifics as gcCallback.
-    NKVMInternalFunctionID serializationCallback;
-
     NKVMExternalDataTypeID externalDataType;
     void *externalData;
 };

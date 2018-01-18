@@ -111,8 +111,6 @@ nkuint32_t nkiVmObjectTableCreateObject(
 
     newObject->objectTableIndex = index;
     newObject->lastGCPass = 0;
-    newObject->gcCallback.id = NK_INVALID_VALUE;
-    newObject->serializationCallback.id = NK_INVALID_VALUE;
     newObject->externalDataType.id = NK_INVALID_VALUE;
     newObject->externalData = NULL;
 
@@ -365,99 +363,6 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     *ob->previousExternalHandleListPtr = ob->nextObjectWithExternalHandles;
     ob->previousExternalHandleListPtr = NULL;
     ob->nextObjectWithExternalHandles = NULL;
-}
-
-void nkiVmObjectSetGarbageCollectionCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction)
-{
-    NKVMInternalFunctionID internalFunctionId = { NK_INVALID_VALUE };
-    struct NKVMObject *ob;
-
-    if(callbackFunction.id >= vm->externalFunctionCount) {
-        nkiAddError(
-            vm, -1, "Bad native function ID in nkiVmObjectSetGarbageCollectionCallback.");
-    }
-
-    internalFunctionId =
-        nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, callbackFunction);
-
-    if(internalFunctionId.id >= vm->functionCount) {
-        nkiAddError(
-            vm, -1, "Bad function ID in nkiVmObjectSetGarbageCollectionCallback.");
-        return;
-    }
-
-    ob = nkiVmGetObjectFromValue(vm, object);
-
-    // Make sure we actually got an object.
-    if(!ob) {
-        nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectSetGarbageCollectionCallback.");
-        return;
-    }
-
-    ob->gcCallback = internalFunctionId;
-}
-
-// FIXME: Consolidate this with code from
-// nkiVmObjectSetGarbagecollectioncallback.
-void nkiVmObjectSetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction)
-{
-    NKVMInternalFunctionID internalFunctionId = { NK_INVALID_VALUE };
-    struct NKVMObject *ob;
-
-    if(callbackFunction.id >= vm->externalFunctionCount) {
-        nkiAddError(
-            vm, -1, "Bad native function ID in nkiVmObjectSetSerializationCallback.");
-    }
-
-    internalFunctionId =
-        nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, callbackFunction);
-
-    if(internalFunctionId.id >= vm->functionCount) {
-        nkiAddError(
-            vm, -1, "Bad function ID in nkiVmObjectSetSerializationCallback.");
-        return;
-    }
-
-    ob = nkiVmGetObjectFromValue(vm, object);
-
-    // Make sure we actually got an object.
-    if(!ob) {
-        nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectSetSerializationCallback.");
-        return;
-    }
-
-    ob->serializationCallback = internalFunctionId;
-}
-
-NKVMExternalFunctionID nkiVmObjectGetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object)
-{
-    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
-    struct NKVMInternalFunctionID internalId = { NK_INVALID_VALUE };
-    struct NKVMExternalFunctionID externalId = { NK_INVALID_VALUE };
-
-    if(!ob) {
-        nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectGetSerializationCallback.");
-        return externalId;
-    }
-
-    internalId = ob->serializationCallback;
-
-    if(internalId.id < vm->functionCount) {
-        externalId = vm->functionTable[internalId.id].externalFunctionId;
-    }
-
-    return externalId;
 }
 
 void nkiVmObjectSetExternalType(
