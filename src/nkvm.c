@@ -447,8 +447,8 @@ struct NKValue *nkiVmFindGlobalVariable(
 
 NKVMExternalDataTypeID nkiVmRegisterExternalType(
     struct NKVM *vm, const char *name,
-    NKVMSubsystemSerializationCallback serializationCallback,
-    NKVMSubsystemCleanupCallback cleanupCallback)
+    NKVMExternalObjectSerializationCallback serializationCallback,
+    NKVMExternalObjectCleanupCallback cleanupCallback)
 {
     NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
     if(ret.id != NK_INVALID_VALUE) {

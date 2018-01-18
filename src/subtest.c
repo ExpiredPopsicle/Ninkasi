@@ -215,10 +215,10 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
             data->vm, &data->returnValue, newData);
         nkxVmObjectSetExternalType(
             data->vm, &data->returnValue, internalData->widgetTypeId);
-        nkxVmObjectSetGarbageCollectionCallback(
-            data->vm, &data->returnValue, internalData->widgetGCCallbackId);
-        nkxVmObjectSetSerializationCallback(
-            data->vm, &data->returnValue, internalData->widgetSerializeCallbackId);
+        // nkxVmObjectSetGarbageCollectionCallback(
+        //     data->vm, &data->returnValue, internalData->widgetGCCallbackId);
+        // nkxVmObjectSetSerializationCallback(
+        //     data->vm, &data->returnValue, internalData->widgetSerializeCallbackId);
     }
 }
 
@@ -326,13 +326,55 @@ void subsystemTest_widgetSerializeData(struct NKVMFunctionCallbackData *data)
         // and type data is now consistent.
         nkxVmObjectSetExternalType(
             data->vm, &data->arguments[0], internalData->widgetTypeId);
-        nkxVmObjectSetGarbageCollectionCallback(
-            data->vm, &data->arguments[0], internalData->widgetGCCallbackId);
-        nkxVmObjectSetSerializationCallback(
-            data->vm, &data->arguments[0], internalData->widgetSerializeCallbackId);
+        // nkxVmObjectSetGarbageCollectionCallback(
+        //     data->vm, &data->arguments[0], internalData->widgetGCCallbackId);
+        // nkxVmObjectSetSerializationCallback(
+        //     data->vm, &data->arguments[0], internalData->widgetSerializeCallbackId);
     }
 
     nkxSerializeData(data->vm, widgetData, sizeof(*widgetData));
+}
+
+void subsystemTest_widgetSerializeData2(
+    struct NKVM *vm,
+    struct NKValue *objectValue,
+    void *data)
+{
+    struct SubsystemTest_InternalData *internalData;
+    struct SubsystemTest_WidgetData *widgetData =
+        (struct SubsystemTest_WidgetData *)data;
+
+    internalData = nkxGetExternalSubsystemDataOrError(
+        vm, "subsystemTest");
+
+    if(!internalData) {
+        return;
+    }
+
+    if(!widgetData) {
+
+        widgetData = subsystemTest_mallocWrapper(
+            sizeof(*widgetData),
+            "subsystemTest_widgetSerializeData");
+
+        if(!widgetData) {
+            nkxAddError(vm, "Malloc failed in subsystemTest_widgetSerializeData.");
+        }
+
+        widgetData->data = 0;
+        nkxVmObjectSetExternalData(vm, objectValue, widgetData);
+
+        // No more type remapping. Ensure that all garbage collection
+        // and type data is now consistent.
+        nkxVmObjectSetExternalType(
+            vm, objectValue, internalData->widgetTypeId);
+        // nkxVmObjectSetGarbageCollectionCallback(
+        //     data->vm, &data->arguments[0], internalData->widgetGCCallbackId);
+        // nkxVmObjectSetSerializationCallback(
+        //     data->vm, &data->arguments[0], internalData->widgetSerializeCallbackId);
+    }
+
+    nkxSerializeData(vm, widgetData, sizeof(*widgetData));
 }
 
 void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
@@ -387,7 +429,7 @@ void subsystemTest_widgetGCData(struct NKVMFunctionCallbackData *data)
     // }
 }
 
-void subsystemTest_widgetGCData2(struct NKVM *vm, void *data)
+void subsystemTest_widgetGCData2(struct NKVM *vm, struct NKValue *val, void *data)
 {
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *widgetData =
@@ -624,7 +666,7 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 
     internalData->widgetTypeId = nkxVmRegisterExternalType(
         vm, "subsystemTest_widget",
-        NULL,
+        subsystemTest_widgetSerializeData2,
         subsystemTest_widgetGCData2);
 
     internalData->testString = NULL;
