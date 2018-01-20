@@ -550,7 +550,9 @@ void nkiOpcode_call(struct NKVM *vm)
                 "Tried to call a bad native function.");
             return;
         }
+
         externalFunc = &vm->externalFunctionTable[funcOb->externalFunctionId.id];
+
         if(!externalFunc->CFunctionCallback) {
             nkiAddError(vm, -1,
                 "Tried to call a null native function.");
@@ -580,6 +582,55 @@ void nkiOpcode_call(struct NKVM *vm)
                     vm->stack.values[
                         vm->stack.indexMask &
                         ((vm->stack.size - argumentCount - 1) + i)];
+            }
+        }
+
+        // Check argument count and types.
+        if(externalFunc->argumentCount != NK_INVALID_VALUE) {
+
+            nkuint32_t i;
+
+            // Check count.
+            if(externalFunc->argumentCount != argumentCount) {
+                struct NKDynString *dynStr = nkiDynStrCreate(vm,
+                    "Tried to call an external function ");
+                nkiDynStrAppend(dynStr, externalFunc->name);
+                nkiDynStrAppend(dynStr, " with an incorrect number of arguments.");
+                nkiAddError(vm, -1, dynStr->data);
+                nkiDynStrDelete(dynStr);
+                return;
+            }
+
+            // Check types.
+            for(i = 0; i < argumentCount; i++) {
+
+                // nil type is the "I don't care what it is or I'll
+                // check in the function itself" indicator, because
+                // it's pointless to have a function that you MUST
+                // pass nil to for some parameter.
+                if(externalFunc->argTypes[i] != NK_VALUETYPE_NIL) {
+
+                    if(externalFunc->argTypes[i] != data.arguments[i].type) {
+                        struct NKDynString *dynStr = nkiDynStrCreate(vm,
+                            "Incorrect argument type in call to ");
+                        nkiDynStrAppend(dynStr, externalFunc->name);
+                        nkiDynStrAppend(dynStr, ". Expected ");
+                        nkiDynStrAppend(dynStr, nkiValueTypeGetName(externalFunc->argTypes[i]));
+                        nkiDynStrAppend(dynStr, " but got ");
+                        nkiDynStrAppend(dynStr, nkiValueTypeGetName(data.arguments[i].type));
+                        nkiDynStrAppend(dynStr, " for argument ");
+                        nkiDynStrAppendUint32(dynStr, i);
+                        nkiDynStrAppend(dynStr, ".");
+                        nkiAddError(vm, -1, dynStr->data);
+                        nkiDynStrDelete(dynStr);
+                        nkiFree(vm, data.arguments);
+                        return;
+                    }
+
+                    if(externalFunc->argTypes[i] == NK_VALUETYPE_OBJECTID) {
+                        // TODO: Check external type.
+                    }
+                }
             }
         }
 

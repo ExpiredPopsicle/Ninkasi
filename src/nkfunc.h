@@ -79,6 +79,14 @@ struct NKVMExternalFunction
     /// points to ONE of those. It may also be NK_INVALID_VALUE if
     /// there are no known internal functions that reference this.
     NKVMInternalFunctionID internalFunctionId;
+
+    /// NK_INVALID_VALUE if the function doesn't take a fixed number
+    /// of arguments, or any other number to set the number of
+    /// arguments. Calling the function from a script with a different
+    /// number of arguments will throw an error.
+    nkuint32_t argumentCount;
+
+    enum NKValueType *argTypes;
 };
 
 // ----------------------------------------------------------------------
