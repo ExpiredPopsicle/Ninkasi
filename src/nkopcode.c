@@ -598,6 +598,7 @@ void nkiOpcode_call(struct NKVM *vm)
                 nkiDynStrAppend(dynStr, " with an incorrect number of arguments.");
                 nkiAddError(vm, -1, dynStr->data);
                 nkiDynStrDelete(dynStr);
+                nkiFree(vm, data.arguments);
                 return;
             }
 
