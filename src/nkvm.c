@@ -347,6 +347,7 @@ void nkiVmDestroy(struct NKVM *vm)
             for(n = 0; n < vm->externalFunctionCount; n++) {
                 nkiFree(vm, vm->externalFunctionTable[n].name);
                 nkiFree(vm, vm->externalFunctionTable[n].argTypes);
+                nkiFree(vm, vm->externalFunctionTable[n].argExternalTypes);
             }
         }
         nkiFree(vm, vm->externalFunctionTable);

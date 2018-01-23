@@ -629,7 +629,43 @@ void nkiOpcode_call(struct NKVM *vm)
                     }
 
                     if(externalFunc->argTypes[i] == NK_VALUETYPE_OBJECTID) {
-                        // TODO: Check external type.
+
+                        // Check external type.
+                        NKVMExternalDataTypeID expectedType = externalFunc->argExternalTypes[i];
+                        struct NKVMObject *object = nkiVmObjectTableGetEntryById(
+                            &vm->objectTable,
+                            data.arguments[i].objectId);
+
+                        if(object) {
+
+                            if(expectedType.id != NK_INVALID_VALUE &&
+                                expectedType.id != object->externalDataType.id)
+                            {
+                                struct NKDynString *dynStr = nkiDynStrCreate(vm,
+                                    "Bad external object type passed to external function ");
+                                nkiDynStrAppend(dynStr, externalFunc->name);
+                                nkiDynStrAppend(dynStr, " for argument ");
+                                nkiDynStrAppendUint32(dynStr, i);
+                                nkiDynStrAppend(dynStr, ".");
+                                nkiAddError(vm, -1, dynStr->data);
+                                nkiDynStrDelete(dynStr);
+                                nkiFree(vm, data.arguments);
+                                return;
+                            }
+
+                        } else {
+
+                            struct NKDynString *dynStr = nkiDynStrCreate(vm,
+                                "Bad object ID passed to external function ");
+                            nkiDynStrAppend(dynStr, externalFunc->name);
+                            nkiDynStrAppend(dynStr, " for argument ");
+                            nkiDynStrAppendUint32(dynStr, i);
+                            nkiDynStrAppend(dynStr, ".");
+                            nkiAddError(vm, -1, dynStr->data);
+                            nkiDynStrDelete(dynStr);
+                            nkiFree(vm, data.arguments);
+                            return;
+                        }
                     }
                 }
             }

@@ -202,6 +202,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
     funcEntry->CFunctionCallback = func;
     funcEntry->argumentCount = NK_INVALID_VALUE;
     funcEntry->argTypes = NULL;
+    funcEntry->argExternalTypes = NULL;
 
     {
         NKVMExternalFunctionID ret;

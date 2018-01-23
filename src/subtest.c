@@ -546,8 +546,20 @@ void xAddArgs(
         sizeof(*func->argTypes),
         argumentCount);
 
-    memset(func->argTypes, 0,
-        sizeof(*func->argTypes) * argumentCount);
+    func->argExternalTypes = nkiMallocArray(
+        vm,
+        sizeof(*func->argExternalTypes),
+        argumentCount);
+
+    // Clear out the value types to wildcards that just accept
+    // anything.
+    {
+        nkuint32_t i;
+        for(i = 0; i < argumentCount; i++) {
+            func->argTypes[i] = NK_VALUETYPE_NIL;
+            func->argExternalTypes[i].id = NK_INVALID_VALUE;
+        }
+    }
 
     NK_CLEAR_FAILURE_RECOVERY();
 }
@@ -584,12 +596,23 @@ void addFunc(
             argumentCount);
 
         if(funcOb->argTypes) {
+
             nkuint32_t i;
+
             va_start(args, argumentCount);
+
             for(i = 0; i < argumentCount; i++) {
+
                 enum NKValueType t = va_arg(args, enum NKValueType);
                 funcOb->argTypes[i] = t;
+
+                if(t == NK_VALUETYPE_OBJECTID) {
+                    NKVMExternalDataTypeID id;
+                    id.id = va_arg(args, nkuint32_t);
+                    funcOb->argExternalTypes[i] = id;
+                }
             }
+
             va_end(args);
         }
     }
@@ -681,14 +704,14 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         "subsystemTest_widgetSetData",
         subsystemTest_widgetSetData,
         2,
-        NK_VALUETYPE_OBJECTID,
+        NK_VALUETYPE_OBJECTID, internalData->widgetTypeId,
         NK_VALUETYPE_NIL);
 
     addFunc(vm, cs,
         "subsystemTest_widgetGetData",
         subsystemTest_widgetGetData,
         1,
-        NK_VALUETYPE_OBJECTID);
+        NK_VALUETYPE_OBJECTID, internalData->widgetTypeId);
 
     // internalData->widgetSerializeCallbackId = nkxVmRegisterExternalFunction(
     //     vm, "subsystemTest_widgetSerializeData", subsystemTest_widgetSerializeData);

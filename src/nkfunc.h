@@ -87,6 +87,7 @@ struct NKVMExternalFunction
     nkuint32_t argumentCount;
 
     enum NKValueType *argTypes;
+    NKVMExternalDataTypeID *argExternalTypes;
 };
 
 // ----------------------------------------------------------------------
