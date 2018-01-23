@@ -80,6 +80,14 @@ void nkiAddError(
 {
     struct NKError *newError = NULL;
 
+  #if NK_VM_DEBUG
+    if(lineNumber == -1) {
+        struct NKInstruction *inst = &vm->instructions[
+            vm->instructionPointer & vm->instructionAddressMask];
+        lineNumber = inst->lineNumber;
+    }
+  #endif
+
     // FIXME: Remove this.
     printf("ASDF: Error: %s\n", str);
 
