@@ -595,7 +595,7 @@ void addFunc(
             funcOb,
             argumentCount);
 
-        if(funcOb->argTypes) {
+        if(funcOb->argTypes && funcOb->argExternalTypes) {
 
             nkuint32_t i;
 
