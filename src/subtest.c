@@ -209,6 +209,7 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
 
             internalData->widgetCount++;
             printf("Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
+
         }
     }
 }
@@ -301,8 +302,6 @@ void subsystemTest_widgetGCData2(struct NKVM *vm, struct NKValue *val, void *dat
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *widgetData =
         (struct SubsystemTest_WidgetData *)data;
-
-    printf("Widget deleting\n");
 
     // NOTE: Do not use nkxGetExternalSubsystemDataOrError here! That
     // can cause an allocation, and this could run in allocation fail

@@ -599,7 +599,7 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     }
 }
 
-struct NKVM *testSerializer(struct NKVM *vm)
+struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 {
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
@@ -616,14 +616,8 @@ struct NKVM *testSerializer(struct NKVM *vm)
     }
 
     {
-        // FILE *out1 = fopen("stest1.txt", "w+");
-        // nkxDbgDumpState(vm, stdout);
-        // fclose(out1);
-    }
-
-    {
         struct NKVM *newVm = nkxVmCreate();
-
+        nkxSetMaxAllocatedMemory(newVm, settings->maxMemory);
         initInternalFunctions(newVm, NULL);
 
         printf("Deserializing...\n");
@@ -875,7 +869,7 @@ int main(int argc, char *argv[])
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
 
-                            vm = testSerializer(vm);
+                            vm = testSerializer(vm, &settings);
 
                             if(!vm || checkErrors(vm)) {
                                 // free(script);
