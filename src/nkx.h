@@ -114,15 +114,31 @@ void nkxVmCallFunction(
     struct NKValue *arguments,
     struct NKValue *returnValue);
 
-/// Look up a global variable. Do not use this before executing the
-/// program at least once, or only accessing global variables that
-/// were declared earlier in the program than whatever point it's at
-/// now. (Global variables are created when the program reaches the
-/// point where they are declared, and until that point, the stack
-/// area they occupy may be used by other things, or may not exist at
-/// all.) The "cs" parameter may be NULL if no compiler is active.
+/// Look up a global variable.
+///
+/// Note that global variables defined in the script may not be filled
+/// with their initial value until that code has been reached in the
+/// script.
+///
+/// Note that the returned pointer can become invalid if more
+/// variables are added, because the VM may reallocate the static
+/// variable space inside the VM.
+///
+/// The "cs" parameter may be NULL if no compiler is active, but must
+/// be used if nkxCompilerFinalize() has not been called yet.
+///
+/// Returns NULL if the variable does not exist.
 struct NKValue *nkxVmFindGlobalVariable(
     struct NKVM *vm,
+    struct NKCompilerState *cs,
+    const char *name);
+
+/// Create a global variable.
+///
+/// Note that the returned pointer can become invalid if more
+/// variables are added, because the VM may reallocate the static
+/// variable space inside the VM.
+struct NKValue *nkxCompilerCreateGlobalVariable(
     struct NKCompilerState *cs,
     const char *name);
 

@@ -935,10 +935,9 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
         error);
 }
 
-void nkiCompilerCreateGlobalVariable(
+struct NKValue *nkiCompilerCreateGlobalVariable(
     struct NKCompilerState *cs,
-    const char *name,
-    struct NKValue *initialValue)
+    const char *name)
 {
     struct NKVM *vm = cs->vm;
 
@@ -955,9 +954,11 @@ void nkiCompilerCreateGlobalVariable(
             nkuint32_t position = nkiCompilerAllocateStaticSpace(cs);
             struct NKValue *val = &vm->staticSpace[position & vm->staticAddressMask];
             var->position = position;
-            *val = *initialValue;
+            return val;
         }
     }
+
+    return NULL;
 }
 
 // FIXME: Make this generic, so we can add totally arbitrary global
@@ -977,11 +978,15 @@ void nkiCompilerCreateCFunctionVariable(
 
     // Make a global variable for it.
     {
-        struct NKValue val;
-        memset(&val, 0, sizeof(val));
-        val.type = NK_VALUETYPE_FUNCTIONID;
-        val.functionId = functionId;
-        nkiCompilerCreateGlobalVariable(cs, name, &val);
+        struct NKValue funcVal;
+        struct NKValue *staticVal;
+        memset(&funcVal, 0, sizeof(funcVal));
+        funcVal.type = NK_VALUETYPE_FUNCTIONID;
+        funcVal.functionId = functionId;
+        staticVal = nkiCompilerCreateGlobalVariable(cs, name);
+        if(staticVal) {
+            *staticVal = funcVal;
+        }
     }
 }
 

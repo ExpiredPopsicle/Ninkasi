@@ -151,6 +151,10 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerState *cs, const char *name,
     nkbool useValueAtStackTop, nkbool emitInitCode);
 
+struct NKValue *nkiCompilerCreateGlobalVariable(
+    struct NKCompilerState *cs,
+    const char *name);
+
 struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     struct NKCompilerState *cs,
     const char *name);

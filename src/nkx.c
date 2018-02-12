@@ -197,6 +197,19 @@ struct NKValue *nkxVmFindGlobalVariable(
     }
 }
 
+struct NKValue *nkxCompilerCreateGlobalVariable(
+    struct NKCompilerState *cs,
+    const char *name)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    struct NKVM *vm = cs->vm;
+    struct NKValue *ret;
+    NK_SET_FAILURE_RECOVERY(NULL);
+    ret = nkiCompilerCreateGlobalVariable(cs, name);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
 struct NKCompilerState *nkxCompilerCreate(
     struct NKVM *vm)
 {
