@@ -43,27 +43,10 @@
 
 #include "nkcommon.h"
 
-// FIXME: Remove this.
-nkbool catastropheRegistered = nkfalse;
-void sanityCheckCatastrophe(struct NKCompilerState *cs)
-{
-    if(catastropheRegistered) {
-        struct NKCompilerStateContextVariable *var = nkiCompilerLookupVariable(cs, "catastrophe");
-        assert(var);
-        assert(var->isGlobal);
-        assert(var->position != NK_INVALID_VALUE);
-        assert(cs->vm->staticSpace[var->position & cs->vm->staticAddressMask].type == NK_VALUETYPE_FUNCTIONID);
-        assert(cs->vm->staticSpace[var->position & cs->vm->staticAddressMask].functionId.id != NK_INVALID_VALUE);
-    }
-}
-
 void nkiCompilerAddInstruction(
     struct NKCompilerState *cs, struct NKInstruction *inst,
     nkbool adjustStackFrame)
 {
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     if(cs->instructionWriteIndex >= cs->vm->instructionAddressMask) {
 
         nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
@@ -351,9 +334,6 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerStateContextVariable *var;
     struct NKCompilerStateContextVariable *checkVar;
 
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     for(checkVar = cs->context->variables; checkVar; checkVar = checkVar->next) {
         if(!strcmp(checkVar->name, name)) {
             nkiCompilerAddError(cs,
@@ -362,19 +342,10 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
         }
     }
 
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     var = nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     if(isGlobal) {
-
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
 
         // Add an instruction to make some stack space for this variable,
         // if needed.
@@ -384,20 +355,11 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
             }
         }
 
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
         var->next = cs->context->variables;
         var->isGlobal = isGlobal;
         var->name = nkiStrdup(cs->vm, name);
 
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
         var->position = nkiCompilerAllocateStaticSpace(cs);
-
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
 
         // Set the global variable's initial value.
         if(emitInitCode) {
@@ -406,13 +368,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
             nkiCompilerAddInstructionSimple(cs, NK_OP_POP, nktrue);
         }
 
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
     } else {
-
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
 
         // Add an instruction to make some stack space for this variable,
         // if needed.
@@ -420,28 +376,15 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
             nkiCompilerEmitPushLiteralInt(cs, 0, nktrue);
         }
 
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
         var->next = cs->context->variables;
         var->isGlobal = isGlobal;
         var->name = nkiStrdup(cs->vm, name);
         var->position = cs->context->stackFrameOffset - 1;
-
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
     }
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 
     cs->context->variables = var;
 
     nkiDbgWriteLine("Variable added.");
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 
     return var;
 }
@@ -478,9 +421,6 @@ nkbool nkiCompilerExpectAndSkipToken(
 nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 {
     struct NKCompilerStateContext *startContext = cs->context;
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
@@ -609,9 +549,6 @@ nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrCont
 {
     struct NKCompilerStateContext *startContext = cs->context;
 
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
     }
@@ -645,9 +582,6 @@ nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrCont
 
     assert(startContext == cs->context);
     nkiCompilerPopRecursion(cs);
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 
     return nktrue;
 }
@@ -1001,6 +935,31 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
         error);
 }
 
+void nkiCompilerCreateGlobalVariable(
+    struct NKCompilerState *cs,
+    const char *name,
+    struct NKValue *initialValue)
+{
+    struct NKVM *vm = cs->vm;
+
+    // This is only something that should be used in the root context.
+    // To do otherwise is a programming error by the hosting
+    // application!
+    assert(!cs->context->parent);
+
+    {
+        struct NKCompilerStateContextVariable *var =
+            nkiCompilerAddVariable(cs, name, nkfalse, nkfalse);
+
+        if(var && var->position != NK_INVALID_VALUE) {
+            nkuint32_t position = nkiCompilerAllocateStaticSpace(cs);
+            struct NKValue *val = &vm->staticSpace[position & vm->staticAddressMask];
+            var->position = position;
+            *val = *initialValue;
+        }
+    }
+}
+
 // FIXME: Make this generic, so we can add totally arbitrary global
 // values.
 void nkiCompilerCreateCFunctionVariable(
@@ -1012,63 +971,18 @@ void nkiCompilerCreateCFunctionVariable(
     NKVMExternalFunctionID externalFunctionId = { NK_INVALID_VALUE };
     struct NKVM *vm = cs->vm;
 
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
+    // Create an external and internal function ID.
     externalFunctionId = nkiVmRegisterExternalFunction(cs->vm, name, func);
     functionId = nkiVmGetOrCreateInternalFunctionForExternalFunction(vm, externalFunctionId);
 
-    // // Add the variable.
-    // nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
-    // nkiCompilerAddVariable(cs, name, nktrue, nktrue);
-
-    // This is only something that should be used in the root context.
-    // To do otherwise is a programming error by the hosting
-    // application!
-    assert(!cs->context->parent);
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
+    // Make a global variable for it.
     {
-        struct NKCompilerStateContextVariable *var =
-            nkiCompilerAddVariable(cs, name, nkfalse, nkfalse);
-
-        // FIXME: Remove this.
-        sanityCheckCatastrophe(cs);
-
-        nkuint32_t position = nkiCompilerAllocateStaticSpace(cs);
-
-        struct NKValue *val = &vm->staticSpace[position & vm->staticAddressMask];
-
-        val->type = NK_VALUETYPE_FUNCTIONID;
-        val->functionId = functionId;
-
-        var->position = position;
+        struct NKValue val;
+        memset(&val, 0, sizeof(val));
+        val.type = NK_VALUETYPE_FUNCTIONID;
+        val.functionId = functionId;
+        nkiCompilerCreateGlobalVariable(cs, name, &val);
     }
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
-    // FIXME: Remove this.
-    {
-        struct NKCompilerStateContextVariable *var = nkiCompilerLookupVariable(cs, name);
-        assert(var);
-        assert(var->isGlobal);
-        assert(var->position != NK_INVALID_VALUE);
-        assert(vm->staticSpace[var->position & vm->staticAddressMask].type == NK_VALUETYPE_FUNCTIONID);
-        assert(vm->staticSpace[var->position & vm->staticAddressMask].functionId.id != NK_INVALID_VALUE);
-    }
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
-    if(!strcmp(name, "catastrophe")) {
-        catastropheRegistered = nktrue;
-    }
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 }
 
 struct NKCompilerState *nkiCompilerCreate(
@@ -1102,9 +1016,6 @@ struct NKCompilerState *nkiCompilerCreate(
 void nkiCompilerFinalize(
     struct NKCompilerState *cs)
 {
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
-
     // We MUST end up on the global context at the end.
     if(!cs->context || cs->context->parent) {
         nkiCompilerAddError(cs, "Context mismatch at compilation end!");
@@ -1157,9 +1068,6 @@ nkbool nkiCompilerCompileScript(
 {
     struct NKTokenList tokenList;
     nkbool success;
-
-    // FIXME: Remove this.
-    sanityCheckCatastrophe(cs);
 
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
