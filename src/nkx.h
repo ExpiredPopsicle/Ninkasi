@@ -133,15 +133,6 @@ struct NKValue *nkxVmFindGlobalVariable(
     struct NKCompilerState *cs,
     const char *name);
 
-/// Create a global variable.
-///
-/// Note that the returned pointer can become invalid if more
-/// variables are added, because the VM may reallocate the static
-/// variable space inside the VM.
-struct NKValue *nkxCompilerCreateGlobalVariable(
-    struct NKCompilerState *cs,
-    const char *name);
-
 /// Convert a value to a string. This will return a pointer to an
 /// internal string table entry (which it may have to create), and the
 /// address returned may be freed in the next garbage collection pass.
@@ -175,8 +166,6 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 /// be deleted next garbage collection pass.
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
-
-
 /// Write an integer into an NKValue.
 void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData);
 
@@ -187,7 +176,6 @@ void nkxValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
 /// string table entry for the given string, then assigns the ID of
 /// that entry to the value.
 void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
-
 
 // ----------------------------------------------------------------------
 // Limits-related stuff
@@ -263,6 +251,47 @@ void nkxSetUserData(struct NKVM *vm, void *userData);
 /// Get the user data pointer set with nkxSetUserData.
 void *nkxGetUserData(struct NKVM *vm);
 
+/// Register an internal function, assocate it with an internal
+/// function ID, and create a global variable for it.
+///
+/// "cs" may be NULL, in which case all of the variable creation and
+/// internal function ID creation are skipped.
+///
+/// This function takes a variable number of arguments. Those
+/// arguments are types to perform argument count and type checking
+/// against. Specify NK_INVALID_VALUE for argumentCount to disable
+/// argument count and type checking. Otherwise, set argumentCount to
+/// the number of arguments, and then for each argument, specify a
+/// type.
+///
+/// For fields where type should not be type-checked, use
+/// NK_VALUETYPE_NIL.
+///
+/// For fields that take an NK_VALUETYPE_OBJECTID, an extra field must
+/// be present afterward indicating the external type ID, or
+/// NK_INVALID_VALUE to skip external object type checking. See
+/// nkxVmRegisterExternalType() to understand external data types.
+///
+/// Example:
+///   nkxVmSetupExternalFunction(vm, cs, "testFunctionName",
+///       testFunctionPointer,
+///       5, // 5 parameters.
+///       NK_VALUETYPE_INT,      // Integer field.
+///       NK_VALUETYPE_STRING,   // String field
+///       NK_VALUETYPE_NIL,      // Un-checked wildcard field.
+///       // Object with specific external data attached to it.
+///       NK_VALUETYPE_OBJECTID, someExternalTypeId,
+///       // Object, which may contain external data, but either way
+///       // we don't care. We just want an object.
+///       NK_VALUETYPE_OBJECTID, NK_INVALID_VALUE);
+void nkxVmSetupExternalFunction(
+    struct NKVM *vm, struct NKCompilerState *cs,
+    const char *name, NKVMFunctionCallback func,
+    nkuint32_t argumentCount, ...);
+
+/// Note: See nkxVmSetupExternalFunction(). That is probably what
+/// you're looking for.
+///
 /// Register a new external function. You should do this before
 /// compiling or deserializing. It may also take a long time searching
 /// for duplicates. You may have to use this if you do not know if a
@@ -270,6 +299,20 @@ void *nkxGetUserData(struct NKVM *vm);
 /// need the ID to be found. The function ID returned from this is an
 /// index into the VM's native (external) callback table, NOT the
 /// table of all functions.
+///
+/// This is the low-level interface to the external function table.
+/// This does not create a corresponding text-script-accessible
+/// function on its own. Functions created with this will be
+/// accessible to serialized scripts that already had the same
+/// function registered prior to serialization.
+///
+/// To make a function that is immediately usable to scripts as a
+/// global variable, see nkxVmSetupExternalFunction().
+///
+/// To register an internal function corresponding to this external
+/// function (for applying to other values that may not be global
+/// variables), see
+/// nkxVmGetOrCreateInternalFunctionForExternalFunction().
 NKVMExternalFunctionID nkxVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,
@@ -425,6 +468,15 @@ void nkxCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,
     NKVMFunctionCallback func);
+
+/// Create a global variable.
+///
+/// Note that the returned pointer can become invalid if more
+/// variables are added, because the VM may reallocate the static
+/// variable space inside the VM.
+struct NKValue *nkxCompilerCreateGlobalVariable(
+    struct NKCompilerState *cs,
+    const char *name);
 
 /// This can be done multiple times. It'll just be the equivalent of
 /// appending each script onto the end, except for the line number

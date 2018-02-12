@@ -382,6 +382,92 @@ void *nkxGetUserData(struct NKVM *vm)
     return vm->userData;
 }
 
+// We split this off into its own function so we can handle the malloc
+// errors using the normal nkx wrapper.
+static void nkiSetupExternalFunction_addArgs(
+    struct NKVM *vm,
+    struct NKVMExternalFunction *func,
+    nkuint32_t argumentCount)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+
+    if(func->argTypes) {
+        nkiFree(vm, func->argTypes);
+    }
+
+    func->argTypes = nkiMallocArray(
+        vm,
+        sizeof(*func->argTypes),
+        argumentCount);
+
+    func->argExternalTypes = nkiMallocArray(
+        vm,
+        sizeof(*func->argExternalTypes),
+        argumentCount);
+
+    // Clear out the value types to wildcards that just accept
+    // anything.
+    {
+        nkuint32_t i;
+        for(i = 0; i < argumentCount; i++) {
+            func->argTypes[i] = NK_VALUETYPE_NIL;
+            func->argExternalTypes[i].id = NK_INVALID_VALUE;
+        }
+    }
+
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void nkxVmSetupExternalFunction(
+    struct NKVM *vm, struct NKCompilerState *cs,
+    const char *name, NKVMFunctionCallback func,
+    nkuint32_t argumentCount, ...)
+{
+    va_list args;
+    struct NKVMExternalFunctionID id = nkxVmRegisterExternalFunction(vm, name, func);
+    struct NKVMExternalFunction *funcOb = NULL;
+
+    if(id.id == NK_INVALID_VALUE) {
+        return;
+    }
+
+    if(cs) {
+        nkxCompilerCreateCFunctionVariable(cs, name, func);
+    }
+
+    funcOb = &vm->externalFunctionTable[id.id];
+    funcOb->argumentCount = argumentCount;
+
+    if(argumentCount != NK_INVALID_VALUE) {
+
+        nkiSetupExternalFunction_addArgs(vm,
+            funcOb,
+            argumentCount);
+
+        if(funcOb->argTypes && funcOb->argExternalTypes) {
+
+            nkuint32_t i;
+
+            va_start(args, argumentCount);
+
+            for(i = 0; i < argumentCount; i++) {
+
+                enum NKValueType t = va_arg(args, enum NKValueType);
+                funcOb->argTypes[i] = t;
+
+                if(t == NK_VALUETYPE_OBJECTID) {
+                    NKVMExternalDataTypeID id;
+                    id.id = va_arg(args, nkuint32_t);
+                    funcOb->argExternalTypes[i] = id;
+                }
+            }
+
+            va_end(args);
+        }
+    }
+}
+
 NKVMExternalFunctionID nkxVmRegisterExternalFunction(
     struct NKVM *vm,
     const char *name,

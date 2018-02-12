@@ -559,16 +559,10 @@ void nkiOpcode_call(struct NKVM *vm)
             return;
         }
 
-        // FIXME: Remove this.
-        printf("ASDF: Alloc for call\n");
-
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
         data.arguments = nkiMallocArray(vm, sizeof(struct NKValue), argumentCount);
-
-        // FIXME: Remove this.
-        printf("ASDF: Alloc for call 2\n");
 
         // Note: We're not simply giving the function a stack pointer,
         // because then the called function would have to worry about

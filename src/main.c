@@ -742,8 +742,6 @@ int main(int argc, char *argv[])
                     nkxCompilerCompileScript(cs, script);
                     nkxCompilerFinalize(cs);
 
-                    nkxDbgDumpState(vm, stdout);
-
                 } else {
 
                     fprintf(stderr, "Can't create compiler state. Out of memory?\n");

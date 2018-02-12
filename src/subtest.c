@@ -516,96 +516,6 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
 #include "nkmem.h"
 #include "nkcommon.h"
 
-// TODO: Convert this to an nkx helper function.
-void xAddArgs(
-    struct NKVM *vm,
-    struct NKVMExternalFunction *func,
-    nkuint32_t argumentCount)
-{
-    NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
-
-    if(func->argTypes) {
-        nkiFree(vm, func->argTypes);
-    }
-
-    func->argTypes = nkiMallocArray(
-        vm,
-        sizeof(*func->argTypes),
-        argumentCount);
-
-    func->argExternalTypes = nkiMallocArray(
-        vm,
-        sizeof(*func->argExternalTypes),
-        argumentCount);
-
-    // Clear out the value types to wildcards that just accept
-    // anything.
-    {
-        nkuint32_t i;
-        for(i = 0; i < argumentCount; i++) {
-            func->argTypes[i] = NK_VALUETYPE_NIL;
-            func->argExternalTypes[i].id = NK_INVALID_VALUE;
-        }
-    }
-
-    NK_CLEAR_FAILURE_RECOVERY();
-}
-
-// TODO: Documentation notes: NIL type used for type wildcard. When we
-// implement it, then OBJECTIDs must be followed by an external object
-// type or NK_INVALID_VALUE if we don't care.
-
-// TODO: Convert this to an nkx function.
-void addFunc(
-    struct NKVM *vm, struct NKCompilerState *cs,
-    const char *name, NKVMFunctionCallback func,
-    nkuint32_t argumentCount, ...)
-{
-    va_list args;
-    struct NKVMExternalFunctionID id = nkxVmRegisterExternalFunction(vm, name, func);
-    struct NKVMExternalFunction *funcOb = NULL;
-
-    if(id.id == NK_INVALID_VALUE) {
-        return;
-    }
-
-    if(cs) {
-        nkxCompilerCreateCFunctionVariable(cs, name, func);
-    }
-
-    funcOb = &vm->externalFunctionTable[id.id];
-    funcOb->argumentCount = argumentCount;
-
-    if(argumentCount != NK_INVALID_VALUE) {
-
-        xAddArgs(vm,
-            funcOb,
-            argumentCount);
-
-        if(funcOb->argTypes && funcOb->argExternalTypes) {
-
-            nkuint32_t i;
-
-            va_start(args, argumentCount);
-
-            for(i = 0; i < argumentCount; i++) {
-
-                enum NKValueType t = va_arg(args, enum NKValueType);
-                funcOb->argTypes[i] = t;
-
-                if(t == NK_VALUETYPE_OBJECTID) {
-                    NKVMExternalDataTypeID id;
-                    id.id = va_arg(args, nkuint32_t);
-                    funcOb->argExternalTypes[i] = id;
-                }
-            }
-
-            va_end(args);
-        }
-    }
-}
-
 void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 {
     // Order in this function is pretty important if you want to
@@ -685,23 +595,21 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
     // nkxVmRegisterExternalFunction(vm, "subsystemTest_setTestString", subsystemTest_setTestString);
     // nkxVmRegisterExternalFunction(vm, "subsystemTest_getTestString", subsystemTest_getTestString);
 
-    addFunc(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
         1,
         NK_VALUETYPE_STRING);
 
-    addFunc(vm, cs, "subsystemTest_getTestString", subsystemTest_getTestString, 0);
-    addFunc(vm, cs, "subsystemTest_printTestString", subsystemTest_printTestString, 0);
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_getTestString", subsystemTest_getTestString, 0);
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_printTestString", subsystemTest_printTestString, 0);
 
-    addFunc(vm, cs, "subsystemTest_widgetCreate", subsystemTest_widgetCreate, 0);
-    addFunc(vm, cs,
-        "subsystemTest_widgetSetData",
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetCreate", subsystemTest_widgetCreate, 0);
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetSetData",
         subsystemTest_widgetSetData,
         2,
         NK_VALUETYPE_OBJECTID, internalData->widgetTypeId,
         NK_VALUETYPE_NIL);
 
-    addFunc(vm, cs,
-        "subsystemTest_widgetGetData",
+    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetGetData",
         subsystemTest_widgetGetData,
         1,
         NK_VALUETYPE_OBJECTID, internalData->widgetTypeId);
