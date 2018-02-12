@@ -717,6 +717,14 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
     //     // nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetSetData", subsystemTest_widgetSetData);
     //     nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetGetData", subsystemTest_widgetGetData);
     // }
+
+    {
+        struct NKValue *v = nkxVmFindGlobalVariable(vm, cs, "subsystemTest_widgetCreate");
+        printf(
+            "Registered some stuff: %p %p %s\n", vm, cs, v ?
+            nkxValueToString(
+                vm, v) : "<null>");
+    }
 }
 
 

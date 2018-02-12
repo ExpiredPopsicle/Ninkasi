@@ -656,6 +656,24 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 // FIXME: Remove this!
 extern nkuint32_t nkiMemFailRate;
 
+void dumpGlobals(struct NKVM *vm)
+{
+    nkuint32_t i;
+
+    printf("Global Variables:\n");
+
+    for(i = 0; i < vm->globalVariableCount; i++) {
+
+        struct NKGlobalVariableRecord *var = &vm->globalVariables[i];
+
+        // FIXME: Not using proper format specifier.
+        printf("  %4u %s = %s\n",
+            i,
+            var->name,
+            nkxValueToString(vm, &vm->staticSpace[var->staticPosition & vm->staticAddressMask]));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     struct Settings settings;
@@ -724,6 +742,8 @@ int main(int argc, char *argv[])
                     nkxCompilerCompileScript(cs, script);
                     nkxCompilerFinalize(cs);
 
+                    nkxDbgDumpState(vm, stdout);
+
                 } else {
 
                     fprintf(stderr, "Can't create compiler state. Out of memory?\n");
@@ -761,7 +781,7 @@ int main(int argc, char *argv[])
             }
         }
 
-       printf("ADSF1\n");
+        printf("Script loaded. Compiling...\n");
 
         if(settings.compileOnly) {
 
@@ -854,6 +874,9 @@ int main(int argc, char *argv[])
                             vm->instructionPointer &
                             vm->instructionAddressMask].opcode != NK_OP_NOP)
                     {
+                        // // FIXME: Remove this.
+                        // dumpGlobals(vm);
+
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
 
@@ -947,7 +970,7 @@ int main(int argc, char *argv[])
                     }
 
                     if(vm) {
-                        struct NKValue *v = nkxVmFindGlobalVariable(vm, "readMeFromC");
+                        struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
                         if(v) {
                             printf("Value found: %s\n", nkxValueToString(vm, v));
                         } else {

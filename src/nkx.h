@@ -120,9 +120,11 @@ void nkxVmCallFunction(
 /// now. (Global variables are created when the program reaches the
 /// point where they are declared, and until that point, the stack
 /// area they occupy may be used by other things, or may not exist at
-/// all.)
+/// all.) The "cs" parameter may be NULL if no compiler is active.
 struct NKValue *nkxVmFindGlobalVariable(
-    struct NKVM *vm, const char *name);
+    struct NKVM *vm,
+    struct NKCompilerState *cs,
+    const char *name);
 
 /// Convert a value to a string. This will return a pointer to an
 /// internal string table entry (which it may have to create), and the

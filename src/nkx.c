@@ -177,15 +177,24 @@ void nkxVmCallFunction(
 }
 
 struct NKValue *nkxVmFindGlobalVariable(
-    struct NKVM *vm, const char *name)
+    struct NKVM *vm, struct NKCompilerState *cs, const char *name)
 {
-    // NK_FAILURE_RECOVERY_DECL();
-    // struct NKValue *ret;
-    // NK_SET_FAILURE_RECOVERY(NULL);
-    // ret = nkiVmFindGlobalVariable(vm, name);
-    // NK_CLEAR_FAILURE_RECOVERY();
-    // return ret;
-    return nkiVmFindGlobalVariable(vm, name);
+    if(cs) {
+        NK_FAILURE_RECOVERY_DECL();
+        struct NKValue *ret;
+        NK_SET_FAILURE_RECOVERY(NULL);
+        {
+            struct NKCompilerStateContextVariable *var =
+                nkiCompilerLookupVariable(cs, name);
+            if(var) {
+                ret = &vm->staticSpace[var->position & vm->staticAddressMask];
+            }
+        }
+        NK_CLEAR_FAILURE_RECOVERY();
+        return ret;
+    } else {
+        return nkiVmFindGlobalVariable(vm, name);
+    }
 }
 
 struct NKCompilerState *nkxCompilerCreate(
