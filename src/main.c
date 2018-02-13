@@ -66,6 +66,24 @@ struct WriterTestBuffer
     nkuint32_t size;
 };
 
+nkuint32_t adler32(void *data, nkuint32_t size)
+{
+    nkuint32_t a = 1, b = 0;
+    nkuint32_t index;
+
+    for(index = 0; index < size; index++) {
+        a = (a + ((unsigned char*)data)[index]) % 65521;
+        b = (b + a) % 65521;
+    }
+
+    return (b << 16) | a;
+}
+
+void dumpBufChecksum(struct WriterTestBuffer *buf)
+{
+    printf("Saved state checksum: " NK_PRINTF_UINT32 "\n", adler32(buf->data, buf->size));
+}
+
 nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 {
     if(userdata) {
@@ -239,6 +257,8 @@ char *loadScript(const char *filename, nkuint32_t *scriptSize)
     if(scriptSize) {
         *scriptSize = len;
     }
+
+    printf("Loaded script with checksum: " NK_PRINTF_UINT32 "\n", adler32(buf, len));
 
     return buf;
 }
@@ -608,6 +628,8 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
     {
         nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+        dumpBufChecksum(&buf);
+
         if(!c) {
             printf("Error occurred during serialization. 2\n");
             nkxVmDelete(vm);
@@ -771,8 +793,6 @@ int main(int argc, char *argv[])
             printf("ADSF0\n");
 
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
-
-                printf("ADSF2: String table at %p\n", vm->stringTable.stringTable);
                 free(script);
                 nkxVmDelete(vm);
                 return ERROR_CODE;
@@ -835,6 +855,7 @@ int main(int argc, char *argv[])
             buf.size = 0;
 
             nkxVmSerialize(vm, writerTest, &buf, nktrue);
+            dumpBufChecksum(&buf);
 
             out = fopen(outputFilename, "wb+");
             if(!out) {
@@ -1045,6 +1066,7 @@ int main(int argc, char *argv[])
 
             {
                 nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+                dumpBufChecksum(&buf);
 
                 if(!c) {
                     printf("Error occurred during serialization. 1\n");

@@ -418,13 +418,15 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
 {
     NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
     if(ret.id != NK_INVALID_VALUE) {
+        ret.id = NK_INVALID_VALUE;
         nkiAddError(vm, -1, "Attempted to register an external type twice.");
-        return (NKVMExternalDataTypeID){ NK_INVALID_VALUE };
+        return ret;
     }
 
     if(vm->externalTypeCount == NK_INVALID_VALUE) {
+        ret.id = NK_INVALID_VALUE;
         nkiAddError(vm, -1, "Allocated too many types.");
-        return (NKVMExternalDataTypeID){ NK_INVALID_VALUE };
+        return ret;
     }
 
     ret.id = vm->externalTypeCount;
