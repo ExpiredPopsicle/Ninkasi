@@ -2,8 +2,8 @@
 
 #include "nkx.h"
 
-// FIXME: Remove this after we write the serialization functions.
-#include "nkvm.h"
+// // FIXME: Remove this after we write the serialization functions.
+// #include "nkvm.h"
 
 #include <stdlib.h>
 #include <assert.h>
@@ -371,41 +371,6 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
 
 // ----------------------------------------------------------------------
 // Cleanup, init, serialization, etc
-
-// FIXME: Move this into nkx.c.
-nkbool nkxGetNextObjectOfExternalType(
-    struct NKVM *vm,
-    struct NKVMExternalDataTypeID type,
-    struct NKValue *outValue,
-    nkuint32_t *startIndex)
-{
-    outValue->type = NK_VALUETYPE_OBJECTID;
-    outValue->objectId = NK_INVALID_VALUE;
-
-    // Incomplete VM setup?
-    if(!vm->objectTable.objectTable) {
-        return nkfalse;
-    }
-
-    while(*startIndex < vm->objectTable.capacity) {
-
-        struct NKVMObject *ob = vm->objectTable.objectTable[*startIndex];
-
-        if(ob) {
-            if(ob->externalDataType.id == type.id) {
-                outValue->objectId = *startIndex;
-            }
-        }
-
-        (*startIndex)++;
-
-        if(outValue->objectId != NK_INVALID_VALUE) {
-            return nktrue;
-        }
-    }
-
-    return nkfalse;
-}
 
 void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
 {

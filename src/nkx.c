@@ -938,7 +938,6 @@ nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
         vm->serializationState.writeMode);
 }
 
-
 nkbool nkxInitSubsystem(
     struct NKVM *vm, struct NKCompilerState *cs,
     const char *name,
@@ -973,3 +972,38 @@ nkbool nkxInitSubsystem(
 
     return ret;
 }
+
+nkbool nkxGetNextObjectOfExternalType(
+    struct NKVM *vm,
+    struct NKVMExternalDataTypeID type,
+    struct NKValue *outValue,
+    nkuint32_t *startIndex)
+{
+    outValue->type = NK_VALUETYPE_OBJECTID;
+    outValue->objectId = NK_INVALID_VALUE;
+
+    // Incomplete VM setup?
+    if(!vm->objectTable.objectTable) {
+        return nkfalse;
+    }
+
+    while(*startIndex < vm->objectTable.capacity) {
+
+        struct NKVMObject *ob = vm->objectTable.objectTable[*startIndex];
+
+        if(ob) {
+            if(ob->externalDataType.id == type.id) {
+                outValue->objectId = *startIndex;
+            }
+        }
+
+        (*startIndex)++;
+
+        if(outValue->objectId != NK_INVALID_VALUE) {
+            return nktrue;
+        }
+    }
+
+    return nkfalse;
+}
+

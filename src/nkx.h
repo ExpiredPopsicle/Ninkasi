@@ -405,6 +405,26 @@ void *nkxVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 
+/// Use this to iterate through all the objects in the VM of a
+/// specific external data type.
+///
+/// The value pointed to by startIndex will change with each call.
+///
+/// This function returns nkfalse on error, or when the iteration has
+/// reached the end of the list.
+///
+/// Note: This is usuable in emergency cleanup (allocation failure)
+/// conditions, meaning that it can be used for an external
+/// subsystem's (see nkxInitSubsystem()) cleanupCallback to find and
+/// destroy lingering objects that it owns but does not hold separate
+/// references to.
+nkbool nkxGetNextObjectOfExternalType(
+    struct NKVM *vm,
+    struct NKVMExternalDataTypeID type,
+    struct NKValue *outValue,
+    nkuint32_t *startIndex);
+
+// ----------------------------------------------------------------------
 // External subsystem stuff.
 
 /// Get a pointer to a subsystem's external data by name. Returns NULL
@@ -427,24 +447,30 @@ void nkxSetExternalSubsystemData(
     const char *name,
     void *data);
 
+/// Set a serialization callback function for some external subsystem.
+/// This will overwrite whatever was set in nkxInitSubsystem().
 void nkxSetExternalSubsystemSerializationCallback(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback serializationCallback);
 
-/// Set a cleanup function for some external subsystem. This must be
-/// called before nkxSetExternalSubsystemData().
+/// Set a cleanup function for some external subsystem. This will
+/// overwrite whatever was set in nkxInitSubsystem().
 void nkxSetExternalSubsystemCleanupCallback(
     struct NKVM *vm,
     const char *name,
     NKVMFunctionCallback cleanupCallback);
 
-nkbool nkxGetNextObjectOfExternalType(
-    struct NKVM *vm,
-    struct NKVMExternalDataTypeID type,
-    struct NKValue *outValue,
-    nkuint32_t *startIndex);
-
+/// Register an external subsystem.
+///
+/// internalData is a user data pointer that will be associated with
+/// the subsystem.
+///
+/// cleanupCallback and serializationCallback will be used to cleanup
+/// the subsystem on VM destruction, or serialize/deserialize the VM,
+/// respectively.
+///
+/// Returns nkfalse on error, or nktrue on success.
 nkbool nkxInitSubsystem(
     struct NKVM *vm,
     struct NKCompilerState *cs,
