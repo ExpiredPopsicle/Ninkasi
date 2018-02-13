@@ -252,7 +252,7 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
     }
 }
 
-void subsystemTest_widgetSerializeData2(
+void subsystemTest_widgetSerializeData(
     struct NKVM *vm,
     struct NKValue *objectValue,
     void *data)
@@ -287,17 +287,12 @@ void subsystemTest_widgetSerializeData2(
         // and type data is now consistent.
         nkxVmObjectSetExternalType(
             vm, objectValue, internalData->widgetTypeId);
-        // nkxVmObjectSetGarbageCollectionCallback(
-        //     data->vm, &data->arguments[0], internalData->widgetGCCallbackId);
-        // nkxVmObjectSetSerializationCallback(
-        //     data->vm, &data->arguments[0], internalData->widgetSerializeCallbackId);
-
     }
 
     nkxSerializeData(vm, widgetData, sizeof(*widgetData));
 }
 
-void subsystemTest_widgetGCData2(struct NKVM *vm, struct NKValue *val, void *data)
+void subsystemTest_widgetGCData(struct NKVM *vm, struct NKValue *val, void *data)
 {
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *widgetData =
@@ -336,14 +331,6 @@ void subsystemTest_setTestString(struct NKVMFunctionCallbackData *data)
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
 
-    // nkxFunctionCallbackCheckArguments(
-    //     data, "subsystemTest_setTestString", 1,
-    //     NK_VALUETYPE_STRING);
-
-    // if(nkxVmHasErrors(data->vm)) {
-    //     return;
-    // }
-
     if(internalData) {
         if(internalData->testString) {
             subsystemTest_freeWrapper(internalData->testString);
@@ -362,13 +349,6 @@ void subsystemTest_getTestString(struct NKVMFunctionCallbackData *data)
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
 
-    // nkxFunctionCallbackCheckArguments(
-    //     data, "subsystemTest_getTestString", 0);
-
-    // if(nkxVmHasErrors(data->vm)) {
-    //     return;
-    // }
-
     if(internalData) {
         nkxValueSetString(
             data->vm, &data->returnValue,
@@ -383,13 +363,6 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
 
     internalData = nkxGetExternalSubsystemDataOrError(
         data->vm, "subsystemTest");
-
-    // nkxFunctionCallbackCheckArguments(
-    //     data, "subsystemTest_printTestString", 0);
-
-    // if(nkxVmHasErrors(data->vm)) {
-    //     return;
-    // }
 
     if(internalData) {
         printf("subsystemTest_print: %s\n", internalData->testString);
@@ -511,39 +484,22 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
     }
 }
 
-
-#include "nkfail.h"
-#include "nkmem.h"
-#include "nkcommon.h"
-
 void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 {
-    // Order in this function is pretty important if you want to
-    // maintain OOM condition safety. Cleanup functions must be in
-    // place before any other allocations from the VM, so make sure
-    // the cleanup operation is the first callback set.
-
     struct SubsystemTest_InternalData *internalData = NULL;
 
     printf("subsystemTest: Initializing on VM: %p\n", vm);
-
-    // if(nkxVmHasErrors(vm)) {
-    //     return;
-    // }
 
     internalData = subsystemTest_mallocWrapper(
         sizeof(struct SubsystemTest_InternalData),
         "subsystemTest_initLibrary");
 
-    internalData->widgetTypeId = nkxVmRegisterExternalType(
-        vm, "subsystemTest_widget",
-        subsystemTest_widgetSerializeData2,
-        subsystemTest_widgetGCData2);
-
+    // Initialize some data, just as an example of how we'd normally
+    // store data on an external data structure.
     internalData->testString = NULL;
-
     internalData->widgetCount = 0;
 
+    // Initialize the subsystem inside the VM.
     if(!nkxInitSubsystem(
         vm, cs, "subsystemTest",
         internalData,
@@ -555,45 +511,11 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         return;
     }
 
-    // Two most important things for cleanup purposes. Set these up
-    // before anything. DO NOT set up the subsystemTest internalData,
-    // unless these calls succeed, or it will be unable to deallocate
-    // the internal data, and this system will be unable to remove the
-    // dangling pointer from the system.
-    //
-    // TL;DR: Always setup cleanup functions before setting up data
-    // that may need to be cleaned up.
-
-    // nkxSetExternalSubsystemCleanupCallback(vm, "subsystemTest", subsystemTest_cleanup);
-    // nkxSetExternalSubsystemSerializationCallback(vm, "subsystemTest", subsystemTest_serialize);
-
-    // internalData = nkxGetExternalSubsystemData(vm, "subsystemTest");
-
-    // if(!internalData) {
-
-    //     // Internal data doesn't yet exist. Better create it.
-
-    //     internalData = subsystemTest_mallocWrapper(
-    //         sizeof(struct SubsystemTest_InternalData),
-    //         "subsystemTest_initLibrary");
-
-    //     internalData->widgetTypeId = nkxVmRegisterExternalType(vm, "subsystemTest_widget");
-    //     internalData->testString = NULL;
-    //     // nkxSetExternalSubsystemData(vm, "subsystemTest", internalData);
-
-    //     subsystemTest_registerExitCheck();
-
-    //     // If we had an error setting the subsystem data, then we need
-    //     // to clean up the allocated internalData right here.
-    //     if(nkxVmHasErrors(vm)) {
-    //         subsystemTest_freeWrapper(internalData);
-    //         internalData = NULL;
-    //         return;
-    //     }
-    // }
-
-    // nkxVmRegisterExternalFunction(vm, "subsystemTest_setTestString", subsystemTest_setTestString);
-    // nkxVmRegisterExternalFunction(vm, "subsystemTest_getTestString", subsystemTest_getTestString);
+    // Register a custom type.
+    internalData->widgetTypeId = nkxVmRegisterExternalType(
+        vm, "subsystemTest_widget",
+        subsystemTest_widgetSerializeData,
+        subsystemTest_widgetGCData);
 
     nkxVmSetupExternalFunction(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
         1,
@@ -613,26 +535,6 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         subsystemTest_widgetGetData,
         1,
         NK_VALUETYPE_OBJECTID, internalData->widgetTypeId);
-
-    // internalData->widgetSerializeCallbackId = nkxVmRegisterExternalFunction(
-    //     vm, "subsystemTest_widgetSerializeData", subsystemTest_widgetSerializeData);
-    // internalData->widgetGCCallbackId = nkxVmRegisterExternalFunction(
-    //     vm, "subsystemTest_widgetGCData", subsystemTest_widgetGCData);
-
-    // if(cs) {
-
-    //     // nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetCreate", subsystemTest_widgetCreate);
-    //     // nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetSetData", subsystemTest_widgetSetData);
-    //     nkxCompilerCreateCFunctionVariable(cs, "subsystemTest_widgetGetData", subsystemTest_widgetGetData);
-    // }
-
-    {
-        struct NKValue *v = nkxVmFindGlobalVariable(vm, cs, "subsystemTest_widgetCreate");
-        printf(
-            "Registered some stuff: %p %p %s\n", vm, cs, v ?
-            nkxValueToString(
-                vm, v) : "<null>");
-    }
 }
 
 
