@@ -45,6 +45,7 @@
 
 #define DEBUG_SPAM 0
 
+// FIXME: We don't really need this anymore.
 int nkiDbgWriteLine(const char *fmt, ...)
 {
   #if DEBUG_SPAM
@@ -213,7 +214,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                 for(n = 0; n < nkiVMObjectHashBucketCount; n++) {
                     // FIXME: Output values here in a deterministic
                     // order, instead of just however they showed up
-                    // in the list.
+                    // in the list?
                     struct NKVMObjectElement *el = ob->hashBuckets[n];
                     if(el) {
                         fprintf(stream, "        " NK_PRINTF_UINT32 ":\n", n);
@@ -246,7 +247,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     for(i = 0; i < vm->externalFunctionCount; i++) {
         fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
         fprintf(stream, "    name: %s\n", vm->externalFunctionTable[i].name);
-        // fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
+        fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
         fprintf(stream, "    internalFunctionId: " NK_PRINTF_UINT32 "\n", vm->externalFunctionTable[i].internalFunctionId.id);
     }
 
@@ -475,7 +476,6 @@ void nkiExternalHandleSanityCheck(struct NKVM *vm)
                     if(ob) {
                         assert(ob->objectTableIndex == i);
                         if(ob->externalHandleCount) {
-                            // assert(ob->nextObjectWithExternalHandles);
                             assert(ob->previousExternalHandleListPtr);
                         } else {
                             assert(!ob->nextObjectWithExternalHandles);

@@ -59,6 +59,8 @@
 #ifndef NINKASI_NKX
 #define NINKASI_NKX
 
+#include <stdio.h>
+
 #include "nktypes.h"
 #include "nkvalue.h"
 
@@ -565,5 +567,12 @@ nkuint32_t nkxGetErrorLength(struct NKVM *vm);
 /// Read all the errors into a buffer with newlines between each
 /// error.
 void nkxGetErrorText(struct NKVM *vm, char *buffer);
+
+// ----------------------------------------------------------------------
+// Debugger-related stuff
+
+/// Dump the entire (known) state of the VM. For comparison when
+/// testing serialized data.
+void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
 #endif // NINKASI_NKX

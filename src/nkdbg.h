@@ -50,15 +50,9 @@
 
 struct NKVMTable;
 
-int nkiDbgWriteLine(const char *fmt, ...);
-
+/// Dump the entire (known) state of the VM. For comparison when
+/// testing serialized data.
 void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
-
-// FIXME: Move this into nkx.
-
-/// Dump the entire state of the VM. For comparison when testing
-/// serialized data.
-void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
 /// Verify that the holes in the string table match the entries that
 /// are actually NULL, but no more and no less.

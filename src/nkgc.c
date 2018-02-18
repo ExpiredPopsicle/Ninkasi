@@ -245,7 +245,6 @@ void nkiVmGarbageCollect(struct NKVM *vm)
             gcState.closedList = next;
             count++;
         }
-        nkiDbgWriteLine("Closed list grew to: %u\n", count);
     }
 }
 

@@ -168,8 +168,6 @@ void nkiCompilerOptimizeConstants(
                     (*node)->children[0]->opOrValue->type,
                     (*node)->children[0]->opOrValue->lineNumber);
 
-            nkiDbgWriteLine("Optimizing operator: %s", (*node)->opOrValue->str);
-
             switch((*node)->children[0]->opOrValue->type) {
 
                 case NK_TOKENTYPE_INTEGER: {

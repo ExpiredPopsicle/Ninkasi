@@ -624,6 +624,8 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
 
+    printf("----------------------------------------------------------------------\n");
+
     printf("Testing serializer...\n");
 
     {
@@ -633,6 +635,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
         if(!c) {
             printf("Error occurred during serialization. 2\n");
             nkxVmDelete(vm);
+            printf("----------------------------------------------------------------------\n");
             return NULL;
         }
     }
@@ -646,13 +649,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
         {
             nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
             if(!b) {
-
-                // FIXME: Remove this.
-                //newVm->errorState.allocationFailure = nktrue;
-
                 printf("Deserialization of previously serialized VM state failed.\n");
-                // assert(b);
-
                 printf("Deleting new VM...\n");
                 nkxVmDelete(newVm);
                 newVm = NULL;
@@ -667,6 +664,8 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
     }
 
     free(buf.data);
+
+    printf("----------------------------------------------------------------------\n");
 
     return vm;
 }

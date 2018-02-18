@@ -151,8 +151,6 @@ void nkiCompilerPopContext(struct NKCompilerState *cs)
             nkiFree(cs->vm, var->name);
             nkiFree(cs->vm, var);
             var = next;
-
-            nkiDbgWriteLine("Variable removed.");
         }
 
         {
@@ -383,8 +381,6 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     }
 
     cs->context->variables = var;
-
-    nkiDbgWriteLine("Variable added.");
 
     return var;
 }
@@ -664,11 +660,6 @@ void nkiCompilerEmitReturn(struct NKCompilerState *cs)
         //   This thing we're about pushing right now. (-1)
         nkuint32_t throwAwayContext =
             cs->context->stackFrameOffset - func->argumentCount - 3;
-
-        // FIXME: Remove these.
-        nkiDbgWriteLine("stackFrameOffset: %d", cs->context->stackFrameOffset);
-        nkiDbgWriteLine("argumentCount:    %d", func->argumentCount);
-        nkiDbgWriteLine("throwAwayContext: %d", throwAwayContext);
 
         nkiCompilerEmitPushLiteralInt(cs, throwAwayContext, nkfalse);
         nkiCompilerAddInstructionSimple(cs, NK_OP_RETURN, nkfalse);
