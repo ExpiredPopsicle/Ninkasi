@@ -2,5 +2,6 @@
 print("Test1: ", -2147483647/-1, "\n");
 print("Test2: ", -214748364/-1, "\n");
 print("Test3: ", -123/-1, "\n");
-print("Test4: ", -2147483648/-1, "\n");
-print("Test5: ", 2147483648, "\n");
+print("Test4: ", 2147483648, "\n");
+print("This final test should exit with an error.\n");
+print("Test5: ", -2147483648/-1, "\n");
