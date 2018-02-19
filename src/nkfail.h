@@ -93,8 +93,6 @@
 /// handle out-of-memory situations.
 #define NK_CATASTROPHE()                            \
     do {                                            \
-        /* FIXME: Remove this. */                   \
-        printf("ALLOCATION FAILURE\n");             \
         nkiErrorStateSetAllocationFailFlag(vm);     \
         longjmp(*vm->catastrophicFailureJmpBuf, 1); \
     } while(0)

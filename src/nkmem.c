@@ -130,8 +130,9 @@ void *nkiMalloc_real(
 
         if(header) {
 
-            // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
             vm->allocationCount++;
+#endif
 
             header->size = size;
             header->vm = vm;
@@ -208,8 +209,9 @@ void nkiFree(struct NKVM *vm, void *data)
         struct NKMemoryHeader *header = (struct NKMemoryHeader*)data - 1;
         vm->currentMemoryUsage -= header->size + sizeof(struct NKMemoryHeader);
 
-        // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
         vm->allocationCount--;
+#endif
 
         // Snip us out of the allocations list.
         if(header->nextAllocation) {

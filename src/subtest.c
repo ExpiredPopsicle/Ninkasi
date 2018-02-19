@@ -2,9 +2,6 @@
 
 #include "nkx.h"
 
-// // FIXME: Remove this after we write the serialization functions.
-// #include "nkvm.h"
-
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>

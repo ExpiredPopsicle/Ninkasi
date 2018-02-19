@@ -88,9 +88,6 @@ void nkiAddError(
     }
   #endif
 
-    // FIXME: Remove this.
-    printf("ASDF: Error: %s\n", str);
-
     newError = nkiMalloc(
         vm,
         sizeof(struct NKError));
