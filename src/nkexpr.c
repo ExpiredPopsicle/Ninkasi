@@ -750,7 +750,7 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
     switch(node->opOrValue->type) {
 
         case NK_TOKENTYPE_INTEGER:
-            nkiCompilerEmitPushLiteralInt(cs, atoi(node->opOrValue->str), nktrue);
+            nkiCompilerEmitPushLiteralInt(cs, atol(node->opOrValue->str), nktrue);
             break;
 
         case NK_TOKENTYPE_FLOAT:

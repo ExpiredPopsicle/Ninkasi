@@ -235,20 +235,14 @@ void nkiOpcode_divide(struct NKVM *vm)
 
             nkint32_t val2 = nkiValueToInt(vm, in2);
 
-            // TODO: Check the -1/-2147483648 case in DOS, to make
-            // sure we got the 32-bit literal correct for non-32-bit
-            // mode.
-            //
-            // Oh yeah. TIL there's more than one way to cause a
-            // SIGFPE with integer division.
-
-
+            // TIL there's more than one way to cause a SIGFPE with
+            // integer division.
             if(val2 == 0 ||
                 (val2 == -1 && in1->intData == -2147483648L))
             {
                 nkiAddError(
                     vm, -1,
-                    "Integer divide-by-zero.");
+                    "Integer divide-by-zero or division overflow.");
             } else {
                 nkiVmStackPushInt(
                     vm,
@@ -963,6 +957,12 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
 
 void nkiOpcode_prepareSelfCall(struct NKVM *vm)
 {
+    // In a "self" call ("foo.bar()") we have the object, function,
+    // arguments, and argument count all on the stack (in that order).
+    // But we need it to be the function, object, argument, and
+    // argument count + 1. So we'll swap the function and object, then
+    // add 1 to the argument count.
+
     struct NKValue *argumentCount = nkiVmStackPeek(vm, vm->stack.size - 1);
     nkuint32_t stackOffset = nkiValueToInt(vm, argumentCount);
     struct NKValue *function = nkiVmStackPeek(vm, vm->stack.size - (stackOffset + 3));

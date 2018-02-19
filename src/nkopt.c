@@ -83,51 +83,58 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     return newNode;
 }
 
-#define NK_APPLY_MATH()                                             \
-    do {                                                            \
-        switch((*node)->opOrValue->type) {                          \
-                                                                    \
-            case NK_TOKENTYPE_PLUS:                                 \
-                /* Addition. */                                     \
-                val = c0Val + c1Val;                                \
-                break;                                              \
-                                                                    \
-            case NK_TOKENTYPE_MINUS:                                \
-                if(!(*node)->children[1]) {                         \
-                    /* Unary negation. */                           \
-                    val = -c0Val;                                   \
-                } else {                                            \
-                    /* Subtraction. */                              \
-                    val = c0Val - c1Val;                            \
-                }                                                   \
-                break;                                              \
-                                                                    \
-            case NK_TOKENTYPE_MULTIPLY:                             \
-                /* Multiplication. */                               \
-                val = c0Val * c1Val;                                \
-                break;                                              \
-                                                                    \
-            case NK_TOKENTYPE_DIVIDE:                               \
-                /* Division. */                                     \
-                if(c1Val == 0) {                                    \
-                    nkiCompilerDeleteExpressionNode(vm, newNode);   \
-                    /* TODO: Raise error. */                        \
-                    return;                                         \
-                }                                                   \
-                val = c0Val / c1Val;                                \
-                break;                                              \
-                                                                    \
-            default:                                                \
-                /* If you hit this, you forgot to */                \
-                /* implement something. */                          \
-                assert(0);                                          \
-                break;                                              \
-        }                                                           \
+#define NK_APPLY_MATH()                                                 \
+    do {                                                                \
+        switch((*node)->opOrValue->type) {                              \
+                                                                        \
+            case NK_TOKENTYPE_PLUS:                                     \
+                /* Addition. */                                         \
+                val = c0Val + c1Val;                                    \
+                break;                                                  \
+                                                                        \
+            case NK_TOKENTYPE_MINUS:                                    \
+                if(!(*node)->children[1]) {                             \
+                    /* Unary negation. */                               \
+                    val = -c0Val;                                       \
+                } else {                                                \
+                    /* Subtraction. */                                  \
+                    val = c0Val - c1Val;                                \
+                }                                                       \
+                break;                                                  \
+                                                                        \
+            case NK_TOKENTYPE_MULTIPLY:                                 \
+                /* Multiplication. */                                   \
+                val = c0Val * c1Val;                                    \
+                break;                                                  \
+                                                                        \
+            case NK_TOKENTYPE_DIVIDE:                                   \
+                /* Division. */                                         \
+                if(c1Val == 0 ||                                        \
+                    ((*node)->opOrValue->type == NK_TOKENTYPE_INTEGER && \
+                        c1Val == -1 &&                                  \
+                        c0Val == -2147483648L))                         \
+                {                                                       \
+                    nkiCompilerDeleteExpressionNode(vm, newNode);       \
+                    /* TODO: Raise error. */                            \
+                    return;                                             \
+                }                                                       \
+                val = c0Val / c1Val;                                    \
+                break;                                                  \
+                                                                        \
+            default:                                                    \
+                /* If you hit this, you forgot to */                    \
+                /* implement something. */                              \
+                assert(0);                                              \
+                break;                                                  \
+        }                                                               \
     } while(0)
 
 void nkiCompilerOptimizeConstants(
     struct NKVM *vm, struct NKExpressionAstNode **node)
 {
+    // FIXME: Remove this.
+    return;
+
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't
     // have both sides of the equation fully simplified. NOTE: Do NOT
@@ -173,8 +180,8 @@ void nkiCompilerOptimizeConstants(
                 case NK_TOKENTYPE_INTEGER: {
 
                     // Fetch original values.
-                    nkint32_t c0Val = (*node)->children[0] ? atoi((*node)->children[0]->opOrValue->str) : 0;
-                    nkint32_t c1Val = (*node)->children[1] ? atoi((*node)->children[1]->opOrValue->str) : 0;
+                    nkint32_t c0Val = (*node)->children[0] ? atol((*node)->children[0]->opOrValue->str) : 0;
+                    nkint32_t c1Val = (*node)->children[1] ? atol((*node)->children[1]->opOrValue->str) : 0;
                     nkint32_t val = 0;
 
                     // Using the same size we use for the floating

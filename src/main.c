@@ -538,7 +538,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
             i++;
             if(i < argc) {
-                settings->maxMemory = atoi(argv[i]);
+                settings->maxMemory = atol(argv[i]);
             } else {
                 fprintf(stderr, "Missing parameter for -m.\n");
                 return nkfalse;
@@ -744,7 +744,7 @@ int main(int argc, char *argv[])
                     const char *memFailPct = "// #failrate: ";
                     if(strlen(lines[i]) >= strlen(memFailPct)) {
                         if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
-                            nkiMemFailRate = atoi(lines[i] + strlen(memFailPct));
+                            nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
                         }
                     }
                 }

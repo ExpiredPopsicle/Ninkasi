@@ -94,7 +94,7 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
             // because nkiVmStringTableGetStringById can return NULL.
             const char *str = nkiValueToString(vm, value);
             if(str) {
-                return atoi(str);
+                return atol(str);
             }
             return 0;
         }

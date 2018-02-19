@@ -153,23 +153,11 @@ const char *nkiVmGetOpcodeName(enum NKOpcode op)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
-// FIXME: Remove this.
-static nkuint32_t vmCount = 0;
-void nkiCheckVmCount(void)
-{
-    printf("Remaining VM obs: " NK_PRINTF_UINT32 "\n", vmCount);
-    assert(vmCount == 0);
-}
-
 void nkiVmInit(struct NKVM *vm)
 {
     // NOTE: By the time this function is called, the
     // catastrophicFailureJmpBuf field should already be set. Do not
     // overwrite it.
-
-    // FIXME: Remove this.
-    vmCount++;
-    atexit(nkiCheckVmCount);
 
     // Init memory management before almost anything else.
     vm->currentMemoryUsage = 0;
@@ -338,8 +326,6 @@ void nkiVmDestroy(struct NKVM *vm)
     }
 
     assert(!vm->allocations);
-
-    vmCount--;
  }
 
 // ----------------------------------------------------------------------
