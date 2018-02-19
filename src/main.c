@@ -41,13 +41,13 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
+// This file is mostly a messy test harness for Ninkasi. Try not to
+// judge too harshly!
+
 #include "nkx.h"
 
 // FIXME: Get rid of this.
 #include "nkvm.h"
-
-// FIXME: Get rid of this.
-#include "nkdbg.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -832,11 +832,18 @@ int main(int argc, char *argv[])
                     strcat(newFilename, ".nkb");
                     outputFilename = newFilename;
                 }
+
+            }
+
+            // Okay well, even if all of that failed we still need
+            // SOMETHING to call this output file.
+            if(!outputFilename) {
+                outputFilename = strdup("unknown.nkb");
             }
 
             // If our input is another nkb file, then I guess we
-            // should do file.nkb.nkb. I don't know why you'd try to
-            // recompile a compiled binary outside of testing, though.
+            // should do file.nkb.nkb. Maybe we can diff the files and
+            // make sure they come out the same again.
             if(!strcmp(outputFilename, settings.filename)) {
                 outputFilename = realloc(outputFilename, strlen(outputFilename) + 1 + 4);
                 strcat(outputFilename, ".nkb");
