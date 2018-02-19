@@ -952,8 +952,6 @@ struct NKValue *nkiCompilerCreateGlobalVariable(
     return NULL;
 }
 
-// FIXME: Make this generic, so we can add totally arbitrary global
-// values.
 void nkiCompilerCreateCFunctionVariable(
     struct NKCompilerState *cs,
     const char *name,

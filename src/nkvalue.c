@@ -78,8 +78,6 @@ const char *nkiValueTypeGetName(enum NKValueType type)
 
 nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
 {
-    // TODO: De-reference references here.
-
     switch(value->type) {
 
         case NK_VALUETYPE_INT:
@@ -122,8 +120,6 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
 
 float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
 {
-    // TODO: De-reference references here.
-
     switch(value->type) {
 
         case NK_VALUETYPE_INT:
@@ -161,8 +157,6 @@ float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
 
 const char *nkiValueToString(struct NKVM *vm, struct NKValue *value)
 {
-    // TODO: De-reference references here.
-
     switch(value->type) {
 
         case NK_VALUETYPE_STRING:
