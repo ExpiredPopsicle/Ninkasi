@@ -1,0 +1,11 @@
+var rootOb;
+var strJunk = "asdf";
+while(1) {
+    var ob = subsystemTest_widgetCreate();
+    testHandle1(ob);
+    ob.junk = strJunk;
+    strJunk = strJunk + strJunk;
+    ob.next = rootOb;
+    rootOb = ob;
+}
+
