@@ -41,6 +41,19 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
+// This file demonstrates how to make a simple library for Ninkasi.
+//
+// The library includes one external data type (Widgets), with some
+// external data associated with them. It supports serialization,
+// deserialization, and garbage collection of Widgets.
+//
+// There is also a chunk of data associated with the library that is
+// inaccessible to the script itself, but will also be serialized and
+// deserialzed with the VM state.
+//
+// Finally, it demonstrates how to set up function calls to C
+// functions.
+
 #include "subtest.h"
 
 #include "nkx.h"
@@ -193,15 +206,26 @@ void subsystemTest_registerExitCheck(void)
 // ----------------------------------------------------------------------
 // SubsystemTest types
 
+// This is the global subsystem data that lives on the VM, but is not
+// accessible to the script itself.
 struct SubsystemTest_InternalData
 {
+    // This is the type ID we get back when we create wth Widget type
+    // in the VM. We'll need it to create new Widgets and also to type
+    // check parameters coming into function callbacks.
     NKVMExternalDataTypeID widgetTypeId;
+
+    // These are some arbitrary bits of data to demonstrate generic
+    // stuff getting stored in an external subsystem.
     char *testString;
     nkuint32_t widgetCount;
 };
 
+// This is the data we attach to our object type.
 struct SubsystemTest_WidgetData
 {
+    // This is an arbitrary piece of data to demonstrate data getting
+    // attached to an object in a VM.
     nkuint32_t data;
 };
 
@@ -448,8 +472,6 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
 
 void subsystemTest_serialize(struct NKVM *vm, void *internalData)
 {
-    // TODO: Make a string serialization function.
-
     struct SubsystemTest_InternalData *systemData =
         (struct SubsystemTest_InternalData*)internalData;
 
