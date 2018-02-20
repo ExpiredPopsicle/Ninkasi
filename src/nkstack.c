@@ -196,8 +196,6 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
 
     // TODO: Shrink the stack if we can?
 
-    nkiDbgWriteLine("pop count: %u", count);
-
     if(stack->size < count) {
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here

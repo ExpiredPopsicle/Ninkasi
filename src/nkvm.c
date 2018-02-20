@@ -59,11 +59,11 @@ static const char *nkiOpcodeNameTable[NK_OPCODE_PADDEDCOUNT];
 // here.
 nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
-#define NK_SETUP_OP(x, y, z)                       \
-    do {                                        \
-        nkiOpcodeNameTable[(x)] = #x;              \
-        nkiOpcodeTable[(x)] = (y);                 \
-        nkiCompilerStackOffsetTable[(x)] = (z); \
+#define NK_SETUP_OP(x, y, z)                                \
+    do {                                                    \
+        nkiOpcodeNameTable[(x)] = #x + strlen("NK_OP_");    \
+        nkiOpcodeTable[(x)] = (y);                          \
+        nkiCompilerStackOffsetTable[(x)] = (z);             \
     } while(0);
 
 static void nkiVmInitOpcodeTable(void)

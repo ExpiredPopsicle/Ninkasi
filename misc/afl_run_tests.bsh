@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Bring us up to the project root directory.
+cd "$(dirname "$0")/.."
+
+# AFL doesn't really have a good way of running the UI with a bunch of
+# parallel tests going on, so this function just creates a ton of
+# xterm windows running individual instances of the fuzzer.
 function addTerm()
 {
     local AFLTYPE=S
@@ -26,23 +32,12 @@ function addTerm()
     TERMCOUNTER=$(expr "${TERMCOUNTER}" + 1)
 }
 
+# Change the numbers here if you aren't using something with 16
+# hardware threads.
 for i in $(seq 2 15); do
 	echo $i
 	addTerm
 done
 
-# addTerm
-# addTerm
-# wait
-
-# xterm -geom 80x25 -e afl-fuzz -t 1000 -i afl_in -o afl_out -M afl-1 src/ninkasi_test &
-
-# for i in $(seq 2 16); do
-# 	echo $i
-# 	xterm -geom 80x25 -e afl-fuzz -t 1000 -i afl_in -o afl_out -S afl-$i src/ninkasi_test &
-# done
-
-# wait
-
-
+# Just watch the status until the user kills it.
 watch afl-whatsup -s afl_out

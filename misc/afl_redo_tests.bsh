@@ -1,23 +1,27 @@
 #!/bin/bash
 
+# This shell script just re-runs all the crashes we've found through
+# AFL, using Valgrind, until it finds something that's still broken.
+
+# Bring us up to the project root directory.
+cd "$(dirname "$0")/.."
+
+# Make sure we bail out on error.
 set -e
 
-COUNTER=0
-
-#while true; do
 #for i in crashes/*; do
-for i in afl_out/*/crashes/*; do
+#for i in afl_out/*/crashes/*; do
 #for i in afl_in/*; do
+for i in afl_out/*/crashes/* afl_in/* crashes/*; do
 	echo "CHECKING ERRORS: $i"
-	valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i
+	valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i >/dev/null
 	#valgrind --leak-check=full --track-origins=yes src/ninkasi_test $i
 	#valgrind --error-exitcode=1 src/ninkasi_test $i
-	#/usr/bin/time src/ninkasi_test >/dev/null
 	#afl-showmap -o trace.txt -c -- src/ninkasi_test $i
 	#afl-showmap -o trace.txt -c -- ./nk2 $i
+    #src/ninkasi_test $i >/dev/null
 done
-COUNTER=$(expr $COUNTER \+ 1)
-echo $COUNTER
-#done
 
-echo "DONE"
+echo "DONE. No crashes found."
+
+

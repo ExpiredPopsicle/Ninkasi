@@ -1053,6 +1053,9 @@ void nkiCompilerFinalize(
         nkiCompilerPopContext(cs);
     }
 
+    // Add a final "END" instruction.
+    nkiCompilerAddInstructionSimple(cs, NK_OP_END, nktrue);
+
     nkiFree(cs->vm, cs);
 }
 

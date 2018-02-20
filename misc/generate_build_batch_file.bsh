@@ -1,13 +1,26 @@
 #!/bin/bash
 
+# This script generates an MS-DOS batch file that calls the Watcom
+# compiler to build the test app.
+
+# Bring us up to the project root directory.
+cd "$(dirname "$0")/.."
+
 echo "del *.OBJ" > build.bat
 echo "del *.EXE" > build.bat
 
-# CFLAGS="-ml"
-# LFLAGS="-ml"
+# Uncomment for "large" memory model in real-mode.
+#CFLAGS="-ml"
+#LFLAGS="-ml"
 
-find src -iname "*.c" | sed -e "s/^/wcc -mh ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
-echo "wcl -mh *.OBJ ${LFLAGS} -fe=a.exe" >> build.bat
+# Use "huge" memory model in real-mode.
+CFLAGS="-mh"
+LFLAGS="-mh"
+
+find src -iname "*.c" | sed -e "s/^/wcc ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
+echo "wcl ${LFLAGS} *.OBJ -fe=a.exe" >> build.bat
+
+# TODO: 32-bit protected mode builds.
 
 dos2unix build.bat
 

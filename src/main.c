@@ -128,13 +128,12 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 
 // ----------------------------------------------------------------------
 
-
-
-
-char **splitLines(const char *str, nkuint32_t *lineCount)
+char **nkiDbgSplitLines(const char *str, nkuint32_t *lineCount)
 {
     char **lines = NULL;
 
+    // Make a copy of the string. We'll insert null-terminators into
+    // this, then record where each line starts.
     nkuint32_t len = strlen(str);
     char *workStr = strdup(str);
 
@@ -159,80 +158,7 @@ char **splitLines(const char *str, nkuint32_t *lineCount)
     return lines;
 }
 
-void dumpListing(struct NKVM *vm, const char *script)
-{
-    nkuint32_t i;
-
-  #if NK_VM_DEBUG
-    nkuint32_t lastLine = 0;
-  #endif
-
-    nkuint32_t lineCount = 0;
-    char **lines = script ? splitLines(script, &lineCount) : NULL;
-
-    if(vm->instructions) {
-        for(i = 0; i <= vm->instructionAddressMask; i++) {
-
-            enum NKOpcode opcode = vm->instructions[i].opcode;
-            struct NKInstruction *maybeParams =
-                &vm->instructions[(i+1) & vm->instructionAddressMask];
-
-            if(opcode == NK_OP_END) {
-                break;
-            }
-
-          #if NK_VM_DEBUG
-
-            // while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
-            //     printf("%4u     :                                         ; %s\n", lastLine, lines[lastLine]);
-            //     lastLine++;
-            // }
-
-            // // Output opcode.
-            // printf("%4u %.4u: %s", vm->instructions[i].lineNumber, i, nkiVmGetOpcodeName(opcode));
-
-            // Line-number-less version for diff.
-            if(lines) {
-                while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
-                    printf("                                         ; %s\n", lines[lastLine]);
-                    lastLine++;
-                }
-            }
-            printf("%s %.4d %s", (i == vm->instructionPointer ? ">" : " "), i, nkiVmGetOpcodeName(opcode));
-
-          #else
-
-            // Output opcode.
-            printf("%.4u: %s", i, nkiVmGetOpcodeName(opcode));
-
-          #endif
-
-            // Output parameters.
-            if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
-                i++;
-                printf(" %d", maybeParams->opData_int);
-            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FLOAT) {
-                i++;
-                printf(" %f", maybeParams->opData_float);
-            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FUNCTIONID) {
-                i++;
-                printf(" %u", maybeParams->opData_functionId.id);
-            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
-                const char *str = nkiVmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
-                i++;
-                // TODO: Escape string before showing here.
-                printf(" %d:\"%s\"", maybeParams->opData_string, str ? str : "<bad string>");
-            }
-
-            printf("\n");
-        }
-    }
-
-    if(lines) {
-        free(lines[0]);
-        free(lines);
-    }
-}
+void dumpListing(struct NKVM *vm, const char *script);
 
 char *loadScript(const char *filename, nkuint32_t *scriptSize)
 {
@@ -524,6 +450,7 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
     settings->maxMemory = 65536 * 256; //NK_UINT_MAX;
+    // settings->maxMemory = 65536 * 16; //NK_UINT_MAX;
 
     // AFL default.
     // settings->maxMemory = 45000000;
@@ -738,7 +665,7 @@ int main(int argc, char *argv[])
             // First, scan for some directives...
             {
                 nkuint32_t lineCount = 0;
-                char **lines = splitLines(script, &lineCount);
+                char **lines = nkiDbgSplitLines(script, &lineCount);
                 nkuint32_t i;
                 for(i = 0; i < lineCount; i++) {
                     const char *memFailPct = "// #failrate: ";
@@ -776,6 +703,8 @@ int main(int argc, char *argv[])
                     nkxVmDelete(vm);
                     return ERROR_CODE;
                 }
+
+                dumpListing(vm, script);
             }
 
         } else {
@@ -888,16 +817,13 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    // nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
+                    nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                     while(
                         vm->instructions[
                             vm->instructionPointer &
-                            vm->instructionAddressMask].opcode != NK_OP_END &&
-                        vm->instructions[
-                            vm->instructionPointer &
-                            vm->instructionAddressMask].opcode != NK_OP_NOP)
+                            vm->instructionAddressMask].opcode != NK_OP_END)
                     {
                         // // FIXME: Remove this.
                         // dumpGlobals(vm);

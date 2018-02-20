@@ -487,3 +487,177 @@ void nkiExternalHandleSanityCheck(struct NKVM *vm)
         }
     }
 }
+
+const char *nkiDbgGetNextLine(const char *text)
+{
+    while(*text) {
+        if(*text == '\n') {
+            return text + 1;
+        }
+        text++;
+    }
+    return NULL;
+}
+
+void nkiDbgAppendLine(nkuint32_t bufSize, char *dst, const char *input)
+{
+    nkuint32_t i;
+    for(i = strlen(dst); i + 4 < bufSize; i++) {
+        if(*input && *input != '\n') {
+            dst[i] = *(input++);
+        } else {
+            dst[i] = 0;
+            return;
+        }
+    }
+
+    // Add '...' to the end to indicate that we just ran out of room.
+    if(i + 4 == bufSize) {
+        dst[i++] = '.';
+        dst[i++] = '.';
+        dst[i++] = '.';
+    }
+
+    dst[i] = 0;
+}
+
+void nkiDbgPadLine(nkuint32_t padding, char *dst, char value)
+{
+    nkuint32_t i;
+    for(i = strlen(dst); i + 1 < padding; i++) {
+        dst[i] = value;
+    }
+    dst[i] = 0;
+}
+
+void nkiDbgAppendEscaped(nkuint32_t bufSize, char *dst, const char *src)
+{
+    nkuint32_t i = strlen(dst);
+    while(i + 2 < bufSize && *src) {
+        switch(*src) {
+            case '\n':
+                dst[i++] = '\\';
+                dst[i++] = 'n';
+                break;
+            case '\t':
+                dst[i++] = '\\';
+                dst[i++] = 't';
+                break;
+            case '\"':
+                dst[i++] = '\\';
+                dst[i++] = '\"';
+                break;
+            default:
+                dst[i++] = *src;
+                break;
+        }
+        src++;
+    }
+    dst[i] = 0;
+}
+
+nkuint32_t nkiDbgCountLines(const char *str)
+{
+    nkuint32_t c = 0;
+    while(*str) {
+        if(*str == '\n') {
+            c++;
+        }
+        str++;
+    }
+    return c;
+}
+
+void dumpListing(struct NKVM *vm, const char *script)
+{
+    nkuint32_t i;
+
+#if NK_VM_DEBUG
+    nkuint32_t lastLine = 0;
+    nkuint32_t lineCount = nkiDbgCountLines(script);
+    const char *linePtr = script;
+#endif
+
+    char lineBuf[80];
+    char paramBuf[80];
+
+    if(vm->instructions) {
+        for(i = 0; i <= vm->instructionAddressMask; i++) {
+
+            enum NKOpcode opcode = vm->instructions[i].opcode;
+            struct NKInstruction *maybeParams =
+                &vm->instructions[(i+1) & vm->instructionAddressMask];
+
+            if(opcode == NK_OP_END) {
+                break;
+            }
+
+            // Start off with the instruction address and instruction
+            // name.
+            sprintf(lineBuf, "%s %.4d: %s",
+                (i == vm->instructionPointer ? ">" : " "), i,
+                nkiVmGetOpcodeName(opcode));
+
+            // Format parameters.
+            if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {
+                i++;
+                sprintf(paramBuf, " %d", maybeParams->opData_int);
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FLOAT) {
+                i++;
+                sprintf(paramBuf, " %f", maybeParams->opData_float);
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_FUNCTIONID) {
+                i++;
+                sprintf(paramBuf, " %u", maybeParams->opData_functionId.id);
+            } else if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_STRING) {
+                const char *str = nkiVmStringTableGetStringById(&vm->stringTable, maybeParams->opData_string);
+                i++;
+                sprintf(paramBuf, " %d:\"", maybeParams->opData_string);
+                nkiDbgAppendEscaped(sizeof(paramBuf), paramBuf, str ? str : "<bad string>");
+                nkiDbgAppendLine(sizeof(paramBuf), paramBuf, "\"");
+            }
+
+            // Append parameters.
+            nkiDbgAppendLine(sizeof(lineBuf)/2, lineBuf, paramBuf);
+
+#if NK_VM_DEBUG
+
+            if(linePtr) {
+
+                if(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+
+                    while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
+
+                        // Add the source code to this line and print
+                        // it.
+                        nkiDbgPadLine(sizeof(lineBuf)/2, lineBuf, ' ');
+                        nkiDbgAppendLine(sizeof(lineBuf), lineBuf, " ; ");
+                        nkiDbgAppendLine(sizeof(lineBuf), lineBuf, linePtr);
+                        printf("%s\n", lineBuf);
+
+                        // Move to the next line. Clear the lineBuf in
+                        // case we have multiple source lines for this
+                        // one line of assembly.
+                        linePtr = nkiDbgGetNextLine(linePtr);
+                        lastLine++;
+                        lineBuf[0] = 0;
+                    }
+
+                } else {
+
+                    printf("%s\n", lineBuf);
+
+                }
+
+            } else {
+
+                printf("%s\n", lineBuf);
+
+            }
+#else
+            printf("%s\n", lineBuf);
+#endif
+
+        }
+    }
+}
+
