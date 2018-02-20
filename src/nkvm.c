@@ -375,7 +375,7 @@ nkbool nkiVmExecuteProgram(struct NKVM *vm)
     {
         nkiVmIterate(vm);
 
-        if(vm->errorState.firstError) {
+        if(nkiVmHasErrors(vm)) {
             return nkfalse;
         }
     }

@@ -43,19 +43,18 @@
 
 // This file is mostly a messy test harness for Ninkasi. Try not to
 // judge too harshly!
+//
+// No seriously this code is shit. I'll come up with actual example
+// code as the project moves along.
 
 #include "nkx.h"
-
-// FIXME: Get rid of this.
-#include "nkvm.h"
+#include "subtest.h"
 
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "subtest.h"
 
 // ----------------------------------------------------------------------
 
@@ -157,8 +156,6 @@ char **nkiDbgSplitLines(const char *str, nkuint32_t *lineCount)
 
     return lines;
 }
-
-void dumpListing(struct NKVM *vm, const char *script);
 
 char *loadScript(const char *filename, nkuint32_t *scriptSize)
 {
@@ -285,9 +282,9 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
     // TODO: Add standard argument count handler.
     if(data->argumentCount != 1) {
-        nkiAddError(
+        nkxAddError(
             data->vm,
-            -1, "Bad argument count in doGCCallbackThing.");
+            "Bad argument count in doGCCallbackThing.");
         return;
     }
 
@@ -315,27 +312,6 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
         printf("GCing external data: %s\n", externalData);
         // free(externalData);
     }
-}
-
-void doSerializationCallbackThing(struct NKVMFunctionCallbackData *data)
-{
-    // FIXME: Remove.
-    printf("Seralize callback hit!\n");
-
-    // TODO: Make this standard, or find a way to make sure
-    // serialization callbacks aren't called by a normal program. This
-    // is important for sandboxing!
-    if(!data->vm->serializationState.writer) {
-        return;
-    }
-    printf("\nSerialization callback start!\n");
-    {
-        char tmp[5] = "TEST";
-        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-        data->vm->serializationState.writer(tmp, 4, data->vm->serializationState.userdata, data->vm->serializationState.writeMode);
-    }
-    printf("\nSerialization callback complete!\n");
 }
 
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
@@ -385,24 +361,6 @@ void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 void testSubsystemCleanup(struct NKVMFunctionCallbackData *data)
 {
 }
-
-void testSubsystemSerialize(struct NKVMFunctionCallbackData *data)
-{
-    char tmpBuf[256];
-    char *testData = (char*)nkxGetExternalSubsystemData(data->vm, "testSubsystem");
-    memset(tmpBuf, 0, sizeof(tmpBuf));
-    strcpy(tmpBuf, testData);
-    // if(data->vm->serializationState.writeMode) {
-
-    data->vm->serializationState.writer(
-        tmpBuf, strlen(testData),
-        data->vm->serializationState.userdata,
-        data->vm->serializationState.writeMode);
-    // }
-
-    printf("subsystem: Serialize(%s): %s\n", data->vm->serializationState.writeMode ? "write" : "read", tmpBuf);
-}
-
 
 // ----------------------------------------------------------------------
 
@@ -518,7 +476,6 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
 
     // FIXME: FIX THE DEMO. DON'T REGISTER THIS LATE.
     nkxVmRegisterExternalFunction(vm, "doGCCallbackThing", doGCCallbackThing);
-    nkxVmRegisterExternalFunction(vm, "doSerializationCallbackThing", doSerializationCallbackThing);
 
     nkxVmRegisterExternalType(vm, "footype", NULL, NULL);
 
@@ -556,9 +513,6 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
     {
         nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
         dumpBufChecksum(&buf);
-
-        printf("Vm state...\n");
-        nkxDbgDumpState(vm, stdout);
 
         if(!c) {
             printf("Error occurred during serialization. 2\n");
@@ -604,24 +558,6 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
 // FIXME: Remove this!
 extern nkuint32_t nkiMemFailRate;
-
-void dumpGlobals(struct NKVM *vm)
-{
-    nkuint32_t i;
-
-    printf("Global Variables:\n");
-
-    for(i = 0; i < vm->globalVariableCount; i++) {
-
-        struct NKGlobalVariableRecord *var = &vm->globalVariables[i];
-
-        // FIXME: Not using proper format specifier.
-        printf("  %4u %s = %s\n",
-            i,
-            var->name,
-            nkxValueToString(vm, &vm->staticSpace[var->staticPosition & vm->staticAddressMask]));
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -705,7 +641,6 @@ int main(int argc, char *argv[])
                     return ERROR_CODE;
                 }
 
-                dumpListing(vm, script);
             }
 
         } else {
@@ -811,7 +746,7 @@ int main(int argc, char *argv[])
 
             if(!nkxVmHasErrors(vm)) {
 
-                if(!nkiGetErrorCount(vm)) {
+                if(!nkxGetErrorCount(vm)) {
 
                     nkuint32_t counter = 0;
 
@@ -822,13 +757,11 @@ int main(int argc, char *argv[])
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                     while(
-                        vm->instructions[
-                            vm->instructionPointer &
-                            vm->instructionAddressMask].opcode != NK_OP_END)
+                        // vm->instructions[
+                        //     vm->instructionPointer &
+                        //     vm->instructionAddressMask].opcode != NK_OP_END)
+                        !nkxVmProgramHasEnded(vm))
                     {
-                        // // FIXME: Remove this.
-                        // dumpGlobals(vm);
-
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
 
@@ -876,7 +809,7 @@ int main(int argc, char *argv[])
                         // getchar();
 
                         if(nkxGetErrorCount(vm)) {
-                            printf("Instruction pointer of failure: %u\n", vm->instructionPointer);
+                            printf("An error occurred.\n");
                             break;
                         }
 
@@ -962,8 +895,6 @@ int main(int argc, char *argv[])
 
         }
 
-        assert(!vm->catastrophicFailureJmpBuf);
-
         printf("----------------------------------------------------------------------\n");
         printf("  Finish\n");
         printf("----------------------------------------------------------------------\n");
@@ -988,9 +919,7 @@ int main(int argc, char *argv[])
         // nkiVmStackDump(vm);
 
         printf("Final serialized state...\n");
-        if(vm->errorState.allocationFailure) {
-            // TODO: Remember allocation failure condition for
-            // serialization stuff.
+        if(nkxVmHasAllocationFailure(vm)) {
             printf("Error was allocation error. Skipping serialization.\n");
         } else {
             struct WriterTestBuffer buf;
@@ -1045,8 +974,8 @@ int main(int argc, char *argv[])
 
         nkxVmGarbageCollect(vm);
         printf("----------------------------------------------------------------------\n");
-        printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", vm->peakMemoryUsage);
-        printf("Current memory usage: " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
+        printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", nkxVmGetPeakMemoryUsage(vm));
+        printf("Current memory usage: " NK_PRINTF_UINT32 "\n", nkxVmGetCurrentMemoryUsage(vm));
 
         nkxVmDelete(vm);
     }

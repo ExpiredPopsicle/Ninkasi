@@ -571,13 +571,13 @@ nkuint32_t nkiDbgCountLines(const char *str)
     return c;
 }
 
-void dumpListing(struct NKVM *vm, const char *script)
+void nkiDbgDumpListing(struct NKVM *vm, const char *script)
 {
     nkuint32_t i;
 
 #if NK_VM_DEBUG
     nkuint32_t lastLine = 0;
-    nkuint32_t lineCount = nkiDbgCountLines(script);
+    nkuint32_t lineCount = script ? nkiDbgCountLines(script) : 0;
     const char *linePtr = script;
 #endif
 

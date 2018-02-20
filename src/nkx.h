@@ -195,6 +195,19 @@ struct NKValue *nkxVmObjectFindOrAddEntry(
     struct NKValue *key,
     nkbool noAdd);
 
+/// Returns nktrue if the program has ended.
+nkbool nkxVmProgramHasEnded(struct NKVM *vm);
+
+/// Returns true if an allocation error has occurred.
+nkbool nkxVmHasAllocationFailure(struct NKVM *vm);
+
+/// Returns the current memory usage by the VM. It's just the
+/// cumulative value of all the allocation call sizes.
+nkuint32_t nkxVmGetCurrentMemoryUsage(struct NKVM *vm);
+
+/// Returns the peak memory usage by the VM.
+nkuint32_t nkxVmGetPeakMemoryUsage(struct NKVM *vm);
+
 // ----------------------------------------------------------------------
 // Limits-related stuff
 
@@ -462,28 +475,6 @@ void *nkxGetExternalSubsystemData(
 void *nkxGetExternalSubsystemDataOrError(
     struct NKVM *vm,
     const char *name);
-
-/// Set a pointer to external subsystem data for a specific system. It
-/// is an error to call this before
-/// nkxSetExternalSubsystemCleanupCallback().
-void nkxSetExternalSubsystemData(
-    struct NKVM *vm,
-    const char *name,
-    void *data);
-
-/// Set a serialization callback function for some external subsystem.
-/// This will overwrite whatever was set in nkxInitSubsystem().
-void nkxSetExternalSubsystemSerializationCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback serializationCallback);
-
-/// Set a cleanup function for some external subsystem. This will
-/// overwrite whatever was set in nkxInitSubsystem().
-void nkxSetExternalSubsystemCleanupCallback(
-    struct NKVM *vm,
-    const char *name,
-    NKVMFunctionCallback cleanupCallback);
 
 /// Register an external subsystem.
 ///

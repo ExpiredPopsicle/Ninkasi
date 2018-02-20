@@ -145,7 +145,7 @@ void nkxVmIterate(struct NKVM *vm, nkuint32_t count)
         }
 
         // Check for errors.
-        if(vm->errorState.firstError || vm->errorState.allocationFailure) {
+        if(nkxVmHasErrors(vm)) {
             break;
         }
 
@@ -1011,4 +1011,24 @@ void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFun
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+nkbool nkxVmProgramHasEnded(struct NKVM *vm)
+{
+    return vm->instructions[
+        vm->instructionPointer &
+        vm->instructionAddressMask].opcode == NK_OP_END;
+}
 
+nkbool nkxVmHasAllocationFailure(struct NKVM *vm)
+{
+    return vm->errorState.allocationFailure;
+}
+
+nkuint32_t nkxVmGetCurrentMemoryUsage(struct NKVM *vm)
+{
+    return vm->currentMemoryUsage;
+}
+
+nkuint32_t nkxVmGetPeakMemoryUsage(struct NKVM *vm)
+{
+    return vm->peakMemoryUsage;
+}
