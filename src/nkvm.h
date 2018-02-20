@@ -100,6 +100,12 @@ struct NKVMExternalSubsystemData
     struct NKVMExternalSubsystemData *nextInHashTable;
 };
 
+struct NKGlobalVariableRecord
+{
+    nkuint32_t staticPosition;
+    char *name;
+};
+
 /// The VM object itself.
 struct NKVM
 {
@@ -146,11 +152,7 @@ struct NKVM
 
     // TODO: Add a global variable table and global variable lookup,
     // so we don't have to keep the compiler around.
-    struct NKGlobalVariableRecord
-    {
-        nkuint32_t staticPosition;
-        char *name;
-    } *globalVariables;
+    struct NKGlobalVariableRecord *globalVariables;
     nkuint32_t globalVariableCount;
 
     // Memory usage stuff.

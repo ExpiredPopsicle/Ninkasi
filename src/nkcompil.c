@@ -67,11 +67,12 @@ void nkiCompilerAddInstruction(
             cs->vm->instructionAddressMask >>= 1;
         }
 
-        cs->vm->instructions = nkiReallocArray(
-            cs->vm,
-            cs->vm->instructions,
-            sizeof(struct NKInstruction),
-            newSize);
+        cs->vm->instructions =
+            (struct NKInstruction *)nkiReallocArray(
+                cs->vm,
+                cs->vm->instructions,
+                sizeof(struct NKInstruction),
+                newSize);
 
         // Clear the new area to NOPs.
         memset(
@@ -108,7 +109,8 @@ void nkiCompilerAddInstructionSimple(
 void nkiCompilerPushContext(struct NKCompilerState *cs)
 {
     struct NKCompilerStateContext *newContext =
-        nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContext));
+        (struct NKCompilerStateContext *)nkiMalloc(
+            cs->vm, sizeof(struct NKCompilerStateContext));
     memset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId.id = NK_INVALID_VALUE;
     newContext->parent = cs->context;
@@ -303,7 +305,7 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
         }
 
         // Reallocate and clear out the new space.
-        vm->staticSpace = nkiReallocArray(
+        vm->staticSpace = (struct NKValue *)nkiReallocArray(
             vm, vm->staticSpace,
             sizeof(struct NKValue), (vm->staticAddressMask + 1));
         memset(
@@ -340,7 +342,8 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
         }
     }
 
-    var = nkiMalloc(cs->vm, sizeof(struct NKCompilerStateContextVariable));
+    var = (struct NKCompilerStateContextVariable *)nkiMalloc(
+        cs->vm, sizeof(struct NKCompilerStateContextVariable));
     memset(var, 0, sizeof(*var));
 
     if(isGlobal) {
@@ -746,7 +749,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // This context is different from the ones we'd normally push/pop,
     // because it's parented to the global context. So we're going to
     // set it and parent it directly.
-    functionLocalContext = nkiMalloc(
+    functionLocalContext = (struct NKCompilerStateContext *)nkiMalloc(
         cs->vm, sizeof(struct NKCompilerStateContext));
     memset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
@@ -988,7 +991,8 @@ struct NKCompilerState *nkiCompilerCreate(
 
     NK_SET_FAILURE_RECOVERY(NULL);
 
-    cs = nkiMalloc(vm, sizeof(struct NKCompilerState));
+    cs = (struct NKCompilerState *)nkiMalloc(
+        vm, sizeof(struct NKCompilerState));
     memset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
@@ -1034,7 +1038,8 @@ void nkiCompilerFinalize(
 
         // Allocate that.
         cs->vm->globalVariables =
-            nkiMallocArray(cs->vm, sizeof(struct NKGlobalVariableRecord), count);
+            (struct NKGlobalVariableRecord *)nkiMallocArray(
+                cs->vm, sizeof(struct NKGlobalVariableRecord), count);
         cs->vm->globalVariableCount = count;
 
         // Now run through it all again and actually assign data.
@@ -1510,7 +1515,7 @@ nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
         nkuint32_t jumpFixup = nkiCompilerEmitJump(cs, 0);
         searchContext->loopContextFixupCount++;
         searchContext->loopContextFixups =
-            nkiReallocArray(cs->vm, searchContext->loopContextFixups,
+            (nkuint32_t *)nkiReallocArray(cs->vm, searchContext->loopContextFixups,
                 sizeof(*searchContext->loopContextFixups),
                 searchContext->loopContextFixupCount);
         searchContext->loopContextFixups[

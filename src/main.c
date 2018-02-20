@@ -94,7 +94,7 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 
             nkuint32_t oldSize = testBuf->size;
             testBuf->size += size;
-            testBuf->data = realloc(testBuf->data, testBuf->size);
+            testBuf->data = (char*)realloc(testBuf->data, testBuf->size);
             if(!testBuf->data) {
                 fprintf(stderr, "Realloc failure to size: " NK_PRINTF_UINT32 "\n", testBuf->size);
                 assert(testBuf->data);
@@ -148,7 +148,7 @@ char **nkiDbgSplitLines(const char *str, nkuint32_t *lineCount)
             workStr[i] = 0;
 
             (*lineCount)++;
-            lines = realloc(lines, sizeof(char*) * (*lineCount));
+            lines = (char**)realloc(lines, sizeof(char*) * (*lineCount));
             lines[(*lineCount)-1] = &workStr[lineStart];
 
             lineStart = i + 1;
@@ -174,7 +174,7 @@ char *loadScript(const char *filename, nkuint32_t *scriptSize)
     len = ftell(in);
     fseek(in, 0, SEEK_SET);
 
-    buf = malloc(len + 1);
+    buf = (char*)malloc(len + 1);
     fread(buf, len, 1, in);
     buf[len] = 0;
 
@@ -193,13 +193,13 @@ char *loadScriptFromStdin(nkuint32_t *scriptSize)
 {
     size_t bufSize = 256;
     size_t scriptLen = 0;
-    char *buf = malloc(bufSize);
+    char *buf = (char*)malloc(bufSize);
     while(fread(&buf[scriptLen], 1, 1, stdin) > 0) {
         scriptLen++;
         buf[scriptLen] = 0;
         if(scriptLen + 1 >= bufSize) {
             bufSize <<= 1;
-            buf = realloc(buf, bufSize);
+            buf = (char*)realloc(buf, bufSize);
         }
     }
     if(scriptSize) {
@@ -311,7 +311,7 @@ void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
     }
 
     {
-        char *externalData = nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
+        char *externalData = (char*)nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
         printf("GCing external data: %s\n", externalData);
         // free(externalData);
     }
@@ -389,7 +389,7 @@ void testSubsystemCleanup(struct NKVMFunctionCallbackData *data)
 void testSubsystemSerialize(struct NKVMFunctionCallbackData *data)
 {
     char tmpBuf[256];
-    char *testData = nkxGetExternalSubsystemData(data->vm, "testSubsystem");
+    char *testData = (char*)nkxGetExternalSubsystemData(data->vm, "testSubsystem");
     memset(tmpBuf, 0, sizeof(tmpBuf));
     strcpy(tmpBuf, testData);
     // if(data->vm->serializationState.writeMode) {
@@ -429,7 +429,7 @@ nkbool checkErrors(struct NKVM *vm)
     if(nkxVmHasErrors(vm)) {
 
         nkuint32_t errorBufLen = nkxGetErrorLength(vm);
-        char *buf = malloc(errorBufLen);
+        char *buf = (char*)malloc(errorBufLen);
         nkxGetErrorText(vm, buf);
 
         fprintf(stderr, "Errors detected:\n");
@@ -753,7 +753,7 @@ int main(int argc, char *argv[])
                 // Make a new name with the correct extension at the
                 // end.
                 if(i >= 0) {
-                    newFilename = malloc(i + 4 + 1);
+                    newFilename = (char*)malloc(i + 4 + 1);
                     memcpy(newFilename, oldFilename, i);
                     newFilename[i] = 0;
                     strcat(newFilename, ".nkb");
@@ -772,7 +772,7 @@ int main(int argc, char *argv[])
             // should do file.nkb.nkb. Maybe we can diff the files and
             // make sure they come out the same again.
             if(!strcmp(outputFilename, settings.filename)) {
-                outputFilename = realloc(outputFilename, strlen(outputFilename) + 1 + 4);
+                outputFilename = (char*)realloc(outputFilename, strlen(outputFilename) + 1 + 4);
                 strcat(outputFilename, ".nkb");
             }
 
