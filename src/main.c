@@ -449,11 +449,9 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
-    settings->maxMemory = 65536 * 256; //NK_UINT_MAX;
-    // settings->maxMemory = 65536 * 16; //NK_UINT_MAX;
 
-    // AFL default.
-    // settings->maxMemory = 45000000;
+    // 16mb default max memory usage.
+    settings->maxMemory = 16L * (1L << 20L);
 
     for(i = 1; i < argc; i++) {
 
