@@ -1,0 +1,1 @@
+afl-showmap -o trace.txt -c -- src/ninkasi_test afl_in/id\:000000\,sig\:11\,src\:000001+000090\,op\:splice\,rep\:2 

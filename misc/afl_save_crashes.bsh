@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# This script just saves the output from AFL to add as test cases for
+# later.
+
+# Bring us up to the project root directory.
+cd "$(dirname "$0")/.."
+
+mkdir -p crashes
+for i in afl_out/*/crashes/* crashes?/id*; do
+    if [ -e "$i" ]; then
+        NEWNAME="$(sha256sum $i | cut -f1 -d" ")"
+        mv "$i" "crashes/${NEWNAME}"
+    fi
+done
