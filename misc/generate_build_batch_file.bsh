@@ -7,7 +7,7 @@
 cd "$(dirname "$0")/.."
 
 echo "del *.OBJ" > build.bat
-echo "del *.EXE" > build.bat
+echo "del *.EXE" >> build.bat
 
 # Uncomment for "large" memory model in real-mode.
 #CFLAGS="-ml"

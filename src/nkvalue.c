@@ -356,18 +356,27 @@ nkuint32_t nkiValueHash(struct NKVM *vm, struct NKValue *value)
 
 void nkiValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
 {
+    // Clear out full 32-bits even on systems where "type" is only 16
+    // bits.
+    value->type_uint = 0;
     value->type = NK_VALUETYPE_INT;
     value->intData = intData;
 }
 
 void nkiValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData)
 {
+    // Clear out full 32-bits even on systems where "type" is only 16
+    // bits.
+    value->type_uint = 0;
     value->type = NK_VALUETYPE_FLOAT;
     value->floatData = floatData;
 }
 
 void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
 {
+    // Clear out full 32-bits even on systems where "type" is only 16
+    // bits.
+    value->type_uint = 0;
     value->type = NK_VALUETYPE_STRING;
     value->stringTableEntry =
         nkiVmStringTableFindOrAddString(
@@ -376,6 +385,9 @@ void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
 
 void nkiValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id)
 {
+    // Clear out full 32-bits even on systems where "type" is only 16
+    // bits.
+    value->type_uint = 0;
     value->type = NK_VALUETYPE_FUNCTIONID;
     value->functionId = id;
 }

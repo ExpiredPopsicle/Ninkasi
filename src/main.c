@@ -557,6 +557,9 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
         nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
         dumpBufChecksum(&buf);
 
+        printf("Vm state...\n");
+        nkxDbgDumpState(vm, stdout);
+
         if(!c) {
             printf("Error occurred during serialization. 2\n");
             nkxVmDelete(vm);

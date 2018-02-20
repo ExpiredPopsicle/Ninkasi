@@ -504,12 +504,13 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
         struct NKValue ob;
         nkuint32_t index = 0;
         while(nkxGetNextObjectOfExternalType(vm, systemData->widgetTypeId, &ob, &index)) {
-            // FIXME: Won't currently work for cleanup of OOMs,
-            // because nkxVmObjectGetExternalData can throw errors,
-            // and will refuse to start if the OOM flag is set.
+
+            // Note: nkxVmObjectGetExternalData() is one of the few
+            // nkx functions that can still operate when the
+            // out-of-memory error flag is set.
             void *objectExternalData = nkxVmObjectGetExternalData(vm, &ob);
-            printf("OBJECT FOUND FOR CLEANUP: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 " - %p\n",
-                ob.objectId, index, objectExternalData);
+            printf("Object found for cleanup: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 "\n",
+                ob.objectId, index);
             subsystemTest_freeWrapper(objectExternalData);
 
             systemData->widgetCount--;
