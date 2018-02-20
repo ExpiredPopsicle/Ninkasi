@@ -50,7 +50,7 @@ struct NKVMFunction *nkiVmCreateFunction(
         functionId->id = vm->functionCount++;
     }
 
-    vm->functionTable = nkiReallocArray(
+    vm->functionTable = (struct NKVMFunction *)nkiReallocArray(
         vm,
         vm->functionTable,
         sizeof(struct NKVMFunction), vm->functionCount);
@@ -191,7 +191,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
         }
     }
 
-    vm->externalFunctionTable = nkiReallocArray(
+    vm->externalFunctionTable = (struct NKVMExternalFunction *)nkiReallocArray(
         vm, vm->externalFunctionTable,
         vm->externalFunctionCount, sizeof(struct NKVMExternalFunction));
 

@@ -124,7 +124,7 @@ void *nkiMalloc_real(
             return NULL;
         }
 
-        header = vm->mallocReplacement(
+        header = (struct NKMemoryHeader *)vm->mallocReplacement(
             newChunkSize,
             vm->mallocAndFreeReplacementUserData);
 
@@ -253,7 +253,7 @@ char *nkiStrdup(struct NKVM *vm, const char *str)
     if(str) {
         nkuint32_t len = strlen(str) + 1;
         if(len) {
-            char *copyData = nkiMalloc(vm, len);
+            char *copyData = (char*)nkiMalloc(vm, len);
             if(copyData) {
                 strcpy(copyData, str);
                 return copyData;

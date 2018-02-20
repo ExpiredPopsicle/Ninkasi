@@ -67,7 +67,8 @@ struct NKVMValueGCEntry *nkiVmGcStateMakeEntry(struct NKVMGCState *state)
         ret = state->closedList;
         state->closedList = ret->next;
     } else {
-        ret = nkiMalloc(state->vm, sizeof(struct NKVMValueGCEntry));
+        ret = (struct NKVMValueGCEntry *)nkiMalloc(
+            state->vm, sizeof(struct NKVMValueGCEntry));
     }
 
     ret->next = state->openList;

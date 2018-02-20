@@ -227,10 +227,11 @@ void nkiVmShrink(struct NKVM *vm)
         }
 
         if(newStackCapacity != vm->stack.capacity) {
-            vm->stack.values = nkiReallocArray(
-                vm, vm->stack.values,
-                sizeof(struct NKValue),
-                newStackCapacity);
+            vm->stack.values =
+                (struct NKValue *)nkiReallocArray(
+                    vm, vm->stack.values,
+                    sizeof(struct NKValue),
+                    newStackCapacity);
 
             vm->stack.capacity = newStackCapacity;
 

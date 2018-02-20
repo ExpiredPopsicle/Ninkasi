@@ -211,7 +211,8 @@ nkbool nkiCompilerExpressionParseFunctioncall(
         {
             // Make a new node for this parameter.
             struct NKExpressionAstNode *thisParamNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             memset(thisParamNode, 0, sizeof(*thisParamNode));
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
@@ -276,7 +277,8 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         while(nkiCompilerIsPrefixOperator(*currentToken)) {
 
             struct NKExpressionAstNode *prefixNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             memset(prefixNode, 0, sizeof(*prefixNode));
 
             // Add it to the end of our list of prefix operations.
@@ -325,7 +327,8 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             // Parse the actual value.
             if(!nkiCompilerIsExpressionEndingToken(*currentToken)) {
 
-                valueNode = nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                valueNode = (struct NKExpressionAstNode*)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
                 memset(valueNode, 0, sizeof(*valueNode));
                 valueNode->opOrValue = *currentToken;
 
@@ -346,7 +349,8 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         while(nkiCompilerIsPostfixOperator(*currentToken)) {
 
             struct NKExpressionAstNode *postfixNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             memset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
@@ -370,19 +374,22 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                 if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
                     struct NKExpressionAstNode *identifierStringNode =
-                        nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                        (struct NKExpressionAstNode *)nkiMalloc(
+                            cs->vm, sizeof(struct NKExpressionAstNode));
 
                     struct NKExpressionAstNode *indexIntoNode = postfixNode;
 
                     memset(identifierStringNode, 0, sizeof(*identifierStringNode));
-                    identifierStringNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
+                    identifierStringNode->opOrValue = (struct NKToken *)nkiMalloc(
+                        cs->vm, sizeof(struct NKToken));
                     identifierStringNode->opOrValue->type = NK_TOKENTYPE_STRING;
                     identifierStringNode->opOrValue->str = nkiStrdup(cs->vm, cs->currentToken->str);
                     identifierStringNode->opOrValue->next = NULL;
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = nktrue;
 
-                    indexIntoNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
+                    indexIntoNode->opOrValue = (struct NKToken *)nkiMalloc(
+                        cs->vm, sizeof(struct NKToken));
                     indexIntoNode->opOrValue->type = NK_TOKENTYPE_BRACKET_OPEN;
                     indexIntoNode->opOrValue->str = nkiStrdup(cs->vm, "[");
                     indexIntoNode->opOrValue->next = NULL;
@@ -396,9 +403,11 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                     if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
                         struct NKExpressionAstNode *functionCallNode =
-                            nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                            (struct NKExpressionAstNode *)nkiMalloc(
+                                cs->vm, sizeof(struct NKExpressionAstNode));
 
-                        functionCallNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
+                        functionCallNode->opOrValue = (struct NKToken *)nkiMalloc(
+                            cs->vm, sizeof(struct NKToken));
                         functionCallNode->opOrValue->type = NK_TOKENTYPE_PAREN_OPEN;
                         functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
                         functionCallNode->opOrValue->next = NULL;
@@ -543,7 +552,8 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         // out everthing of a lower precedence.
         {
             struct NKExpressionAstNode *astNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             memset(astNode, 0, sizeof(*astNode));
             astNode->stackNext = opStack;
             astNode->opOrValue = cs->currentToken;
@@ -903,12 +913,14 @@ struct NKExpressionAstNode *nkiCompilerCloneExpressionTree(
         return NULL;
     }
 
-    newNode = nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+    newNode = (struct NKExpressionAstNode *)nkiMalloc(
+        cs->vm, sizeof(struct NKExpressionAstNode));
     memset(newNode, 0, sizeof(*newNode));
 
     newNode->ownedToken = node->ownedToken;
     if(node->ownedToken) {
-        newNode->opOrValue = nkiMalloc(cs->vm, sizeof(struct NKToken));
+        newNode->opOrValue = (struct NKToken *)nkiMalloc(
+            cs->vm, sizeof(struct NKToken));
         memset(newNode->opOrValue, 0, sizeof(struct NKToken));
         newNode->opOrValue->type = node->opOrValue->type;
         newNode->opOrValue->str = nkiStrdup(cs->vm, node->opOrValue->str);
@@ -948,15 +960,23 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             struct NKExpressionAstNode *rvalueNode1 =
                 nkiCompilerCloneExpressionTree(cs, node->children[0]);
             struct NKExpressionAstNode *additionNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             struct NKExpressionAstNode *literalOneNode =
-                nkiMalloc(cs->vm, sizeof(struct NKExpressionAstNode));
+                (struct NKExpressionAstNode *)nkiMalloc(
+                    cs->vm, sizeof(struct NKExpressionAstNode));
             struct NKToken *oldToken = node->opOrValue;
             nkbool wasOwningToken = node->ownedToken;
 
-            struct NKToken *literalOneToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
-            struct NKToken *additionToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
-            struct NKToken *assignmentToken = nkiMalloc(cs->vm, sizeof(struct NKToken));
+            struct NKToken *literalOneToken =
+                (struct NKToken *)nkiMalloc(
+                    cs->vm, sizeof(struct NKToken));
+            struct NKToken *additionToken =
+                (struct NKToken *)nkiMalloc(
+                    cs->vm, sizeof(struct NKToken));
+            struct NKToken *assignmentToken =
+                (struct NKToken *)nkiMalloc(
+                    cs->vm, sizeof(struct NKToken));
             char *oneTokenStr = nkiStrdup(cs->vm, "1");
             char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == NK_TOKENTYPE_INCREMENT ? "+" : "-");
             char *assignTokenStr = nkiStrdup(cs->vm, "=");

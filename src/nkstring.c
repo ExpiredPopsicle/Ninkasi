@@ -127,7 +127,8 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         nkuint32_t len = strlen(str);
 
         struct NKVMString *newString =
-            nkiMalloc(vm, sizeof(struct NKVMString) + len + 1);
+            (struct NKVMString *)nkiMalloc(
+                vm, sizeof(struct NKVMString) + len + 1);
 
         nkuint32_t index = nkiTableAddEntry(vm, table, newString);
 

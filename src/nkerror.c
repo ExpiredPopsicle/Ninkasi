@@ -88,7 +88,7 @@ void nkiAddError(
     }
   #endif
 
-    newError = nkiMalloc(
+    newError = (struct NKError *)nkiMalloc(
         vm,
         sizeof(struct NKError));
 
@@ -108,7 +108,7 @@ void nkiAddError(
 
     // Now add the string.
     newError->errorText =
-        nkiMalloc(vm, strlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
+        (char *)nkiMalloc(vm, strlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);

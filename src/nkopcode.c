@@ -538,7 +538,8 @@ void nkiOpcode_call(struct NKVM *vm)
         // Fill in important stuff here.
         data.vm = vm;
         data.argumentCount = argumentCount;
-        data.arguments = nkiMallocArray(vm, sizeof(struct NKValue), argumentCount);
+        data.arguments = (struct NKValue *)nkiMallocArray(
+            vm, sizeof(struct NKValue), argumentCount);
 
         // Note: We're not simply giving the function a stack pointer,
         // because then the called function would have to worry about

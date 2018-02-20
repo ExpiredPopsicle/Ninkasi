@@ -46,12 +46,13 @@
 void nkiTableInit(struct NKVM *vm, struct NKVMTable *table)
 {
     // Create a table of one empty entry.
-    table->data = nkiMalloc(vm, sizeof(void*));
+    table->data = (void **)nkiMalloc(vm, sizeof(void*));
     table->capacity = 1;
     table->data[0] = NULL;
 
     // Create the hole object that goes with the empty space.
-    table->tableHoles = nkiMalloc(vm, sizeof(struct NKVMTableHole));
+    table->tableHoles = (struct NKVMTableHole *)nkiMalloc(
+        vm, sizeof(struct NKVMTableHole));
     table->tableHoles->index = 0;
     table->tableHoles->next = NULL;
 }
@@ -91,7 +92,8 @@ void nkiTableDestroy(struct NKVM *vm, struct NKVMTable *table)
 void nkiTableCreateHole(struct NKVM *vm, struct NKVMTable *table, nkuint32_t holeIndex)
 {
     struct NKVMTableHole *hole =
-        nkiMalloc(vm, sizeof(struct NKVMTableHole));
+        (struct NKVMTableHole *)nkiMalloc(
+            vm, sizeof(struct NKVMTableHole));
 
     assert(holeIndex < table->capacity);
     assert(table->data[holeIndex] == NULL);
@@ -153,9 +155,10 @@ void nkiTableShrink(struct NKVM *vm, struct NKVMTable *table)
 
     // Reallocate.
     if(newCapacity != table->capacity) {
-        table->objectTable = nkiReallocArray(
-            vm, table->objectTable,
-            sizeof(struct NKVMObject *), newCapacity);
+        table->objectTable =
+            (struct NKVMObject **)nkiReallocArray(
+                vm, table->objectTable,
+                sizeof(struct NKVMObject *), newCapacity);
         table->capacity = newCapacity;
     }
 
@@ -203,7 +206,7 @@ nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entr
         // string table contents and ranges will remain sane in case
         // of catastrophic failure, allowing save VM and external data
         // cleanup.
-        table->data = nkiReallocArray(
+        table->data = (void**)nkiReallocArray(
             vm,
             table->stringTable,
             sizeof(void *), newCapacity);

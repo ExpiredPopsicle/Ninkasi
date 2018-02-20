@@ -46,7 +46,8 @@
 void nkiVmStackInit(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
-    stack->values = nkiMalloc(vm, sizeof(struct NKValue));
+    stack->values = (struct NKValue *)nkiMalloc(
+        vm, sizeof(struct NKValue));
     memset(stack->values, 0, sizeof(struct NKValue));
     stack->size = 0;
     stack->capacity = 1;
@@ -67,7 +68,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
     // Make a stack if we don't have one. This can happen with weird
     // binaries.
     if(!stack->capacity) {
-        stack->values = nkiReallocArray(
+        stack->values = (struct NKValue *)nkiReallocArray(
             vm,
             stack->values,
             stack->capacity, sizeof(struct NKValue));
@@ -116,7 +117,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 
         newStackIndexMask <<= 1;
         newStackIndexMask |= 1;
-        stack->values = nkiReallocArray(
+        stack->values = (struct NKValue *)nkiReallocArray(
             vm,
             stack->values,
             newStackCapacity, sizeof(struct NKValue));
@@ -224,7 +225,8 @@ void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
     stack->size = 0;
 
     if(freeMem) {
-        stack->values = nkiReallocArray(vm, stack->values, sizeof(struct NKValue), 1);
+        stack->values = (struct NKValue *)nkiReallocArray(
+            vm, stack->values, sizeof(struct NKValue), 1);
         stack->capacity = 1;
         stack->indexMask = 1;
     }

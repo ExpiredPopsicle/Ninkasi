@@ -71,9 +71,11 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     nkuint32_t lineNumber)
 {
     struct NKExpressionAstNode *newNode =
-        nkiMalloc(vm, sizeof(struct NKExpressionAstNode));
+        (struct NKExpressionAstNode *)nkiMalloc(
+            vm, sizeof(struct NKExpressionAstNode));
     struct NKToken *newToken =
-        nkiMalloc(vm, sizeof(struct NKToken));
+        (struct NKToken *)nkiMalloc(
+            vm, sizeof(struct NKToken));
     memset(newNode, 0, sizeof(*newNode));
     memset(newToken, 0, sizeof(*newToken));
     newNode->ownedToken = nktrue;

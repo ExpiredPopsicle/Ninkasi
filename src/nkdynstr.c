@@ -45,7 +45,8 @@
 
 struct NKDynString *nkiDynStrCreate(struct NKVM *vm, const char *str)
 {
-    struct NKDynString *ret = nkiMalloc(vm, sizeof(struct NKDynString) + 1);
+    struct NKDynString *ret = (struct NKDynString *)nkiMalloc(
+        vm, sizeof(struct NKDynString) + 1);
     ret->vm = vm;
     ret->data = nkiStrdup(vm, str ? str : "<null>");
     return ret;
@@ -63,7 +64,7 @@ void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
         str = "<null>";
     }
 
-    dynStr->data = nkiRealloc(
+    dynStr->data = (char *)nkiRealloc(
         dynStr->vm,
         dynStr->data,
         strlen(dynStr->data) + strlen(str) + 1);

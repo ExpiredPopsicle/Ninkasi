@@ -129,7 +129,7 @@ nkbool nkiSerializeString_load(
         return nkfalse;
     }
 
-    *outData = nkiMalloc(vm, len + 1);
+    *outData = (char *)nkiMalloc(vm, len + 1);
 
     // Read actual string.
     if(!writer(*outData, len, userdata, writeMode)) {
@@ -179,7 +179,8 @@ nkbool nkiSerializeErrorState(
             char *errorText;
             struct NKError *newError;
             NKI_SERIALIZE_STRING(errorText);
-            newError = nkiMalloc(vm, sizeof(struct NKError));
+            newError = (struct NKError *)nkiMalloc(
+                vm, sizeof(struct NKError));
             newError->errorText = errorText;
             newError->next = NULL;
             *lastPtr = newError;
@@ -320,7 +321,8 @@ nkbool nkiSerializeObjectTable(
         vm->objectTable.objectTable = NULL;
 
         vm->objectTable.objectTable =
-            nkiMallocArray(vm, sizeof(struct NKVMObject *), capacity);
+            (struct NKVMObject **)nkiMallocArray(
+                vm, sizeof(struct NKVMObject *), capacity);
         memset(
             vm->objectTable.objectTable, 0,
             sizeof(struct NKVMObject *) * capacity);
@@ -370,7 +372,8 @@ nkbool nkiSerializeObjectTable(
 
             // Juggle allocated objects after the dumb serialization
             // wrapper that would return without deallocating.
-            object = nkiMalloc(vm, sizeof(struct NKVMObject));
+            object = (struct NKVMObject *)nkiMalloc(
+                vm, sizeof(struct NKVMObject));
             memset(object, 0, sizeof(struct NKVMObject));
             object->objectTableIndex = index;
 
@@ -410,7 +413,8 @@ nkbool nkiSerializeObjectTable(
         for(i = 0; i < vm->objectTable.capacity; i++) {
             if(!vm->objectTable.objectTable[i]) {
                 struct NKVMTableHole *hole =
-                    nkiMalloc(vm, sizeof(struct NKVMTableHole));
+                    (struct NKVMTableHole *)nkiMalloc(
+                        vm, sizeof(struct NKVMTableHole));
                 hole->next = vm->objectTable.tableHoles;
                 hole->index = i;
                 vm->objectTable.tableHoles = hole;
@@ -445,7 +449,8 @@ nkbool nkiSerializeStringTable(
         }
 
         vm->stringTable.stringTable =
-            nkiMallocArray(vm, sizeof(struct NKVMString*), vm->stringTable.capacity);
+            (struct NKVMString **)nkiMallocArray(
+                vm, sizeof(struct NKVMString*), vm->stringTable.capacity);
 
         // Note: Memset takes a size_t here, which on 64-bit bit can
         // take higher values than our nkuint32_t type passed into
@@ -534,7 +539,7 @@ nkbool nkiSerializeStringTable(
 
                     // Allocate new string entry.
                     vm->stringTable.stringTable[index] =
-                        nkiMalloc(vm, size);
+                        (struct NKVMString *)nkiMalloc(vm, size);
 
                     // Clear it out.
                     memset(vm->stringTable.stringTable[index], 0, size);
@@ -580,7 +585,9 @@ nkbool nkiSerializeStringTable(
 
                 for(i = 0; i < vm->stringTable.capacity; i++) {
                     if(!vm->stringTable.stringTable[i]) {
-                        struct NKVMTableHole *newHole = nkiMalloc(vm, sizeof(struct NKVMTableHole));
+                        struct NKVMTableHole *newHole =
+                            (struct NKVMTableHole *)nkiMalloc(
+                                vm, sizeof(struct NKVMTableHole));
                         newHole->index = i;
                         newHole->next = vm->stringTable.tableHoles;
                         vm->stringTable.tableHoles = newHole;
@@ -637,7 +644,7 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
         nkiFree(vm, vm->instructions);
 
         // Thanks AFL!
-        vm->instructions = nkiMallocArray(
+        vm->instructions = (struct NKInstruction *)nkiMallocArray(
             vm,
             sizeof(struct NKInstruction),
             vm->instructionAddressMask + 1);
@@ -686,7 +693,8 @@ nkbool nkiSerializeStatics(struct NKVM *vm, NKVMSerializationWriter writer, void
         nkiFree(vm, vm->staticSpace);
         // Set to NULL first in case nkiMallocArray throws an error.
         vm->staticSpace = NULL;
-        vm->staticSpace = nkiMallocArray(vm, sizeof(struct NKValue), vm->staticAddressMask + 1);
+        vm->staticSpace = (struct NKValue *)nkiMallocArray(
+            vm, sizeof(struct NKValue), vm->staticAddressMask + 1);
     }
 
     // Read/write the static space.
@@ -733,8 +741,8 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
         //         sizeof(struct NKValue), vm->stack.capacity);
 
         nkiVmStackClear(vm, nktrue);
-        vm->stack.values = nkiReallocArray(vm,
-            vm->stack.values, sizeof(struct NKValue),
+        vm->stack.values = (struct NKValue *)nkiReallocArray(
+            vm, vm->stack.values, sizeof(struct NKValue),
             stackCapacity);
 
         vm->stack.capacity = stackCapacity;
@@ -843,12 +851,16 @@ nkbool nkiSerializeFunctionTable_inner(
 
         // Reallocate internal function table for read mode.
         if(!writeMode) {
+
             struct NKVMFunction *newTable =
-                nkiMallocArray(vm,
-                    sizeof(struct NKVMFunction), tmpFunctionCount);
+                (struct NKVMFunction *)nkiMallocArray(
+                    vm, sizeof(struct NKVMFunction),
+                    tmpFunctionCount);
+
             if(!newTable) {
                 return nkfalse;
             }
+
             nkiFree(vm, vm->functionTable);
             vm->functionTable = newTable;
             vm->functionCount = tmpFunctionCount;
@@ -905,7 +917,7 @@ nkbool nkiSerializeFunctionTable(
     // the mapping of the external function IDs in the serialized data
     // to the ones we already have already in the VM.
     if(!writeMode) {
-        functionIdMapping = nkiMallocArray(
+        functionIdMapping = (NKVMExternalFunctionID *)nkiMallocArray(
             vm, sizeof(NKVMInternalFunctionID), tmpExternalFunctionCount);
         memset(
             functionIdMapping, NK_INVALID_VALUE,
@@ -945,7 +957,7 @@ nkbool nkiSerializeGlobalsList(
 
     // Realloc if we're reading in.
     if(!writeMode) {
-        vm->globalVariables = nkiMallocArray(
+        vm->globalVariables = (struct NKGlobalVariableRecord *)nkiMallocArray(
             vm, sizeof(vm->globalVariables[0]),
             globalVariableCount);
 
@@ -1026,7 +1038,7 @@ nkbool nkiSerializeExternalTypes(
             return nkfalse;
         }
 
-        rawTypeMappingBuf = nkiMalloc(vm, fullTempBufferAllocationSize);
+        rawTypeMappingBuf = (char *)nkiMalloc(vm, fullTempBufferAllocationSize);
         typeMapping = (nkuint32_t*)rawTypeMappingBuf;
         nameTempBuf = rawTypeMappingBuf + typeMappingAllocationSize;
     }
