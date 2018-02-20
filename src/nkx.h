@@ -513,6 +513,9 @@ nkbool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
     const char *script);
 
+/// This is a convenience wrapper around nkxCompilerCompileScript().
+/// Note that it uses the system heap through malloc() instead of the
+/// normal VM internal allocation mechanism.
 nkbool nkxCompilerCompileScriptFile(
     struct NKCompilerState *cs,
     const char *scriptFilename);

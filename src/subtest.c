@@ -107,7 +107,8 @@ void *subsystemTest_mallocWrapper(nkuint32_t size, const char *description)
         return NULL;
     }
 
-    header = malloc(size + sizeof(struct SubsystemTest_MallocHeader));
+    header = (struct SubsystemTest_MallocHeader *)malloc(
+        size + sizeof(struct SubsystemTest_MallocHeader));
 
     if(!header) {
         return NULL;
@@ -131,7 +132,7 @@ void *subsystemTest_mallocWrapper(nkuint32_t size, const char *description)
 char *subsystemTest_strdupWrapper(const char *str, const char *description)
 {
     if(str) {
-        char *data = subsystemTest_mallocWrapper(
+        char *data = (char* )subsystemTest_mallocWrapper(
             strlen(str) + 1, description);
         if(data) {
             memcpy(data, str, strlen(str) + 1);
@@ -237,8 +238,9 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *newData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
 
@@ -250,9 +252,10 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
         // going to leak. (There will be no object to assign the data to!)
         if(!nkxVmHasErrors(data->vm)) {
 
-            newData = subsystemTest_mallocWrapper(
-                sizeof(struct SubsystemTest_WidgetData),
-                "subsystemTest_widgetCreate");
+            newData =
+                (struct SubsystemTest_WidgetData *)subsystemTest_mallocWrapper(
+                    sizeof(struct SubsystemTest_WidgetData),
+                    "subsystemTest_widgetCreate");
 
             // Totally arbitrary value for testing purposes.
             if(newData) {
@@ -283,13 +286,15 @@ void subsystemTest_widgetSetData(struct NKVMFunctionCallbackData *data)
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *widgetData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
 
-        widgetData = nkxFunctionCallbackGetExternalDataArgument(
-            data, "subsystemTest_widgetSetData", 0, internalData->widgetTypeId);
+        widgetData =
+            (struct SubsystemTest_WidgetData *)nkxFunctionCallbackGetExternalDataArgument(
+                data, "subsystemTest_widgetSetData", 0, internalData->widgetTypeId);
 
         if(widgetData) {
             widgetData->data = nkxValueToInt(data->vm, &data->arguments[1]);
@@ -302,13 +307,15 @@ void subsystemTest_widgetGetData(struct NKVMFunctionCallbackData *data)
     struct SubsystemTest_InternalData *internalData;
     struct SubsystemTest_WidgetData *widgetData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
 
-        widgetData = nkxFunctionCallbackGetExternalDataArgument(
-            data, "subsystemTest_widgetGetData", 0, internalData->widgetTypeId);
+        widgetData =
+            (struct SubsystemTest_WidgetData *)nkxFunctionCallbackGetExternalDataArgument(
+                data, "subsystemTest_widgetGetData", 0, internalData->widgetTypeId);
 
         if(widgetData) {
             nkxValueSetInt(data->vm, &data->returnValue, widgetData->data);
@@ -325,8 +332,9 @@ void subsystemTest_widgetSerializeData(
     struct SubsystemTest_WidgetData *widgetData =
         (struct SubsystemTest_WidgetData *)data;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            vm, "subsystemTest");
 
     if(!internalData) {
         return;
@@ -336,9 +344,10 @@ void subsystemTest_widgetSerializeData(
 
     if(!widgetData) {
 
-        widgetData = subsystemTest_mallocWrapper(
-            sizeof(*widgetData),
-            "subsystemTest_widgetSerializeData");
+        widgetData =
+            (struct SubsystemTest_WidgetData *)subsystemTest_mallocWrapper(
+                sizeof(*widgetData),
+                "subsystemTest_widgetSerializeData");
 
         if(!widgetData) {
             nkxAddError(vm, "Malloc failed in subsystemTest_widgetSerializeData.");
@@ -365,8 +374,9 @@ void subsystemTest_widgetGCData(struct NKVM *vm, struct NKValue *val, void *data
     // NOTE: Do not use nkxGetExternalSubsystemDataOrError here! That
     // can cause an allocation, and this could run in allocation fail
     // cleanup mode!
-    internalData = nkxGetExternalSubsystemData(
-        vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemData(
+            vm, "subsystemTest");
 
     // This is a GC callback, so it can run in cases where maybe the
     // VM or subsystem data weren't entirely set up, so we have to be
@@ -392,8 +402,9 @@ void subsystemTest_setTestString(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
         if(internalData->testString) {
@@ -410,8 +421,9 @@ void subsystemTest_getTestString(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
         nkxValueSetString(
@@ -425,8 +437,9 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
 {
     struct SubsystemTest_InternalData *internalData;
 
-    internalData = nkxGetExternalSubsystemDataOrError(
-        data->vm, "subsystemTest");
+    internalData =
+        (struct SubsystemTest_InternalData *)nkxGetExternalSubsystemDataOrError(
+            data->vm, "subsystemTest");
 
     if(internalData) {
         printf("subsystemTest_print: %s\n", internalData->testString);
@@ -485,11 +498,12 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
                 subsystemTest_freeWrapper(systemData->testString);
             }
             if(len) {
-                systemData->testString = subsystemTest_mallocWrapper(
-                    1 + len,
-                    nkxSerializerGetWriteMode(vm) ?
-                    "subsystemTest_serialize (write)" :
-                    "subsystemTest_serialize (read)");
+                systemData->testString =
+                    (char *)subsystemTest_mallocWrapper(
+                        1 + len,
+                        nkxSerializerGetWriteMode(vm) ?
+                        "subsystemTest_serialize (write)" :
+                        "subsystemTest_serialize (read)");
                 if(!systemData->testString) {
                     return;
                 }
@@ -517,9 +531,10 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 
     printf("subsystemTest: Initializing on VM: %p\n", vm);
 
-    internalData = subsystemTest_mallocWrapper(
-        sizeof(struct SubsystemTest_InternalData),
-        "subsystemTest_initLibrary");
+    internalData =
+        (struct SubsystemTest_InternalData *)subsystemTest_mallocWrapper(
+            sizeof(struct SubsystemTest_InternalData),
+            "subsystemTest_initLibrary");
 
     // Initialize some data, just as an example of how we'd normally
     // store data on an external data structure.
