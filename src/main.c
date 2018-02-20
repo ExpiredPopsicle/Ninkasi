@@ -815,7 +815,7 @@ int main(int argc, char *argv[])
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    nkxSetRemainingInstructionLimit(vm, (1024 * 1024 * 1024) & 0xffff);
+                    nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L) & 0xffff);
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                     while(

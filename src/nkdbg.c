@@ -597,9 +597,13 @@ void dumpListing(struct NKVM *vm, const char *script)
 
             // Start off with the instruction address and instruction
             // name.
-            sprintf(lineBuf, "%s %.4d: %s",
-                (i == vm->instructionPointer ? ">" : " "), i,
-                nkiVmGetOpcodeName(opcode));
+            sprintf(lineBuf, "%s " NK_PRINTF_UINT32,
+                (i == vm->instructionPointer ? ">" : " "),
+                i);
+            nkiDbgPadLine(7, lineBuf, ' ');
+
+            nkiDbgAppendLine(sizeof(lineBuf), lineBuf, ": ");
+            nkiDbgAppendLine(sizeof(lineBuf), lineBuf, nkiVmGetOpcodeName(opcode));
 
             // Format parameters.
             if(vm->instructions[i].opcode == NK_OP_PUSHLITERAL_INT) {

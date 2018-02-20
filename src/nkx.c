@@ -59,9 +59,10 @@ struct NKVM *nkxVmCreateEx(
 {
     NK_FAILURE_RECOVERY_DECL();
 
-    struct NKVM *vm = params->mallocReplacement(
-        sizeof(struct NKVM),
-        params->mallocAndFreeReplacementUserData);
+    struct NKVM *vm =
+        (struct NKVM *)params->mallocReplacement(
+            sizeof(struct NKVM),
+            params->mallocAndFreeReplacementUserData);
 
     if(!vm) {
         return NULL;
@@ -268,7 +269,7 @@ nkbool nkxCompilerCompileScriptFile(
     len = ftell(in);
     fseek(in, 0, SEEK_SET);
 
-    buf = malloc(len + 1);
+    buf = (char *)malloc(len + 1);
     if(!buf) {
         fclose(in);
         nkiErrorStateSetAllocationFailFlag(vm);
@@ -396,12 +397,12 @@ static void nkiSetupExternalFunction_addArgs(
         nkiFree(vm, func->argTypes);
     }
 
-    func->argTypes = nkiMallocArray(
+    func->argTypes = (enum NKValueType *)nkiMallocArray(
         vm,
         sizeof(*func->argTypes),
         argumentCount);
 
-    func->argExternalTypes = nkiMallocArray(
+    func->argExternalTypes = (NKVMExternalDataTypeID *)nkiMallocArray(
         vm,
         sizeof(*func->argExternalTypes),
         argumentCount);
@@ -453,7 +454,7 @@ void nkxVmSetupExternalFunction(
 
             for(i = 0; i < argumentCount; i++) {
 
-                enum NKValueType t = va_arg(args, enum NKValueType);
+                enum NKValueType t = (enum NKValueType)va_arg(args, int);
                 funcOb->argTypes[i] = t;
 
                 if(t == NK_VALUETYPE_OBJECTID) {
@@ -793,7 +794,7 @@ nkbool nkxFunctionCallbackCheckArguments(
 
         for(i = 0; i < expectedArgumentCount; i++) {
 
-            enum NKValueType thisType = va_arg(args, enum NKValueType);
+            enum NKValueType thisType = (enum NKValueType)va_arg(args, int);
 
             if(data->arguments[i].type != thisType) {
 

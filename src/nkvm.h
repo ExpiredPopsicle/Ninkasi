@@ -106,6 +106,13 @@ struct NKGlobalVariableRecord
     char *name;
 };
 
+struct NKVMExternalType
+{
+    char *name;
+    NKVMExternalObjectSerializationCallback serializationCallback;
+    NKVMExternalObjectCleanupCallback cleanupCallback;
+};
+
 /// The VM object itself.
 struct NKVM
 {
@@ -175,12 +182,7 @@ struct NKVM
 
     // char **externalTypeNames;
     nkuint32_t externalTypeCount;
-    struct
-    {
-        char *name;
-        NKVMExternalObjectSerializationCallback serializationCallback;
-        NKVMExternalObjectCleanupCallback cleanupCallback;
-    } *externalTypes;
+    struct NKVMExternalType *externalTypes;
 
     struct
     {

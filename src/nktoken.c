@@ -85,7 +85,8 @@ void nkiCompilerAddToken(
     struct NKTokenList *tokenList)
 {
     struct NKToken *newToken =
-        nkiMalloc(vm, sizeof(struct NKToken));
+        (struct NKToken *)nkiMalloc(
+            vm, sizeof(struct NKToken));
     newToken->next = NULL;
     newToken->str = nkiStrdup(vm, str);
     newToken->type = type;
@@ -109,7 +110,7 @@ char *nkiCompilerTokenizerUnescapeString(
 {
     // +2 for weird backslash-before null-terminator, and the regular
     // null terminator.
-    char *out = nkiMalloc(vm, strlen(in) + 2);
+    char *out = (char *)nkiMalloc(vm, strlen(in) + 2);
     nkuint32_t len = strlen(in);
     nkuint32_t readIndex;
     nkuint32_t writeIndex = 0;
@@ -166,7 +167,7 @@ void nkiCompilerConsolidateStringLiterals(struct NKVM *vm, struct NKTokenList *t
             struct NKToken *next = tok->next;
 
             // Make a concatenated string.
-            char *newStr = nkiMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
+            char *newStr = (char *)nkiMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
             strcpy(newStr, tok->str);
             strcat(newStr, tok->next->str);
 
@@ -387,7 +388,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
 
             // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
-            strTmp = nkiMalloc(vm, len + 1);
+            strTmp = (char *)nkiMalloc(vm, len + 1);
             memcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
@@ -443,7 +444,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 i++;
             }
 
-            tmp = nkiMalloc(vm, (i - startIndex) + 1);
+            tmp = (char *)nkiMalloc(vm, (i - startIndex) + 1);
             memcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 

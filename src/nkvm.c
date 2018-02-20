@@ -183,7 +183,7 @@ void nkiVmInit(struct NKVM *vm)
     vm->instructionPointer = 0;
 
     vm->instructions =
-        nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
+        (struct NKInstruction *)nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
     vm->instructionAddressMask = 0x3;
     memset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
 
@@ -205,7 +205,8 @@ void nkiVmInit(struct NKVM *vm)
 
     // Start with two static values (so our static value mask starts
     // off at 1).
-    vm->staticSpace = nkiMalloc(vm, 2 * sizeof(struct NKValue));
+    vm->staticSpace = (struct NKValue *)nkiMalloc(
+        vm, 2 * sizeof(struct NKValue));
     memset(vm->staticSpace, 0, 2 * sizeof(struct NKValue));
     vm->staticAddressMask = 1;
 
@@ -419,7 +420,7 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
 
     // Note: Increment after reallocation to maintain correct state at
     // all times, in case of alloc failure.
-    vm->externalTypes = nkiReallocArray(
+    vm->externalTypes = (struct NKVMExternalType *)nkiReallocArray(
         vm, vm->externalTypes,
         sizeof(*(vm->externalTypes)),
         vm->externalTypeCount + 1);
@@ -481,7 +482,8 @@ struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
     }
 
     if(create) {
-        el = nkiMalloc(vm, sizeof(*el));
+        el = (struct NKVMExternalSubsystemData *)nkiMalloc(
+            vm, sizeof(*el));
         memset(el, 0, sizeof(*el));
         el->nextInHashTable = vm->subsystemDataTable[bucketIndex];
         el->name = nkiStrdup(vm, name);

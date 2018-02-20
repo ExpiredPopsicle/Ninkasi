@@ -176,8 +176,8 @@ nkbool nkiSerializeErrorState(
         struct NKError **lastPtr = &vm->errorState.firstError;
 
         for(errorNum = 0; errorNum < errorCount; errorNum++) {
-            char *errorText;
-            struct NKError *newError;
+            char *errorText = NULL;
+            struct NKError *newError = NULL;
             NKI_SERIALIZE_STRING(errorText);
             newError = (struct NKError *)nkiMalloc(
                 vm, sizeof(struct NKError));
@@ -1184,8 +1184,8 @@ nkbool nkiSerializeExternalSubsystemData(
     } else {
 
         for(n = 0; n < externalSubsystemDataCount; n++) {
-            char *name;
-            struct NKVMExternalSubsystemData *data;
+            char *name = NULL;
+            struct NKVMExternalSubsystemData *data = NULL;
 
             NKI_SERIALIZE_STRING(name);
             data = nkiFindExternalSubsystemData(vm, name, nkfalse);
