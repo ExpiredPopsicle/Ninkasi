@@ -216,6 +216,11 @@ struct SubsystemTest_InternalData
     // check parameters coming into function callbacks.
     NKVMExternalDataTypeID widgetTypeId;
 
+    // This is a function that we aren't going to expose at the global
+    // scope. Instead we're going to make it a method on Widget
+    // objects that we create.
+    NKVMInternalFunctionID objectSelfCallTestId;
+
     // These are some arbitrary bits of data to demonstrate generic
     // stuff getting stored in an external subsystem.
     char *testString;
@@ -273,6 +278,27 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
                 data->vm, &data->returnValue, newData);
             nkxVmObjectSetExternalType(
                 data->vm, &data->returnValue, internalData->widgetTypeId);
+
+            {
+                struct NKValue fieldTestKey;
+                struct NKValue *fieldTest = NULL;
+
+                nkxValueSetString(data->vm, &fieldTestKey, "testField");
+                fieldTest = nkxVmObjectFindOrAddEntry(
+                    data->vm, &data->returnValue,
+                    &fieldTestKey, nkfalse);
+                if(fieldTest) {
+                    nkxValueSetString(data->vm, fieldTest, "This is some data on an object.");
+                }
+
+                nkxValueSetString(data->vm, &fieldTestKey, "testMethod");
+                fieldTest = nkxVmObjectFindOrAddEntry(
+                    data->vm, &data->returnValue,
+                    &fieldTestKey, nkfalse);
+                if(fieldTest) {
+                    nkxValueSetFunction(data->vm, fieldTest, internalData->objectSelfCallTestId);
+                }
+            }
 
             internalData->widgetCount++;
             printf("Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
@@ -446,6 +472,23 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
     }
 }
 
+void subsystemTest_widget_selfCallTest(struct NKVMFunctionCallbackData *data)
+{
+    printf("Widget self-call test...\n");
+    printf("  Argument count: " NK_PRINTF_UINT32 "\n", data->argumentCount);
+
+    {
+        struct NKValue testDataId;
+        struct NKValue *testData;
+        nkxValueSetString(data->vm, &testDataId, "testField");
+        testData = nkxVmObjectFindOrAddEntry(
+            data->vm, &data->arguments[0], &testDataId, nktrue);
+        if(testData) {
+            printf("  Test data: %s\n", nkxValueToString(data->vm, testData));
+        }
+    }
+}
+
 // ----------------------------------------------------------------------
 // Cleanup, init, serialization, etc
 
@@ -520,6 +563,13 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
             }
         }
 
+        nkxSerializeData(
+            vm, &systemData->widgetTypeId,
+            sizeof(systemData->widgetTypeId));
+        nkxSerializeData(
+            vm, &systemData->objectSelfCallTestId,
+            sizeof(systemData->objectSelfCallTestId));
+
         // Save/load widget count.
         nkxSerializeData(vm, &systemData->widgetCount, sizeof(nkuint32_t));
     }
@@ -560,23 +610,63 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         subsystemTest_widgetGCData);
 
     nkxVmSetupExternalFunction(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
+        nktrue,
         1,
         NK_VALUETYPE_STRING);
 
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_getTestString", subsystemTest_getTestString, 0);
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_printTestString", subsystemTest_printTestString, 0);
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_getTestString",
+        subsystemTest_getTestString,
+        nktrue,
+        0);
 
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetCreate", subsystemTest_widgetCreate, 0);
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetSetData",
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_printTestString",
+        subsystemTest_printTestString,
+        nktrue,
+        0);
+
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_widgetCreate",
+        subsystemTest_widgetCreate,
+        nktrue,
+        0);
+
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_widgetSetData",
         subsystemTest_widgetSetData,
+        nktrue,
         2,
         NK_VALUETYPE_OBJECTID, internalData->widgetTypeId,
         NK_VALUETYPE_NIL);
 
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_widgetGetData",
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_widgetGetData",
         subsystemTest_widgetGetData,
+        nktrue,
         1,
         NK_VALUETYPE_OBJECTID, internalData->widgetTypeId);
+
+    // Set up an object method.
+    {
+        NKVMExternalFunctionID extId;
+        NKVMInternalFunctionID intId;
+        extId = nkxVmSetupExternalFunction(
+            vm, cs, "subsystemTest_widget_selfCallTest",
+            subsystemTest_widget_selfCallTest,
+            nkfalse, // Not global.
+            1,
+            NK_VALUETYPE_OBJECTID, internalData->widgetTypeId);
+
+        // Important thing to note here: The internal function ID
+        // we're setting up here will get overwritten on
+        // deserialization, in subsystemTest_serialize(). But we want
+        // that to happen. TL;DR: This part is optional if we're not
+        // compiling.
+        intId = nkxVmGetOrCreateInternalFunctionForExternalFunction(
+            vm, extId);
+        internalData->objectSelfCallTestId = intId;
+    }
 }
 
 

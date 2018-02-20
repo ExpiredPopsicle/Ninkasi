@@ -420,20 +420,21 @@ static void nkiSetupExternalFunction_addArgs(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-void nkxVmSetupExternalFunction(
+NKVMExternalFunctionID nkxVmSetupExternalFunction(
     struct NKVM *vm, struct NKCompilerState *cs,
     const char *name, NKVMFunctionCallback func,
+    nkbool setupGlobalVariable,
     nkuint32_t argumentCount, ...)
 {
     va_list args;
-    struct NKVMExternalFunctionID id = nkxVmRegisterExternalFunction(vm, name, func);
+    NKVMExternalFunctionID id = nkxVmRegisterExternalFunction(vm, name, func);
     struct NKVMExternalFunction *funcOb = NULL;
 
     if(id.id == NK_INVALID_VALUE) {
-        return;
+        return id;
     }
 
-    if(cs) {
+    if(cs && setupGlobalVariable) {
         nkxCompilerCreateCFunctionVariable(cs, name, func);
     }
 
@@ -467,6 +468,8 @@ void nkxVmSetupExternalFunction(
             va_end(args);
         }
     }
+
+    return id;
 }
 
 NKVMExternalFunctionID nkxVmRegisterExternalFunction(
@@ -691,39 +694,6 @@ void *nkxGetExternalSubsystemData(
     // NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
-
-// void nkxSetExternalSubsystemData(
-//     struct NKVM *vm,
-//     const char *name,
-//     void *data)
-// {
-//     NK_FAILURE_RECOVERY_DECL();
-//     NK_SET_FAILURE_RECOVERY_VOID();
-//     nkiSetExternalSubsystemData(vm, name, data);
-//     NK_CLEAR_FAILURE_RECOVERY();
-// }
-
-// void nkxSetExternalSubsystemSerializationCallback(
-//     struct NKVM *vm,
-//     const char *name,
-//     NKVMFunctionCallback serializationCallback)
-// {
-//     NK_FAILURE_RECOVERY_DECL();
-//     NK_SET_FAILURE_RECOVERY_VOID();
-//     nkiSetExternalSubsystemSerializationCallback(vm, name, serializationCallback);
-//     NK_CLEAR_FAILURE_RECOVERY();
-// }
-
-// void nkxSetExternalSubsystemCleanupCallback(
-//     struct NKVM *vm,
-//     const char *name,
-//     NKVMFunctionCallback cleanupCallback)
-// {
-//     NK_FAILURE_RECOVERY_DECL();
-//     NK_SET_FAILURE_RECOVERY_VOID();
-//     nkiSetExternalSubsystemCleanupCallback(vm, name, cleanupCallback);
-//     NK_CLEAR_FAILURE_RECOVERY();
-// }
 
 void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData)
 {
@@ -1007,4 +977,38 @@ nkbool nkxGetNextObjectOfExternalType(
 
     return nkfalse;
 }
+
+void nkxVmObjectClearEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmObjectClearEntry_public(vm, objectId, key);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+struct NKValue *nkxVmObjectFindOrAddEntry(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key,
+    nkbool noAdd)
+{
+    struct NKValue *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(NULL);
+    ret = nkiVmObjectFindOrAddEntry_public(vm, objectId, key, noAdd);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiValueSetFunction(vm, value, id);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
 

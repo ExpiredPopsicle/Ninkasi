@@ -374,3 +374,9 @@ void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
             vm, str ? str : "");
 }
 
+void nkiValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id)
+{
+    value->type = NK_VALUETYPE_FUNCTIONID;
+    value->functionId = id;
+}
+

@@ -122,5 +122,8 @@ void nkiValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
 /// that entry to the value.
 void nkiValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 
+/// Write a function ID into an NKValue.
+void nkiValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id);
+
 #endif // NINKASI_VALUE_H
 

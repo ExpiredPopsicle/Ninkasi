@@ -179,6 +179,22 @@ void nkxValueSetFloat(struct NKVM *vm, struct NKValue *value, float floatData);
 /// that entry to the value.
 void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 
+/// Write a function ID into an NKValue.
+void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id);
+
+/// Clear a field on an object.
+void nkxVmObjectClearEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key);
+
+/// Get a pointer to a field on an object.
+struct NKValue *nkxVmObjectFindOrAddEntry(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key,
+    nkbool noAdd);
+
 // ----------------------------------------------------------------------
 // Limits-related stuff
 
@@ -259,6 +275,10 @@ void *nkxGetUserData(struct NKVM *vm);
 /// "cs" may be NULL, in which case all of the variable creation and
 /// internal function ID creation are skipped.
 ///
+/// If setupGlobalvariable is set to nktrue, then a global variable
+/// will be set up with the same name as the function internal name.
+/// This requires the compiler to be present (cs != NULL).
+///
 /// This function takes a variable number of arguments. Those
 /// arguments are types to perform argument count and type checking
 /// against. Specify NK_INVALID_VALUE for argumentCount to disable
@@ -276,8 +296,9 @@ void *nkxGetUserData(struct NKVM *vm);
 ///
 /// Example:
 ///   nkxVmSetupExternalFunction(vm, cs, "testFunctionName",
-///       testFunctionPointer,
-///       5, // 5 parameters.
+///       testFunctionPointer,   // Function pointer.
+///       nktrue,                // Global variable.
+///       5,                     // 5 parameters.
 ///       NK_VALUETYPE_INT,      // Integer field.
 ///       NK_VALUETYPE_STRING,   // String field
 ///       NK_VALUETYPE_NIL,      // Un-checked wildcard field.
@@ -286,9 +307,10 @@ void *nkxGetUserData(struct NKVM *vm);
 ///       // Object, which may contain external data, but either way
 ///       // we don't care. We just want an object.
 ///       NK_VALUETYPE_OBJECTID, NK_INVALID_VALUE);
-void nkxVmSetupExternalFunction(
+NKVMExternalFunctionID nkxVmSetupExternalFunction(
     struct NKVM *vm, struct NKCompilerState *cs,
     const char *name, NKVMFunctionCallback func,
+    nkbool setupGlobalVariable,
     nkuint32_t argumentCount, ...);
 
 /// Note: See nkxVmSetupExternalFunction(). That is probably what

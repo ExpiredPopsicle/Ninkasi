@@ -110,20 +110,6 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 // Internal version of nkxVmObjectReleaseHandle.
 void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
-void nkiVmObjectSetGarbageCollectionCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction);
-
-void nkiVmObjectSetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object,
-    NKVMExternalFunctionID callbackFunction);
-
-NKVMExternalFunctionID nkiVmObjectGetSerializationCallback(
-    struct NKVM *vm,
-    struct NKValue *object);
-
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
@@ -145,5 +131,20 @@ void *nkiVmObjectGetExternalData(
 // VM-teardown function. Does not create table holes.
 void nkiVmObjectTableCleanAllObjects(
     struct NKVM *vm);
+
+// Wrapper around nkiVmObjectClearEntry() that gets the object itself
+// based on the objectId value.
+void nkiVmObjectClearEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key);
+
+// Wrapper around nkiVmObjectFindOrAddEntry() that gets the object
+// itself based on the objectId value.
+struct NKValue *nkiVmObjectFindOrAddEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key,
+    nkbool noAdd);
 
 #endif // NINKASI_OBJECTS_H

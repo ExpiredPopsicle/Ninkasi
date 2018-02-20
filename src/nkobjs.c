@@ -265,7 +265,6 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
                 vm, -1,
                 "Reached object field count limit.");
 
-
             return NULL;
         }
     }
@@ -424,3 +423,32 @@ void *nkiVmObjectGetExternalData(
     return ret;
 }
 
+void nkiVmObjectClearEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, objectId);
+    if(ob) {
+        nkiVmObjectClearEntry(vm, ob, key);
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectClearEntry.");
+    }
+}
+
+struct NKValue *nkiVmObjectFindOrAddEntry_public(
+    struct NKVM *vm,
+    struct NKValue *objectId,
+    struct NKValue *key,
+    nkbool noAdd)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, objectId);
+    if(ob) {
+        return nkiVmObjectFindOrAddEntry(vm, ob, key, noAdd);
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectFindOrAddEntry.");
+    }
+    return NULL;
+}
