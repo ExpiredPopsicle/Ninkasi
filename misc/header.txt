@@ -10,14 +10,14 @@
 
   Ninkasi 0.01
 
-  By Cliff "ExpiredPopsicle" Jolly
+  By Kiri "ExpiredPopsicle" Jolly
     https://expiredpopsicle.com
     https://intoxicoding.com
     expiredpopsicle@gmail.com
 
 ----------------------------------------------------------------------
 
-  Copyright (c) 2017 Clifford Jolly
+  Copyright (c) 2017 Kiri Jolly
 
   Permission is hereby granted, free of charge, to any person
   obtaining a copy of this software and associated documentation files

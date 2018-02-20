@@ -1,7 +1,7 @@
 Contributing
 ------------
 
-All copyright must be assigned to Clifford Jolly.
+All copyright must be assigned to Kiri Jolly.
 
 Style Guide
 -----------
