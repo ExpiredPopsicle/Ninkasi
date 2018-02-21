@@ -182,7 +182,7 @@ struct NKValue *nkxVmFindGlobalVariable(
 {
     if(cs) {
         NK_FAILURE_RECOVERY_DECL();
-        struct NKValue *ret;
+        struct NKValue *ret = NULL;
         NK_SET_FAILURE_RECOVERY(NULL);
         {
             struct NKCompilerStateContextVariable *var =
