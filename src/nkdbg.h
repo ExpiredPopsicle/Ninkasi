@@ -71,7 +71,7 @@ void nkiVmStaticDump(struct NKVM *vm);
 void nkiVmStackDump(struct NKVM *vm);
 
 /// Dump a value to stdout for debugging purposes.
-nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value);
+nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value, FILE *stream);
 
 /// Check that every object in the object table has an index value
 /// that matches its actual index.
@@ -86,7 +86,7 @@ void nkiExternalHandleSanityCheck(struct NKVM *vm);
 /// use a FILE*. script can be NULL, but it can be used to show
 /// assembly and code side-by-side (NK_VM_DEBUG must be set to 1 for
 /// this to work).
-void nkiDbgDumpListing(struct NKVM *vm, const char *script);
+void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream);
 
 #endif // NINKASI_VMDBG_H
 

@@ -72,6 +72,32 @@ int nkiDbgWriteLine(const char *fmt, ...)
 // ----------------------------------------------------------------------
 // State dump stuff.
 
+void nkiDbgAppendEscaped(nkuint32_t bufSize, char *dst, const char *src)
+{
+    nkuint32_t i = strlen(dst);
+    while(i + 2 < bufSize && *src) {
+        switch(*src) {
+            case '\n':
+                dst[i++] = '\\';
+                dst[i++] = 'n';
+                break;
+            case '\t':
+                dst[i++] = '\\';
+                dst[i++] = 't';
+                break;
+            case '\"':
+                dst[i++] = '\\';
+                dst[i++] = '\"';
+                break;
+            default:
+                dst[i++] = *src;
+                break;
+        }
+        src++;
+    }
+    dst[i] = 0;
+}
+
 void nkiDbgDumpRaw(FILE *stream, void *data, nkuint32_t len)
 {
     nkuint32_t i;
@@ -103,7 +129,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  Elements:\n");
     for(i = 0; i < vm->stack.size; i++) {
         fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
-        nkiDbgDumpRaw(stream, &vm->stack.values[i], sizeof(vm->stack.values[i]));
+        nkiValueDump(vm, &vm->stack.values[i], stream);
         fprintf(stream, "\n");
     }
 
@@ -112,18 +138,14 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     fprintf(stream, "  Elements:\n");
     for(i = 0; i <= vm->staticAddressMask; i++) {
         fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
-        nkiDbgDumpRaw(stream, &vm->staticSpace[i], sizeof(vm->staticSpace[i]));
+        nkiValueDump(vm, &vm->staticSpace[i], stream);
         fprintf(stream, "\n");
     }
 
     fprintf(stream, "Instructions:\n");
     fprintf(stream, "  instructionAddressMask: " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
     fprintf(stream, "  instructionPointer:     " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
-    for(i = 0; i <= vm->instructionAddressMask; i++) {
-        fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
-        nkiDbgDumpRaw(stream, &vm->instructions[i], sizeof(vm->instructions[i]));
-        fprintf(stream, "\n");
-    }
+    nkiDbgDumpListing(vm, NULL, stream);
 
     fprintf(stream, "String table:\n");
     fprintf(stream, "  capacity: " NK_PRINTF_UINT32 "\n", vm->stringTable.capacity);
@@ -223,9 +245,9 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                         fprintf(stream, "        " NK_PRINTF_UINT32 ":\n", n);
                         while(el) {
                             fprintf(stream, "          key: ");
-                            nkiDbgDumpRaw(stream, &el->key, sizeof(el->key));
+                            nkiValueDump(vm, &el->key, stream);
                             fprintf(stream, "\n          value: ");
-                            nkiDbgDumpRaw(stream, &el->value, sizeof(el->value));
+                            nkiValueDump(vm, &el->value, stream);
                             fprintf(stream, "\n");
                             el = el->next;
                         }
@@ -368,9 +390,9 @@ void nkiVmObjectTableDump(struct NKVM *vm)
                 printf("      Hash bucket %u\n", bucket);
                 while(el) {
                     printf("        ");
-                    nkiValueDump(vm, &el->key);
+                    nkiValueDump(vm, &el->key, stdout);
                     printf(" = ");
-                    nkiValueDump(vm, &el->value);
+                    nkiValueDump(vm, &el->value, stdout);
                     printf("\n");
                     el = el->next;
                 }
@@ -386,7 +408,7 @@ void nkiVmStaticDump(struct NKVM *vm)
     while(1) {
 
         printf("%3d: ", i);
-        nkiValueDump(vm, &vm->staticSpace[i]);
+        nkiValueDump(vm, &vm->staticSpace[i], stdout);
         printf("\n");
 
         if(i == vm->staticAddressMask) {
@@ -402,47 +424,50 @@ void nkiVmStackDump(struct NKVM *vm)
     struct NKVMStack *stack = &vm->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
-        nkiValueDump(vm, nkiVmStackPeek(vm, i));
+        nkiValueDump(vm, nkiVmStackPeek(vm, i), stdout);
         printf("\n");
     }
 }
 
 nkbool nkiValueDump(
-    struct NKVM *vm, struct NKValue *value)
+    struct NKVM *vm, struct NKValue *value, FILE *stream)
 {
     // TODO: Function pointer table here?
     switch(value->type) {
 
         case NK_VALUETYPE_INT:
-            printf(NK_PRINTF_INT32, value->intData);
+            fprintf(stream, NK_PRINTF_INT32, value->intData);
             break;
 
         case NK_VALUETYPE_FLOAT:
-            printf("%f", value->floatData);
+            fprintf(stream, "%f", value->floatData);
             break;
 
         case NK_VALUETYPE_STRING: {
             const char *str = nkiVmStringTableGetStringById(
                 &vm->stringTable,
                 value->stringTableEntry);
+            char escapedBuf[80];
             if(!str) str = "<bad id>";
-            printf("string:" NK_PRINTF_UINT32 ":%s", value->stringTableEntry, str);
+            escapedBuf[0] = 0;
+            nkiDbgAppendEscaped(sizeof(escapedBuf), escapedBuf, str);
+            fprintf(stream, "string:" NK_PRINTF_UINT32 ":\"%s\"", value->stringTableEntry, escapedBuf);
         } break;
 
         case NK_VALUETYPE_NIL:
-            printf("<nil>");
+            fprintf(stream, "<nil>");
             break;
 
         case NK_VALUETYPE_FUNCTIONID:
-            printf("<function:" NK_PRINTF_UINT32 ">", value->functionId.id);
+            fprintf(stream, "<function:" NK_PRINTF_UINT32 ">", value->functionId.id);
             break;
 
         case NK_VALUETYPE_OBJECTID:
-            printf("<object:" NK_PRINTF_UINT32 ">", value->objectId);
+            fprintf(stream, "<object:" NK_PRINTF_UINT32 ">", value->objectId);
             break;
 
         default:
-            printf(
+            fprintf(stream,
                 "nkiValueDump unimplemented for type %s",
                 nkiValueTypeGetName(value->type));
             return nkfalse;
@@ -533,32 +558,6 @@ void nkiDbgPadLine(nkuint32_t padding, char *dst, char value)
     dst[i] = 0;
 }
 
-void nkiDbgAppendEscaped(nkuint32_t bufSize, char *dst, const char *src)
-{
-    nkuint32_t i = strlen(dst);
-    while(i + 2 < bufSize && *src) {
-        switch(*src) {
-            case '\n':
-                dst[i++] = '\\';
-                dst[i++] = 'n';
-                break;
-            case '\t':
-                dst[i++] = '\\';
-                dst[i++] = 't';
-                break;
-            case '\"':
-                dst[i++] = '\\';
-                dst[i++] = '\"';
-                break;
-            default:
-                dst[i++] = *src;
-                break;
-        }
-        src++;
-    }
-    dst[i] = 0;
-}
-
 nkuint32_t nkiDbgCountLines(const char *str)
 {
     nkuint32_t c = 0;
@@ -571,7 +570,7 @@ nkuint32_t nkiDbgCountLines(const char *str)
     return c;
 }
 
-void nkiDbgDumpListing(struct NKVM *vm, const char *script)
+void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
 {
     nkuint32_t i;
 
@@ -621,6 +620,8 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script)
                 sprintf(paramBuf, " %d:\"", maybeParams->opData_string);
                 nkiDbgAppendEscaped(sizeof(paramBuf), paramBuf, str ? str : "<bad string>");
                 nkiDbgAppendLine(sizeof(paramBuf), paramBuf, "\"");
+            } else {
+                paramBuf[0] = 0;
             }
 
             // Append parameters.
@@ -639,7 +640,7 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script)
                         nkiDbgPadLine(sizeof(lineBuf)/2, lineBuf, ' ');
                         nkiDbgAppendLine(sizeof(lineBuf), lineBuf, " ; ");
                         nkiDbgAppendLine(sizeof(lineBuf), lineBuf, linePtr);
-                        printf("%s\n", lineBuf);
+                        fprintf(stream, "%s\n", lineBuf);
 
                         // Move to the next line. Clear the lineBuf in
                         // case we have multiple source lines for this
@@ -651,17 +652,17 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script)
 
                 } else {
 
-                    printf("%s\n", lineBuf);
+                    fprintf(stream, "%s\n", lineBuf);
 
                 }
 
             } else {
 
-                printf("%s\n", lineBuf);
+                fprintf(stream, "%s\n", lineBuf);
 
             }
 #else
-            printf("%s\n", lineBuf);
+            fprintf(stream, "%s\n", lineBuf);
 #endif
 
         }

@@ -765,6 +765,8 @@ int main(int argc, char *argv[])
                         nkxVmIterate(vm, 1);
                         // nkxVmGarbageCollect(vm);
 
+                        nkxDbgDumpState(vm, stdout);
+
                         if(counter % 1024 == 0) {
                             nkxVmShrink(vm);
                         }
