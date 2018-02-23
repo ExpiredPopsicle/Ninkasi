@@ -585,8 +585,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
 #define ERROR_CODE 0
 
-// FIXME: Remove this!
-extern nkuint32_t nkiMemFailRate;
+// extern nkuint32_t nkiMemFailRate;
 
 int main(int argc, char *argv[])
 {
@@ -630,23 +629,23 @@ int main(int argc, char *argv[])
 
             struct NKCompilerState *cs;
 
-            // First, scan for some directives. We want the random
-            // allocation failure rate to be something that AFL can
-            // tamper with, so it's stored in the file itself instead
-            // of as a command line parameter.
-            nkuint32_t lineCount = 0;
-            char **lines = nkiDbgSplitLines(script, &lineCount);
-            nkuint32_t i;
-            for(i = 0; i < lineCount; i++) {
-                const char *memFailPct = "// #failrate: ";
-                if(strlen(lines[i]) >= strlen(memFailPct)) {
-                    if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
-                        nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
-                    }
-                }
-            }
-            free(lines[0]);
-            free(lines);
+            // // First, scan for some directives. We want the random
+            // // allocation failure rate to be something that AFL can
+            // // tamper with, so it's stored in the file itself instead
+            // // of as a command line parameter.
+            // nkuint32_t lineCount = 0;
+            // char **lines = nkiDbgSplitLines(script, &lineCount);
+            // nkuint32_t i;
+            // for(i = 0; i < lineCount; i++) {
+            //     const char *memFailPct = "// #failrate: ";
+            //     if(strlen(lines[i]) >= strlen(memFailPct)) {
+            //         if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
+            //             nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
+            //         }
+            //     }
+            // }
+            // free(lines[0]);
+            // free(lines);
 
             // Load and compile the script.
             cs = nkxCompilerCreate(vm);
