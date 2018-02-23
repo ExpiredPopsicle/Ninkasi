@@ -56,6 +56,7 @@
 #define NINKASI_MEM_H
 
 #define NK_EXTRA_FANCY_LEAK_TRACKING_LINUX 0
+#define NK_MALLOC_FAILURE_TEST_MODE 0
 
 struct NKMemoryHeader
 {

@@ -628,48 +628,37 @@ int main(int argc, char *argv[])
         // NKVM binary blobs start with \0.
         if(script && script[0] != 0) {
 
-            // First, scan for some directives...
-            {
-                nkuint32_t lineCount = 0;
-                char **lines = nkiDbgSplitLines(script, &lineCount);
-                nkuint32_t i;
-                for(i = 0; i < lineCount; i++) {
-                    const char *memFailPct = "// #failrate: ";
-                    if(strlen(lines[i]) >= strlen(memFailPct)) {
-                        if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
-                            nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
-                        }
+            struct NKCompilerState *cs;
+
+            // First, scan for some directives. We want the random
+            // allocation failure rate to be something that AFL can
+            // tamper with, so it's stored in the file itself instead
+            // of as a command line parameter.
+            nkuint32_t lineCount = 0;
+            char **lines = nkiDbgSplitLines(script, &lineCount);
+            nkuint32_t i;
+            for(i = 0; i < lineCount; i++) {
+                const char *memFailPct = "// #failrate: ";
+                if(strlen(lines[i]) >= strlen(memFailPct)) {
+                    if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
+                        nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
                     }
                 }
-                free(lines[0]);
-                free(lines);
             }
+            free(lines[0]);
+            free(lines);
 
-            // Load and compile a script.
-
-            {
-                struct NKCompilerState *cs = nkxCompilerCreate(vm);
-
-                if(cs) {
-
-                    initInternalFunctions(vm, cs);
-                    nkxCompilerCompileScript(cs, script);
-                    nkxCompilerFinalize(cs);
-
-                } else {
-
-                    fprintf(stderr, "Can't create compiler state. Out of memory?\n");
-                    free(script);
-                    nkxVmDelete(vm);
-                    return ERROR_CODE;
-                }
-
-                if(checkErrors(vm)) {
-                    free(script);
-                    nkxVmDelete(vm);
-                    return ERROR_CODE;
-                }
-
+            // Load and compile the script.
+            cs = nkxCompilerCreate(vm);
+            if(cs) {
+                initInternalFunctions(vm, cs);
+                nkxCompilerCompileScript(cs, script);
+                nkxCompilerFinalize(cs);
+            }
+            if(checkErrors(vm)) {
+                free(script);
+                nkxVmDelete(vm);
+                return ERROR_CODE;
             }
 
         } else {
@@ -682,8 +671,6 @@ int main(int argc, char *argv[])
             buf.size = scriptSize;
 
             initInternalFunctions(vm, NULL);
-
-            printf("ADSF0\n");
 
             if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
                 free(script);
@@ -775,106 +762,89 @@ int main(int argc, char *argv[])
 
             if(!nkxVmHasErrors(vm)) {
 
-                if(!nkxGetErrorCount(vm)) {
+                nkuint32_t serializerCounter = settings.serializerTestFrequency;
+                nkuint32_t shrinkCounter = settings.shrinkFrequency;
 
-                    nkuint32_t serializerCounter = settings.serializerTestFrequency;
-                    nkuint32_t shrinkCounter = settings.shrinkFrequency;
+                // TODO: Give this value a command line parameter.
+                nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L));
+                // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
-                    // nkiVmExecuteProgram(vm);
+                while(!nkxVmProgramHasEnded(vm)) {
 
-                    // TODO: Give this value an accessor.
-                    nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L));
-                    // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
+                    // Figure out how many iterations we can do
+                    // before the next shrink/serialize test
+                    // happens.
+                    nkuint32_t iterationCount = NK_INVALID_VALUE;
+                    if(serializerCounter < iterationCount) {
+                        iterationCount = serializerCounter;
+                    }
+                    if(shrinkCounter < iterationCount) {
+                        iterationCount = shrinkCounter;
+                    }
 
-                    while(
-                        // vm->instructions[
-                        //     vm->instructionPointer &
-                        //     vm->instructionAddressMask].opcode != NK_OP_END)
-                        !nkxVmProgramHasEnded(vm))
-                    {
-                        nkxVmIterate(vm, 1);
-                        // nkxVmGarbageCollect(vm);
+                    // Iterate. Normally we'd iterate for multiple
+                    // instructions, but in this case we're going
+                    // to do one at a time so we can fire off the
+                    // shrink and serializer tests at certain
+                    // intervals.
+                    nkxVmIterate(vm, iterationCount);
 
-                        // nkxDbgDumpState(vm, stdout);
+                    // Adjust counters according to how many
+                    // operations we probably ran.
+                    if(shrinkCounter != NK_INVALID_VALUE) {
+                        shrinkCounter -= iterationCount;
+                    }
+                    if(serializerCounter != NK_INVALID_VALUE) {
+                        serializerCounter -= iterationCount;
+                    }
 
-                        if(shrinkCounter == 0) {
-                            nkxVmShrink(vm);
-                            shrinkCounter = settings.shrinkFrequency;
-                        } else {
-                            shrinkCounter--;
-                        }
+                    // Test the VM memory shrink functionality at
+                    // intervals.
+                    if(shrinkCounter == 0) {
+                        nkxVmShrink(vm);
+                        shrinkCounter = settings.shrinkFrequency;
+                    } else {
+                        shrinkCounter--;
+                    }
 
-
-
-                        // Test the serializer at weird intervals.
-                        if(serializerCounter == 0) {
-                            nkxVmGarbageCollect(vm);
-                            nkxVmShrink(vm);
-                            // assert(!nkxGetErrorCount(vm));
-
-                            vm = testSerializer(vm, &settings);
-
-                            if(!vm || checkErrors(vm)) {
-                                // free(script);
-                                // printf("Cleaning up VM...\n");
-                                // nkxVmDelete(vm);
-                                // printf("VM cleanup done.\n");
-                                // return ERROR_CODE;
-                                printf("testSerializer failed\n");
-                                break;
-                            }
-
-                            serializerCounter = settings.serializerTestFrequency;
-
-                        } else {
-
-                            serializerCounter--;
-
-                        }
-
-                        if(nkxGetErrorCount(vm)) {
-                            printf("An error occurred.\n");
+                    // Test the serializer at intervals.
+                    if(serializerCounter == 0) {
+                        nkxVmGarbageCollect(vm);
+                        nkxVmShrink(vm);
+                        vm = testSerializer(vm, &settings);
+                        if(!vm || checkErrors(vm)) {
+                            printf("testSerializer failed\n");
                             break;
                         }
+                        serializerCounter = settings.serializerTestFrequency;
+                    } else {
+                        serializerCounter--;
                     }
 
-                    if(vm) {
-                        struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
-                        if(v) {
-                            printf("Value found: %s\n", nkxValueToString(vm, v));
-                        } else {
-                            printf("Value NOT found.\n");
-                        }
+                    // Bail out on errors.
+                    if(nkxGetErrorCount(vm)) {
+                        printf("An error occurred.\n");
+                        break;
                     }
                 }
 
-                // while(vm->instructions[vm->instructionPointer].opcode != NK_OP_END) {
-
-                //     // printf("instruction %d: %d\n", vm->instructionPointer, vm->instructions[vm->instructionPointer].opcode);
-                //     // printf("  %d\n", vm->instructions[vm->instructionPointer].opcode);
-                //     nkiVmIterate(vm);
-
-                if(checkErrors(vm)) {
-                    free(script);
-                    nkxVmDelete(vm);
-                    return ERROR_CODE;
+                // Example of searching for a global variable in the
+                // VM.
+                if(vm) {
+                    struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
+                    printf("Searched for readMeFromC variable...\n  ");
+                    if(v) {
+                        printf("Value found: %s\n", nkxValueToString(vm, v));
+                    } else {
+                        printf("Value NOT found.\n");
+                    }
                 }
+            }
 
-                // // Function call test.
-                // if(!vm->errorState.firstError) {
-                //     struct NKValue retVal;
-                //     memset(&retVal, 0, sizeof(retVal));
-                //     nkiVmCallFunctionByName(&cs, "callMeFromC", 0, NULL, &retVal);
-                // }
-
-            } else {
-
-                if(checkErrors(vm)) {
-                    free(script);
-                    nkxVmDelete(vm);
-                    return ERROR_CODE;
-                }
-
+            if(checkErrors(vm)) {
+                free(script);
+                nkxVmDelete(vm);
+                return ERROR_CODE;
             }
 
         }
@@ -883,14 +853,10 @@ int main(int argc, char *argv[])
         printf("  Finish\n");
         printf("----------------------------------------------------------------------\n");
 
-
-        // printf("Final stack...\n");
-        // nkiVmStackDump(vm);
-
         // printf("Final dumpstate before GC...\n");
         // nkxDbgDumpState(vm, stdout);
 
-        printf("Final GC...\n");
+        printf("Final garbage collection pass...\n");
         nkxVmGarbageCollect(vm);
 
         printf("Final shrink...\n");
@@ -904,64 +870,49 @@ int main(int argc, char *argv[])
 
         printf("Final serialized state...\n");
         if(nkxVmHasAllocationFailure(vm)) {
+
             printf("Error was allocation error. Skipping serialization.\n");
+
         } else {
+
+            nkbool serializerSuccess;
+            struct NKVM *newVm;
+
             struct WriterTestBuffer buf;
             memset(&buf, 0, sizeof(buf));
             printf("Serializing...\n");
 
-            {
-                nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
-                dumpBufChecksum(&buf);
+            serializerSuccess = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+            dumpBufChecksum(&buf);
 
-                if(!c) {
-                    printf("Error occurred during serialization. 1\n");
-                    free(script);
-
-                    nkxVmDelete(vm);
-                    return ERROR_CODE;
-                }
+            if(!serializerSuccess) {
+                printf("Error occurred during serialization. 1\n");
+                free(script);
+                nkxVmDelete(vm);
+                return ERROR_CODE;
             }
 
-            {
-                // FILE *out1 = fopen("stest1.txt", "w+");
-                // nkxDbgDumpState(vm, stdout);
-                // fclose(out1);
+            printf("Performing final deserialization test...\n");
+            newVm = nkxVmCreate();
+            initInternalFunctions(newVm, NULL);
+            serializerSuccess = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
+            if(!serializerSuccess) {
+                printf("Deserialization of previously serialized VM state failed!\n");
+            } else {
+                printf("Success!\n");
             }
 
-            {
-                struct NKVM *newVm = nkxVmCreate();
-
-                initInternalFunctions(newVm, NULL);
-
-
-                printf("Deserializing...\n");
-                {
-                    nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
-                    if(!b) {
-                        printf("Deserialization of previously serialized VM state failed.\n");
-                        // assert(b);
-                    }
-                }
-
-                {
-                    // FILE *out2 = fopen("stest2.txt", "w+");
-                    // nkxDbgDumpState(newVm, stdout);
-                    // fclose(out2);
-                }
-
-                nkxVmDelete(newVm);
-            }
-
+            printf("Cleaning up after deserialization test...\n");
+            nkxVmDelete(newVm);
             free(buf.data);
         }
 
-        nkxVmGarbageCollect(vm);
-        printf("----------------------------------------------------------------------\n");
         printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", nkxVmGetPeakMemoryUsage(vm));
         printf("Current memory usage: " NK_PRINTF_UINT32 "\n", nkxVmGetCurrentMemoryUsage(vm));
 
+        printf("Cleaning up main VM...\n");
         nkxVmDelete(vm);
+        printf("Done!\n");
     }
 
     free(script);
