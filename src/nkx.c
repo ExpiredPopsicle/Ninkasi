@@ -93,10 +93,6 @@ struct NKVM *nkxVmCreate(void)
 void nkxVmDelete(struct NKVM *vm)
 {
     if(vm) {
-
-        // FIXME: Remove this.
-        nkiVmObjectTableSanityCheck(vm);
-
         nkiVmDestroy(vm);
         vm->freeReplacement(
             vm, vm->mallocAndFreeReplacementUserData);

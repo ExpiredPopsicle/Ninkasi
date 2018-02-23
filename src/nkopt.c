@@ -112,9 +112,9 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
             case NK_TOKENTYPE_DIVIDE:                                   \
                 /* Division. */                                         \
                 if(c1Val == 0 ||                                        \
-                    ((*node)->opOrValue->type == NK_TOKENTYPE_INTEGER && \
+                    ((*node)->children[0]->opOrValue->type == NK_TOKENTYPE_INTEGER && \
                         c1Val == -1 &&                                  \
-                        c0Val == -2147483647L - 1))                     \
+                        c0Val == -2147483647L - 1L))                    \
                 {                                                       \
                     nkiCompilerDeleteExpressionNode(vm, newNode);       \
                     /* TODO: Raise error. */                            \
@@ -134,9 +134,6 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
 void nkiCompilerOptimizeConstants(
     struct NKVM *vm, struct NKExpressionAstNode **node)
 {
-    // FIXME: Remove this.
-    return;
-
     // TODO: Remove some no-ops like multiply-by-one, divide-by-one,
     // add zero, subtract zero, etc. We can do this even if we don't
     // have both sides of the equation fully simplified. NOTE: Do NOT
