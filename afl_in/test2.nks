@@ -1,4 +1,4 @@
-// #failrate: 10000
+//// #failrate: 10000
 
 
 do {
@@ -14,9 +14,11 @@ do {
 
 
 subsystemTest_setTestString("Dickbutt");
+// subsystemTest_setTestString(213423);
 var subsystemTestObject = subsystemTest_widgetCreate();
 subsystemTest_widgetSetData(subsystemTestObject, 12345);
 print("Widget test 1: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
+subsystemTestObject.testField = "This is a string set at the very start of the program.";
 
 for(var x = 0; x < 10; ++x) {
     var c = newobject;
@@ -530,3 +532,17 @@ subsystemTest_printTestString();
 print("Widget test 3: ", subsystemTest_widgetGetData(subsystemTestObject), "\n");
 // print("Widget test 4: ", subsystemTest_widgetGetData(1234), "\n");
 
+print("Test string: ", subsystemTest_getTestString(), "\n");
+// print("Test string: ", subsystemTest_getTestString(1234), "\n");
+
+print("subsystemTestObject.testField: ", subsystemTestObject.testField, "\n");
+print("subsystemTestObject.testMethod...\n");
+subsystemTestObject.testMethod();
+subsystemTestObject.testField = "asdfwhatever";
+subsystemTestObject.testMethod();
+subsystemTestObject.testField = "Another thing!";
+subsystemTestObject.testMethod();
+subsystemTestObject.testField = "Hey cool, it works!";
+subsystemTestObject.testMethod();
+
+print("THIS IS THE LAST LINE OF THE TEST SCRIPT\n");
