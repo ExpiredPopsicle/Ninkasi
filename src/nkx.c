@@ -607,7 +607,6 @@ void nkxGetErrorText(struct NKVM *vm, char *buffer)
 
 void nkxSetRemainingInstructionLimit(struct NKVM *vm, nkuint32_t count)
 {
-    printf("Setting remaining: " NK_PRINTF_UINT32 "\n", count);
     vm->instructionsLeftBeforeTimeout = count;
 }
 

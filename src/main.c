@@ -759,6 +759,10 @@ int main(int argc, char *argv[])
 
         } else {
 
+            printf("----------------------------------------------------------------------\n");
+            printf("  Execution begin\n");
+            printf("----------------------------------------------------------------------\n");
+
             if(!nkxVmHasErrors(vm)) {
 
                 nkuint32_t serializerCounter = settings.serializerTestFrequency;
@@ -840,17 +844,16 @@ int main(int argc, char *argv[])
                 }
             }
 
+            printf("----------------------------------------------------------------------\n");
+            printf("  Execution end\n");
+            printf("----------------------------------------------------------------------\n");
+
             if(checkErrors(vm)) {
                 free(script);
                 nkxVmDelete(vm);
                 return ERROR_CODE;
             }
-
         }
-
-        printf("----------------------------------------------------------------------\n");
-        printf("  Finish\n");
-        printf("----------------------------------------------------------------------\n");
 
         // printf("Final dumpstate before GC...\n");
         // nkxDbgDumpState(vm, stdout);
