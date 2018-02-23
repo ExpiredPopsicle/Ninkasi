@@ -369,6 +369,8 @@ struct Settings
     nkbool compileOnly;
     const char *filename;
     nkuint32_t maxMemory;
+    nkuint32_t serializerTestFrequency;
+    nkuint32_t shrinkFrequency;
 };
 
 void printHelp(nkbool isError)
@@ -410,6 +412,10 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // 16mb default max memory usage.
     settings->maxMemory = 16L * (1L << 20L);
+    // Arbitrary serializer test frequency to match what we've been
+    // doing.
+    settings->serializerTestFrequency = 1100;
+    settings->shrinkFrequency = 1024;
 
     for(i = 1; i < argc; i++) {
 
@@ -424,6 +430,26 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
                 settings->maxMemory = atol(argv[i]);
             } else {
                 fprintf(stderr, "Missing parameter for -m.\n");
+                return nkfalse;
+            }
+
+        } else if(strcmp("-se", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+                settings->serializerTestFrequency = atol(argv[i]);
+            } else {
+                fprintf(stderr, "Missing parameter for -se.\n");
+                return nkfalse;
+            }
+
+        } else if(strcmp("-ss", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+                settings->shrinkFrequency = atol(argv[i]);
+            } else {
+                fprintf(stderr, "Missing parameter for -ss.\n");
                 return nkfalse;
             }
 
@@ -503,6 +529,7 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
 
 struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 {
+    nkuint32_t oldInstructionLimit = nkxGetRemainingInstructionLimit(vm);
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
 
@@ -548,6 +575,8 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
     free(buf.data);
 
     printf("----------------------------------------------------------------------\n");
+
+    nkxSetRemainingInstructionLimit(vm, oldInstructionLimit);
 
     return vm;
 }
@@ -748,12 +777,13 @@ int main(int argc, char *argv[])
 
                 if(!nkxGetErrorCount(vm)) {
 
-                    nkuint32_t counter = 0;
+                    nkuint32_t serializerCounter = settings.serializerTestFrequency;
+                    nkuint32_t shrinkCounter = settings.shrinkFrequency;
 
                     // nkiVmExecuteProgram(vm);
 
                     // TODO: Give this value an accessor.
-                    nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L) & 0xffff);
+                    nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L));
                     // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                     while(
@@ -767,14 +797,17 @@ int main(int argc, char *argv[])
 
                         // nkxDbgDumpState(vm, stdout);
 
-                        if(counter % 1024 == 0) {
+                        if(shrinkCounter == 0) {
                             nkxVmShrink(vm);
+                            shrinkCounter = settings.shrinkFrequency;
+                        } else {
+                            shrinkCounter--;
                         }
 
 
 
                         // Test the serializer at weird intervals.
-                        if(counter % 1100 == 0) {
+                        if(serializerCounter == 0) {
                             nkxVmGarbageCollect(vm);
                             nkxVmShrink(vm);
                             // assert(!nkxGetErrorCount(vm));
@@ -790,70 +823,19 @@ int main(int argc, char *argv[])
                                 printf("testSerializer failed\n");
                                 break;
                             }
+
+                            serializerCounter = settings.serializerTestFrequency;
+
+                        } else {
+
+                            serializerCounter--;
+
                         }
-
-                        counter++;
-
-                        // nkxDbgDumpState(vm, stdout);
-
-                        // printf("\n\n\n\n");
-                        // printf("----------------------------------------------------------------------\n");
-                        // printf("PC: %u\n", vm->instructionPointer);
-                        // printf("Stack...\n");
-                        // printf("----------------------------------------------------------------------\n");
-                        // nkiVmStackDump(vm);
-                        // printf("----------------------------------------------------------------------\n");
-                        // printf("Static...\n");
-                        // printf("----------------------------------------------------------------------\n");
-                        // nkiVmStaticDump(vm);
-                        // printf("\n");
-                        // dumpListing(vm, script);
-                        // getchar();
 
                         if(nkxGetErrorCount(vm)) {
                             printf("An error occurred.\n");
                             break;
                         }
-
-                        // {
-                        //     struct WriterTestBuffer buf;
-                        //     memset(&buf, 0, sizeof(buf));
-                        //     nkxVmSerialize(vm, writerTest, &buf, nktrue);
-
-                        //     {
-                        //         struct NKVM *newVm = nkxVmCreate();
-
-                        //         nkxVmRegisterExternalFunction(newVm, "cfunc", testVMFunc);
-                        //         nkxVmRegisterExternalFunction(newVm, "catastrophe", testVMCatastrophe);
-                        //         nkxVmRegisterExternalFunction(newVm, "print", vmFuncPrint);
-                        //         nkxVmRegisterExternalFunction(newVm, "hash", getHash);
-                        //         nkxVmRegisterExternalFunction(newVm, "hash2", getHash);
-                        //         nkxVmRegisterExternalFunction(newVm, "testHandle1", testHandle1);
-                        //         nkxVmRegisterExternalFunction(newVm, "testHandle2", testHandle2);
-                        //         nkxVmRegisterExternalFunction(newVm, "setGCCallbackThing", setGCCallbackThing);
-                        //         nkxVmRegisterExternalFunction(newVm, "doGCCallbackThing", doGCCallbackThing);
-                        //         nkxVmRegisterExternalFunction(newVm, "doSerializationCallbackThing", doSerializationCallbackThing);
-
-                        //         nkxVmRegisterExternalType(newVm, "footype");
-
-                        //         printf("Deserializing...\n");
-                        //         {
-                        //             nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
-                        //             assert(b);
-                        //         }
-
-                        //         // {
-                        //         //     FILE *out2 = fopen("stest2.txt", "w+");
-                        //         //     nkxDbgDumpState(newVm, out2);
-                        //         //     fclose(out2);
-                        //         // }
-
-                        //         nkxVmDelete(vm);
-                        //         vm = newVm;
-                        //     }
-
-                        //     free(buf.data);
-                        // }
                     }
 
                     if(vm) {

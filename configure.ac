@@ -5,6 +5,7 @@ AM_INIT_AUTOMAKE
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_RANLIB
 
 # Checks for libraries.
 
@@ -20,6 +21,6 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset strdup])
 
-AC_CONFIG_FILES([Makefile])
-AC_OUTPUT(src/Makefile test/Makefile)
+AC_CONFIG_FILES([Makefile pkg-config/ninkasi.pc])
+AC_OUTPUT(src/Makefile test/Makefile pkg-config/Makefile)
 
