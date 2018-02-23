@@ -270,10 +270,32 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     // External functions.
     fprintf(stream, "external functions: " NK_PRINTF_UINT32 "\n", vm->externalFunctionCount);
     for(i = 0; i < vm->externalFunctionCount; i++) {
+
         fprintf(stream, "  " NK_PRINTF_UINT32 ":\n", i);
         fprintf(stream, "    name: %s\n", vm->externalFunctionTable[i].name);
-        fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
+        // fprintf(stream, "    CFunctionCallback: %p\n", vm->externalFunctionTable[i].CFunctionCallback);
         fprintf(stream, "    internalFunctionId: " NK_PRINTF_UINT32 "\n", vm->externalFunctionTable[i].internalFunctionId.id);
+        fprintf(stream, "    argumentCount: " NK_PRINTF_UINT32 "\n", vm->externalFunctionTable[i].argumentCount);
+        fprintf(stream, "    argTypes: " NK_PRINTF_UINT32 "\n", vm->externalFunctionTable[i].argumentCount);
+
+        if(vm->externalFunctionTable[i].argumentCount != NK_INVALID_VALUE) {
+            nkuint32_t n;
+            for(n = 0; n < vm->externalFunctionTable[i].argumentCount; n++) {
+
+                fprintf(
+                    stream, "      " NK_PRINTF_UINT32 " int: %s",
+                    n,
+                    nkiValueTypeGetName(vm->externalFunctionTable[i].argTypes[n]));
+
+                if(vm->externalFunctionTable[i].argTypes) {
+                    fprintf(
+                        stream, ", ext: " NK_PRINTF_UINT32,
+                        vm->externalFunctionTable[i].argExternalTypes[n].id);
+                }
+
+                fprintf(stream, "\n");
+            }
+        }
     }
 
     // Global variables.

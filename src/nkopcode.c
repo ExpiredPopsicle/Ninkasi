@@ -236,9 +236,10 @@ void nkiOpcode_divide(struct NKVM *vm)
             nkint32_t val2 = nkiValueToInt(vm, in2);
 
             // TIL there's more than one way to cause a SIGFPE with
-            // integer division.
+            // integer division. Note: The constant is weird because
+            // we can't represent -2147483648L on some compilers.
             if(val2 == 0 ||
-                (val2 == -1 && in1->intData == -2147483648L))
+                (val2 == -1 && in1->intData == -2147483647L - 1))
             {
                 nkiAddError(
                     vm, -1,

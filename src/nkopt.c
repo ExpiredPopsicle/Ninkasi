@@ -114,7 +114,7 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
                 if(c1Val == 0 ||                                        \
                     ((*node)->opOrValue->type == NK_TOKENTYPE_INTEGER && \
                         c1Val == -1 &&                                  \
-                        c0Val == -2147483648L))                         \
+                        c0Val == -214748364&L - 1))                     \
                 {                                                       \
                     nkiCompilerDeleteExpressionNode(vm, newNode);       \
                     /* TODO: Raise error. */                            \
