@@ -218,9 +218,6 @@ void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
 {
     struct NKVMStack *stack = &vm->stack;
 
-    // FIXME: Remove this.
-    printf("Clearing stack with capacity: " NK_PRINTF_UINT32 "\n", vm->stack.capacity);
-
     memset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;
 

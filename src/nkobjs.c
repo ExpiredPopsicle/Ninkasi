@@ -140,11 +140,6 @@ void nkiVmObjectTableCleanupObject(
                 NKVMExternalObjectCleanupCallback cleanupCallback =
                     vm->externalTypes[ob->externalDataType.id].cleanupCallback;
 
-                // FIXME: Remove this.
-                printf("NNN: %s external data of type: %s\n",
-                    "Cleaning",
-                    vm->externalTypes ? vm->externalTypes[ob->externalDataType.id].name : "badtype");
-
                 if(cleanupCallback) {
 
                     struct NKValue val;

@@ -52,10 +52,10 @@ void nkiCompilerAddInstruction(
         nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
         nkuint32_t newSize = oldSize << 1;
 
-        // FIXME: Add a dynamic or settable memory limit.
-        if(cs->vm->instructionAddressMask >= 0xfffff) {
-            nkiCompilerAddError(cs, "Too many instructions.");
-        }
+        // // FIXME: Add a dynamic or settable memory limit.
+        // if(cs->vm->instructionAddressMask >= 0xfffff) {
+        //     nkiCompilerAddError(cs, "Too many instructions.");
+        // }
 
         cs->vm->instructionAddressMask <<= 1;
         cs->vm->instructionAddressMask |= 1;
@@ -1429,7 +1429,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
 
     // Parse the increment expression, but don't emit yet (we'll do
     // this at the end, before the jump back).
-    incrementExpression = nkiCompilerCompileExpressionWithoutEmit(cs); // FIXME: Check return value.
+    incrementExpression = nkiCompilerCompileExpressionWithoutEmit(cs);
 
     // Skip ")"
     if(!incrementExpression || !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {

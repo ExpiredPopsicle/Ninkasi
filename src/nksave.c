@@ -221,8 +221,8 @@ nkbool nkiSerializeObject(
     // FIXME: Remove this. We do it in the parent function. Removing
     // this will break backwards compatibility in the binary format,
     // so do it once we want to reset test cases.
-    nkuint32_t objectTableIndex = object->objectTableIndex;
-    NKI_SERIALIZE_BASIC(nkuint32_t, objectTableIndex);
+    //nkuint32_t objectTableIndex = object->objectTableIndex;
+    //NKI_SERIALIZE_BASIC(nkuint32_t, objectTableIndex);
 
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
@@ -296,8 +296,7 @@ nkbool nkiSerializeObjectTable(
     nkuint32_t objectCount = 0;
     nkuint32_t capacity = vm->objectTable.capacity;
 
-    // FIXME: Ensure capacity is a power of two, or find a
-    // better way to store it!
+    // Ensure capacity is a power of two.
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
     if(!nkiIsPow2(capacity)) {
         nkiAddError(vm, -1, "Object table capacity is not a power of two.");
