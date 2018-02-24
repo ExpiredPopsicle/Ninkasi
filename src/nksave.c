@@ -218,11 +218,7 @@ nkbool nkiSerializeObject(
     NKVMSerializationWriter writer, void *userdata,
     nkbool writeMode)
 {
-    // FIXME: Remove this. We do it in the parent function. Removing
-    // this will break backwards compatibility in the binary format,
-    // so do it once we want to reset test cases.
-    //nkuint32_t objectTableIndex = object->objectTableIndex;
-    //NKI_SERIALIZE_BASIC(nkuint32_t, objectTableIndex);
+    // Note: objectTableIndex is set in calling function.
 
     NKI_SERIALIZE_BASIC(nkuint32_t, object->size);
     NKI_SERIALIZE_BASIC(nkuint32_t, object->externalHandleCount);
@@ -1075,6 +1071,10 @@ nkbool nkiSerializeExternalTypes(
             // FIXME: Add type remapping back in. Possibly just by
             // deleting this block of code...
 
+            // FIXME: Or don't add type remapping back in, because
+            // some external structures may have held onto values
+            // representing those types, and we can't update those.
+
             // No more type remapping. Verify that the loaded type
             // matches what we have already in the VM.
             if(!vm->externalTypes ||
@@ -1223,11 +1223,6 @@ nkbool nkiSerializeExternalObjects(
 
                     NKVMExternalObjectSerializationCallback serializationCallback =
                         vm->externalTypes[object->externalDataType.id].serializationCallback;
-
-                    // FIXME: Remove this.
-                    printf("NNN: %s external data of type: %s\n",
-                        writeMode ? "Saving" : "Loading",
-                        vm->externalTypes ? vm->externalTypes[object->externalDataType.id].name : "badtype");
 
                     if(serializationCallback) {
 

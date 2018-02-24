@@ -412,6 +412,8 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 
     // 16mb default max memory usage.
     settings->maxMemory = 16L * (1L << 20L);
+    // settings->maxMemory = 300000;
+
     // Arbitrary serializer test frequency to match what we've been
     // doing.
     settings->serializerTestFrequency = 1100;
@@ -576,7 +578,9 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
     printf("----------------------------------------------------------------------\n");
 
-    nkxSetRemainingInstructionLimit(vm, oldInstructionLimit);
+    if(vm) {
+        nkxSetRemainingInstructionLimit(vm, oldInstructionLimit);
+    }
 
     return vm;
 }
@@ -676,6 +680,7 @@ int main(int argc, char *argv[])
                 nkxVmDelete(vm);
                 return ERROR_CODE;
             }
+
         }
 
         printf("Script loaded. Compiling...\n");
@@ -769,7 +774,7 @@ int main(int argc, char *argv[])
                 nkuint32_t shrinkCounter = settings.shrinkFrequency;
 
                 // TODO: Give this value a command line parameter.
-                nkxSetRemainingInstructionLimit(vm, (1024L * 1024L * 1024L));
+                nkxSetRemainingInstructionLimit(vm, (1024L * 1024L));
                 // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
 
                 while(!nkxVmProgramHasEnded(vm)) {
@@ -812,14 +817,18 @@ int main(int argc, char *argv[])
 
                     // Test the serializer at intervals.
                     if(serializerCounter == 0) {
+
                         nkxVmGarbageCollect(vm);
+
                         nkxVmShrink(vm);
+
                         vm = testSerializer(vm, &settings);
                         if(!vm || checkErrors(vm)) {
                             printf("testSerializer failed\n");
                             break;
                         }
                         serializerCounter = settings.serializerTestFrequency;
+
                     } else {
                         serializerCounter--;
                     }

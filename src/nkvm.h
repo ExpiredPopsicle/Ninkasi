@@ -169,8 +169,9 @@ struct NKVM
     nkuint32_t peakMemoryUsage;
 
     struct NKMemoryHeader *allocations;
-    // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
     nkuint32_t allocationCount;
+#endif // NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
 
     void *(*mallocReplacement)(nkuint32_t size, void *userData);
     void (*freeReplacement)(void *ptr, void *userData);

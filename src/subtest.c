@@ -456,7 +456,6 @@ void subsystemTest_getTestString(struct NKVMFunctionCallbackData *data)
             data->vm, &data->returnValue,
             internalData->testString);
     }
-
 }
 
 void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
@@ -521,10 +520,16 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
         // objects.
         subsystemTest_freeWrapper(systemData->testString);
         subsystemTest_freeWrapper(systemData);
+
+    } else {
+
+        printf("systemData not found!\n");
+
     }
 
     // Note: Do NOT assert here on !subsystemTest_debugOnly_dataCount.
     // We may have multiple VM instances.
+
 }
 
 void subsystemTest_serialize(struct NKVM *vm, void *internalData)
@@ -564,14 +569,21 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
             }
         }
 
-        nkxSerializeData(
-            vm, &systemData->widgetTypeId,
-            sizeof(systemData->widgetTypeId));
+        // DO NOT TRUST TYPE IDS FROM BINARY FILES. Trust what was set
+        // up on VM initialization!
+        {
+            NKVMExternalDataTypeID tmpId = systemData->widgetTypeId;
+            nkxSerializeData(
+                vm, &tmpId,
+                sizeof(tmpId));
+        }
+
         nkxSerializeData(
             vm, &systemData->objectSelfCallTestId,
             sizeof(systemData->objectSelfCallTestId));
 
-        // Save/load widget count.
+        // Save/load widget count. Note: Don't do anything important
+        // based on this. We don't trust data coming from the binary!
         nkxSerializeData(vm, &systemData->widgetCount, sizeof(nkuint32_t));
     }
 }
@@ -581,6 +593,8 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
     struct SubsystemTest_InternalData *internalData = NULL;
 
     printf("subsystemTest: Initializing on VM: %p\n", vm);
+
+    subsystemTest_registerExitCheck();
 
     internalData =
         (struct SubsystemTest_InternalData *)subsystemTest_mallocWrapper(

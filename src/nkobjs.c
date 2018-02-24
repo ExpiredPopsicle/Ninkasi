@@ -135,13 +135,13 @@ void nkiVmObjectTableCleanupObject(
 
         // Run any external data cleanup routines.
         if(ob->externalDataType.id != NK_INVALID_VALUE) {
+
             if(ob->externalDataType.id < vm->externalTypeCount) {
 
                 NKVMExternalObjectCleanupCallback cleanupCallback =
                     vm->externalTypes[ob->externalDataType.id].cleanupCallback;
 
                 if(cleanupCallback) {
-
                     struct NKValue val;
                     memset(&val, 0, sizeof(val));
                     val.type = NK_VALUETYPE_OBJECTID;
@@ -149,7 +149,6 @@ void nkiVmObjectTableCleanupObject(
 
                     cleanupCallback(vm, &val, ob->externalData);
                     ob->externalData = NULL;
-
                 }
 
             } else {

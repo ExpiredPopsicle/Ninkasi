@@ -164,8 +164,9 @@ void nkiVmInit(struct NKVM *vm)
     vm->peakMemoryUsage = 0;
     vm->allocations = NULL;
 
-    // FIXME: Remove this.
+#if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
     vm->allocationCount = 0;
+#endif //NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
 
     vm->limits.maxStackSize = NK_UINT_MAX;
     vm->limits.maxFieldsPerObject = NK_UINT_MAX;
