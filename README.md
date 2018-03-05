@@ -15,40 +15,274 @@ Ninkasi
 Ninkasi is yet another scripting language, targeting primarily games.
 
 Quick Tutorial
---------------
+==============
 
-TODO
-
-Installing/Compiling
---------------------
+Simplest hosting application API example
+----------------------------------------
 
 TODO
 
 Documentation
 =============
 
+Installing/Compiling
+--------------------
+
+Ninkasi is a standard Autotools-based project. Run the following from
+the command line to compile and install.
+
+```
+./configure && make && make install
+```
+
+Ninkasi has no library dependencies besides the standard C library
+(C89 or ANSI C). If you have trouble compiling, please feel free to
+submit a bug report.
+
 The Language Itself
 -------------------
 
+### Comments
+
+Comments are done using C++-style double forward slashes.
+
+```
+// This is a comment.
+```
+
 ### Variable declarations
 
-TODO
+Non-function variables are declared with the "var" keyword.
+
+```
+var foo;
+```
+
+Variables may have an initial value and type when declared.
+
+```
+var foo = 1234;
+```
+
+If variables are not given an initial value, they will default to an
+integer 0.
+
+Ninkasi uses dynamic typing. The basic data types are:
+
+1. Integers - Signed 32-bit integers.
+2. Float - 32-bit floating point values. Anything with a decimal point
+   will be read in as a float.
+3. String - UTF-8 strings. Cannot contain '0' bytes due to C string
+   limitations.
+4. Function ID - A reference to a function. This variable can be
+   called to execute that function. (See Function declarations later
+   in this document.)
+5. Object ID - A pointer to an object. (See Objects later in this
+   document.)
+6. Nil
 
 ### "if" statements
 
-TODO
+"if" statements are constructed like in C.
+
+```
+if(foo) {
+    // Do something.
+}
+```
+
+As with C, non-zero values indicate true, while zero indicates false.
+Non-integer values will be converted to integers for this test, so the
+following would not pass:
+
+```
+if("0") {
+    // Do something.
+}
+```
+
+"if" statements may omit the curly brace block if the code to execute
+is only a single statement.
+
+```
+if(foo)
+    print("foo is true!");
+```
+
+"if" statements may include "else" code, which will execute when the
+test does not pass.
+
+```
+if(0) {
+    print("This code will never happen.");
+} else {
+    print("This code will always happen.");
+}
+```
+
+Note that "if" statements do not support C-style shortcutting. If an
+early exit from the test expression is needed, it must be split into
+multiple nested "if" statements.
 
 ### "while" and "for" loops
 
-TODO
+"while" loops are constructed like in C, and have the same semantics
+for evaluating the expression as the "if" statements.
+
+```
+while(foo) {
+    print("This is executing in a loop.\n");
+}
+```
+
+"for" loops are constructed similarly to how they are in C.
+
+```
+var foo;
+for(foo = 0; foo < 10; ++foo) {
+    print("Still looping: ", foo, "\n");
+}
+```
+
+"for" loops may include a variable declaration inside the statement.
+That variable will be in-scope for the body of the loop.
+
+```
+for(var foo = 0; foo < 10; ++foo) {
+    print("Still looping: ", foo, "\n");
+}
+```
 
 ### Function declarations
 
-TODO
+Functions are declared with the "function" keyword.
+
+```
+function somestuff()
+{
+    print("Inside a function.\n");
+}
+```
+
+This will create a variable named "somestuff" with a type of function
+ID. That variable will be a reference to this function. The variable
+will exist in the scope of both the parent context AND the function
+context itself.
+
+Function arguments may be added by adding their names with a
+comma-separated list within the parentheses.
+
+```
+function somestuff(x, y, z)
+{
+    print(x + y + z, "\n");
+    print("Inside a function.\n");
+}
+```
+
+Functions may return a value with the "return" statement. Execution of
+this statement will stop execution of the function and return control
+to the caller.
+
+```
+function somestuff(x, y, z)
+{
+    return x + y + z;
+}
+```
+
+Functions that do not have an explicit return statement will return an
+integer 0.
 
 ### Function calls
 
-TODO
+Functions are called with the parentheses operator.
+
+```
+somestuff(1, 2, 3);
+```
+
+Function calls will evaluate to the return value.
+
+```
+function somestuff(x, y, z)
+{
+    return x + y + z;
+}
+
+var foo;
+foo = somestuff(1, 2, 3);
+print("Foo: ", foo, "\n");
+```
+
+The output of this program is:
+
+```
+Foo: 6
+```
+
+Function calls are not required to use the variable name assigned to
+it originally.
+
+```
+function func1()
+{
+    print("In func1\n");
+}
+
+function func2()
+{
+    print("In func2\n");
+    return func1;
+}
+
+func2()();
+```
+
+The output of this program is:
+
+```
+In func2
+In func1
+```
+
+### Objects
+
+Object are hash tables which are stored in a pool that is regularly
+garbage-collected. The keys and values for this hash table can be any
+of the basic types.
+
+Objects can be created with the "newobject" keyword.
+
+```
+var foo = newobject;
+```
+
+The contents of objects can be accessed with the brackets operator, or
+the dot ('.').
+
+```
+var foo = newobject;
+var junk = 45;
+foo["asdf"] = 1234;
+foo[junk] = 5678;
+print(foo[junk], "\n");
+print(foo.asdf, "\n");
+```
+
+Output:
+
+```
+5678
+1234
+```
+
+Note that the dot only works with strings coded directly into the
+script, where the brackets can contain any valid expression.
+
+There are no built-in functions to get the number of key/value pairs
+or iterate over them. These must be added as part of a library.
+(FIXME.)
 
 What the API Prefixes Mean
 ----------------------
