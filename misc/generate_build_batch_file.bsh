@@ -17,7 +17,10 @@ echo "del *.EXE" >> build.bat
 CFLAGS="-mh"
 LFLAGS="-mh"
 
-find src -iname "*.c" | sed -e "s/^/wcc ${CFLAGS} /" | sed -e "s/\\//\\\\/" >> build.bat
+for i in $(ls src/*.c) $(ls src/test/*.c); do
+    DOSFNAME=$(echo $i | sed -e "s/\\//\\\\/g")
+    echo "wcc ${CFLAGS} ${DOSFNAME}" >> build.bat
+done
 echo "wcl ${LFLAGS} *.OBJ -fe=a.exe" >> build.bat
 
 # TODO: 32-bit protected mode builds.
