@@ -534,17 +534,14 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         }
 
         // Attempt to reduce.
-        if(opStack) {
-
-            if(nkiCompilerGetPrecedence(nkiCompilerCurrentTokenType(cs)) >=
-                nkiCompilerGetPrecedence(opStack->opOrValue->type))
-            {
-                if(!nkiCompilerExpressionReduce(&opStack, &valueStack)) {
-                    nkiCompilerAddError(cs, "Expression parse failure.");
-                    NK_CLEANUP_INLOOP();
-                    nkiCompilerPopRecursion(cs);
-                    return NULL;
-                }
+        while(opStack && nkiCompilerGetPrecedence(nkiCompilerCurrentTokenType(cs)) >=
+            nkiCompilerGetPrecedence(opStack->opOrValue->type))
+        {
+            if(!nkiCompilerExpressionReduce(&opStack, &valueStack)) {
+                nkiCompilerAddError(cs, "Expression parse failure.");
+                NK_CLEANUP_INLOOP();
+                nkiCompilerPopRecursion(cs);
+                return NULL;
             }
         }
 

@@ -764,6 +764,8 @@ int main(int argc, char *argv[])
 
         } else {
 
+            // nkxDbgDumpState(vm, stdout);
+
             printf("----------------------------------------------------------------------\n");
             printf("  Execution begin\n");
             printf("----------------------------------------------------------------------\n");
