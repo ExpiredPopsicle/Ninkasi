@@ -1,7 +1,7 @@
 AC_PREREQ([2.69])
 AC_INIT(ninkasi, 0.1, expiredpopsicle@gmail.com)
 AC_CONFIG_SRCDIR([src/nkopt.h])
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([subdir-objects])
 
 # Checks for programs.
 AC_PROG_CC

@@ -31,13 +31,23 @@ Installing/Compiling
 Ninkasi is a standard Autotools-based project. Run the following from
 the command line to compile and install.
 
+If you're using the source straight from the Git repository, go to the
+project directory and run:
+
+```
+./autogen.sh && ./configure && make && make install
+```
+
+If you're using a tarball version, you can skip the autogen.sh and
+run:
+
 ```
 ./configure && make && make install
 ```
 
 Ninkasi has no library dependencies besides the standard C library
-(C89 or ANSI C). If you have trouble compiling, please feel free to
-submit a bug report.
+(C89 or ANSI C). If you have trouble compiling, please submit a bug
+report.
 
 The Language Itself
 -------------------

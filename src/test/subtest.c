@@ -56,7 +56,7 @@
 
 #include "subtest.h"
 
-#include "nkx.h"
+#include "../nkx.h"
 
 #include <stdlib.h>
 #include <assert.h>

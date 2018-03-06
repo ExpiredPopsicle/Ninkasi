@@ -47,7 +47,7 @@
 // No seriously this code is shit. I'll come up with actual example
 // code as the project moves along.
 
-#include "nkx.h"
+#include "../nkx.h"
 #include "subtest.h"
 
 #include <stdio.h>
