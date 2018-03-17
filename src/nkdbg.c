@@ -43,12 +43,12 @@
 
 #include "nkcommon.h"
 
-#define DEBUG_SPAM 0
+#define NK_DEBUG_SPAM 0
 
 // FIXME: We don't really need this anymore.
 int nkiDbgWriteLine(const char *fmt, ...)
 {
-  #if DEBUG_SPAM
+  #if NK_DEBUG_SPAM
     va_list args;
     int ret;
     va_start(args, fmt);
@@ -454,7 +454,6 @@ void nkiVmStackDump(struct NKVM *vm)
 nkbool nkiValueDump(
     struct NKVM *vm, struct NKValue *value, FILE *stream)
 {
-    // TODO: Function pointer table here?
     switch(value->type) {
 
         case NK_VALUETYPE_INT:

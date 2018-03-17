@@ -89,16 +89,12 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVM *vm,
     nkuint32_t lastGCPass);
 
-// FIXME: Make a public version of this that takes Value* instead of
-// VMObject*.
 struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,
     struct NKValue *key,
     nkbool noAdd);
 
-// FIXME: Make a public version of this that takes Value* instead of
-// VMObject*.
 void nkiVmObjectClearEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,

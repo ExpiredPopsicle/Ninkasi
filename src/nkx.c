@@ -974,7 +974,7 @@ nkbool nkxGetNextObjectOfExternalType(
     return nkfalse;
 }
 
-void nkxVmObjectClearEntry_public(
+void nkxVmObjectClearEntry(
     struct NKVM *vm,
     struct NKValue *objectId,
     struct NKValue *key)

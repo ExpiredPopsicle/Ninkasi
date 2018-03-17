@@ -183,7 +183,7 @@ void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id);
 
 /// Clear a field on an object.
-void nkxVmObjectClearEntry_public(
+void nkxVmObjectClearEntry(
     struct NKVM *vm,
     struct NKValue *objectId,
     struct NKValue *key);

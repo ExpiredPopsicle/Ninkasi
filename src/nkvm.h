@@ -272,21 +272,6 @@ void *nkiGetExternalSubsystemData(
     struct NKVM *vm,
     const char *name);
 
-// void nkiSetExternalSubsystemData(
-//     struct NKVM *vm,
-//     const char *name,
-//     void *data);
-
-// void nkiSetExternalSubsystemSerializationCallback(
-//     struct NKVM *vm,
-//     const char *name,
-//     NKVMFunctionCallback serializationCallback);
-
-// void nkiSetExternalSubsystemCleanupCallback(
-//     struct NKVM *vm,
-//     const char *name,
-//     NKVMFunctionCallback cleanupCallback);
-
 struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
     struct NKVM *vm,
     const char *name,

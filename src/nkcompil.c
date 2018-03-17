@@ -52,11 +52,6 @@ void nkiCompilerAddInstruction(
         nkuint32_t oldSize = cs->vm->instructionAddressMask + 1;
         nkuint32_t newSize = oldSize << 1;
 
-        // // FIXME: Add a dynamic or settable memory limit.
-        // if(cs->vm->instructionAddressMask >= 0xfffff) {
-        //     nkiCompilerAddError(cs, "Too many instructions.");
-        // }
-
         cs->vm->instructionAddressMask <<= 1;
         cs->vm->instructionAddressMask |= 1;
 
