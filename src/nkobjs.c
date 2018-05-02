@@ -356,6 +356,10 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     assert(ob);
     assert(ob->previousExternalHandleListPtr);
     *ob->previousExternalHandleListPtr = ob->nextObjectWithExternalHandles;
+    if(ob->nextObjectWithExternalHandles) {
+        ob->nextObjectWithExternalHandles->previousExternalHandleListPtr =
+            ob->previousExternalHandleListPtr;
+    }
     ob->previousExternalHandleListPtr = NULL;
     ob->nextObjectWithExternalHandles = NULL;
 }
