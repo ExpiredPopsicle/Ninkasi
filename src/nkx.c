@@ -311,7 +311,7 @@ nkint32_t nkxValueToInt(struct NKVM *vm, struct NKValue *value)
     return ret;
 }
 
-nkint32_t nkxValueToFloat(struct NKVM *vm, struct NKValue *value)
+float nkxValueToFloat(struct NKVM *vm, struct NKValue *value)
 {
     NK_FAILURE_RECOVERY_DECL();
     float ret = 0;

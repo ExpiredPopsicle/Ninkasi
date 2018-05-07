@@ -144,7 +144,7 @@ const char *nkxValueToString(struct NKVM *vm, struct NKValue *value);
 
 nkint32_t nkxValueToInt(struct NKVM *vm, struct NKValue *value);
 
-nkint32_t nkxValueToFloat(struct NKVM *vm, struct NKValue *value);
+float nkxValueToFloat(struct NKVM *vm, struct NKValue *value);
 
 /// Force a catastrophic failure. This is mainly to test error
 /// recovery by C functions and callbacks.
