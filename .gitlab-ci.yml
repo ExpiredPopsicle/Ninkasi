@@ -20,4 +20,15 @@ test:
   dependencies:
     - build
 
-
+deploy:
+  script:
+    - apt-get update
+    - apt-get install -y build-essential automake autoconf valgrind
+    - bash autogen.sh
+    - ./configure
+    - make dist
+  dependencies:
+    - build
+  artifacts:
+    paths:
+      - ./ninkasi-0.1.tar.gz
