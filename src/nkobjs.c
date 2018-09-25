@@ -364,6 +364,20 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     ob->nextObjectWithExternalHandles = NULL;
 }
 
+nkuint32_t nkiVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *value)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, value);
+
+    // Make sure we actually got an object.
+    if(!ob) {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectGetExternalHandleCount.");
+        return 0;
+    }
+
+    return ob->externalHandleCount;
+}
+
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,

@@ -106,6 +106,8 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 // Internal version of nkxVmObjectReleaseHandle.
 void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
+nkuint32_t nkiVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *value);
+
 void nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
@@ -142,5 +144,10 @@ struct NKValue *nkiVmObjectFindOrAddEntry_public(
     struct NKValue *objectId,
     struct NKValue *key,
     nkbool noAdd);
+
+// TODO: Move this to a GC related header.
+void nkiVmGarbageCollect_markValue(
+    struct NKVMGCState *gcState,
+    struct NKValue *v);
 
 #endif // NINKASI_OBJECTS_H

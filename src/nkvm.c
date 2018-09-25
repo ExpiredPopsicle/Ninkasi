@@ -273,6 +273,8 @@ void nkiVmDestroy(struct NKVM *vm)
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));
 
+        nkiVmGarbageCollect(vm);
+
         nkiVmObjectTableCleanAllObjects(vm);
 
         nkiVmStringTableCleanAllStrings(vm);
@@ -401,7 +403,8 @@ struct NKValue *nkiVmFindGlobalVariable(
 NKVMExternalDataTypeID nkiVmRegisterExternalType(
     struct NKVM *vm, const char *name,
     NKVMExternalObjectSerializationCallback serializationCallback,
-    NKVMExternalObjectCleanupCallback cleanupCallback)
+    NKVMExternalObjectCleanupCallback cleanupCallback,
+    NKVMExternalObjectGCMarkCallback gcMarkCallback)
 {
     NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
     if(ret.id != NK_INVALID_VALUE) {
@@ -435,6 +438,8 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
         serializationCallback;
     vm->externalTypes[ret.id].cleanupCallback =
         cleanupCallback;
+    vm->externalTypes[ret.id].gcMarkCallback =
+        gcMarkCallback;
 
     return ret;
 }

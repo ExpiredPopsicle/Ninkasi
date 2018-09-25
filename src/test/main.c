@@ -505,7 +505,7 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     // FIXME: FIX THE DEMO. DON'T REGISTER THIS LATE.
     nkxVmRegisterExternalFunction(vm, "doGCCallbackThing", doGCCallbackThing);
 
-    nkxVmRegisterExternalType(vm, "footype", NULL, NULL);
+    nkxVmRegisterExternalType(vm, "footype", NULL, NULL, NULL);
 
     // nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
     // nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
@@ -545,6 +545,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
         if(!c) {
             printf("Error occurred during serialization. 2\n");
+            free(buf.data);
             nkxVmDelete(vm);
             printf("----------------------------------------------------------------------\n");
             return NULL;
@@ -824,6 +825,8 @@ int main(int argc, char *argv[])
 
                         nkxVmShrink(vm);
 
+                        printf("vm before testserializer: %p\n", vm);
+
                         vm = testSerializer(vm, &settings);
                         if(!vm || checkErrors(vm)) {
                             printf("testSerializer failed\n");
@@ -900,6 +903,7 @@ int main(int argc, char *argv[])
 
             if(!serializerSuccess) {
                 printf("Error occurred during serialization. 1\n");
+                free(buf.data);
                 free(script);
                 nkxVmDelete(vm);
                 return ERROR_CODE;

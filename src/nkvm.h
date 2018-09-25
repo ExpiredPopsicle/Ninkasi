@@ -111,6 +111,7 @@ struct NKVMExternalType
     char *name;
     NKVMExternalObjectSerializationCallback serializationCallback;
     NKVMExternalObjectCleanupCallback cleanupCallback;
+    NKVMExternalObjectGCMarkCallback gcMarkCallback;
 };
 
 /// The VM object itself.
@@ -257,7 +258,8 @@ struct NKValue *nkiVmFindGlobalVariable(
 NKVMExternalDataTypeID nkiVmRegisterExternalType(
     struct NKVM *vm, const char *name,
     NKVMExternalObjectSerializationCallback serializationCallback,
-    NKVMExternalObjectCleanupCallback cleanupCallback);
+    NKVMExternalObjectCleanupCallback cleanupCallback,
+    NKVMExternalObjectGCMarkCallback gcMarkCallback);
 
 /// Search through all existing types for a matching name. Returns a
 /// NKVMExternalDataTypeID with NK_INVALID_VALUE on failure.

@@ -369,6 +369,11 @@ void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+nkuint32_t nkxVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *value)
+{
+    return nkiVmObjectGetExternalHandleCount(vm, value);
+}
+
 void nkxSetUserData(struct NKVM *vm, void *userData)
 {
     vm->userData = userData;
@@ -495,13 +500,15 @@ NKVMInternalFunctionID nkxVmGetOrCreateInternalFunctionForExternalFunction(
 NKVMExternalDataTypeID nkxVmRegisterExternalType(
     struct NKVM *vm, const char *name,
     NKVMExternalObjectSerializationCallback serializationCallback,
-    NKVMExternalObjectCleanupCallback cleanupCallback)
+    NKVMExternalObjectCleanupCallback cleanupCallback,
+    NKVMExternalObjectGCMarkCallback gcMarkCallback)
 {
     NKVMExternalDataTypeID ret = { NK_INVALID_VALUE };
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmRegisterExternalType(
-        vm, name, serializationCallback, cleanupCallback);
+        vm, name, serializationCallback, cleanupCallback,
+        gcMarkCallback);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -972,6 +979,17 @@ nkbool nkxGetNextObjectOfExternalType(
     }
 
     return nkfalse;
+}
+
+void nkxVmGarbageCollect_markValue(
+    struct NKVM *vm,
+    struct NKVMGCState *gcState,
+    struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmGarbageCollect_markValue(gcState, value);
+    NK_CLEAR_FAILURE_RECOVERY();
 }
 
 void nkxVmObjectClearEntry(

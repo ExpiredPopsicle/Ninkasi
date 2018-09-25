@@ -163,6 +163,28 @@ void nkiVmGarbageCollect_markObject(
         }
     }
 
+    // Execute any callbacks for marking stuff so that externally
+    // associated data can be checked.
+    if(ob->externalDataType.id != NK_INVALID_VALUE) {
+
+        struct NKVM *vm = gcState->vm;
+
+        if(ob->externalDataType.id < vm->externalTypeCount) {
+
+            NKVMExternalObjectGCMarkCallback callback =
+                vm->externalTypes[ob->externalDataType.id].gcMarkCallback;
+
+            if(callback) {
+                struct NKValue val;
+                memset(&val, 0, sizeof(val));
+                val.type = NK_VALUETYPE_OBJECTID;
+                val.objectId = ob->objectTableIndex;
+
+                callback(vm, &val, ob->externalData, gcState);
+            }
+        }
+    }
+
 }
 
 void nkiVmGarbageCollect_markReferenced(

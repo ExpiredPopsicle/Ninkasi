@@ -168,6 +168,9 @@ void nkxVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value);
 /// be deleted next garbage collection pass.
 void nkxVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
+/// Get the number of active external handles for an object.
+nkuint32_t nkxVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *value);
+
 /// Write an integer into an NKValue.
 void nkxValueSetInt(struct NKVM *vm, struct NKValue *value, nkint32_t intData);
 
@@ -402,10 +405,24 @@ void *nkxFunctionCallbackGetExternalDataArgument(
 /// Call this rarely. It will cause a search of all the existing types
 /// to make sure duplicates don't creep in. It's an
 /// initialization-time thing.
+///
+/// serializationCallback is called when this object type is getting
+/// serialized or deserialized. Use this to save or load the contents
+/// of any buffers or external data associated with the object.
+///
+/// cleanupCallback is called when the object is being destroyed by
+/// the garbage collector. Use this to clean up extra buffers or data
+/// associated with the object.
+///
+/// gcMarkCallback is called when the object is marked as in-use by
+/// the garbage collector. Use it to mark any associated content that
+/// you don't want to be destroyed by the garbage collector (eg other
+/// objects referenced by native data structures).
 NKVMExternalDataTypeID nkxVmRegisterExternalType(
     struct NKVM *vm, const char *name,
     NKVMExternalObjectSerializationCallback serializationCallback,
-    NKVMExternalObjectCleanupCallback cleanupCallback);
+    NKVMExternalObjectCleanupCallback cleanupCallback,
+    NKVMExternalObjectGCMarkCallback gcMarkCallback);
 
 /// Search through all existing types for a matching name. Returns a
 /// NKVMExternalDataTypeID with NK_INVALID_VALUE on failure.
@@ -460,6 +477,14 @@ nkbool nkxGetNextObjectOfExternalType(
     struct NKVMExternalDataTypeID type,
     struct NKValue *outValue,
     nkuint32_t *startIndex);
+
+/// Mark a value as in-use during the garbage collection process. This
+/// should only be called from a NKVMExternalObjectGCMarkCallback type
+/// callback. Used for marking externally referenced data.
+void nkxVmGarbageCollect_markValue(
+    struct NKVM *vm,
+    struct NKVMGCState *gcState,
+    struct NKValue *value);
 
 // ----------------------------------------------------------------------
 // External subsystem stuff.

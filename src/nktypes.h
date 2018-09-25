@@ -87,6 +87,8 @@ struct NKVM;
 struct NKValue;
 struct NKVMFunctionCallbackData;
 struct NKCompilerState;
+struct NKVMGCState;
+
 typedef void (*NKVMFunctionCallback)(struct NKVMFunctionCallbackData *data);
 typedef nkbool (*NKVMSerializationWriter)(void *data, nkuint32_t size, void *userdata, nkbool writeMode);
 typedef void (*NKVMSubsystemCleanupCallback)(struct NKVM *vm, void *internalData);
@@ -95,6 +97,12 @@ typedef void (*NKVMExternalObjectCleanupCallback)(
     struct NKVM *vm, struct NKValue *value, void *internalData);
 typedef void (*NKVMExternalObjectSerializationCallback)(
     struct NKVM *vm, struct NKValue *value, void *internalData);
+
+typedef void (*NKVMExternalObjectGCMarkCallback)(
+    struct NKVM *vm,
+    struct NKValue *value,
+    void *internalData,
+    struct NKVMGCState *gcState);
 
 #endif // NINKASI_BASETYPE_H
 

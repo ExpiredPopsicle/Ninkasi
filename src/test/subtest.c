@@ -543,6 +543,11 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
         nkxSerializeData(vm, &len, sizeof(len));
 
         if(!nkxSerializerGetWriteMode(vm)) {
+
+            // We're in read mode, so let's nuke whatever data we have
+            // here already to make room for the data that's about to
+            // come in.
+
             if(systemData->testString) {
                 subsystemTest_freeWrapper(systemData->testString);
             }
@@ -562,6 +567,12 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
         }
 
         if(systemData->testString) {
+
+            // nkxSerializeData() will either read the string data in,
+            // or write the data out depening on the mode. But we
+            // don't have to do anything else special here depending
+            // on the read/write mode.
+
             if(nkxSerializeData(vm, systemData->testString, len)) {
                 systemData->testString[len] = 0;
             } else {
@@ -586,6 +597,20 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
         // based on this. We don't trust data coming from the binary!
         nkxSerializeData(vm, &systemData->widgetCount, sizeof(nkuint32_t));
     }
+}
+
+void subsystemTest_widgetGCMark(
+    struct NKVM *vm, struct NKValue *value,
+    void *internalData, struct NKVMGCState *gcState)
+{
+    printf("Widget marked by GC: %p\n", internalData);
+
+    // FIXME: This is redundant, because it's marking itself. This is
+    // an example of a call to nkxVmGarbageCollect_markValue, which
+    // should be used on data associated with this object that lives
+    // inside the VM, but where all those associations are external to
+    // VM data.
+    nkxVmGarbageCollect_markValue(vm, gcState, value);
 }
 
 void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
@@ -622,7 +647,8 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
     internalData->widgetTypeId = nkxVmRegisterExternalType(
         vm, "subsystemTest_widget",
         subsystemTest_widgetSerializeData,
-        subsystemTest_widgetGCData);
+        subsystemTest_widgetGCData,
+        subsystemTest_widgetGCMark);
 
     nkxVmSetupExternalFunction(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
         nktrue,
