@@ -14,6 +14,8 @@ build:
 test:
   stage: test
   script:
+    - apt-get update
+    - apt-get install -y build-essential automake autoconf valgrind
     - bash test/run_tests.bsh
   dependencies:
     - build
