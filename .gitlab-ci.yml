@@ -1,0 +1,17 @@
+build:
+  stage: build
+  script:
+    - apt-get update
+    - apt-get install -y build-essentail automake autoconf valgrind
+    - bash autogen.sh
+    - ./configure CFLAGS="-Wall -Werror -fsanitize=undefined -fno-sanitize-recover"
+    - make
+
+test:
+  stage: test
+  script:
+    - bash test/run_tests.bsh
+  dependencies:
+    - build
+
+

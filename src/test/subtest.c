@@ -145,24 +145,26 @@ char *subsystemTest_strdupWrapper(const char *str, const char *description)
 // free() replacement.
 void subsystemTest_freeWrapper(void *data)
 {
-    struct SubsystemTest_MallocHeader *header =
-        (struct SubsystemTest_MallocHeader *)data - 1;
+    if(data) {
+        struct SubsystemTest_MallocHeader *header =
+            (struct SubsystemTest_MallocHeader *)data - 1;
 
-    // free(NULL) should just be a no-op.
-    if(!data) {
-        return;
+        // free(NULL) should just be a no-op.
+        if(!data) {
+            return;
+        }
+
+        // Remove this from the global allocation list.
+        if(header->nextBlock) {
+            header->nextBlock->prevPtr = header->prevPtr;
+        }
+        *header->prevPtr = header->nextBlock;
+
+        free(header->description);
+        free(header);
+
+        subsystemTest_debugOnly_dataCount--;
     }
-
-    // Remove this from the global allocation list.
-    if(header->nextBlock) {
-        header->nextBlock->prevPtr = header->prevPtr;
-    }
-    *header->prevPtr = header->nextBlock;
-
-    free(header->description);
-    free(header);
-
-    subsystemTest_debugOnly_dataCount--;
 }
 
 // This function exists only to check that every piece of data we've

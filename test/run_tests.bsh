@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+function run_script()
+{
+    valgrind \
+        --error-exitcode=1 \
+        src/ninkasi_test "$1"
+}
+
+for i in test/*.nks; do
+    run_script "$i"
+done
+

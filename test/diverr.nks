@@ -1,7 +1,23 @@
-// print("Test0: ", 1/0, "\n");
+// Should be fine. Not quite at our limit.
 print("Test1: ", -2147483647/-1, "\n");
+
+// Also fine.
 print("Test2: ", -214748364/-1, "\n");
+
+// Should be fine.
 print("Test3: ", -123/-1, "\n");
+
+// Doesn't hit undefined behavior in C according to ubsan. Shows up as
+// -2^32.
 print("Test4: ", 2147483648, "\n");
+
+// Hits undefined behavior in C.
+//print("Test4.5: ", -2147483648 * -1, "\n");
+
 print("This final test should exit with an error.\n");
-print("Test5: ", -2147483648/-1, "\n");
+
+// This is how we hit the "-2^32 / -1" case without hitting undefined
+// behavior in the parser.
+print("Test5: ", (-2147483647 - 1) / -1, "\n");
+
+
