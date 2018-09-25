@@ -6,6 +6,10 @@ build:
     - bash autogen.sh
     - ./configure CFLAGS="-Wall -Werror -fsanitize=undefined -fno-sanitize-recover"
     - make
+  artifacts:
+    paths:
+      - src/ninkasi
+      - src/ninkasi_test
 
 test:
   stage: test
