@@ -1,8 +1,6 @@
 build:
   stage: build
   script:
-    - apt-get update
-    - apt-get install -y build-essential automake autoconf valgrind
     - bash autogen.sh
     - ./configure CFLAGS="-Wall -Werror -fsanitize=undefined -fno-sanitize-recover"
     - make
@@ -14,16 +12,12 @@ build:
 test:
   stage: test
   script:
-    - apt-get update
-    - apt-get install -y build-essential automake autoconf valgrind
     - bash test/run_tests.bsh
   dependencies:
     - build
 
 deploy:
   script:
-    - apt-get update
-    - apt-get install -y build-essential automake autoconf valgrind
     - bash autogen.sh
     - ./configure
     - make dist
