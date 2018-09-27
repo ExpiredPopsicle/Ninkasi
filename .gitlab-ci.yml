@@ -17,6 +17,7 @@ test:
     - build
 
 deploy:
+  stage: deploy
   script:
     - bash autogen.sh
     - ./configure
