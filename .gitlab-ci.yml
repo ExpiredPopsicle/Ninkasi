@@ -12,7 +12,7 @@ build:
 test:
   stage: test
   script:
-    - src/ninkasi -c test/test2.nks
+    - src/ninkasi_test -c test/test2.nks
     - bash test/run_tests.bsh
   dependencies:
     - build
