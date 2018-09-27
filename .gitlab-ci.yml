@@ -12,9 +12,13 @@ build:
 test:
   stage: test
   script:
+    - src/ninkasi -c test/test2.nks
     - bash test/run_tests.bsh
   dependencies:
     - build
+  artifacts:
+    paths:
+      - src/test2.nkb
 
 deploy:
   stage: deploy
@@ -24,6 +28,7 @@ deploy:
     - make dist
   dependencies:
     - build
+    - test
   artifacts:
     paths:
       - ./ninkasi-0.1.tar.gz
