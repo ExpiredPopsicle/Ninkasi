@@ -9,6 +9,12 @@ build:
       - src/ninkasi
       - src/ninkasi_test
 
+build:dos:
+  stage: build
+  script:
+    - bash misc/generate_build_batch_file.bsh
+    - rundos build.bat
+
 test:
   stage: test
   script:
