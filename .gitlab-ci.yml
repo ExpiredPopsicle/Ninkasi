@@ -16,7 +16,7 @@ build:dos:
     - rundos call build.bat
   artifacts:
     paths:
-      ./A.EXE
+      - ./A.EXE
 
 test:
   stage: test
