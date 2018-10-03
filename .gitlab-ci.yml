@@ -13,15 +13,20 @@ build:dos:
   stage: build
   script:
     - bash misc/generate_build_batch_file.bsh
-    - rundos build.bat
+    - rundos call build.bat
+  artifacts:
+    paths:
+      ./A.EXE
 
 test:
   stage: test
   script:
     - src/ninkasi_test -c test/test2.nks
     - bash test/run_tests.bsh
+    - rundos A.EXE test/test2.nks
   dependencies:
     - build
+    - build:dos
   artifacts:
     paths:
       - test/test2.nkb
