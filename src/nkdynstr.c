@@ -67,7 +67,7 @@ void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
     dynStr->data = (char *)nkiRealloc(
         dynStr->vm,
         dynStr->data,
-        strlen(dynStr->data) + strlen(str) + 1);
+        (nkuint32_t)strlen(dynStr->data) + (nkuint32_t)strlen(str) + 1);
 
     strcat(dynStr->data, str);
 }
@@ -100,3 +100,4 @@ void nkiDynStrAppendFloat(struct NKDynString *dynStr, float value)
     sprintf(tmp, "%f", value);
     nkiDynStrAppend(dynStr, tmp);
 }
+

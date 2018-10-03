@@ -100,9 +100,21 @@ void *nkiMalloc_real(
     // function!
     assert(vm->catastrophicFailureJmpBuf);
 
+    // FIXME: Move this check to the wrapped malloc.
+    //
+    // Thanks, continuous integration with DOSBox! Some platforms have
+    // a 16-bit size_t, so we can't even express the actual allocation
+    // to the underlying OS.
+    if(size > ~(size_t)0 - sizeof(struct NKMemoryHeader)) {
+        nkiErrorStateSetAllocationFailFlag(vm);
+        NK_CATASTROPHE();
+        assert(0);
+        return NULL;
+    }
+
     // Thanks, AFL! Allocations large enough to overflow 32-bit uints
     // are bad.
-    if(size > ~(nkuint32_t)0 - sizeof(struct NKMemoryHeader)) {
+    if(size > (~(nkuint32_t)0) - sizeof(struct NKMemoryHeader)) {
         nkiErrorStateSetAllocationFailFlag(vm);
         NK_CATASTROPHE();
         assert(0);
@@ -126,9 +138,15 @@ void *nkiMalloc_real(
             return NULL;
         }
 
+        printf("Mem used:       " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
+        printf("Mem max:        " NK_PRINTF_UINT32 "\n", vm->limits.maxAllocatedMemory);
+        printf("Mem allocating: " NK_PRINTF_UINT32 "\n", newChunkSize);
+
         header = (struct NKMemoryHeader *)vm->mallocReplacement(
             newChunkSize,
             vm->mallocAndFreeReplacementUserData);
+
+        printf("Did the alloc: %p\n", header);
 
         if(header) {
 
@@ -183,6 +201,8 @@ void *nkiMalloc_real(
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
             assert(vm->allocationCount == nkiMemGetAllocCount(vm));
 #endif // NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
+
+            printf("Returning\n");
 
             return header + 1;
 
@@ -252,6 +272,8 @@ void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)
 
 char *nkiStrdup(struct NKVM *vm, const char *str)
 {
+    printf("nkiStrdup: "  NK_PRINTF_UINT32 "\n", strlen(str));
+
     if(str) {
         nkuint32_t len = strlen(str) + 1;
         if(len) {

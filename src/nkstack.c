@@ -162,13 +162,37 @@ nkbool nkiVmStackPushFloat(struct NKVM *vm, float value)
 
 nkbool nkiVmStackPushString(struct NKVM *vm, const char *str)
 {
-    struct NKValue *data = nkiVmStackPush_internal(vm);
-    if(data) {
-        data->type = NK_VALUETYPE_STRING;
-        data->stringTableEntry =
-            nkiVmStringTableFindOrAddString(
-                vm, str);
-        return nktrue;
+    printf("nkiVmStackPushString 1\n");
+    nkiCheckStringTableHoles(vm);
+
+    {
+        struct NKValue *data = nkiVmStackPush_internal(vm);
+
+        printf("nkiVmStackPushString 2\n");
+        nkiCheckStringTableHoles(vm);
+
+        if(data) {
+
+            printf("nkiVmStackPushString 3\n");
+            nkiCheckStringTableHoles(vm);
+
+            data->type = NK_VALUETYPE_STRING;
+
+            printf("nkiVmStackPushString 4\n");
+            nkiCheckStringTableHoles(vm);
+
+            data->stringTableEntry =
+                nkiVmStringTableFindOrAddString(
+                    vm, str);
+
+            printf("nkiVmStackPushString 5\n");
+            nkiCheckStringTableHoles(vm);
+
+            return nktrue;
+        }
+
+        printf("nkiVmStackPushString 6\n");
+        nkiCheckStringTableHoles(vm);
     }
     return nkfalse;
 }

@@ -50,9 +50,15 @@ void nkiOpcode_add(struct NKVM *vm)
 
     enum NKValueType type = in1->type;
 
+    printf("Add 1\n");
+    nkiCheckStringTableHoles(vm);
+
     switch(type) {
 
         case NK_VALUETYPE_INT:
+
+            printf("Add 2\n");
+
             nkiVmStackPushInt(
                 vm,
                 in1->intData +
@@ -60,6 +66,9 @@ void nkiOpcode_add(struct NKVM *vm)
             break;
 
         case NK_VALUETYPE_FLOAT:
+
+            printf("Add 3\n");
+
             nkiVmStackPushFloat(
                 vm,
                 in1->floatData +
@@ -67,6 +76,10 @@ void nkiOpcode_add(struct NKVM *vm)
             break;
 
         case NK_VALUETYPE_STRING: {
+
+            printf("Add 4\n");
+            nkiCheckStringTableHoles(vm);
+            {
 
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
@@ -76,17 +89,30 @@ void nkiOpcode_add(struct NKVM *vm)
                         &vm->stringTable,
                         in1->stringTableEntry));
 
+            printf("Add 5\n");
+            nkiCheckStringTableHoles(vm);
+
             // Append the other one, after conversion to string if
             // necessary.
             nkiDynStrAppend(dynStr, nkiValueToString(vm, in2));
+
+            printf("Add 6\n");
+            nkiCheckStringTableHoles(vm);
 
             // Push the result.
             nkiVmStackPushString(
                 vm, dynStr->data);
 
+            printf("Add 7\n");
+            nkiCheckStringTableHoles(vm);
+
             // Clean up.
             nkiDynStrDelete(dynStr);
 
+            printf("Add 8\n");
+            nkiCheckStringTableHoles(vm);
+
+            }
         } break;
 
             // TODO: Array concatenation support.
@@ -103,6 +129,8 @@ void nkiOpcode_add(struct NKVM *vm)
             return;
         }
     }
+
+    printf("Add end\n");
 }
 
 void nkiOpcode_pushLiteral_int(struct NKVM *vm)

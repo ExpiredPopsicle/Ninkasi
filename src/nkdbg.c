@@ -334,6 +334,8 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
     char *holeTracker = (char *)malloc(vm->stringTable.capacity);
     struct NKVMTableHole *hole = vm->stringTable.tableHoles;
 
+    printf("Checking holes\n");
+
     memset(holeTracker, 0, vm->stringTable.capacity);
 
     // printf("HOLE LIST...\n");
@@ -367,6 +369,7 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
         }
     }
 
+    printf("Checking holes complete\n");
 
 }
 
