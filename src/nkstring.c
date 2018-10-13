@@ -106,70 +106,49 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str)
 {
-    // FIXME: Remove this.
-    // printf("nkiVmStringTableFindOrAddString 1\n");
-    // nkiCheckStringTableHoles(vm);
+    struct NKVMTable *table = &vm->stringTable;
+    nkuint32_t hash = nkiStringHash(str);
 
     {
-        struct NKVMTable *table = &vm->stringTable;
-        nkuint32_t hash = nkiStringHash(str);
+        // See if we have this string already.
+        struct NKVMString *hashBucket =
+            vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
+        struct NKVMString *cur = hashBucket;
 
+        while(cur) {
+            if(!strcmp(cur->str, str)) {
+                return cur->stringTableIndex;
+            }
+            cur = cur->nextInHashBucket;
+        }
+
+        // If we've reach this point, then we don't have the string yet,
+        // so we'll go ahead and make a new entry.
         {
-            // See if we have this string already.
-            struct NKVMString *hashBucket =
-                vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
-            struct NKVMString *cur = hashBucket;
+            nkuint32_t len = strlen(str);
 
-            while(cur) {
-                if(!strcmp(cur->str, str)) {
+            struct NKVMString *newString =
+                (struct NKVMString *)nkiMalloc(
+                    vm, sizeof(struct NKVMString) + len + 1);
 
-                    // FIXME: Remove this.
-                    // nkiCheckStringTableHoles(vm);
+            nkuint32_t index = nkiTableAddEntry(vm, table, newString);
 
-                    return cur->stringTableIndex;
-                }
-                cur = cur->nextInHashBucket;
+            if(index == NK_INVALID_VALUE) {
+                nkiFree(vm, newString);
+                return NK_INVALID_VALUE;
             }
 
-            // If we've reach this point, then we don't have the string yet,
-            // so we'll go ahead and make a new entry.
-            {
-                nkuint32_t len = strlen(str);
+            newString->stringTableIndex = index;
+            newString->lastGCPass = 0;
+            newString->dontGC = nkfalse;
+            newString->hash = nkiStringHash(str);
+            strcpy(newString->str, str);
+            newString->nextInHashBucket = hashBucket;
+            vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
 
-                struct NKVMString *newString =
-                    (struct NKVMString *)nkiMalloc(
-                        vm, sizeof(struct NKVMString) + len + 1);
-
-                // FIXME: Remove this.
-                // nkiCheckStringTableHoles(vm);
-
-                {
-                    nkuint32_t index = nkiTableAddEntry(vm, table, newString);
-
-                    if(index == NK_INVALID_VALUE) {
-                        nkiFree(vm, newString);
-                        return NK_INVALID_VALUE;
-                    }
-
-                    newString->stringTableIndex = index;
-                    newString->lastGCPass = 0;
-                    newString->dontGC = nkfalse;
-                    newString->hash = nkiStringHash(str);
-                    strcpy(newString->str, str);
-                    newString->nextInHashBucket = hashBucket;
-                    vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
-
-                    // FIXME: Remove this.
-                    // nkiCheckStringTableHoles(vm);
-
-                    return newString->stringTableIndex;
-                }
-            }
+            return newString->stringTableIndex;
         }
     }
-
-    // FIXME: Remove this.
-    // nkiCheckStringTableHoles(vm);
 }
 
 // VM teardown function. Does not create holes. Use only during VM

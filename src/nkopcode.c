@@ -50,8 +50,6 @@ void nkiOpcode_add(struct NKVM *vm)
 
     enum NKValueType type = in1->type;
 
-    nkiCheckStringTableHoles(vm);
-
     switch(type) {
 
         case NK_VALUETYPE_INT:
@@ -72,10 +70,6 @@ void nkiOpcode_add(struct NKVM *vm)
 
         case NK_VALUETYPE_STRING: {
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-            {
-
             // Make a new string that is the concatenated values.
             // Start with a DynString of the first one.
             struct NKDynString *dynStr =
@@ -84,30 +78,17 @@ void nkiOpcode_add(struct NKVM *vm)
                         &vm->stringTable,
                         in1->stringTableEntry));
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-
             // Append the other one, after conversion to string if
             // necessary.
             nkiDynStrAppend(dynStr, nkiValueToString(vm, in2));
-
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
 
             // Push the result.
             nkiVmStackPushString(
                 vm, dynStr->data);
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-
             // Clean up.
             nkiDynStrDelete(dynStr);
 
-            // FIXME: Remove this.
-            nkiCheckStringTableHoles(vm);
-
-            }
         } break;
 
             // TODO: Array concatenation support.

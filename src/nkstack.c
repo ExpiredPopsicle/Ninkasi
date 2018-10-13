@@ -162,43 +162,13 @@ nkbool nkiVmStackPushFloat(struct NKVM *vm, float value)
 
 nkbool nkiVmStackPushString(struct NKVM *vm, const char *str)
 {
-    // FIXME: Remove this.
-    // printf("nkiVmStackPushString 1\n");
-    // nkiCheckStringTableHoles(vm);
-
-    {
-        struct NKValue *data = nkiVmStackPush_internal(vm);
-
-        // FIXME: Remove this.
-        // printf("nkiVmStackPushString 2\n");
-        // nkiCheckStringTableHoles(vm);
-
-        if(data) {
-
-            // FIXME: Remove this.
-            // printf("nkiVmStackPushString 3\n");
-            // nkiCheckStringTableHoles(vm);
-
-            data->type = NK_VALUETYPE_STRING;
-
-            // FIXME: Remove this.
-            // printf("nkiVmStackPushString 4\n");
-            // nkiCheckStringTableHoles(vm);
-
-            data->stringTableEntry =
-                nkiVmStringTableFindOrAddString(
-                    vm, str);
-
-            // FIXME: Remove this.
-            // printf("nkiVmStackPushString 5\n");
-            // nkiCheckStringTableHoles(vm);
-
-            return nktrue;
-        }
-
-        // FIXME: Remove this.
-        // printf("nkiVmStackPushString 6\n");
-        // nkiCheckStringTableHoles(vm);
+    struct NKValue *data = nkiVmStackPush_internal(vm);
+    if(data) {
+        data->type = NK_VALUETYPE_STRING;
+        data->stringTableEntry =
+            nkiVmStringTableFindOrAddString(
+                vm, str);
+        return nktrue;
     }
     return nkfalse;
 }
