@@ -91,6 +91,10 @@ void nkiVmStringTableCleanOldStrings(
 
 nkuint32_t nkiStringHash(const char *in);
 
+nkuint32_t nkiStrlen(const char *str);
+nkint32_t nkiStrcmp(const char *a, const char *b);
+void nkiStrcat(char *dst, const char *src);
+
 
 #endif // NINKASI_VMSTRING_H
 

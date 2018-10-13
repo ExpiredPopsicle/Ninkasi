@@ -106,15 +106,13 @@ nkuint32_t nkiVmStringTableFindOrAddString(
     struct NKVM *vm,
     const char *str)
 {
-    printf("nkiVmStringTableFindOrAddString 1\n");
-
-    nkiCheckStringTableHoles(vm);
+    // FIXME: Remove this.
+    // printf("nkiVmStringTableFindOrAddString 1\n");
+    // nkiCheckStringTableHoles(vm);
 
     {
         struct NKVMTable *table = &vm->stringTable;
         nkuint32_t hash = nkiStringHash(str);
-
-        printf("nkiVmStringTableFindOrAddString 2\n");
 
         {
             // See if we have this string already.
@@ -122,21 +120,16 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                 vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)];
             struct NKVMString *cur = hashBucket;
 
-            printf("nkiVmStringTableFindOrAddString 3\n");
-
             while(cur) {
                 if(!strcmp(cur->str, str)) {
-                    printf("nkiVmStringTableFindOrAddString 3.5\n");
 
-                    nkiCheckStringTableHoles(vm);
+                    // FIXME: Remove this.
+                    // nkiCheckStringTableHoles(vm);
 
                     return cur->stringTableIndex;
                 }
                 cur = cur->nextInHashBucket;
-                printf("nkiVmStringTableFindOrAddString 4 %p\n", cur);
             }
-
-            printf("nkiVmStringTableFindOrAddString 4\n");
 
             // If we've reach this point, then we don't have the string yet,
             // so we'll go ahead and make a new entry.
@@ -147,24 +140,16 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                     (struct NKVMString *)nkiMalloc(
                         vm, sizeof(struct NKVMString) + len + 1);
 
-                printf("nkiVmStringTableFindOrAddString 4.5\n");
-
-                nkiCheckStringTableHoles(vm);
+                // FIXME: Remove this.
+                // nkiCheckStringTableHoles(vm);
 
                 {
                     nkuint32_t index = nkiTableAddEntry(vm, table, newString);
 
-                    printf("nkiVmStringTableFindOrAddString 5\n");
-
                     if(index == NK_INVALID_VALUE) {
                         nkiFree(vm, newString);
-                        printf("nkiVmStringTableFindOrAddString end 0\n");
                         return NK_INVALID_VALUE;
                     }
-
-                    // nkiCheckStringTableHoles(vm);
-
-                    printf("nkiVmStringTableFindOrAddString 6\n");
 
                     newString->stringTableIndex = index;
                     newString->lastGCPass = 0;
@@ -174,9 +159,8 @@ nkuint32_t nkiVmStringTableFindOrAddString(
                     newString->nextInHashBucket = hashBucket;
                     vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
 
-                    printf("nkiVmStringTableFindOrAddString end 1\n");
-
-                    nkiCheckStringTableHoles(vm);
+                    // FIXME: Remove this.
+                    // nkiCheckStringTableHoles(vm);
 
                     return newString->stringTableIndex;
                 }
@@ -184,9 +168,8 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         }
     }
 
-    nkiCheckStringTableHoles(vm);
-
-    printf("nkiVmStringTableFindOrAddString end 2\n");
+    // FIXME: Remove this.
+    // nkiCheckStringTableHoles(vm);
 }
 
 // VM teardown function. Does not create holes. Use only during VM
@@ -248,3 +231,81 @@ void nkiVmStringTableCleanOldStrings(
         }
     }
 }
+
+nkuint32_t nkiStrlen(const char *str)
+{
+    nkuint32_t i = 0;
+
+    while(str[i]) {
+
+        // Bail out early if we reach the max possible string length.
+        if(i == ~(nkuint32_t)0) {
+            return i;
+        }
+
+        i++;
+    }
+
+    return i;
+}
+
+nkint32_t nkiStrcmp(const char *a, const char *b)
+{
+    nkuint32_t i = 0;
+
+    while(a[i] && b[i]) {
+
+        // They're equal up to as far as we can see.
+        if(i == ~(nkuint32_t)0) {
+            return 0;
+        }
+
+        if(a[i] > b[i]) return 1;
+        if(a[i] < b[i]) return -1;
+        i++;
+    }
+
+    return 0;
+}
+
+void nkiStrcat(char *dst, const char *src)
+{
+    nkuint32_t i = nkiStrlen(dst);
+    nkuint32_t start = i;
+
+    while(src[i - start]) {
+
+        // Bail out early if we hit the length limit.
+        if(i == ~(nkuint32_t)0) {
+            dst[i] = 0;
+            return;
+        }
+
+        dst[i] = src[i - start];
+        i++;
+    }
+
+    dst[i] = 0;
+}
+
+void nkiStrcpy(char *dst, const char *src)
+{
+    nkuint32_t i = 0;
+
+    while(src[i]) {
+
+        dst[i] = src[i];
+
+        i++;
+
+        // Bail out early if we hit the length limit.
+        if(i == ~(nkuint32_t)0) {
+            dst[i] = 0;
+            return;
+        }
+    }
+
+    dst[i] = 0;
+}
+
+

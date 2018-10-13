@@ -21,7 +21,7 @@ for i in afl_out/*/crashes/* afl_in/* crashes/*; do
 	#afl-showmap -o trace.txt -c -- src/ninkasi_test $i
 	#afl-showmap -o trace.txt -c -- ./nk2 $i
 	#src/ninkasi_test $i >/dev/null
-	./a.out $i
+	src/ninkasi_test $i
 done
 
 echo "DONE. No crashes found."

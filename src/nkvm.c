@@ -341,7 +341,8 @@ void nkiVmIterate(struct NKVM *vm)
         vm->instructionPointer & vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & opcodeMask;
 
-    printf("Iterating: " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
+    // FIXME: Remove this.
+    // printf("Iterating: " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
 
     // Handle periodic garbage collection. Do this BEFORE the
     // instruction, so we can handle instruction count limits in here
@@ -361,28 +362,31 @@ void nkiVmIterate(struct NKVM *vm)
 
         if(!vm->gcInfo.gcNewObjectCountdown) {
 
-            printf("Firing off GC\n");
+            // FIXME: Remove this.
+            // printf("Firing off GC\n");
 
             nkiVmGarbageCollect(vm);
 
-            printf("GC done\n");
+            // FIXME: Remove this.
+            // printf("GC done\n");
 
             vm->gcInfo.gcNewObjectCountdown = vm->gcInfo.gcNewObjectInterval;
         }
         vm->gcInfo.gcCountdown = vm->gcInfo.gcInterval;
     }
 
-    printf("Opcode ID: " NK_PRINTF_UINT32 "\n", opcodeId);
-
-    printf("Iteration hole check 0\n");
-    nkiCheckStringTableHoles(vm);
+    // FIXME: Remove this.
+    // printf("Opcode ID: " NK_PRINTF_UINT32 "\n", opcodeId);
+    // printf("Iteration hole check 0\n");
+    // nkiCheckStringTableHoles(vm);
 
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);
     vm->instructionPointer++;
 
-    printf("Iteration hole check 1\n");
-    nkiCheckStringTableHoles(vm);
+    // FIXME: Remove this.
+    // printf("Iteration hole check 1\n");
+    // nkiCheckStringTableHoles(vm);
 }
 
 nkbool nkiVmExecuteProgram(struct NKVM *vm)

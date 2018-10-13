@@ -50,14 +50,11 @@ void nkiOpcode_add(struct NKVM *vm)
 
     enum NKValueType type = in1->type;
 
-    printf("Add 1\n");
     nkiCheckStringTableHoles(vm);
 
     switch(type) {
 
         case NK_VALUETYPE_INT:
-
-            printf("Add 2\n");
 
             nkiVmStackPushInt(
                 vm,
@@ -67,8 +64,6 @@ void nkiOpcode_add(struct NKVM *vm)
 
         case NK_VALUETYPE_FLOAT:
 
-            printf("Add 3\n");
-
             nkiVmStackPushFloat(
                 vm,
                 in1->floatData +
@@ -77,7 +72,7 @@ void nkiOpcode_add(struct NKVM *vm)
 
         case NK_VALUETYPE_STRING: {
 
-            printf("Add 4\n");
+            // FIXME: Remove this.
             nkiCheckStringTableHoles(vm);
             {
 
@@ -89,27 +84,27 @@ void nkiOpcode_add(struct NKVM *vm)
                         &vm->stringTable,
                         in1->stringTableEntry));
 
-            printf("Add 5\n");
+            // FIXME: Remove this.
             nkiCheckStringTableHoles(vm);
 
             // Append the other one, after conversion to string if
             // necessary.
             nkiDynStrAppend(dynStr, nkiValueToString(vm, in2));
 
-            printf("Add 6\n");
+            // FIXME: Remove this.
             nkiCheckStringTableHoles(vm);
 
             // Push the result.
             nkiVmStackPushString(
                 vm, dynStr->data);
 
-            printf("Add 7\n");
+            // FIXME: Remove this.
             nkiCheckStringTableHoles(vm);
 
             // Clean up.
             nkiDynStrDelete(dynStr);
 
-            printf("Add 8\n");
+            // FIXME: Remove this.
             nkiCheckStringTableHoles(vm);
 
             }
@@ -129,8 +124,6 @@ void nkiOpcode_add(struct NKVM *vm)
             return;
         }
     }
-
-    printf("Add end\n");
 }
 
 void nkiOpcode_pushLiteral_int(struct NKVM *vm)
@@ -311,7 +304,14 @@ void nkiOpcode_modulo(struct NKVM *vm)
 
         case NK_VALUETYPE_INT: {
             nkint32_t val2 = nkiValueToInt(vm, in2);
-            if(val2 == 0) {
+
+            // FIXME: Remove this.
+            printf(NK_PRINTF_INT32 " %% " NK_PRINTF_INT32 "\n", in1->intData, val2);
+
+            if(val2 == 0 || (
+                    in1->intData == -2147483648L &&
+                    val2 == -1))
+            {
                 nkiAddError(
                     vm, -1,
                     "Integer divide-by-zero.");
