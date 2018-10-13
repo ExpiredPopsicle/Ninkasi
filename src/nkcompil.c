@@ -70,7 +70,7 @@ void nkiCompilerAddInstruction(
                 newSize);
 
         // Clear the new area to NOPs.
-        memset(
+        nkiMemset(
             cs->vm->instructions + oldSize, 0,
             (newSize - oldSize) * sizeof(struct NKInstruction));
     }
@@ -96,7 +96,7 @@ void nkiCompilerAddInstructionSimple(
     nkbool adjustStackFrame)
 {
     struct NKInstruction inst;
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opcode = opcode;
     nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 }
@@ -106,7 +106,7 @@ void nkiCompilerPushContext(struct NKCompilerState *cs)
     struct NKCompilerStateContext *newContext =
         (struct NKCompilerStateContext *)nkiMalloc(
             cs->vm, sizeof(struct NKCompilerStateContext));
-    memset(newContext, 0, sizeof(*newContext));
+    nkiMemset(newContext, 0, sizeof(*newContext));
     newContext->currentFunctionId.id = NK_INVALID_VALUE;
     newContext->parent = cs->context;
 
@@ -206,12 +206,12 @@ void nkiCompilerEmitPushLiteralInt(struct NKCompilerState *cs, nkint32_t value, 
     struct NKInstruction inst;
 
     // Add instruction.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_INT;
     nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opData_int = value;
     nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
@@ -222,12 +222,12 @@ void nkiCompilerEmitPushLiteralFunctionId(
     struct NKInstruction inst;
 
     // Add instruction.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FUNCTIONID;
     nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opData_functionId = functionId;
     nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
@@ -237,12 +237,12 @@ void nkiCompilerEmitPushLiteralFloat(struct NKCompilerState *cs, float value, nk
     struct NKInstruction inst;
 
     // Add instruction.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_FLOAT;
     nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add parameter.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opData_float = value;
     nkiCompilerAddInstruction(cs, &inst, nkfalse);
 }
@@ -252,12 +252,12 @@ void nkiCompilerEmitPushLiteralString(struct NKCompilerState *cs, const char *st
     struct NKInstruction inst;
 
     // Add instruction.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opcode = NK_OP_PUSHLITERAL_STRING;
     nkiCompilerAddInstruction(cs, &inst, adjustStackFrame);
 
     // Add string table entry data as op parameter.
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
     inst.opData_string =
         nkiVmStringTableFindOrAddString(
             cs->vm,
@@ -303,7 +303,7 @@ nkuint32_t nkiCompilerAllocateStaticSpace(
         vm->staticSpace = (struct NKValue *)nkiReallocArray(
             vm, vm->staticSpace,
             sizeof(struct NKValue), (vm->staticAddressMask + 1));
-        memset(
+        nkiMemset(
             &vm->staticSpace[cs->staticVariableCount], 0,
             (cs->staticVariableCount) * sizeof(struct NKValue));
     }
@@ -330,7 +330,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
     struct NKCompilerStateContextVariable *checkVar;
 
     for(checkVar = cs->context->variables; checkVar; checkVar = checkVar->next) {
-        if(!strcmp(checkVar->name, name)) {
+        if(!nkiStrcmp(checkVar->name, name)) {
             nkiCompilerAddError(cs,
                 "Redundant variable declaration.");
             return NULL;
@@ -339,7 +339,7 @@ struct NKCompilerStateContextVariable *nkiCompilerAddVariable(
 
     var = (struct NKCompilerStateContextVariable *)nkiMalloc(
         cs->vm, sizeof(struct NKCompilerStateContextVariable));
-    memset(var, 0, sizeof(*var));
+    nkiMemset(var, 0, sizeof(*var));
 
     if(isGlobal) {
 
@@ -515,7 +515,7 @@ struct NKCompilerStateContextVariable *nkiCompilerLookupVariable(
     while(ctx) {
         var = ctx->variables;
         while(var) {
-            if(!strcmp(var->name, name)) {
+            if(!nkiStrcmp(var->name, name)) {
                 // Found it.
                 ctx = NULL;
                 break;
@@ -746,7 +746,7 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     // set it and parent it directly.
     functionLocalContext = (struct NKCompilerStateContext *)nkiMalloc(
         cs->vm, sizeof(struct NKCompilerStateContext));
-    memset(functionLocalContext, 0, sizeof(*functionLocalContext));
+    nkiMemset(functionLocalContext, 0, sizeof(*functionLocalContext));
     savedContext = cs->context;
     // Find the global context and set it as our parent.
     searchContext = savedContext;
@@ -967,7 +967,7 @@ void nkiCompilerCreateCFunctionVariable(
     {
         struct NKValue funcVal;
         struct NKValue *staticVal;
-        memset(&funcVal, 0, sizeof(funcVal));
+        nkiMemset(&funcVal, 0, sizeof(funcVal));
         funcVal.type = NK_VALUETYPE_FUNCTIONID;
         funcVal.functionId = functionId;
         staticVal = nkiCompilerCreateGlobalVariable(cs, name);
@@ -988,7 +988,7 @@ struct NKCompilerState *nkiCompilerCreate(
 
     cs = (struct NKCompilerState *)nkiMalloc(
         vm, sizeof(struct NKCompilerState));
-    memset(cs, 0, sizeof(*cs));
+    nkiMemset(cs, 0, sizeof(*cs));
 
     cs->instructionWriteIndex = 0;
     cs->vm = vm;
@@ -1072,7 +1072,7 @@ nkbool nkiCompilerCompileScript(
 
     // Tokenize.
 
-    memset(&tokenList, 0, sizeof(tokenList));
+    nkiMemset(&tokenList, 0, sizeof(tokenList));
     tokenList.first = NULL;
     tokenList.last = NULL;
 

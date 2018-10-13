@@ -91,10 +91,15 @@ void nkiVmStringTableCleanOldStrings(
 
 nkuint32_t nkiStringHash(const char *in);
 
+// A lot of these are simple reimplementations of the standard library
+// versions, just so we don't have to rely on the size of size_t.
 nkuint32_t nkiStrlen(const char *str);
 nkint32_t nkiStrcmp(const char *a, const char *b);
 void nkiStrcat(char *dst, const char *src);
-
-
+void nkiStrcpy(char *dst, const char *src);
+void nkiStrcpy_s(char *dst, const char *src, nkuint32_t len);
+void nkiMemset(void *ptr, nkuint32_t c, nkuint32_t len);
+void nkiMemcpy(void *dst, const void *src, nkuint32_t len);
+nkint32_t nkiMemcmp(const void *a, const void *b, nkuint32_t len);
 #endif // NINKASI_VMSTRING_H
 

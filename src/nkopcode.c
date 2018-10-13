@@ -527,7 +527,7 @@ void nkiOpcode_call(struct NKVM *vm)
         struct NKVMFunctionCallbackData data;
         struct NKVMExternalFunction *externalFunc;
 
-        memset(&data, 0, sizeof(data));
+        nkiMemset(&data, 0, sizeof(data));
 
         // First check that this is a valid function. Maybe we go
         // weird data from deserialization.

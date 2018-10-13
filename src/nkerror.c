@@ -108,7 +108,7 @@ void nkiAddError(
 
     // Now add the string.
     newError->errorText =
-        (char *)nkiMalloc(vm, strlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
+        (char *)nkiMalloc(vm, nkiStrlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
 
     newError->errorText[0] = 0;
     sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
@@ -141,7 +141,7 @@ nkuint32_t nkiGetErrorLength(struct NKVM *vm)
     if(vm->errorState.allocationFailure) {
 
         // Add length of string AND extra space for a \n.
-        length += strlen(nkiAllocationFailureStr) + 1;
+        length += nkiStrlen(nkiAllocationFailureStr) + 1;
 
     } else {
 
@@ -150,7 +150,7 @@ nkuint32_t nkiGetErrorLength(struct NKVM *vm)
         while(error) {
 
             // Add length of string AND extra space for a \n.
-            length += strlen(error->errorText) + 1;
+            length += nkiStrlen(error->errorText) + 1;
             error = error->next;
 
         }
@@ -166,8 +166,8 @@ void nkiGetErrorText(struct NKVM *vm, char *buffer)
 
     if(vm->errorState.allocationFailure) {
 
-        strcat(buffer, nkiAllocationFailureStr);
-        strcat(buffer, "\n");
+        nkiStrcat(buffer, nkiAllocationFailureStr);
+        nkiStrcat(buffer, "\n");
 
     } else {
 
@@ -175,8 +175,8 @@ void nkiGetErrorText(struct NKVM *vm, char *buffer)
 
         while(error) {
 
-            strcat(buffer, error->errorText);
-            strcat(buffer, "\n");
+            nkiStrcat(buffer, error->errorText);
+            nkiStrcat(buffer, "\n");
             error = error->next;
 
         }

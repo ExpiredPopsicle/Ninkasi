@@ -45,7 +45,7 @@
 
 nkuint32_t nkiStringHash(const char *in)
 {
-    nkuint32_t len = strlen(in);
+    nkuint32_t len = nkiStrlen(in);
     nkuint32_t a = 1;
     nkuint32_t b = 0;
     nkuint32_t i;
@@ -60,7 +60,7 @@ nkuint32_t nkiStringHash(const char *in)
 
 void nkiVmStringTableInit(struct NKVM *vm)
 {
-    memset(&vm->stringsByHash, 0, sizeof(vm->stringsByHash));
+    nkiMemset(&vm->stringsByHash, 0, sizeof(vm->stringsByHash));
     nkiTableInit(vm, &vm->stringTable);
 }
 
@@ -80,7 +80,7 @@ void nkiVmStringTableDestroy(struct NKVM *vm)
     nkiTableDestroy(vm, table);
 
     // Zero-out the hash table, just for safety.
-    memset(vm->stringsByHash, 0, sizeof(vm->stringsByHash));
+    nkiMemset(vm->stringsByHash, 0, sizeof(vm->stringsByHash));
 }
 
 struct NKVMString *nkiVmStringTableGetEntryById(
@@ -116,16 +116,16 @@ nkuint32_t nkiVmStringTableFindOrAddString(
         struct NKVMString *cur = hashBucket;
 
         while(cur) {
-            if(!strcmp(cur->str, str)) {
+            if(!nkiStrcmp(cur->str, str)) {
                 return cur->stringTableIndex;
             }
             cur = cur->nextInHashBucket;
         }
 
-        // If we've reach this point, then we don't have the string yet,
-        // so we'll go ahead and make a new entry.
+        // If we've reached this point, then we don't have the string
+        // yet, so we'll go ahead and make a new entry.
         {
-            nkuint32_t len = strlen(str);
+            nkuint32_t len = nkiStrlen(str);
 
             struct NKVMString *newString =
                 (struct NKVMString *)nkiMalloc(
@@ -142,7 +142,7 @@ nkuint32_t nkiVmStringTableFindOrAddString(
             newString->lastGCPass = 0;
             newString->dontGC = nkfalse;
             newString->hash = nkiStringHash(str);
-            strcpy(newString->str, str);
+            nkiStrcpy(newString->str, str);
             newString->nextInHashBucket = hashBucket;
             vm->stringsByHash[hash & (nkiVmStringHashTableSize - 1)] = newString;
 
@@ -218,7 +218,7 @@ nkuint32_t nkiStrlen(const char *str)
     while(str[i]) {
 
         // Bail out early if we reach the max possible string length.
-        if(i == ~(nkuint32_t)0) {
+        if(i == ~(nkuint32_t)0 - 1) {
             return i;
         }
 
@@ -235,7 +235,7 @@ nkint32_t nkiStrcmp(const char *a, const char *b)
     while(a[i] && b[i]) {
 
         // They're equal up to as far as we can see.
-        if(i == ~(nkuint32_t)0) {
+        if(i == ~(nkuint32_t)0 - 1) {
             return 0;
         }
 
@@ -244,6 +244,8 @@ nkint32_t nkiStrcmp(const char *a, const char *b)
         i++;
     }
 
+    if(a[i] > b[i]) return 1;
+    if(a[i] < b[i]) return -1;
     return 0;
 }
 
@@ -269,6 +271,11 @@ void nkiStrcat(char *dst, const char *src)
 
 void nkiStrcpy(char *dst, const char *src)
 {
+    nkiStrcpy_s(dst, src, ~(nkuint32_t)0);
+}
+
+void nkiStrcpy_s(char *dst, const char *src, nkuint32_t len)
+{
     nkuint32_t i = 0;
 
     while(src[i]) {
@@ -282,9 +289,38 @@ void nkiStrcpy(char *dst, const char *src)
             dst[i] = 0;
             return;
         }
+        if(i >= len) {
+            dst[i] = 0;
+            return;
+        }
     }
 
     dst[i] = 0;
 }
 
+void nkiMemset(void *ptr, nkuint32_t c, nkuint32_t len)
+{
+    for(nkuint32_t i = 0; i < len; i++) {
+        ((char*)ptr)[i] = c;
+    }
+}
+
+void nkiMemcpy(void *dst, const void *src, nkuint32_t len)
+{
+    for(nkuint32_t i = 0; i < len; i++) {
+        ((char*)dst)[i] = ((const char*)src)[i];
+    }
+}
+
+nkint32_t nkiMemcmp(const void *a, const void *b, nkuint32_t len)
+{
+    const unsigned char *pa = (const unsigned char *)a;
+    const unsigned char *pb = (const unsigned char *)b;
+    for(nkuint32_t i = 0; i < len; i++) {
+        if(pa[i] > pb[i]) return 1;
+        if(pa[i] < pb[i]) return -1;
+        i++;
+    }
+    return 0;
+}
 

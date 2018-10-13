@@ -48,7 +48,7 @@ void nkiVmStackInit(struct NKVM *vm)
     struct NKVMStack *stack = &vm->stack;
     stack->values = (struct NKValue *)nkiMalloc(
         vm, sizeof(struct NKValue));
-    memset(stack->values, 0, sizeof(struct NKValue));
+    nkiMemset(stack->values, 0, sizeof(struct NKValue));
     stack->size = 0;
     stack->capacity = 1;
     stack->indexMask = 0;
@@ -58,7 +58,7 @@ void nkiVmStackDestroy(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->stack;
     nkiFree(vm, stack->values);
-    memset(stack, 0, sizeof(struct NKVMStack));
+    nkiMemset(stack, 0, sizeof(struct NKVMStack));
 }
 
 struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
@@ -72,7 +72,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
             vm,
             stack->values,
             stack->capacity, sizeof(struct NKValue));
-        memset(stack->values, 0, sizeof(struct NKValue));
+        nkiMemset(stack->values, 0, sizeof(struct NKValue));
         stack->capacity = 1;
     }
 
@@ -125,7 +125,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
         stack->capacity = newStackCapacity;
         stack->indexMask = newStackIndexMask;
 
-        memset(
+        nkiMemset(
             &stack->values[stack->size], 0,
             sizeof(struct NKValue) * (stack->capacity - stack->size));
     }
@@ -218,7 +218,7 @@ void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
 {
     struct NKVMStack *stack = &vm->stack;
 
-    memset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
+    nkiMemset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;
 
     if(freeMem) {

@@ -47,7 +47,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <malloc.h>
-#include <string.h>
+// #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <setjmp.h>

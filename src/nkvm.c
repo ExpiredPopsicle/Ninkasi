@@ -61,7 +61,7 @@ nkint32_t nkiCompilerStackOffsetTable[NK_OPCODE_PADDEDCOUNT];
 
 #define NK_SETUP_OP(x, y, z)                                \
     do {                                                    \
-        nkiOpcodeNameTable[(x)] = #x + strlen("NK_OP_");    \
+        nkiOpcodeNameTable[(x)] = #x + nkiStrlen("NK_OP_"); \
         nkiOpcodeTable[(x)] = (y);                          \
         nkiCompilerStackOffsetTable[(x)] = (z);             \
     } while(0);
@@ -186,7 +186,7 @@ void nkiVmInit(struct NKVM *vm)
     vm->instructions =
         (struct NKInstruction *)nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
     vm->instructionAddressMask = 0x3;
-    memset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
+    nkiMemset(vm->instructions, 0, sizeof(struct NKInstruction) * 4);
 
     nkiVmStringTableInit(vm);
 
@@ -208,13 +208,13 @@ void nkiVmInit(struct NKVM *vm)
     // off at 1).
     vm->staticSpace = (struct NKValue *)nkiMalloc(
         vm, 2 * sizeof(struct NKValue));
-    memset(vm->staticSpace, 0, 2 * sizeof(struct NKValue));
+    nkiMemset(vm->staticSpace, 0, 2 * sizeof(struct NKValue));
     vm->staticAddressMask = 1;
 
     vm->externalTypes = NULL;
     vm->externalTypeCount = 0;
 
-    memset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
+    nkiMemset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -269,7 +269,7 @@ void nkiVmDestroy(struct NKVM *vm)
         // VM unusable, so that GC callbacks get hit for external data
         // and that stuff can clean up in a conventional manner.
         nkiVmStackClear(vm, nkfalse);
-        memset(
+        nkiMemset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));
 
@@ -390,7 +390,7 @@ struct NKValue *nkiVmFindGlobalVariable(
 {
     nkuint32_t i;
     for(i = 0; i < vm->globalVariableCount; i++) {
-        if(!strcmp(vm->globalVariables[i].name, name)) {
+        if(!nkiStrcmp(vm->globalVariables[i].name, name)) {
             return &vm->staticSpace[vm->staticAddressMask & vm->globalVariables[i].staticPosition];
         }
     }
@@ -429,7 +429,7 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
         vm->externalTypeCount + 1);
     vm->externalTypeCount++;
 
-    memset(
+    nkiMemset(
         &vm->externalTypes[ret.id], 0,
         sizeof(vm->externalTypes[ret.id]));
 
@@ -452,7 +452,7 @@ NKVMExternalDataTypeID nkiVmFindExternalType(
 
     if(vm->externalTypes) {
         for(i = 0; i < vm->externalTypeCount; i++) {
-            if(!strcmp(vm->externalTypes[i].name, name)) {
+            if(!nkiStrcmp(vm->externalTypes[i].name, name)) {
                 ret.id = i;
                 return ret;
             }
@@ -480,7 +480,7 @@ struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
     struct NKVMExternalSubsystemData *el = vm->subsystemDataTable[bucketIndex];
 
     while(el) {
-        if(!strcmp(el->name, name)) {
+        if(!nkiStrcmp(el->name, name)) {
             return el;
         }
         el = el->nextInHashTable;
@@ -489,7 +489,7 @@ struct NKVMExternalSubsystemData *nkiFindExternalSubsystemData(
     if(create) {
         el = (struct NKVMExternalSubsystemData *)nkiMalloc(
             vm, sizeof(*el));
-        memset(el, 0, sizeof(*el));
+        nkiMemset(el, 0, sizeof(*el));
         el->nextInHashTable = vm->subsystemDataTable[bucketIndex];
         el->name = nkiStrdup(vm, name);
         vm->subsystemDataTable[bucketIndex] = el;

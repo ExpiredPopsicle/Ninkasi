@@ -108,12 +108,21 @@ char *nkiCompilerTokenizerUnescapeString(
     struct NKVM *vm,
     const char *in)
 {
-    // +2 for weird backslash-before null-terminator, and the regular
-    // null terminator.
-    char *out = (char *)nkiMalloc(vm, strlen(in) + 2);
-    nkuint32_t len = strlen(in);
     nkuint32_t readIndex;
     nkuint32_t writeIndex = 0;
+    char *out;
+
+    // Truncate the string if we must to prevent overflow.
+    nkuint32_t len = nkiStrlen(in);
+    if(len > ~(nkuint32_t)0 - 2) {
+        len = ~(nkuint32_t)0 - 2;
+        nkiAddError(vm, -1, "String too long to escape.");
+    }
+
+    // +2 for weird backslash-before null-terminator, and the regular
+    // null terminator.
+    out = (char *)nkiMalloc(vm, len + 2);
+    writeIndex = 0;
 
     for(readIndex = 0; readIndex < len; readIndex++) {
 
@@ -142,7 +151,6 @@ char *nkiCompilerTokenizerUnescapeString(
                     break;
             }
 
-
         } else {
             out[writeIndex++] = in[readIndex];
         }
@@ -167,9 +175,19 @@ void nkiCompilerConsolidateStringLiterals(struct NKVM *vm, struct NKTokenList *t
             struct NKToken *next = tok->next;
 
             // Make a concatenated string.
-            char *newStr = (char *)nkiMalloc(vm, strlen(tok->str) + strlen(tok->next->str) + 1);
-            strcpy(newStr, tok->str);
-            strcat(newStr, tok->next->str);
+            nkuint32_t len1 = nkiStrlen(tok->str);
+            nkuint32_t len2 = nkiStrlen(tok->next->str);
+            char *newStr;
+
+            // Truncate string for safety.
+            if(len2 > ~(nkuint32_t)0 - len1) {
+                len2 = ~(nkuint32_t)0 - len1;
+                nkiAddError(vm, -1, "String too long to concatenate.");
+            }
+
+            newStr = (char *)nkiMalloc(vm, len1 + len2 + 1);
+            nkiStrcpy(newStr, tok->str);
+            nkiStrcat(newStr, tok->next->str);
 
             // Replace this token's string with it.
             nkiFree(vm, tok->str);
@@ -213,7 +231,7 @@ nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
 
 nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
 {
-    nkuint32_t len = strlen(str);
+    nkuint32_t len = nkiStrlen(str);
     nkuint32_t i = 0;
     nkint32_t lineNumber = 1;
 
@@ -389,7 +407,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             // Copy the subsection of the string within the quotes.
             len = (strEnd - strStart);
             strTmp = (char *)nkiMalloc(vm, len + 1);
-            memcpy(strTmp, strStart, len);
+            nkiMemcpy(strTmp, strStart, len);
             strTmp[len] = 0;
 
             strUnescaped = nkiCompilerTokenizerUnescapeString(vm, strTmp);
@@ -445,30 +463,30 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             }
 
             tmp = (char *)nkiMalloc(vm, (i - startIndex) + 1);
-            memcpy(tmp, str + startIndex, (i - startIndex));
+            nkiMemcpy(tmp, str + startIndex, (i - startIndex));
             tmp[(i - startIndex)] = 0;
 
-            if(!strcmp(tmp, "var")) {
+            if(!nkiStrcmp(tmp, "var")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_VAR, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "function")) {
+            } else if(!nkiStrcmp(tmp, "function")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "return")) {
+            } else if(!nkiStrcmp(tmp, "return")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "if")) {
+            } else if(!nkiStrcmp(tmp, "if")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_IF, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "else")) {
+            } else if(!nkiStrcmp(tmp, "else")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "while")) {
+            } else if(!nkiStrcmp(tmp, "while")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "do")) {
+            } else if(!nkiStrcmp(tmp, "do")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_DO, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "for")) {
+            } else if(!nkiStrcmp(tmp, "for")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "newobject")) {
+            } else if(!nkiStrcmp(tmp, "newobject")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "nil")) {
+            } else if(!nkiStrcmp(tmp, "nil")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, tokenList);
-            } else if(!strcmp(tmp, "break")) {
+            } else if(!nkiStrcmp(tmp, "break")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
             } else {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);

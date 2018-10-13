@@ -55,7 +55,7 @@ struct NKVMFunction *nkiVmCreateFunction(
         vm->functionTable,
         sizeof(struct NKVMFunction), vm->functionCount);
 
-    memset(
+    nkiMemset(
         &vm->functionTable[vm->functionCount - 1], 0,
         sizeof(struct NKVMFunction));
 
@@ -160,7 +160,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunction(
     NKVMExternalFunctionID externalFunctionId = { NK_INVALID_VALUE };
     for(externalFunctionId.id = 0; externalFunctionId.id < vm->externalFunctionCount; externalFunctionId.id++) {
         if(vm->externalFunctionTable[externalFunctionId.id].CFunctionCallback == func &&
-            !strcmp(vm->externalFunctionTable[externalFunctionId.id].name, name))
+            !nkiStrcmp(vm->externalFunctionTable[externalFunctionId.id].name, name))
         {
             break;
         }
@@ -196,7 +196,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
         vm->externalFunctionCount, sizeof(struct NKVMExternalFunction));
 
     funcEntry = &vm->externalFunctionTable[vm->externalFunctionCount - 1];
-    memset(funcEntry, 0, sizeof(*funcEntry));
+    nkiMemset(funcEntry, 0, sizeof(*funcEntry));
     funcEntry->internalFunctionId.id = NK_INVALID_VALUE;
     funcEntry->name = nkiStrdup(vm, name);
     funcEntry->CFunctionCallback = func;
@@ -229,7 +229,7 @@ NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
         struct NKVMFunction *vmfunc =
             nkiVmCreateFunction(vm, &functionId);
 
-        memset(vmfunc, 0, sizeof(*vmfunc));
+        nkiMemset(vmfunc, 0, sizeof(*vmfunc));
         vmfunc->argumentCount = NK_INVALID_VALUE;
 
         // Set up function ID mappings.

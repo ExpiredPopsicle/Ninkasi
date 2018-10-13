@@ -53,10 +53,30 @@
 // Note: Uses malloc directly!
 static void nkiMemAppendHeapString(char **base, const char *appender)
 {
-    char *s = malloc(strlen(*base) + strlen(appender) + 1);
+    nkuint32_t len1 = nkiStrlen(*base);
+    nkuint32_t len2 = nkiStrlen(appender);
+    char *s;
+
+    // Truncate string for safety, if needed.
+    if(len2 > (~(nkuint32_t)0 - 1) - len1) {
+        len2 = (~(nkuint32_t)0 - 1) - len1;
+    }
+
+    // Check platform memory limit because we're using malloc()
+    // directly.
+    if(len1 + len2 > ~(size_t)0 - 1) {
+        if(len1 > ~(size_t)0 - 1) {
+            len1 = ~(size_t)0 - 1;
+            len2 = 0;
+        } else {
+            len2 = (~(size_t)0 - len1) - 1;
+        }
+    }
+
+    s = malloc(len1 + len2 + 1);
     s[0] = 0;
-    strcat(s, *base);
-    strcat(s, appender);
+    nkiStrcpy_s(s, *base, len1);
+    nkiStrcps_s(s + len1, appender, len2);
     free(*base);
     *base = s;
 }
@@ -253,7 +273,7 @@ void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)
         nkuint32_t copySize = size < header->size ? size : header->size;
         void *newData = nkiMalloc(vm, size);
         if(newData) {
-            memcpy(newData, data, copySize);
+            nkiMemcpy(newData, data, copySize);
         }
         nkiFree(vm, data);
         return newData;
@@ -263,15 +283,12 @@ void *nkiRealloc(struct NKVM *vm, void *data, nkuint32_t size)
 
 char *nkiStrdup(struct NKVM *vm, const char *str)
 {
-    // FIXME: Remove this.
-    // printf("nkiStrdup: "  NK_PRINTF_UINT32 "\n", strlen(str));
-
     if(str) {
-        nkuint32_t len = strlen(str) + 1;
+        nkuint32_t len = nkiStrlen(str) + 1;
         if(len) {
             char *copyData = (char*)nkiMalloc(vm, len);
             if(copyData) {
-                strcpy(copyData, str);
+                nkiStrcpy(copyData, str);
                 return copyData;
             }
         }
