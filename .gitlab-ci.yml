@@ -23,8 +23,6 @@ test:
   script:
     - src/ninkasi_test -c test/test2.nks
     - bash test/run_tests.bsh
-    - dos2unix output_dos.txt
-    - diff output_linux.txt output_dos.txt
   dependencies:
     - build
     - build:dos

@@ -16,3 +16,5 @@ for i in test/*.nks; do
     run_script "$i"
 done
 
+dos2unix output_dos.txt
+diff output_linux.txt output_dos.txt || true
