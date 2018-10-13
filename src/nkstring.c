@@ -300,14 +300,16 @@ void nkiStrcpy_s(char *dst, const char *src, nkuint32_t len)
 
 void nkiMemset(void *ptr, nkuint32_t c, nkuint32_t len)
 {
-    for(nkuint32_t i = 0; i < len; i++) {
+    nkuint32_t i;
+    for(i = 0; i < len; i++) {
         ((char*)ptr)[i] = c;
     }
 }
 
 void nkiMemcpy(void *dst, const void *src, nkuint32_t len)
 {
-    for(nkuint32_t i = 0; i < len; i++) {
+    nkuint32_t i;
+    for(i = 0; i < len; i++) {
         ((char*)dst)[i] = ((const char*)src)[i];
     }
 }
@@ -316,7 +318,8 @@ nkint32_t nkiMemcmp(const void *a, const void *b, nkuint32_t len)
 {
     const unsigned char *pa = (const unsigned char *)a;
     const unsigned char *pb = (const unsigned char *)b;
-    for(nkuint32_t i = 0; i < len; i++) {
+    nkuint32_t i;
+    for(i = 0; i < len; i++) {
         if(pa[i] > pb[i]) return 1;
         if(pa[i] < pb[i]) return -1;
         i++;
