@@ -777,9 +777,8 @@ int main(int argc, char *argv[])
                 nkuint32_t shrinkCounter = settings.shrinkFrequency;
 
                 // TODO: Give this value a command line parameter.
-                // nkxSetRemainingInstructionLimit(vm, (1024L * 1024L));
+                nkxSetRemainingInstructionLimit(vm, (1024L * 1024L));
                 // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
-                nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE - 1);
 
                 while(!nkxVmProgramHasEnded(vm)) {
 
