@@ -23,3 +23,4 @@ ninkasi_test_SOURCES = test/main.c test/subtest.c test/subtest.h
 ninkasi_LDADD = libninkasi.a
 ninkasi_SOURCES = interp/main.c
 
+EXTRA_DIST = test/README.md interp/README.md
