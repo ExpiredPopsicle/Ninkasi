@@ -9,6 +9,15 @@ build:
       - src/ninkasi
       - src/ninkasi_test
 
+build:dos:
+  stage: build
+  script:
+    - bash misc/generate_build_batch_file.bsh
+    - rundos call build.bat
+  artifacts:
+    paths:
+      - ./A.EXE
+
 test:
   stage: test
   script:
@@ -16,6 +25,7 @@ test:
     - bash test/run_tests.bsh
   dependencies:
     - build
+    - build:dos
   artifacts:
     paths:
       - test/test2.nkb

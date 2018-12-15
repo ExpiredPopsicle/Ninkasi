@@ -66,7 +66,8 @@ void nkiTableDestroy(struct NKVM *vm, struct NKVMTable *table)
         return;
     }
 
-    // Maybe remove this?
+    // Maybe remove this? Check to make sure the table is actually
+    // empty.
     if(table->data) {
         for(i = 0; i < table->capacity; i++) {
             assert(!table->data[i]);

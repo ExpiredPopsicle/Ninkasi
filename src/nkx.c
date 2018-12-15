@@ -46,6 +46,13 @@
 
 void *nkiDefaultMalloc(nkuint32_t size, void *userData)
 {
+    // Thanks, continuous integration with DOSBox! Some platforms have
+    // a 16-bit size_t, so we can't even express the actual allocation
+    // to the underlying OS.
+    if(size > ~(size_t)0) {
+        return NULL;
+    }
+
     return malloc(size);
 }
 
@@ -68,7 +75,7 @@ struct NKVM *nkxVmCreateEx(
         return NULL;
     }
 
-    memset(vm, 0, sizeof(*vm));
+    nkiMemset(vm, 0, sizeof(*vm));
     vm->mallocReplacement = params->mallocReplacement;
     vm->freeReplacement = params->freeReplacement;
 
@@ -84,7 +91,7 @@ struct NKVM *nkxVmCreateEx(
 struct NKVM *nkxVmCreate(void)
 {
     struct NKVMCreateParams params;
-    memset(&params, 0, sizeof(params));
+    nkiMemset(&params, 0, sizeof(params));
     params.mallocReplacement = nkiDefaultMalloc;
     params.freeReplacement = nkiDefaultFree;
     return nkxVmCreateEx(&params);

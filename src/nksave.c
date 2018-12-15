@@ -70,9 +70,8 @@ nkbool nkiSerializeString_save(
 {
     nkbool writeMode = nktrue;
 
-    size_t lenFull = strlen(str);
-    nkuint32_t len = (nkuint32_t)lenFull;
-    if(lenFull >= NK_UINT_MAX) {
+    nkuint32_t len = nkiStrlen(str);
+    if(len >= NK_UINT_MAX) {
         nkiAddError(vm, -1, "String too long to serialize.");
         return nkfalse;
     }
@@ -261,7 +260,7 @@ nkbool nkiSerializeObject(
         for(n = 0; n < loadedSize; n++) {
             struct NKValue key;
             struct NKValue *value;
-            memset(&key, 0, sizeof(key));
+            nkiMemset(&key, 0, sizeof(key));
             NKI_SERIALIZE_BASIC(struct NKValue, key);
 
             value = nkiVmObjectFindOrAddEntry(vm, object, &key, nkfalse);
@@ -318,7 +317,7 @@ nkbool nkiSerializeObjectTable(
         vm->objectTable.objectTable =
             (struct NKVMObject **)nkiMallocArray(
                 vm, sizeof(struct NKVMObject *), capacity);
-        memset(
+        nkiMemset(
             vm->objectTable.objectTable, 0,
             sizeof(struct NKVMObject *) * capacity);
 
@@ -369,7 +368,7 @@ nkbool nkiSerializeObjectTable(
             // wrapper that would return without deallocating.
             object = (struct NKVMObject *)nkiMalloc(
                 vm, sizeof(struct NKVMObject));
-            memset(object, 0, sizeof(struct NKVMObject));
+            nkiMemset(object, 0, sizeof(struct NKVMObject));
             object->objectTableIndex = index;
 
             // Thanks AFL! Holy crap I'm an idiot for letting this one
@@ -452,7 +451,7 @@ nkbool nkiSerializeStringTable(
         // nkiMalloc, meaning that this command can take larger values
         // than it's possible for us to allocate, even with the same
         // equation!
-        memset(vm->stringTable.stringTable, 0,
+        nkiMemset(vm->stringTable.stringTable, 0,
             vm->stringTable.capacity * sizeof(struct NKVMString*));
     }
 
@@ -514,7 +513,7 @@ nkbool nkiSerializeStringTable(
 
                 NKI_SERIALIZE_STRING(tmpStr);
                 {
-                    nkuint32_t stringLen = strlen(tmpStr);
+                    nkuint32_t stringLen = nkiStrlen(tmpStr);
                     nkuint32_t structAndPaddingSize = sizeof(*vm->stringTable.stringTable[index]) + 1;
                     nkuint32_t size = stringLen + structAndPaddingSize;
 
@@ -537,10 +536,10 @@ nkbool nkiSerializeStringTable(
                         (struct NKVMString *)nkiMalloc(vm, size);
 
                     // Clear it out.
-                    memset(vm->stringTable.stringTable[index], 0, size);
+                    nkiMemset(vm->stringTable.stringTable[index], 0, size);
 
                     // Copy the string data in.
-                    memcpy(vm->stringTable.stringTable[index]->str, tmpStr, strlen(tmpStr) + 1);
+                    nkiMemcpy(vm->stringTable.stringTable[index]->str, tmpStr, nkiStrlen(tmpStr) + 1);
 
                     // Free the string we loaded from the file.
                     nkiFree(vm, tmpStr);
@@ -644,7 +643,7 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
             sizeof(struct NKInstruction),
             vm->instructionAddressMask + 1);
 
-        memset(vm->instructions, 0, sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1));
+        nkiMemset(vm->instructions, 0, sizeof(struct NKInstruction) * (vm->instructionAddressMask + 1));
     }
 
     // Load/save the actual instructions themselves.
@@ -749,7 +748,7 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
             return nkfalse;
         }
 
-        memset(vm->stack.values, 0,
+        nkiMemset(vm->stack.values, 0,
             sizeof(struct NKValue) * (vm->stack.capacity));
     }
 
@@ -827,7 +826,7 @@ nkbool nkiSerializeFunctionTable_inner(
                 // something.
                 vm->externalFunctionTable[n].internalFunctionId.id = NK_INVALID_VALUE;
 
-                if(!strcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
+                if(!nkiStrcmp(tmpExternalFunc.name, vm->externalFunctionTable[n].name)) {
                     functionIdMapping[i].id = n;
                     vm->externalFunctionTable[n].internalFunctionId =
                         tmpExternalFunc.internalFunctionId;
@@ -859,7 +858,7 @@ nkbool nkiSerializeFunctionTable_inner(
             nkiFree(vm, vm->functionTable);
             vm->functionTable = newTable;
             vm->functionCount = tmpFunctionCount;
-            memset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
+            nkiMemset(vm->functionTable, 0, sizeof(struct NKVMFunction) * vm->functionCount);
         }
     }
 
@@ -914,7 +913,7 @@ nkbool nkiSerializeFunctionTable(
     if(!writeMode) {
         functionIdMapping = (NKVMExternalFunctionID *)nkiMallocArray(
             vm, sizeof(NKVMInternalFunctionID), tmpExternalFunctionCount);
-        memset(
+        nkiMemset(
             functionIdMapping, NK_INVALID_VALUE,
             tmpExternalFunctionCount * sizeof(NKVMInternalFunctionID));
     }
@@ -959,7 +958,7 @@ nkbool nkiSerializeGlobalsList(
         // We don't need to check for overflow here, because
         // nkiMallocArray would have longjmp'd away by now if there
         // was one.
-        memset(vm->globalVariables, 0,
+        nkiMemset(vm->globalVariables, 0,
             sizeof(vm->globalVariables[0]) * globalVariableCount);
 
         vm->globalVariableCount = globalVariableCount;
@@ -995,7 +994,7 @@ nkbool nkiSerializeExternalTypes(
             // need to protect against bad data.
 
             if(vm->externalTypes && vm->externalTypes[i].name) {
-                nkuint32_t nameLen = (nkuint32_t)strlen(vm->externalTypes[i].name);
+                nkuint32_t nameLen = nkiStrlen(vm->externalTypes[i].name);
                 if(nameLen > longestTypeNameLength) {
                     longestTypeNameLength = nameLen;
                 }
@@ -1079,7 +1078,7 @@ nkbool nkiSerializeExternalTypes(
             // matches what we have already in the VM.
             if(!vm->externalTypes ||
                 !vm->externalTypes[i].name ||
-                strcmp(typeName, vm->externalTypes[i].name))
+                nkiStrcmp(typeName, vm->externalTypes[i].name))
             {
                 nkiAddError(vm, -1, "Type name mismatch inside binary.");
                 nkiFree(vm, rawTypeMappingBuf);
@@ -1097,7 +1096,7 @@ nkbool nkiSerializeExternalTypes(
 
                 if(vm->externalTypes &&
                     vm->externalTypes[n].name &&
-                    !strcmp(vm->externalTypes[n].name, typeName))
+                    !nkiStrcmp(vm->externalTypes[n].name, typeName))
                 {
                     typeMapping[i] = n;
 
@@ -1227,7 +1226,7 @@ nkbool nkiSerializeExternalObjects(
                     if(serializationCallback) {
 
                         struct NKValue val;
-                        memset(&val, 0, sizeof(val));
+                        nkiMemset(&val, 0, sizeof(val));
                         val.type = NK_VALUETYPE_OBJECTID;
                         val.objectId = i;
 
@@ -1254,9 +1253,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     {
         const char *formatMarker = "\0NKVM";
         char formatMarkerTmp[5];
-        memcpy(formatMarkerTmp, formatMarker, 5);
+        nkiMemcpy(formatMarkerTmp, formatMarker, 5);
         NKI_SERIALIZE_DATA(formatMarkerTmp, 5);
-        if(memcmp(formatMarkerTmp, formatMarker, 5)) {
+        if(nkiMemcmp(formatMarkerTmp, formatMarker, 5)) {
             nkiAddError(vm, -1, "Wrong binary format.");
             return nkfalse;
         }

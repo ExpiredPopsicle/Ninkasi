@@ -53,6 +53,7 @@ void nkiOpcode_add(struct NKVM *vm)
     switch(type) {
 
         case NK_VALUETYPE_INT:
+
             nkiVmStackPushInt(
                 vm,
                 in1->intData +
@@ -60,6 +61,7 @@ void nkiOpcode_add(struct NKVM *vm)
             break;
 
         case NK_VALUETYPE_FLOAT:
+
             nkiVmStackPushFloat(
                 vm,
                 in1->floatData +
@@ -283,7 +285,11 @@ void nkiOpcode_modulo(struct NKVM *vm)
 
         case NK_VALUETYPE_INT: {
             nkint32_t val2 = nkiValueToInt(vm, in2);
-            if(val2 == 0) {
+
+            if(val2 == 0 || (
+                    in1->intData == -2147483648L &&
+                    val2 == -1))
+            {
                 nkiAddError(
                     vm, -1,
                     "Integer divide-by-zero.");
@@ -518,7 +524,7 @@ void nkiOpcode_call(struct NKVM *vm)
         struct NKVMFunctionCallbackData data;
         struct NKVMExternalFunction *externalFunc;
 
-        memset(&data, 0, sizeof(data));
+        nkiMemset(&data, 0, sizeof(data));
 
         // First check that this is a valid function. Maybe we go
         // weird data from deserialization.

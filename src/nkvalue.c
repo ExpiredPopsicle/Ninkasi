@@ -281,7 +281,7 @@ nkint32_t nkiValueCompare(
                 return 0;
             }
 
-            return strcmp(thisData, other);
+            return nkiStrcmp(thisData, other);
         } break;
 
         case NK_VALUETYPE_FUNCTIONID: {

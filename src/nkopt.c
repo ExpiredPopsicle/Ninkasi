@@ -76,8 +76,8 @@ struct NKExpressionAstNode *nkiCompilerMakeImmediateExpressionNode(
     struct NKToken *newToken =
         (struct NKToken *)nkiMalloc(
             vm, sizeof(struct NKToken));
-    memset(newNode, 0, sizeof(*newNode));
-    memset(newToken, 0, sizeof(*newToken));
+    nkiMemset(newNode, 0, sizeof(*newNode));
+    nkiMemset(newToken, 0, sizeof(*newToken));
     newNode->ownedToken = nktrue;
     newNode->opOrValue = newToken;
     newToken->type = type;

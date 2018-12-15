@@ -97,7 +97,7 @@ nkuint32_t nkiVmObjectTableCreateObject(
     nkuint32_t index = NK_INVALID_VALUE;
     struct NKVMObject *newObject = (struct NKVMObject *)nkiMalloc(
         vm, sizeof(struct NKVMObject));
-    memset(newObject, 0, sizeof(*newObject));
+    nkiMemset(newObject, 0, sizeof(*newObject));
 
     index = nkiTableAddEntry(vm, table, newObject);
 
@@ -143,7 +143,7 @@ void nkiVmObjectTableCleanupObject(
 
                 if(cleanupCallback) {
                     struct NKValue val;
-                    memset(&val, 0, sizeof(val));
+                    nkiMemset(&val, 0, sizeof(val));
                     val.type = NK_VALUETYPE_OBJECTID;
                     val.objectId = objectTableIndex;
 
@@ -246,7 +246,7 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
 
         el = (struct NKVMObjectElement *)nkiMalloc(
             vm, sizeof(struct NKVMObjectElement));
-        memset(el, 0, sizeof(struct NKVMObjectElement));
+        nkiMemset(el, 0, sizeof(struct NKVMObjectElement));
         el->next = *obList;
         el->key = *key;
         *obList = el;

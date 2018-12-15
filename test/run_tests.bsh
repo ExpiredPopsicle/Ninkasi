@@ -8,10 +8,13 @@ function run_script()
 {
     valgrind \
         --error-exitcode=1 \
-        src/ninkasi_test "$1"
+        src/ninkasi_test "$1" | tee -a output_linux.txt
+    rundos A.EXE "$1" | tee -a output_dos.txt
 }
 
 for i in test/*.nks; do
     run_script "$i"
 done
 
+dos2unix output_dos.txt
+diff output_linux.txt output_dos.txt || true

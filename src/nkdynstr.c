@@ -60,16 +60,31 @@ void nkiDynStrDelete(struct NKDynString *dynStr)
 
 void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
 {
+    nkuint32_t len1;
+    nkuint32_t len2;
+
     if(!str) {
         str = "<null>";
+    }
+
+    len1 = nkiStrlen(dynStr->data);
+    len2 = nkiStrlen(str);
+
+    // Truncate the lengths down so we don't go over 2^32.
+    if(len2 >= ~(nkuint32_t)0 - len1) {
+        len2 = ~(nkuint32_t)0 - len1 - 1;
+        nkiAddError(
+            dynStr->vm,
+            -1,
+            "Tried to append a string past length limit. String truncated.");
     }
 
     dynStr->data = (char *)nkiRealloc(
         dynStr->vm,
         dynStr->data,
-        strlen(dynStr->data) + strlen(str) + 1);
+        len1 + len2 + 1);
 
-    strcat(dynStr->data, str);
+    nkiStrcat(dynStr->data, str);
 }
 
 void nkiDynStrAppendInt32(struct NKDynString *dynStr, nkint32_t value)
@@ -100,3 +115,4 @@ void nkiDynStrAppendFloat(struct NKDynString *dynStr, float value)
     sprintf(tmp, "%f", value);
     nkiDynStrAppend(dynStr, tmp);
 }
+

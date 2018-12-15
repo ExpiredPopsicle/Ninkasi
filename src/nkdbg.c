@@ -74,7 +74,7 @@ int nkiDbgWriteLine(const char *fmt, ...)
 
 void nkiDbgAppendEscaped(nkuint32_t bufSize, char *dst, const char *src)
 {
-    nkuint32_t i = strlen(dst);
+    nkuint32_t i = nkiStrlen(dst);
     while(i + 2 < bufSize && *src) {
         switch(*src) {
             case '\n':
@@ -155,7 +155,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             vm, vm->stringTable.capacity);
         struct NKVMTableHole *hole = vm->stringTable.tableHoles;
 
-        memset(holeTracker, 0, vm->stringTable.capacity);
+        nkiMemset(holeTracker, 0, vm->stringTable.capacity);
 
         while(hole) {
             assert(!holeTracker[hole->index]);
@@ -195,7 +195,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             fprintf(stream, "      hash:             " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->hash);
             fprintf(stream, "      data:             ");
             fprintf(stream, "      lastGCPass:       " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->lastGCPass);
-            nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, strlen(vm->stringTable.stringTable[i]->str));
+            nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, nkiStrlen(vm->stringTable.stringTable[i]->str));
             fprintf(stream, "\n");
         }
     }
@@ -208,7 +208,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             vm, vm->objectTable.capacity);
         struct NKVMTableHole *hole = vm->objectTable.tableHoles;
 
-        memset(holeTracker, 0, vm->objectTable.capacity);
+        nkiMemset(holeTracker, 0, vm->objectTable.capacity);
 
         while(hole) {
             assert(!holeTracker[hole->index]);
@@ -334,7 +334,9 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
     char *holeTracker = (char *)malloc(vm->stringTable.capacity);
     struct NKVMTableHole *hole = vm->stringTable.tableHoles;
 
-    memset(holeTracker, 0, vm->stringTable.capacity);
+    printf("Checking holes\n");
+
+    nkiMemset(holeTracker, 0, vm->stringTable.capacity);
 
     // printf("HOLE LIST...\n");
     while(hole) {
@@ -367,6 +369,7 @@ void nkiCheckStringTableHoles(struct NKVM *vm)
         }
     }
 
+    printf("Checking holes complete\n");
 
 }
 
@@ -551,7 +554,7 @@ const char *nkiDbgGetNextLine(const char *text)
 void nkiDbgAppendLine(nkuint32_t bufSize, char *dst, const char *input)
 {
     nkuint32_t i;
-    for(i = strlen(dst); i + 4 < bufSize; i++) {
+    for(i = nkiStrlen(dst); i + 4 < bufSize; i++) {
         if(*input && *input != '\n') {
             dst[i] = *(input++);
         } else {
@@ -573,7 +576,7 @@ void nkiDbgAppendLine(nkuint32_t bufSize, char *dst, const char *input)
 void nkiDbgPadLine(nkuint32_t padding, char *dst, char value)
 {
     nkuint32_t i;
-    for(i = strlen(dst); i + 1 < padding; i++) {
+    for(i = nkiStrlen(dst); i + 1 < padding; i++) {
         dst[i] = value;
     }
     dst[i] = 0;

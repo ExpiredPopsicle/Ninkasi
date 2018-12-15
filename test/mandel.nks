@@ -1,0 +1,28 @@
+// Mandelbrot generator demo for Ninkasi
+
+for(var y = -1.0; y < 1.0; y = y + 0.05) {
+
+    for(var x = -2.0; x < 1.0; x = x + 0.03) {
+
+        var u = 0.0;
+        var v = 0.0;
+        var u2 = u * u;
+        var v2 = v * v;
+        var k;
+
+        for(k = 1; k < 100 && u2 + v2 < 4.0; ++k) {
+            v = 2.0 * u * v + y;
+            u = u2 - v2 + x;
+            u2 = u * u;
+            v2 = v * v;
+        }
+
+        if(k < 40) {
+            print(k % 10);
+        } else {
+            print(".");
+        }
+    }
+
+    print("\n");
+}

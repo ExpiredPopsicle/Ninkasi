@@ -213,7 +213,7 @@ nkbool nkiCompilerExpressionParseFunctioncall(
             struct NKExpressionAstNode *thisParamNode =
                 (struct NKExpressionAstNode *)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
-            memset(thisParamNode, 0, sizeof(*thisParamNode));
+            nkiMemset(thisParamNode, 0, sizeof(*thisParamNode));
             thisParamNode->opOrValue = postfixNode->opOrValue;
 
             // Parse the expression.
@@ -279,7 +279,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             struct NKExpressionAstNode *prefixNode =
                 (struct NKExpressionAstNode *)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
-            memset(prefixNode, 0, sizeof(*prefixNode));
+            nkiMemset(prefixNode, 0, sizeof(*prefixNode));
 
             // Add it to the end of our list of prefix operations.
             prefixNode->opOrValue = *currentToken;
@@ -329,7 +329,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
                 valueNode = (struct NKExpressionAstNode*)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
-                memset(valueNode, 0, sizeof(*valueNode));
+                nkiMemset(valueNode, 0, sizeof(*valueNode));
                 valueNode->opOrValue = *currentToken;
 
                 nkiCompilerNextToken(cs);
@@ -351,7 +351,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             struct NKExpressionAstNode *postfixNode =
                 (struct NKExpressionAstNode *)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
-            memset(postfixNode, 0, sizeof(*postfixNode));
+            nkiMemset(postfixNode, 0, sizeof(*postfixNode));
 
             // Add it to the end of our list of postfix operations.
             postfixNode->opOrValue = *currentToken;
@@ -379,7 +379,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
                     struct NKExpressionAstNode *indexIntoNode = postfixNode;
 
-                    memset(identifierStringNode, 0, sizeof(*identifierStringNode));
+                    nkiMemset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = (struct NKToken *)nkiMalloc(
                         cs->vm, sizeof(struct NKToken));
                     identifierStringNode->opOrValue->type = NK_TOKENTYPE_STRING;
@@ -551,7 +551,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             struct NKExpressionAstNode *astNode =
                 (struct NKExpressionAstNode *)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
-            memset(astNode, 0, sizeof(*astNode));
+            nkiMemset(astNode, 0, sizeof(*astNode));
             astNode->stackNext = opStack;
             astNode->opOrValue = cs->currentToken;
             opStack = astNode;
@@ -752,7 +752,7 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
         }
     }
 
-    memset(&inst, 0, sizeof(inst));
+    nkiMemset(&inst, 0, sizeof(inst));
 
     switch(node->opOrValue->type) {
 
@@ -912,13 +912,13 @@ struct NKExpressionAstNode *nkiCompilerCloneExpressionTree(
 
     newNode = (struct NKExpressionAstNode *)nkiMalloc(
         cs->vm, sizeof(struct NKExpressionAstNode));
-    memset(newNode, 0, sizeof(*newNode));
+    nkiMemset(newNode, 0, sizeof(*newNode));
 
     newNode->ownedToken = node->ownedToken;
     if(node->ownedToken) {
         newNode->opOrValue = (struct NKToken *)nkiMalloc(
             cs->vm, sizeof(struct NKToken));
-        memset(newNode->opOrValue, 0, sizeof(struct NKToken));
+        nkiMemset(newNode->opOrValue, 0, sizeof(struct NKToken));
         newNode->opOrValue->type = node->opOrValue->type;
         newNode->opOrValue->str = nkiStrdup(cs->vm, node->opOrValue->str);
         newNode->opOrValue->lineNumber = node->opOrValue->lineNumber;

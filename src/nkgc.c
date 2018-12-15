@@ -176,7 +176,7 @@ void nkiVmGarbageCollect_markObject(
 
             if(callback) {
                 struct NKValue val;
-                memset(&val, 0, sizeof(val));
+                nkiMemset(&val, 0, sizeof(val));
                 val.type = NK_VALUETYPE_OBJECTID;
                 val.objectId = ob->objectTableIndex;
 
@@ -206,7 +206,7 @@ void nkiVmGarbageCollect_markReferenced(
 void nkiVmGarbageCollect(struct NKVM *vm)
 {
     struct NKVMGCState gcState;
-    memset(&gcState, 0, sizeof(gcState));
+    nkiMemset(&gcState, 0, sizeof(gcState));
     gcState.currentGCPass = ++vm->gcInfo.lastGCPass;
     gcState.vm = vm;
 
