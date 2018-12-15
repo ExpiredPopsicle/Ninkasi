@@ -286,9 +286,6 @@ void nkiOpcode_modulo(struct NKVM *vm)
         case NK_VALUETYPE_INT: {
             nkint32_t val2 = nkiValueToInt(vm, in2);
 
-            // FIXME: Remove this.
-            printf(NK_PRINTF_INT32 " %% " NK_PRINTF_INT32 "\n", in1->intData, val2);
-
             if(val2 == 0 || (
                     in1->intData == -2147483648L &&
                     val2 == -1))

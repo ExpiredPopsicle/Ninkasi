@@ -146,17 +146,9 @@ void *nkiMalloc_real(
             return NULL;
         }
 
-        // FIXME: Remove this.
-        // printf("Mem used:       " NK_PRINTF_UINT32 "\n", vm->currentMemoryUsage);
-        // printf("Mem max:        " NK_PRINTF_UINT32 "\n", vm->limits.maxAllocatedMemory);
-        // printf("Mem allocating: " NK_PRINTF_UINT32 "\n", newChunkSize);
-
         header = (struct NKMemoryHeader *)vm->mallocReplacement(
             newChunkSize,
             vm->mallocAndFreeReplacementUserData);
-
-        // FIXME: Remove this.
-        // printf("Did the alloc: %p\n", header);
 
         if(header) {
 
@@ -211,9 +203,6 @@ void *nkiMalloc_real(
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
             assert(vm->allocationCount == nkiMemGetAllocCount(vm));
 #endif // NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
-
-            // FIXME: Remove this.
-            // printf("Returning\n");
 
             return header + 1;
 
