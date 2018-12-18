@@ -4,24 +4,17 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-# TODO: Re-enable this.
 function run_script()
 {
-    # valgrind \
-    #     --error-exitcode=1 \
-    #     src/ninkasi_test "$1" | tee -a output_linux.txt
-    # rundos A.EXE "$1" | tee -a output_dos.txt
-
-    echo "Skipping test"
+    valgrind \
+        --error-exitcode=1 \
+        src/ninkasi_test "$1" | tee -a output_linux.txt
+    rundos A.EXE "$1" | tee -a output_dos.txt
 }
 
 for i in test/*.nks; do
     run_script "$i"
 done
-
-# TODO: Remove this.
-touch output_linux.txt
-touch output_dos.txt
 
 dos2unix output_dos.txt
 diff output_linux.txt output_dos.txt || true
