@@ -8,8 +8,8 @@ set -e
 cd "$(dirname "$0")"/..
 
 # Get the branch name.
-if [ "${COMMIT_REF_SLUG}" == "" ]; then
-    export COMMIT_REF_SLUG="$(git rev-parse --abbrev-ref HEAD)"
+if [ "${CI_COMMIT_REF_SLUG}" == "" ]; then
+    export CI_COMMIT_REF_SLUG="$(git rev-parse --abbrev-ref HEAD)"
 fi
 
 # Figure out the version ID, either from the repository we're in, or by cloning
