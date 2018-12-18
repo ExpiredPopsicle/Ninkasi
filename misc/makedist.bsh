@@ -28,13 +28,13 @@ else
     rm -rf vertmp
 fi
 
-echo "Ref slug: ${COMMIT_REF_SLUG}"
+echo "Ref slug: ${CI_COMMIT_REF_SLUG}"
 echo "Version : ${VERSION_ID}"
 
 # Replace the AC_INIT line in the configure.ac with one that has all our
 # version info.
 sed -i -e "s/AC_INIT(.*//" configure.ac
-echo -n "AC_INIT(Ninkasi, 0.${VERSION_ID}, expiredpopsicle@gmail.com, ninkasi-${COMMIT_REF_SLUG})" > configure.ac.tmp
+echo -n "AC_INIT(Ninkasi, 0.${VERSION_ID}, expiredpopsicle@gmail.com, ninkasi-${CI_COMMIT_REF_SLUG})" > configure.ac.tmp
 cat configure.ac >> configure.ac.tmp
 rm configure.ac
 mv configure.ac.tmp configure.ac
