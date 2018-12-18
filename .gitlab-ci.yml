@@ -33,12 +33,10 @@ test:
 deploy:
   stage: deploy
   script:
-    - bash autogen.sh
-    - ./configure
-    - make dist
+    - bash misc/makedist.bsh
   dependencies:
     - build
     - test
   artifacts:
     paths:
-      - ./ninkasi-0.1.tar.gz
+      - ./ninkasi-*.tar.gz
