@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export CI_COMMIT_REF_SLUG=master
-export CI_COMMIT_REF_SHA="${CI_COMMIT_REF_SLUG}"
-export CI_REPOSITORY_URL=https://git.intoxicoding.com/Intoxicoding/Ninkasi.git
+# export CI_COMMIT_REF_SLUG=master
+# export CI_COMMIT_REF_SHA="${CI_COMMIT_REF_SLUG}"
+# export CI_REPOSITORY_URL=https://git.intoxicoding.com/Intoxicoding/Ninkasi.git
 
 set -e
 cd "$(dirname "$0")"/..
