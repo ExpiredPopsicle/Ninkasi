@@ -11,6 +11,8 @@ function run_script()
     #     --error-exitcode=1 \
     #     src/ninkasi_test "$1" | tee -a output_linux.txt
     # rundos A.EXE "$1" | tee -a output_dos.txt
+
+    echo "Skipping test"
 }
 
 for i in test/*.nks; do
