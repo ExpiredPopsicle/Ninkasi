@@ -22,7 +22,7 @@ else
     cd vertmp
     git clone "${CI_REPOSITORY_URL}" ninkasi
     cd ninkasi
-    export VERSION_ID="$(git log --oneline "${CI_COMMIT_REF_SHA}" | wc -l)"
+    export VERSION_ID="$(git log --oneline "${CI_COMMIT_SHA}" | wc -l)"
     cd ..
     cd ..
     rm -rf vertmp
