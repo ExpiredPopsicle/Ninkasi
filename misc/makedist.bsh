@@ -1,0 +1,48 @@
+#!/bin/bash
+
+export CI_COMMIT_REF_SLUG=master
+export CI_COMMIT_REF_SHA="${CI_COMMIT_REF_SLUG}"
+export CI_REPOSITORY_URL=https://git.intoxicoding.com/Intoxicoding/Ninkasi.git
+
+set -e
+cd "$(dirname "$0")"/..
+
+# Get the branch name.
+if [ "${COMMIT_REF_SLUG}" == "" ]; then
+    export COMMIT_REF_SLUG="$(git rev-parse --abbrev-ref HEAD)"
+fi
+
+# Figure out the version ID, either from the repository we're in, or by cloning
+# the entire repo from the server and then finding the one specific commit and
+# getting it from that.
+if [ "${CI_REPOSITORY_URL}" == "" ]; then
+    export VERSION_ID="$(git log --oneline | wc -l)"
+else
+    mkdir vertmp
+    cd vertmp
+    git clone "${CI_REPOSITORY_URL}" ninkasi
+    cd ninkasi
+    export VERSION_ID="$(git log --oneline "${CI_COMMIT_REF_SHA}" | wc -l)"
+    cd ..
+    cd ..
+    rm -rf vertmp
+fi
+
+echo "Ref slug: ${COMMIT_REF_SLUG}"
+echo "Version : ${VERSION_ID}"
+
+# Replace the AC_INIT line in the configure.ac with one that has all our
+# version info.
+sed -i -e "s/AC_INIT(.*//" configure.ac
+echo -n "AC_INIT(Ninkasi, 0.${VERSION_ID}, expiredpopsicle@gmail.com, ninkasi-${COMMIT_REF_SLUG})" > configure.ac.tmp
+cat configure.ac >> configure.ac.tmp
+rm configure.ac
+mv configure.ac.tmp configure.ac
+
+./autogen.sh
+
+./configure
+
+make dist
+
+
