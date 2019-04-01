@@ -84,6 +84,9 @@ struct NKValue
     };
 };
 
+/// Get a string representation of the type of a given value.
+const char *nkiValueGetTypeNameOfValue(struct NKVM *vm, struct NKValue *val);
+
 /// Get a string representation for a type.
 const char *nkiValueTypeGetName(enum NKValueType type);
 

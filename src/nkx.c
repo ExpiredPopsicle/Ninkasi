@@ -876,7 +876,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
             data->vm, -1, dynStr->data);
         nkiDynStrDelete(dynStr);
 
-    } else if(nkxVmObjectGetExternalType(data->vm, &data->arguments[0]).id != externalDataType.id) {
+    } else if(nkxVmObjectGetExternalType(data->vm, &data->arguments[argumentNumber]).id != externalDataType.id) {
 
         struct NKDynString *dynStr = nkiDynStrCreate(
             data->vm, functionName);
@@ -885,6 +885,8 @@ void *nkxFunctionCallbackGetExternalDataArgument(
         nkiDynStrAppend(dynStr, ": Type mismatch. Expected ");
         nkiDynStrAppend(dynStr,
             data->vm->externalTypes ? data->vm->externalTypes[externalDataType.id].name : "badtype");
+        nkiDynStrAppend(dynStr, ". Got ");
+        nkiDynStrAppend(dynStr, nkiValueGetTypeNameOfValue(data->vm, &data->arguments[argumentNumber]));
         nkiDynStrAppend(dynStr, ".");
         nkiAddError(
             data->vm, -1, dynStr->data);

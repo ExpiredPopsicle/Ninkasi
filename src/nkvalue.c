@@ -43,6 +43,24 @@
 
 #include "nkcommon.h"
 
+const char *nkiValueGetTypeNameOfValue(
+    struct NKVM *vm, struct NKValue *val)
+{
+    if(!val) {
+        return "<null>";
+    }
+
+    if(val->type == NK_VALUETYPE_OBJECTID) {
+        struct NKVMExternalDataTypeID objType = nkiVmObjectGetExternalType(
+            vm, val);
+        if(objType.id != NK_INVALID_VALUE) {
+            return nkiVmGetExternalTypeName(vm, objType);
+        }
+    }
+
+    return nkiValueTypeGetName(val->type);
+}
+
 const char *nkiValueTypeGetName(enum NKValueType type)
 {
     // Note: Don't do any heap allocations starting here. It's called
