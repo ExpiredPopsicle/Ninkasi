@@ -1026,6 +1026,18 @@ struct NKValue *nkxVmObjectFindOrAddEntry(
     return ret;
 }
 
+nkuint32_t nkxVmObjectGetSize(
+    struct NKVM *vm,
+    struct NKValue *objectId)
+{
+    nkuint32_t ret = 0;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(0);
+    ret = nkiVmObjectGetSize(vm, objectId);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
 void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id)
 {
     NK_FAILURE_RECOVERY_DECL();

@@ -95,6 +95,10 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
     struct NKValue *key,
     nkbool noAdd);
 
+nkuint32_t nkiVmObjectGetSize(
+    struct NKVM *vm,
+    struct NKValue *objectId);
+
 void nkiVmObjectClearEntry(
     struct NKVM *vm,
     struct NKVMObject *ob,

@@ -191,12 +191,21 @@ void nkxVmObjectClearEntry(
     struct NKValue *objectId,
     struct NKValue *key);
 
-/// Get a pointer to a field on an object.
+// TODO: Add some more convenience functions for various index types
+// so we don't have to make the NKValue directly.
+
+/// Get a pointer to a field on an object. This pointer may be
+/// invalidated once VM execution resumes!
 struct NKValue *nkxVmObjectFindOrAddEntry(
     struct NKVM *vm,
     struct NKValue *objectId,
     struct NKValue *key,
     nkbool noAdd);
+
+/// Get the number of key/value pairs in a given object.
+nkuint32_t nkxVmObjectGetSize(
+    struct NKVM *vm,
+    struct NKValue *objectId);
 
 /// Returns nktrue if the program has ended.
 nkbool nkxVmProgramHasEnded(struct NKVM *vm);

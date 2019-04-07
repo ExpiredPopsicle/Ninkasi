@@ -464,3 +464,17 @@ struct NKValue *nkiVmObjectFindOrAddEntry_public(
     }
     return NULL;
 }
+
+nkuint32_t nkiVmObjectGetSize(
+    struct NKVM *vm,
+    struct NKValue *objectId)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, objectId);
+    if(ob) {
+        return ob->size;
+    } else {
+        nkiAddError(
+            vm, -1, "Bad object ID in nkiVmObjectGetSize.");
+    }
+    return 0;
+}
