@@ -280,16 +280,17 @@ void nkiStrcpy_s(char *dst, const char *src, nkuint32_t len)
 
     while(src[i]) {
 
+        if(i >= len) {
+            dst[i] = 0;
+            return;
+        }
+
         dst[i] = src[i];
 
         i++;
 
         // Bail out early if we hit the length limit.
         if(i == ~(nkuint32_t)0) {
-            dst[i] = 0;
-            return;
-        }
-        if(i >= len) {
             dst[i] = 0;
             return;
         }
