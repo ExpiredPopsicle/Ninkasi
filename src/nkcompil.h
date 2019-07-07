@@ -174,7 +174,10 @@ void nkiCompilerCreateCFunctionVariable(
 nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrContext);
 nkbool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs);
-nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs);
+nkbool nkiCompilerCompileFunctionDefinition(
+    struct NKCompilerState *cs,
+    nkbool anonymousFunction,
+    NKVMInternalFunctionID *outputId);
 nkbool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileIfStatement(struct NKCompilerState *cs);
 nkbool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs);
@@ -215,6 +218,7 @@ void nkiCompilerModifyJump(
 // Token traversal state stuff.
 
 struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
+struct NKToken *nkiCompilerPeekToken(struct NKCompilerState *cs);
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
 nkuint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs);
 const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs);

@@ -327,12 +327,45 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
             // Parse the actual value.
             if(!nkiCompilerIsExpressionEndingToken(*currentToken)) {
 
-                valueNode = (struct NKExpressionAstNode*)nkiMalloc(
-                    cs->vm, sizeof(struct NKExpressionAstNode));
-                nkiMemset(valueNode, 0, sizeof(*valueNode));
-                valueNode->opOrValue = *currentToken;
+                // Check for anonymous functions before we check for
+                // literal values.
+                if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_FUNCTION) {
 
-                nkiCompilerNextToken(cs);
+                    char tmp[NK_PRINTF_UINTCHARSNEED + 1];
+                    NKVMInternalFunctionID functionId = { 0 };
+
+                    // Parse the function itself.
+                    if(!nkiCompilerCompileFunctionDefinition(cs, nktrue, &functionId)) {
+                        nkiCompilerAddError(cs, "Anonymous function parse error.");
+                        NK_CLEANUP_INLOOP();
+                        nkiCompilerPopRecursion(cs);
+                    }
+
+                    sprintf(tmp, NK_PRINTF_UINT32, functionId.id);
+
+                    valueNode = (struct NKExpressionAstNode*)nkiMalloc(
+                        cs->vm, sizeof(struct NKExpressionAstNode));
+                    nkiMemset(valueNode, 0, sizeof(*valueNode));
+
+                    valueNode->opOrValue = (struct NKToken *)nkiMalloc(
+                        cs->vm, sizeof(struct NKToken));
+                    valueNode->opOrValue->type = NK_TOKENTYPE_FUNCTION;
+                    valueNode->opOrValue->str = nkiStrdup(cs->vm, tmp);
+                    valueNode->opOrValue->next = NULL;
+                    valueNode->opOrValue->lineNumber =
+                        nkiCompilerCurrentTokenLinenumber(cs);
+
+                    valueNode->ownedToken = nktrue;
+
+                } else {
+
+                    valueNode = (struct NKExpressionAstNode*)nkiMalloc(
+                        cs->vm, sizeof(struct NKExpressionAstNode));
+                    nkiMemset(valueNode, 0, sizeof(*valueNode));
+                    valueNode->opOrValue = *currentToken;
+
+                    nkiCompilerNextToken(cs);
+                }
 
             } else {
 
@@ -755,6 +788,12 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
     nkiMemset(&inst, 0, sizeof(inst));
 
     switch(node->opOrValue->type) {
+
+        case NK_TOKENTYPE_FUNCTION: {
+            NKVMInternalFunctionID id;
+            id.id = atol(node->opOrValue->str);
+            nkiCompilerEmitPushLiteralFunctionId(cs, id, nktrue);
+        } break;
 
         case NK_TOKENTYPE_INTEGER:
             nkiCompilerEmitPushLiteralInt(cs, atol(node->opOrValue->str), nktrue);

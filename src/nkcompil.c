@@ -431,13 +431,6 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
             // "var" = Variable declaration.
             return nkiCompilerCompileVariableDeclaration(cs);
 
-        case NK_TOKENTYPE_FUNCTION:
-            // "function" = Function definition.
-            if(!nkiCompilerCompileFunctionDefinition(cs)) {
-                return nkfalse;
-            }
-            break;
-
         case NK_TOKENTYPE_RETURN:
             // "return" = Return statement.
             return nkiCompilerCompileReturnStatement(cs);
@@ -483,6 +476,19 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
                 return nkfalse;
             }
             break;
+
+        case NK_TOKENTYPE_FUNCTION:
+            // "function" = Function definition OR anonymous function.
+        {
+            struct NKToken *nextToken = nkiCompilerPeekToken(cs);
+            if(nextToken && nextToken->type == NK_TOKENTYPE_IDENTIFIER) {
+                if(!nkiCompilerCompileFunctionDefinition(cs, nkfalse, NULL)) {
+                    return nkfalse;
+                }
+                break;
+            }
+        }
+            // Intentional fall through to expression parsing.
 
         default:
             // Fall back to just parsing an expression.
@@ -686,7 +692,10 @@ nkbool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
     return nktrue;
 }
 
-nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileFunctionDefinition(
+    struct NKCompilerState *cs,
+    nkbool anonymousFunction,
+    NKVMInternalFunctionID *outputId)
 {
     nkbool ret = nktrue;
     const char *functionName = NULL;
@@ -701,6 +710,9 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     struct NKVMFunction *functionObject;
 
     functionId.id = NK_INVALID_VALUE;
+    if(outputId) {
+        *outputId = functionId;
+    }
 
     if(!nkiCompilerPushRecursion(cs)) {
         return nkfalse;
@@ -711,26 +723,29 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_FUNCTION);
 
-    // Read the function name.
-    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
-        functionName = nkiCompilerCurrentTokenString(cs);
-        nkiCompilerNextToken(cs);
-    } else {
-        nkiAddError(
-            cs->vm,
-            nkiCompilerCurrentTokenLinenumber(cs),
-            "Expected identifier for function name.");
-        nkiCompilerPopRecursion(cs);
-        return nkfalse;
-    }
+    if(!anonymousFunction) {
 
-    // At the parent scope, create a variable with the name of the
-    // function and give it an immediate value for the function.
-    // Recursive function calls will not be possible if the function
-    // cannot refer to itself before it's finished being fully
-    // created.
-    nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
-    nkiCompilerAddVariable(cs, functionName, nktrue, nktrue);
+        // Read the function name.
+        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
+            functionName = nkiCompilerCurrentTokenString(cs);
+            nkiCompilerNextToken(cs);
+        } else {
+            nkiAddError(
+                cs->vm,
+                nkiCompilerCurrentTokenLinenumber(cs),
+                "Expected identifier for function name.");
+            nkiCompilerPopRecursion(cs);
+            return nkfalse;
+        }
+
+        // At the parent scope, create a variable with the name of the
+        // function and give it an immediate value for the function.
+        // Recursive function calls will not be possible if the
+        // function cannot refer to itself before it's finished being
+        // fully created.
+        nkiCompilerEmitPushLiteralFunctionId(cs, functionId, nktrue);
+        nkiCompilerAddVariable(cs, functionName, nktrue, nktrue);
+    }
 
     // Add some instructions to skip around this function. This is
     // kind of a weird way to do it, but it means that we can just
@@ -878,6 +893,10 @@ nkbool nkiCompilerCompileFunctionDefinition(struct NKCompilerState *cs)
     cs->context = savedContext;
 
     nkiCompilerPopRecursion(cs);
+
+    if(outputId) {
+        *outputId = functionId;
+    }
     return ret;
 }
 
@@ -890,6 +909,16 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
         }
     }
     return cs->currentToken;
+}
+
+struct NKToken *nkiCompilerPeekToken(struct NKCompilerState *cs)
+{
+    if(cs->currentToken) {
+        if(cs->currentToken->next) {
+            return cs->currentToken->next;
+        }
+    }
+    return NULL;
 }
 
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs)
