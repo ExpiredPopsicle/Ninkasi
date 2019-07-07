@@ -76,7 +76,7 @@ static void nkiMemAppendHeapString(char **base, const char *appender)
     s = malloc(len1 + len2 + 1);
     s[0] = 0;
     nkiStrcpy_s(s, *base, len1);
-    nkiStrcps_s(s + len1, appender, len2);
+    nkiStrcpy_s(s + len1, appender, len2);
     free(*base);
     *base = s;
 }
