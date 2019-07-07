@@ -245,7 +245,134 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             i++;
         }
 
-        if(str[i] == '(') {
+        // Handle preprocessor directives.
+        if(str[i] == '#') {
+
+            // Preprocessor directive.
+            nkuint32_t lineStart = i;
+            nkuint32_t lineEnd;
+            // nkuint32_t secondTokenStart;
+            nkuint32_t k;
+            char *directive;
+            // char *secondToken;
+            nkbool paramIsQuoted;
+            nkuint32_t parameterStart;
+            char *parameter = NULL;
+            char *escapedParam = NULL;
+
+            // Figure out how long the line is, and also advance the
+            // tokenization system past it.
+            while(str[i] != '\n' && str[i] != '\r' && str[i]) {
+                i++;
+            }
+            lineEnd = i;
+
+            // Skip past the directive.
+            k = lineStart;
+            while(!nkiCompilerIsWhitespace(str[k]) && str[k]) {
+                k++;
+            }
+
+            // Save the directive itself.
+            directive = nkiMalloc(vm, k - lineStart + 1);
+            nkiStrcpy_s(directive, str + lineStart, k - lineStart);
+            printf("ASDF: Directive: \"%s\"\n", directive);
+
+            // Skip past whitespace after the directive.
+            while(nkiCompilerIsWhitespace(str[k])) {
+
+                // Bail out if we see a newline.
+                if(str[k] == '\n') {
+                    break;
+                }
+
+                k++;
+            }
+
+            parameterStart = k;
+
+            // The only directive parameters we recognize are numbers
+            // and quoted strings, but we'll go ahead and handle them
+            // the same.
+            if(str[k] == '\"') {
+                k++;
+                paramIsQuoted = nktrue;
+            } else {
+                paramIsQuoted = nkfalse;
+            }
+
+            // Find the start and end of a quoted string.
+            {
+                nkbool ignoreNext = nkfalse;
+
+                while(str[k]) {
+
+                    // Newlines are end of the parameter list
+                    // regardless.
+                    if(str[k] == '\n') {
+                        break;
+                    }
+
+                    if(!paramIsQuoted && nkiCompilerIsWhitespace(str[k])) {
+                        break;
+                    }
+
+                    if(str[k] == '\"' && !ignoreNext) {
+                        k++; // Skip this and bail out.
+                        break;
+                    } else if(str[k] == '\\' && paramIsQuoted) {
+                        ignoreNext = !ignoreNext;
+                    } else {
+                        ignoreNext = nkfalse;
+                    }
+
+                    k++;
+                }
+            }
+
+            parameter = nkiMalloc(vm, k - parameterStart + 1);
+            escapedParam = NULL;
+
+            printf("ASDF: blah1: " NK_PRINTF_UINT32 "\n", k - parameterStart);
+
+            // Save a copy of the paramter.
+            nkiStrcpy_s(parameter, str + parameterStart, k - parameterStart);
+
+            printf("ASDF: blah2: " NK_PRINTF_UINT32 "\n", k - parameterStart);
+
+            // Strip off quotes and unescape string.
+            if(paramIsQuoted) {
+                escapedParam = parameter;
+                if(escapedParam[0] == '\"') {
+                    escapedParam = escapedParam + 1;
+                    if(escapedParam[0]) {
+                        if(escapedParam[nkiStrlen(escapedParam) - 1] == '\"') {
+                            escapedParam[nkiStrlen(escapedParam) - 1] = 0;
+                        }
+                    }
+                }
+                escapedParam = nkiCompilerTokenizerUnescapeString(vm, escapedParam);
+                nkiFree(vm, parameter);
+            } else {
+                escapedParam = parameter;
+            }
+
+            printf("ASDF: Param: \"%s\"\n", escapedParam);
+
+            if(!nkiStrcmp(directive, "#line")) {
+                printf("LINE DIRECTIVE!\n");
+                lineNumber = atol(escapedParam);
+                printf("ASDF: Butts " NK_PRINTF_UINT32 "\n", lineNumber);
+            } else if(!nkiStrcmp(directive, "#file")) {
+                printf("FILE DIRECTIVE!\n");
+            } else {
+                // Should we ignore this?
+            }
+
+            nkiFree(vm, directive);
+            nkiFree(vm, escapedParam);
+
+        } else if(str[i] == '(') {
 
             nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
 
