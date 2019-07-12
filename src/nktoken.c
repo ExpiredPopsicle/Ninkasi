@@ -365,6 +365,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 printf("ASDF: Butts " NK_PRINTF_UINT32 "\n", lineNumber);
             } else if(!nkiStrcmp(directive, "#file")) {
                 printf("FILE DIRECTIVE!\n");
+                // TODO
             } else {
                 // Should we ignore this?
             }

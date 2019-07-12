@@ -196,6 +196,13 @@ struct NKVM
     nkuint32_t instructionsLeftBeforeTimeout;
 
     struct NKVMExternalSubsystemData *subsystemDataTable[nkiVmExternalSubsystemHashTableSize];
+
+    // TODO: Serialize
+    // TODO: Deserialize
+    // TODO: Cleanup
+    // TODO: Create
+    char **sourceFileList;
+    nkuint32_t sourceFileCount;
 };
 
 /// Initialize an already-allocated VM.
@@ -207,6 +214,11 @@ void nkiVmDestroy(struct NKVM *vm);
 const char *nkiVmGetOpcodeName(enum NKOpcode op);
 
 void nkiVmStaticDump(struct NKVM *vm);
+
+// Clear and free the source file list. This info isn't really needed
+// in a completely error-free program, because it's mainly used for
+// error reporting.
+void nkiVmClearSourceFileList(struct NKVM *vm);
 
 // ----------------------------------------------------------------------
 

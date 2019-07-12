@@ -215,6 +215,9 @@ void nkiVmInit(struct NKVM *vm)
     vm->externalTypeCount = 0;
 
     nkiMemset(vm->subsystemDataTable, 0, sizeof(vm->subsystemDataTable));
+
+    vm->sourceFileCount = 0;
+    vm->sourceFileList = NULL;
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -320,6 +323,9 @@ void nkiVmDestroy(struct NKVM *vm)
                 nkiFree(vm, vm->externalTypes);
             }
         }
+
+        // Free source file list.
+        nkiVmClearSourceFileList(vm);
 
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
         nkiDumpLeakData(vm);
@@ -511,5 +517,19 @@ void *nkiGetExternalSubsystemData(
     }
 
     return NULL;
+}
+
+void nkiVmClearSourceFileList(struct NKVM *vm)
+{
+    nkuint32_t i;
+
+    if(vm->sourceFileList) {
+        for(i = 0; i < vm->sourceFileCount; i++) {
+            nkiFree(vm, vm->sourceFileList[i]);
+            vm->sourceFileList[i] = NULL;
+        }
+        nkiFree(vm, vm->sourceFileList);
+        vm->sourceFileList = NULL;
+    }
 }
 

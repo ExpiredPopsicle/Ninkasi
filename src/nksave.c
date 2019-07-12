@@ -1244,6 +1244,36 @@ nkbool nkiSerializeExternalObjects(
     return nktrue;
 }
 
+nkbool nkiSerializeSourceFileList(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    nkuint32_t i;
+    nkuint32_t sourceFileCount = vm->sourceFileCount;
+    char **sourceFileList = vm->sourceFileList;
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, sourceFileCount);
+
+    if(!writeMode) {
+
+        // Tear down old list.
+        nkiVmClearSourceFileList(vm);
+
+        // Allocate new empty list to fill.
+        sourceFileList = nkiMalloc(vm, sizeof(char*) * sourceFileCount);
+        nkiMemset(sourceFileList, 0, sizeof(char*) * sourceFileCount);
+    }
+
+    // Fill the list or write it out.
+    for(i = 0; i < sourceFileCount; i++) {
+        NKI_SERIALIZE_STRING(vm->sourceFileList[i]);
+    }
+
+    vm->sourceFileList = sourceFileList;
+    vm->sourceFileCount = sourceFileCount;
+
+    return nktrue;
+}
 
 #define NKI_VERSION 2
 
@@ -1330,6 +1360,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Individual external objects.
     NKI_WRAPSERIALIZE(
         nkiSerializeExternalObjects(vm, writer, userdata, writeMode));
+
+    // Source file list.
+    NKI_WRAPSERIALIZE(
+        nkiSerializeSourceFileList(vm, writer, userdata, writeMode));
 
     return nktrue;
 }
