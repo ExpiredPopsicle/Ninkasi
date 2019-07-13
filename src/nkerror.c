@@ -87,6 +87,8 @@ void nkiAddErrorEx(
     const char *str)
 {
     struct NKError *newError = NULL;
+    const char *filename = NULL;
+    nkuint32_t spaceNeeded = 0;
 
   #if NK_VM_DEBUG
     if(lineNumber == NK_INVALID_VALUE) {
@@ -97,7 +99,7 @@ void nkiAddErrorEx(
     if(fileIndex == NK_INVALID_VALUE) {
         struct NKInstruction *inst = &vm->instructions[
             vm->instructionPointer & vm->instructionAddressMask];
-        lineNumber = inst->fileIndex;
+        fileIndex = inst->fileIndex;
     }
   #endif
 
@@ -119,12 +121,44 @@ void nkiAddErrorEx(
         vm->errorState.firstError = newError;
     }
 
+    // Determine filename.
+    if(fileIndex < vm->sourceFileCount) {
+        filename = vm->sourceFileList[fileIndex];
+    }
+
+    if(!filename) {
+        filename = "<unknown>";
+    }
+
+    // Check for overflow on the error itself before we call something like sprintf!
+    {
+        nkuint32_t fixedSpaceNeeded = NK_PRINTF_UINTCHARSNEED + 16 + 1;
+        nkuint32_t errorSpaceNeeded = nkiStrlen(str);
+        nkuint32_t fnameSpaceNeeded = nkiStrlen(filename);
+        nkbool overflowed = nkfalse;
+
+        spaceNeeded = fixedSpaceNeeded;
+        NK_CHECK_OVERFLOW_UINT_ADD(spaceNeeded, errorSpaceNeeded, spaceNeeded, overflowed);
+        NK_CHECK_OVERFLOW_UINT_ADD(spaceNeeded, fnameSpaceNeeded, spaceNeeded, overflowed);
+
+        if(overflowed) {
+            filename = "<unknown>";
+            str = "Unknown error. Address space exhaustion in error reporting. Cannot report error.";
+            spaceNeeded = fixedSpaceNeeded + nkiStrlen(filename) + nkiStrlen(str);
+        }
+    }
+
     // Now add the string.
     newError->errorText =
-        (char *)nkiMalloc(vm, nkiStrlen(str) + 2 + NK_PRINTF_INTCHARSNEED + 1);
+        (char *)nkiMalloc(vm, spaceNeeded);
 
     newError->errorText[0] = 0;
-    sprintf(newError->errorText, NK_PRINTF_INT32 ": %s", lineNumber, str);
+    sprintf(
+        newError->errorText,
+        "%s:" NK_PRINTF_UINT32 ": %s",
+        filename,
+        (lineNumber != NK_INVALID_VALUE) ? lineNumber : 0,
+        str);
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)

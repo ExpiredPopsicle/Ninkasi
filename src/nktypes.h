@@ -83,6 +83,23 @@
 #define NK_INVALID_VALUE (~(nkuint32_t)0)
 #define NK_UINT_MAX (~(nkuint32_t)0)
 
+// TODO: FIXME: Replace manual overflow checks with these!
+#define NK_CHECK_OVERFLOW_UINT_ADD(a, b, result, overflow)  \
+    do {                                                    \
+        if((a) > NK_UINT_MAX - (b)) {                       \
+            overflow = nktrue;                              \
+        }                                                   \
+        result = a + b;                                     \
+    } while(0)
+
+#define NK_CHECK_OVERFLOW_UINT_MUL(a, b, result, overflow)  \
+    do {                                                    \
+        if((a) >= NK_UINT_MAX / (b)) {                      \
+            overflow = nktrue;                              \
+        }                                                   \
+        result = a * b;                                     \
+    } while(0)
+
 struct NKVM;
 struct NKValue;
 struct NKVMFunctionCallbackData;

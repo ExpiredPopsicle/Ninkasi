@@ -590,7 +590,9 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
 #define ERROR_CODE 0
 
-// extern nkuint32_t nkiMemFailRate;
+#if NK_MALLOC_FAILURE_TEST_MODE
+extern nkuint32_t nkiMemFailRate;
+#endif // NK_MALLOC_FAILURE_TEST_MODE
 
 int main(int argc, char *argv[])
 {
@@ -634,23 +636,26 @@ int main(int argc, char *argv[])
 
             struct NKCompilerState *cs;
 
-            // // First, scan for some directives. We want the random
-            // // allocation failure rate to be something that AFL can
-            // // tamper with, so it's stored in the file itself instead
-            // // of as a command line parameter.
-            // nkuint32_t lineCount = 0;
-            // char **lines = nkiDbgSplitLines(script, &lineCount);
-            // nkuint32_t i;
-            // for(i = 0; i < lineCount; i++) {
-            //     const char *memFailPct = "// #failrate: ";
-            //     if(strlen(lines[i]) >= strlen(memFailPct)) {
-            //         if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
-            //             nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
-            //         }
-            //     }
-            // }
-            // free(lines[0]);
-            // free(lines);
+          #if NK_MALLOC_FAILURE_TEST_MODE
+            // First, scan for some directives. We want the random
+            // allocation failure rate to be something that AFL can
+            // tamper with, so it's stored in the file itself instead
+            // of as a command line parameter.
+            nkuint32_t lineCount = 0;
+            char **lines = nkiDbgSplitLines(script, &lineCount);
+            nkuint32_t i;
+            for(i = 0; i < lineCount; i++) {
+                const char *memFailPct = "// #failrate: ";
+                if(strlen(lines[i]) >= strlen(memFailPct)) {
+                    if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
+                        nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
+                        printf("Setting mem fail rate: " NK_PRINTF_UINT32 "\n", nkiMemFailRate);
+                    }
+                }
+            }
+            free(lines[0]);
+            free(lines);
+          #endif // NK_MALLOC_FAILURE_TEST_MODE
 
             // Load and compile the script.
             cs = nkxCompilerCreate(vm);
