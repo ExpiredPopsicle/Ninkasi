@@ -1,7 +1,18 @@
 #!/bin/bash
 
+set -e
+
 export CC=afl-gcc
 export CFLAGS="-g -rdynamic -O0 -DNK_MALLOC_FAILURE_TEST_MODE=1"
 export LDFLAGS="-rdynamic -O0"
 
 ./configure --prefix=$PWD/prefix
+
+make -j16
+
+# Compile binary versions of test scripts.
+for i in afl_in/*.nks; do
+    src/ninkasi_test -c $i
+done
+
+

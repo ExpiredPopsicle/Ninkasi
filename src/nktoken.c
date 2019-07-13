@@ -257,8 +257,6 @@ nkbool nkiCompilerTokenize(
 
             // Preprocessor directive.
             nkuint32_t lineStart = i;
-            nkuint32_t lineEnd;
-            // nkuint32_t secondTokenStart;
             nkuint32_t k;
             char *directive;
             // char *secondToken;
@@ -272,7 +270,6 @@ nkbool nkiCompilerTokenize(
             while(str[i] != '\n' && str[i] != '\r' && str[i]) {
                 i++;
             }
-            lineEnd = i;
 
             // Skip past the directive.
             k = lineStart;
@@ -283,7 +280,6 @@ nkbool nkiCompilerTokenize(
             // Save the directive itself.
             directive = nkiMalloc(vm, k - lineStart + 1);
             nkiStrcpy_s(directive, str + lineStart, k - lineStart);
-            printf("ASDF: Directive: \"%s\"\n", directive);
 
             // Skip past whitespace after the directive.
             while(nkiCompilerIsWhitespace(str[k])) {
@@ -340,12 +336,8 @@ nkbool nkiCompilerTokenize(
             parameter = nkiMalloc(vm, k - parameterStart + 1);
             escapedParam = NULL;
 
-            printf("ASDF: blah1: " NK_PRINTF_UINT32 "\n", k - parameterStart);
-
             // Save a copy of the paramter.
             nkiStrcpy_s(parameter, str + parameterStart, k - parameterStart);
-
-            printf("ASDF: blah2: " NK_PRINTF_UINT32 "\n", k - parameterStart);
 
             // Strip off quotes and unescape string.
             if(paramIsQuoted) {
@@ -364,19 +356,16 @@ nkbool nkiCompilerTokenize(
                 escapedParam = parameter;
             }
 
-            printf("ASDF: Param: \"%s\"\n", escapedParam);
-
+            // Actually act on it.
             if(!nkiStrcmp(directive, "#line")) {
-                printf("LINE DIRECTIVE!\n");
                 lineNumber = atol(escapedParam);
-                printf("ASDF: Butts " NK_PRINTF_UINT32 "\n", lineNumber);
             } else if(!nkiStrcmp(directive, "#file")) {
-                printf("FILE DIRECTIVE!\n");
                 fileIndex = nkiVmAddSourceFile(vm, escapedParam);
             } else {
                 // Should we ignore this?
             }
 
+            // Clean up.
             nkiFree(vm, directive);
             nkiFree(vm, escapedParam);
 
