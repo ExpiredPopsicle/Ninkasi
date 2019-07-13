@@ -1,0 +1,41 @@
+function() {
+    print("ASDFmdclkmdlksdclksdls,dcl;,\n");
+}();
+
+1 + 2 + 3;
+
+
+var test = function() { print("HOLY SHIT\n"); };
+
+test();
+
+1 + 2 + 3;
+
+
+
+function() {
+    print("ASDF\n");
+}();
+
+function foo()
+{
+    print("ASDF\n");
+}
+
+var foo2 = function() {
+};
+
+
+
+#somedirective "foo\"butts"
+#somedirective foo butts
+#somedirective 
+#somedirective
+#somedirective "
+#somedirective "asdf
+
+
+
+
+#line 123456
+thijnsckjsdckdsckjsdc

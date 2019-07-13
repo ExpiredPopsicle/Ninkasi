@@ -244,6 +244,8 @@ nkbool nkiCompilerTokenize(
 
     while(i < len) {
 
+        // FIXME: Stop on "//"
+
         // Skip whitespace.
         while(i < len && nkiCompilerIsWhitespace(str[i])) {
             if(str[i] == '\n') {

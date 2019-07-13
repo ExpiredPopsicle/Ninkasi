@@ -2,6 +2,8 @@
 
 set -e
 
+cd" $(dirname "$0/..")"
+
 export CC=afl-gcc
 export CFLAGS="-g -rdynamic -O0 -DNK_MALLOC_FAILURE_TEST_MODE=1"
 export LDFLAGS="-rdynamic -O0"
@@ -11,6 +13,10 @@ export LDFLAGS="-rdynamic -O0"
 make -j16
 
 # Compile binary versions of test scripts.
+if [ \! -d afl_in ]; then
+    mkdir afl_in
+fi
+
 for i in afl_in/*.nks; do
     src/ninkasi_test -c $i
 done

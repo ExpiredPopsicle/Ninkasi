@@ -1,5 +1,7 @@
 # Native object files
 *.o
+*.a
+src/ninkasi
 
 # MS-DOS object files and build artifacts
 *.OBJ
@@ -28,4 +30,14 @@ test/Makefile.in
 test/test-suite.log
 test/test.sh.log
 test/test.sh.trs
+.deps
+.dirstamp
+
+# Test generated stuff
+afl_in
+afl_out
+crashes
+output_dos.txt
+output_linux.txt
+pkg-config/ninkasi.pc
 
