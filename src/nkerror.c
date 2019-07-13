@@ -75,16 +75,29 @@ nkbool nkiVmHasErrors(struct NKVM *vm)
 
 void nkiAddError(
     struct NKVM *vm,
-    nkint32_t lineNumber,
+    const char *str)
+{
+    nkiAddErrorEx(vm, NK_INVALID_VALUE, NK_INVALID_VALUE, str);
+}
+
+void nkiAddErrorEx(
+    struct NKVM *vm,
+    nkuint32_t lineNumber,
+    nkuint32_t fileIndex,
     const char *str)
 {
     struct NKError *newError = NULL;
 
   #if NK_VM_DEBUG
-    if(lineNumber == -1) {
+    if(lineNumber == NK_INVALID_VALUE) {
         struct NKInstruction *inst = &vm->instructions[
             vm->instructionPointer & vm->instructionAddressMask];
         lineNumber = inst->lineNumber;
+    }
+    if(fileIndex == NK_INVALID_VALUE) {
+        struct NKInstruction *inst = &vm->instructions[
+            vm->instructionPointer & vm->instructionAddressMask];
+        lineNumber = inst->fileIndex;
     }
   #endif
 

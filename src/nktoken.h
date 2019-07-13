@@ -54,6 +54,7 @@ struct NKToken
     char *str;
     struct NKToken *next;
     nkint32_t lineNumber;
+    nkuint32_t fileIndex;
 };
 
 struct NKTokenList
@@ -70,8 +71,13 @@ void nkiCompilerAddToken(
     enum NKTokenType type,
     const char *str,
     nkint32_t lineNumber,
+    nkuint32_t fileIndex,
     struct NKTokenList *tokenList);
-nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList);
+nkbool nkiCompilerTokenize(
+    struct NKVM *vm,
+    const char *str,
+    struct NKTokenList *tokenList,
+    const char *filename);
 
 #endif // NINKASI_TOKENIZE_H
 

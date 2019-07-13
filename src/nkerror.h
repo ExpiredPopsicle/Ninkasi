@@ -71,7 +71,12 @@ void nkiErrorStateDestroy(struct NKVM *vm);
 
 void nkiAddError(
     struct NKVM *vm,
-    nkint32_t lineNumber,
+    const char *str);
+
+void nkiAddErrorEx(
+    struct NKVM *vm,
+    nkuint32_t lineNumber,
+    nkuint32_t fileIndex,
     const char *str);
 
 void nkiErrorStateSetAllocationFailFlag(

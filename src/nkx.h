@@ -558,7 +558,8 @@ struct NKValue *nkxCompilerCreateGlobalVariable(
 /// counts.
 nkbool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
-    const char *script);
+    const char *script,
+    const char *filename);
 
 /// This is a convenience wrapper around nkxCompilerCompileScript().
 /// Note that it uses the system heap through malloc() instead of the

@@ -86,6 +86,8 @@ void nkiCompilerAddInstruction(
   #if NK_VM_DEBUG
     cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
         nkiCompilerCurrentTokenLinenumber(cs);
+    cs->vm->instructions[cs->instructionWriteIndex].fileIndex =
+        nkiCompilerCurrentTokenFileIndex(cs);
   #endif
 
     cs->instructionWriteIndex++;
@@ -730,9 +732,10 @@ nkbool nkiCompilerCompileFunctionDefinition(
             functionName = nkiCompilerCurrentTokenString(cs);
             nkiCompilerNextToken(cs);
         } else {
-            nkiAddError(
+            nkiAddErrorEx(
                 cs->vm,
                 nkiCompilerCurrentTokenLinenumber(cs),
+                nkiCompilerCurrentTokenFileIndex(cs),
                 "Expected identifier for function name.");
             nkiCompilerPopRecursion(cs);
             return nkfalse;
@@ -937,6 +940,14 @@ nkuint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs)
     return cs->currentLineNumber;
 }
 
+nkuint32_t nkiCompilerCurrentTokenFileIndex(struct NKCompilerState *cs)
+{
+    if(cs->currentToken) {
+        return cs->currentToken->fileIndex;
+    }
+    return NK_INVALID_VALUE;
+}
+
 const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs)
 {
     if(cs->currentToken) {
@@ -947,9 +958,10 @@ const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs)
 
 void nkiCompilerAddError(struct NKCompilerState *cs, const char *error)
 {
-    nkiAddError(
+    nkiAddErrorEx(
         cs->vm,
         nkiCompilerCurrentTokenLinenumber(cs),
+        nkiCompilerCurrentTokenFileIndex(cs),
         error);
 }
 
@@ -1090,7 +1102,8 @@ void nkiCompilerFinalize(
 
 nkbool nkiCompilerCompileScript(
     struct NKCompilerState *cs,
-    const char *script)
+    const char *script,
+    const char *filename)
 {
     struct NKTokenList tokenList;
     nkbool success;
@@ -1105,7 +1118,7 @@ nkbool nkiCompilerCompileScript(
     tokenList.first = NULL;
     tokenList.last = NULL;
 
-    success = nkiCompilerTokenize(cs->vm, script, &tokenList);
+    success = nkiCompilerTokenize(cs->vm, script, &tokenList, filename);
     if(!success) {
         nkiCompilerDestroyTokenList(cs->vm, &tokenList);
         nkiCompilerPopRecursion(cs);

@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
 
     // Compile the script. (You would do this multiple times before
     // finalizing for multi-file scripts.)
-    nkxCompilerCompileScript(compiler, scriptText);
+    nkxCompilerCompileScript(compiler, scriptText, settings.scriptFilename);
 
     // Done compiling. Finalize everything.
     nkxCompilerFinalize(compiler);

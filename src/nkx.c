@@ -239,13 +239,14 @@ void nkxCompilerCreateCFunctionVariable(
 
 nkbool nkxCompilerCompileScript(
     struct NKCompilerState *cs,
-    const char *script)
+    const char *script,
+    const char *filename)
 {
     NK_FAILURE_RECOVERY_DECL();
     struct NKVM *vm = cs->vm;
     nkbool ret;
     NK_SET_FAILURE_RECOVERY(nkfalse);
-    ret = nkiCompilerCompileScript(cs, script);
+    ret = nkiCompilerCompileScript(cs, script, filename);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
 }
@@ -268,6 +269,7 @@ nkbool nkxCompilerCompileScriptFile(
         return nkfalse;
     }
 
+    // Read file length.
     fseek(in, 0, SEEK_END);
     len = ftell(in);
     fseek(in, 0, SEEK_SET);
@@ -282,7 +284,7 @@ nkbool nkxCompilerCompileScriptFile(
     buf[len] = 0;
 
     fclose(in);
-    success = nkxCompilerCompileScript(cs, buf);
+    success = nkxCompilerCompileScript(cs, buf, scriptFilename);
     free(buf);
 
     return success;
@@ -351,7 +353,7 @@ nkbool nkxFunctionCallbackCheckArgCount(
             data->vm, "Bad argument count in ");
         nkiDynStrAppend(dynStr, functionName);
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
         ret = nkfalse;
     }
@@ -599,7 +601,7 @@ void nkxAddError(
 {
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    nkiAddError(vm, -1, str);
+    nkiAddError(vm, str);
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
@@ -763,7 +765,7 @@ nkbool nkxFunctionCallbackCheckArguments(
         nkiDynStrAppendUint32(dynStr, data->argumentCount);
         nkiDynStrAppend(dynStr, ".");
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
         ret = nkfalse;
@@ -788,7 +790,7 @@ nkbool nkxFunctionCallbackCheckArguments(
                 nkiDynStrAppend(dynStr, nkiValueTypeGetName(data->arguments[i].type));
                 nkiDynStrAppend(dynStr, ".");
                 nkiAddError(
-                    data->vm, -1, dynStr->data);
+                    data->vm, dynStr->data);
                 nkiDynStrDelete(dynStr);
 
                 ret = nkfalse;
@@ -822,7 +824,7 @@ void *nkxGetExternalSubsystemDataOrError(
             vm, "Could not find subsystem data: ");
         nkiDynStrAppend(dynStr, name);
         nkiAddError(
-            vm, -1, dynStr->data);
+            vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
         NK_CLEAR_FAILURE_RECOVERY();
@@ -851,7 +853,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
             data->vm, functionName);
         nkiDynStrAppend(dynStr, ": Tried to decode an external object that is beyond the end of the arguments list.");
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
     } else if(data->arguments[argumentNumber].type != NK_VALUETYPE_OBJECTID) {
@@ -862,7 +864,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
         nkiDynStrAppendUint32(dynStr, argumentNumber);
         nkiDynStrAppend(dynStr, ".");
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
     } else if(data->vm->externalTypeCount <= externalDataType.id) {
@@ -873,7 +875,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
         nkiDynStrAppendUint32(dynStr, argumentNumber);
         nkiDynStrAppend(dynStr, ": Bad type specified in external function.");
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
     } else if(nkxVmObjectGetExternalType(data->vm, &data->arguments[argumentNumber]).id != externalDataType.id) {
@@ -889,7 +891,7 @@ void *nkxFunctionCallbackGetExternalDataArgument(
         nkiDynStrAppend(dynStr, nkiValueGetTypeNameOfValue(data->vm, &data->arguments[argumentNumber]));
         nkiDynStrAppend(dynStr, ".");
         nkiAddError(
-            data->vm, -1, dynStr->data);
+            data->vm, dynStr->data);
         nkiDynStrDelete(dynStr);
 
     } else {
@@ -911,7 +913,7 @@ nkbool nkxSerializerGetWriteMode(struct NKVM *vm)
 nkbool nkxSerializeData(struct NKVM *vm, void *data, nkuint32_t size)
 {
     if(!vm->serializationState.writer) {
-        nkiAddError(vm, -1, "Attempted to access serialization writer outside of serialization.");
+        nkiAddError(vm, "Attempted to access serialization writer outside of serialization.");
         return nkfalse;
     }
 

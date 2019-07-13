@@ -356,7 +356,7 @@ void nkiVmIterate(struct NKVM *vm)
         // Thanks AFL!
         if(vm->instructionsLeftBeforeTimeout != NK_INVALID_VALUE) {
             if(vm->instructionsLeftBeforeTimeout < vm->gcInfo.gcInterval) {
-                nkiAddError(vm, -1, "Instruction count limit reached.");
+                nkiAddError(vm, "Instruction count limit reached.");
                 vm->instructionsLeftBeforeTimeout = 0;
                 return;
             }
@@ -415,13 +415,13 @@ NKVMExternalDataTypeID nkiVmRegisterExternalType(
     NKVMExternalDataTypeID ret = nkiVmFindExternalType(vm, name);
     if(ret.id != NK_INVALID_VALUE) {
         ret.id = NK_INVALID_VALUE;
-        nkiAddError(vm, -1, "Attempted to register an external type twice.");
+        nkiAddError(vm, "Attempted to register an external type twice.");
         return ret;
     }
 
     if(vm->externalTypeCount == NK_INVALID_VALUE) {
         ret.id = NK_INVALID_VALUE;
-        nkiAddError(vm, -1, "Allocated too many types.");
+        nkiAddError(vm, "Allocated too many types.");
         return ret;
     }
 
@@ -517,6 +517,37 @@ void *nkiGetExternalSubsystemData(
     }
 
     return NULL;
+}
+
+nkuint32_t nkiVmAddSourceFile(struct NKVM *vm, const char *filename)
+{
+    nkuint32_t i;
+    nkuint32_t newCount = vm->sourceFileCount + 1;
+    char **newList = NULL;
+    nkuint32_t newIndex = vm->sourceFileCount;
+
+    // First search the list for it.
+    for(i = 0; i < vm->sourceFileCount; i++) {
+        if(nkiStrcmp(filename, vm->sourceFileList[i]) == 0) {
+            return i;
+        }
+    }
+
+    if(newCount == NK_INVALID_VALUE) {
+        return NK_INVALID_VALUE;
+    }
+
+    newList = nkiReallocArray(vm, vm->sourceFileList, sizeof(char*), newCount);
+    vm->sourceFileList = newList;
+    vm->sourceFileCount = newCount;
+
+    // Set to NULL first, so an allocation failure on the strdup
+    // doesn't leave us with garbage here.
+    vm->sourceFileList[newIndex] = NULL;
+
+    vm->sourceFileList[newIndex] = nkiStrdup(vm, filename);
+
+    return newIndex;
 }
 
 void nkiVmClearSourceFileList(struct NKVM *vm)

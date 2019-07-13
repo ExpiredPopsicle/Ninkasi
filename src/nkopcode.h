@@ -67,8 +67,8 @@ struct NKInstruction
     };
 
   #if NK_VM_DEBUG
-    // Must be LAST for serialization purposes.
     nkuint32_t lineNumber;
+    nkuint32_t fileIndex;
   #endif
 };
 

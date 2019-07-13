@@ -128,7 +128,7 @@ nkint32_t nkiValueToInt(struct NKVM *vm, struct NKValue *value)
             nkiDynStrAppend(ds, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
             return 0;
@@ -165,7 +165,7 @@ float nkiValueToFloat(struct NKVM *vm, struct NKValue *value)
             nkiDynStrAppend(ds, nkiValueTypeGetName(value->type));
             nkiDynStrAppend(ds, " to an integer.");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
             return 0;
@@ -289,7 +289,7 @@ nkint32_t nkiValueCompare(
 
             // Thanks AFL!
             if(!other || !thisData) {
-                nkiAddError(vm, -1, "Bad string comparison.");
+                nkiAddError(vm, "Bad string comparison.");
                 return 1;
             }
 
@@ -328,7 +328,7 @@ nkint32_t nkiValueCompare(
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;

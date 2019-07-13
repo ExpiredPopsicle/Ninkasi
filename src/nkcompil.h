@@ -121,7 +121,8 @@ void nkiCompilerFinalize(
 /// counts.
 nkbool nkiCompilerCompileScript(
     struct NKCompilerState *cs,
-    const char *script);
+    const char *script,
+    const char *filename);
 
 // ----------------------------------------------------------------------
 // Basic instruction writing.
@@ -221,6 +222,7 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs);
 struct NKToken *nkiCompilerPeekToken(struct NKCompilerState *cs);
 enum NKTokenType nkiCompilerCurrentTokenType(struct NKCompilerState *cs);
 nkuint32_t nkiCompilerCurrentTokenLinenumber(struct NKCompilerState *cs);
+nkuint32_t nkiCompilerCurrentTokenFileIndex(struct NKCompilerState *cs);
 const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs);
 nkbool nkiCompilerExpectAndSkipToken(
     struct NKCompilerState *cs, enum NKTokenType t);

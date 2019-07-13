@@ -152,7 +152,7 @@ void nkiVmObjectTableCleanupObject(
                 }
 
             } else {
-                nkiAddError(vm, -1, "External type value out of range.");
+                nkiAddError(vm, "External type value out of range.");
             }
         }
 
@@ -255,9 +255,7 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
         if(!ob->size || ob->size > vm->limits.maxFieldsPerObject) {
             ob->size--;
 
-            nkiAddError(
-                vm, -1,
-                "Reached object field count limit.");
+            nkiAddError(vm, "Reached object field count limit.");
 
             return NULL;
         }
@@ -274,7 +272,7 @@ struct NKValue *nkiVmObjectFindOrAddEntry(
 struct NKVMObject *nkiVmGetObjectFromValue(struct NKVM *vm, struct NKValue *value)
 {
     if(!value) {
-        nkiAddError(vm, -1, "Bad value in nkiVmGetObjectFromValue.");
+        nkiAddError(vm, "Bad value in nkiVmGetObjectFromValue.");
         return NULL;
     }
 
@@ -293,8 +291,7 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
 
     // Make sure we actually got an object.
     if(!ob) {
-        nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
+        nkiAddError(vm, "Bad object ID in nkiVmObjectAcquireHandle.");
         return;
     }
 
@@ -310,7 +307,7 @@ void nkiVmObjectAcquireHandle(struct NKVM *vm, struct NKValue *value)
     // Check for integer overflow.
     if(ob->externalHandleCount == 0) {
         ob->externalHandleCount = NK_UINT_MAX;
-        nkiAddError(vm, -1, "Integer overflow in handle count.");
+        nkiAddError(vm, "Integer overflow in handle count.");
         return;
     }
 
@@ -336,13 +333,13 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value)
     // Make sure we actually got an object.
     if(!ob) {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectAcquireHandle.");
+            vm, "Bad object ID in nkiVmObjectAcquireHandle.");
         return;
     }
 
     if(ob->externalHandleCount == 0) {
         nkiAddError(
-            vm, -1, "Tried to release handle for object with no external handles.");
+            vm, "Tried to release handle for object with no external handles.");
     }
 
     ob->externalHandleCount--;
@@ -371,7 +368,7 @@ nkuint32_t nkiVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *va
     // Make sure we actually got an object.
     if(!ob) {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectGetExternalHandleCount.");
+            vm, "Bad object ID in nkiVmObjectGetExternalHandleCount.");
         return 0;
     }
 
@@ -388,7 +385,7 @@ void nkiVmObjectSetExternalType(
         ob->externalDataType = externalType;
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectSetExternalType.");
+            vm, "Bad object ID in nkiVmObjectSetExternalType.");
     }
 }
 
@@ -402,7 +399,7 @@ NKVMExternalDataTypeID nkiVmObjectGetExternalType(
         ret = ob->externalDataType;
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectGetExternalType.");
+            vm, "Bad object ID in nkiVmObjectGetExternalType.");
     }
     return ret;
 }
@@ -417,7 +414,7 @@ void nkiVmObjectSetExternalData(
         ob->externalData = data;
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectSetExternalData.");
+            vm, "Bad object ID in nkiVmObjectSetExternalData.");
     }
 }
 
@@ -445,7 +442,7 @@ void nkiVmObjectClearEntry_public(
         nkiVmObjectClearEntry(vm, ob, key);
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectClearEntry.");
+            vm, "Bad object ID in nkiVmObjectClearEntry.");
     }
 }
 
@@ -460,7 +457,7 @@ struct NKValue *nkiVmObjectFindOrAddEntry_public(
         return nkiVmObjectFindOrAddEntry(vm, ob, key, noAdd);
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectFindOrAddEntry.");
+            vm, "Bad object ID in nkiVmObjectFindOrAddEntry.");
     }
     return NULL;
 }
@@ -474,7 +471,7 @@ nkuint32_t nkiVmObjectGetSize(
         return ob->size;
     } else {
         nkiAddError(
-            vm, -1, "Bad object ID in nkiVmObjectGetSize.");
+            vm, "Bad object ID in nkiVmObjectGetSize.");
     }
     return 0;
 }

@@ -75,7 +75,6 @@ void nkiDynStrAppend(struct NKDynString *dynStr, const char *str)
         len2 = ~(nkuint32_t)0 - len1 - 1;
         nkiAddError(
             dynStr->vm,
-            -1,
             "Tried to append a string past length limit. String truncated.");
     }
 

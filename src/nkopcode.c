@@ -99,7 +99,7 @@ void nkiOpcode_add(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
             return;
@@ -181,7 +181,7 @@ void nkiOpcode_subtract(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;
@@ -217,7 +217,7 @@ void nkiOpcode_multiply(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;
@@ -244,7 +244,7 @@ void nkiOpcode_divide(struct NKVM *vm)
                 (val2 == -1 && in1->intData == -2147483647L - 1))
             {
                 nkiAddError(
-                    vm, -1,
+                    vm,
                     "Integer divide-by-zero or division overflow.");
             } else {
                 nkiVmStackPushInt(
@@ -267,7 +267,7 @@ void nkiOpcode_divide(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;
@@ -291,7 +291,7 @@ void nkiOpcode_modulo(struct NKVM *vm)
                     val2 == -1))
             {
                 nkiAddError(
-                    vm, -1,
+                    vm,
                     "Integer divide-by-zero.");
             } else {
                 nkiVmStackPushInt(
@@ -307,7 +307,7 @@ void nkiOpcode_modulo(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;
@@ -340,7 +340,7 @@ void nkiOpcode_negate(struct NKVM *vm)
             nkiDynStrAppend(ds, nkiValueTypeGetName(type));
             nkiDynStrAppend(ds, ".");
             nkiAddError(
-                vm, -1,
+                vm,
                 ds->data);
             nkiDynStrDelete(ds);
         } break;
@@ -363,7 +363,7 @@ void nkiOpcode_stackPeek(struct NKVM *vm)
     // Read index.
     struct NKValue *v = nkiVmStackPop(vm);
     if(v->type != NK_VALUETYPE_INT) {
-        nkiAddError(vm, -1,
+        nkiAddError(vm,
             "Attempted to use a non-integer as a stack index.");
         return;
     }
@@ -395,7 +395,7 @@ void nkiOpcode_stackPoke(struct NKVM *vm)
     // Read index.
     struct NKValue *stackAddrValue = nkiVmStackPop(vm);
     if(stackAddrValue->type != NK_VALUETYPE_INT) {
-        nkiAddError(vm, -1,
+        nkiAddError(vm,
             "Attempted to use a non-integer as a stack index.");
         return;
     }
@@ -424,7 +424,7 @@ void nkiOpcode_staticPeek(struct NKVM *vm)
     // Read index.
     struct NKValue *v = nkiVmStackPop(vm);
     if(v->type != NK_VALUETYPE_INT) {
-        nkiAddError(vm, -1,
+        nkiAddError(vm,
             "Attempted to use a non-integer as a static index.");
         return;
     }
@@ -442,7 +442,7 @@ void nkiOpcode_staticPoke(struct NKVM *vm)
     // Read index.
     struct NKValue *staticAddrValue = nkiVmStackPop(vm);
     if(staticAddrValue->type != NK_VALUETYPE_INT) {
-        nkiAddError(vm, -1,
+        nkiAddError(vm,
             "Attempted to use a non-integer as a static index.");
         return;
     }
@@ -483,7 +483,6 @@ void nkiOpcode_call(struct NKVM *vm)
         if(functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
             nkiAddError(
                 vm,
-                -1,
                 "Tried to call something that is not a function id.");
             return;
         }
@@ -495,7 +494,6 @@ void nkiOpcode_call(struct NKVM *vm)
     if(functionId.id >= vm->functionCount) {
         nkiAddError(
             vm,
-            -1,
             "Bad function id.");
         return;
     }
@@ -508,7 +506,6 @@ void nkiOpcode_call(struct NKVM *vm)
     {
         nkiAddError(
             vm,
-            -1,
             "Incorrect argument count for function call.");
         return;
     }
@@ -529,7 +526,8 @@ void nkiOpcode_call(struct NKVM *vm)
         // First check that this is a valid function. Maybe we go
         // weird data from deserialization.
         if(funcOb->externalFunctionId.id >= vm->externalFunctionCount) {
-            nkiAddError(vm, -1,
+            nkiAddError(
+                vm,
                 "Tried to call a bad native function.");
             return;
         }
@@ -537,7 +535,8 @@ void nkiOpcode_call(struct NKVM *vm)
         externalFunc = &vm->externalFunctionTable[funcOb->externalFunctionId.id];
 
         if(!externalFunc->CFunctionCallback) {
-            nkiAddError(vm, -1,
+            nkiAddError(
+                vm,
                 "Tried to call a null native function.");
             return;
         }
@@ -574,7 +573,7 @@ void nkiOpcode_call(struct NKVM *vm)
                     "Tried to call an external function ");
                 nkiDynStrAppend(dynStr, externalFunc->name);
                 nkiDynStrAppend(dynStr, " with an incorrect number of arguments.");
-                nkiAddError(vm, -1, dynStr->data);
+                nkiAddError(vm, dynStr->data);
                 nkiDynStrDelete(dynStr);
                 nkiFree(vm, data.arguments);
                 return;
@@ -600,7 +599,7 @@ void nkiOpcode_call(struct NKVM *vm)
                         nkiDynStrAppend(dynStr, " for argument ");
                         nkiDynStrAppendUint32(dynStr, i);
                         nkiDynStrAppend(dynStr, ".");
-                        nkiAddError(vm, -1, dynStr->data);
+                        nkiAddError(vm, dynStr->data);
                         nkiDynStrDelete(dynStr);
                         nkiFree(vm, data.arguments);
                         return;
@@ -625,7 +624,7 @@ void nkiOpcode_call(struct NKVM *vm)
                                 nkiDynStrAppend(dynStr, " for argument ");
                                 nkiDynStrAppendUint32(dynStr, i);
                                 nkiDynStrAppend(dynStr, ".");
-                                nkiAddError(vm, -1, dynStr->data);
+                                nkiAddError(vm, dynStr->data);
                                 nkiDynStrDelete(dynStr);
                                 nkiFree(vm, data.arguments);
                                 return;
@@ -639,7 +638,7 @@ void nkiOpcode_call(struct NKVM *vm)
                             nkiDynStrAppend(dynStr, " for argument ");
                             nkiDynStrAppendUint32(dynStr, i);
                             nkiDynStrAppend(dynStr, ".");
-                            nkiAddError(vm, -1, dynStr->data);
+                            nkiAddError(vm, dynStr->data);
                             nkiDynStrDelete(dynStr);
                             nkiFree(vm, data.arguments);
                             return;
@@ -655,7 +654,7 @@ void nkiOpcode_call(struct NKVM *vm)
             nkiFree(vm, data.arguments);
         } else {
             nkiFree(vm, data.arguments);
-            nkiAddError(vm, -1, "Attempted to call a C function that doesn't exist.");
+            nkiAddError(vm, "Attempted to call a C function that doesn't exist.");
         }
 
         // If the C function called some code back inside the VM, we
@@ -875,7 +874,6 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
     if(objectToGet->type != NK_VALUETYPE_OBJECTID) {
         nkiAddError(
             vm,
-            -1,
             "Attempted to get a field on a value that is not an object.");
         return;
     }
@@ -885,7 +883,6 @@ void nkiOpcode_objectFieldGet_internal(struct NKVM *vm, nkbool popObject)
     if(!ob) {
         nkiAddError(
             vm,
-            -1,
             "Bad object id in nkiOpcode_objectFieldGet.");
         return;
     }
@@ -926,7 +923,6 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
     if(objectToSet->type != NK_VALUETYPE_OBJECTID) {
         nkiAddError(
             vm,
-            -1,
             "Attempted to set a field on a value that is not an object.");
         return;
     }
@@ -936,7 +932,6 @@ void nkiOpcode_objectFieldSet(struct NKVM *vm)
     if(!ob) {
         nkiAddError(
             vm,
-            -1,
             "Bad object id in nkiOpcode_objectFieldSet.");
         return;
     }

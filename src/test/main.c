@@ -656,7 +656,7 @@ int main(int argc, char *argv[])
             cs = nkxCompilerCreate(vm);
             if(cs) {
                 initInternalFunctions(vm, cs);
-                nkxCompilerCompileScript(cs, script);
+                nkxCompilerCompileScript(cs, script, settings.filename);
                 nkxCompilerFinalize(cs);
             }
             if(checkErrors(vm)) {

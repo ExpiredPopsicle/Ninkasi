@@ -72,9 +72,7 @@ void nkiVmCallFunction(
     struct NKValue *returnValue)
 {
     if(functionValue->type != NK_VALUETYPE_FUNCTIONID) {
-        nkiAddError(
-            vm, -1,
-            "Tried to call a non-function with nkiVmCallFunction.");
+        nkiAddError(vm, "Tried to call a non-function with nkiVmCallFunction.");
         return;
     }
 
@@ -184,7 +182,7 @@ NKVMExternalFunctionID nkiVmRegisterExternalFunctionNoSearch(
     vm->externalFunctionCount++;
     if(!vm->externalFunctionCount) {
         vm->externalFunctionCount--;
-        nkiAddError(vm, -1, "Too many external functions registered.");
+        nkiAddError(vm, "Too many external functions registered.");
         {
             NKVMExternalFunctionID ret = { NK_INVALID_VALUE };
             return ret;
@@ -217,9 +215,7 @@ NKVMInternalFunctionID nkiVmGetOrCreateInternalFunctionForExternalFunction(
     NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
 
     if(externalFunctionId.id >= vm->externalFunctionCount) {
-        nkiAddError(
-            vm, -1,
-            "Tried to create an internal function to represent a bad external function.");
+        nkiAddError(vm, "Tried to create an internal function to represent a bad external function.");
         return functionId;
     }
 

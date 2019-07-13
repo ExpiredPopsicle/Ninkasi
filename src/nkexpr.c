@@ -339,6 +339,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                         nkiCompilerAddError(cs, "Anonymous function parse error.");
                         NK_CLEANUP_INLOOP();
                         nkiCompilerPopRecursion(cs);
+                        return NULL;
                     }
 
                     sprintf(tmp, NK_PRINTF_UINT32, functionId.id);
@@ -925,9 +926,10 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
             struct NKDynString *dynStr =
                 nkiDynStrCreate(cs->vm, "Unknown value or operator in nkiCompilerEmitExpression: ");
             nkiDynStrAppend(dynStr, node->opOrValue->str);
-            nkiAddError(
+            nkiAddErrorEx(
                 cs->vm,
                 node->opOrValue->lineNumber,
+                node->opOrValue->fileIndex,
                 dynStr->data);
             nkiDynStrDelete(dynStr);
             nkiCompilerPopRecursion(cs);

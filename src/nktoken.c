@@ -82,6 +82,7 @@ void nkiCompilerAddToken(
     enum NKTokenType type,
     const char *str,
     nkint32_t lineNumber,
+    nkuint32_t fileIndex,
     struct NKTokenList *tokenList)
 {
     struct NKToken *newToken =
@@ -91,6 +92,7 @@ void nkiCompilerAddToken(
     newToken->str = nkiStrdup(vm, str);
     newToken->type = type;
     newToken->lineNumber = lineNumber;
+    newToken->fileIndex = fileIndex;
 
     // Add us to the end of the list.
     if(tokenList->last) {
@@ -116,7 +118,7 @@ char *nkiCompilerTokenizerUnescapeString(
     nkuint32_t len = nkiStrlen(in);
     if(len > ~(nkuint32_t)0 - 2) {
         len = ~(nkuint32_t)0 - 2;
-        nkiAddError(vm, -1, "String too long to escape.");
+        nkiAddError(vm, "String too long to escape.");
     }
 
     // +2 for weird backslash-before null-terminator, and the regular
@@ -182,7 +184,7 @@ void nkiCompilerConsolidateStringLiterals(struct NKVM *vm, struct NKTokenList *t
             // Truncate string for safety.
             if(len2 > ~(nkuint32_t)0 - len1) {
                 len2 = ~(nkuint32_t)0 - len1;
-                nkiAddError(vm, -1, "String too long to concatenate.");
+                nkiAddError(vm, "String too long to concatenate.");
             }
 
             newStr = (char *)nkiMalloc(vm, len1 + len2 + 1);
@@ -229,11 +231,16 @@ nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
     return nkfalse;
 }
 
-nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList *tokenList)
+nkbool nkiCompilerTokenize(
+    struct NKVM *vm,
+    const char *str,
+    struct NKTokenList *tokenList,
+    const char *filename)
 {
     nkuint32_t len = nkiStrlen(str);
     nkuint32_t i = 0;
     nkint32_t lineNumber = 1;
+    nkuint32_t fileIndex = nkiVmAddSourceFile(vm, filename);
 
     while(i < len) {
 
@@ -365,7 +372,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 printf("ASDF: Butts " NK_PRINTF_UINT32 "\n", lineNumber);
             } else if(!nkiStrcmp(directive, "#file")) {
                 printf("FILE DIRECTIVE!\n");
-                // TODO
+                fileIndex = nkiVmAddSourceFile(vm, escapedParam);
             } else {
                 // Should we ignore this?
             }
@@ -375,59 +382,59 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
 
         } else if(str[i] == '(') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_OPEN, "(", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_OPEN, "(", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == ')') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_CLOSE, ")", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_PAREN_CLOSE, ")", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '[') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_OPEN, "[", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_OPEN, "[", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == ']') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_BRACKET_CLOSE, "]", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '{') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_OPEN, "{", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '}') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_CURLYBRACE_CLOSE, "}", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '+') {
 
             // Check for "++".
             if(str[i+1] == '+') {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_INCREMENT, "++", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_INCREMENT, "++", lineNumber, fileIndex, tokenList);
                 i++;
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_PLUS, "+", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_PLUS, "+", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == '-') {
 
             // Check for "--".
             if(str[i+1] == '-') {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_DECREMENT, "--", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DECREMENT, "--", lineNumber, fileIndex, tokenList);
                 i++;
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_MINUS, "-", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_MINUS, "-", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == '*') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_MULTIPLY, "*", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_MULTIPLY, "*", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '%') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_MODULO, "%", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_MODULO, "%", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '.') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_DOT, ".", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_DOT, ".", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '/') {
 
@@ -441,67 +448,67 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 i--;
 
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_DIVIDE, "/", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DIVIDE, "/", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == ';') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_SEMICOLON, ";", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_SEMICOLON, ";", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '=') {
 
             if(str[i+1] == '=') {
                 if(str[i+2] == '=') {
-                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, tokenList);
+                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUALWITHSAMETYPE, "===", lineNumber, fileIndex, tokenList);
                     i += 2;
                 } else {
-                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUAL, "==", lineNumber, tokenList);
+                    nkiCompilerAddToken(vm, NK_TOKENTYPE_EQUAL, "==", lineNumber, fileIndex, tokenList);
                     i++;
                 }
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_ASSIGNMENT, "=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_ASSIGNMENT, "=", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == ',') {
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_COMMA, ",", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_COMMA, ",", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '>') {
 
             if(str[i+1] == '=') {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHANOREQUAL, ">=", lineNumber, fileIndex, tokenList);
                 i++;
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHAN, ">", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_GREATERTHAN, ">", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == '<') {
 
             if(str[i+1] == '=') {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHANOREQUAL, "<=", lineNumber, fileIndex, tokenList);
                 i++;
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHAN, "<", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_LESSTHAN, "<", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == '!') {
 
             if(str[i+1] == '=') {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOTEQUAL, "!=", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOTEQUAL, "!=", lineNumber, fileIndex, tokenList);
                 i++;
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOT, "!", lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NOT, "!", lineNumber, fileIndex, tokenList);
             }
 
         } else if(str[i] == '&' && str[i+1] == '&') {
 
             i++;
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_AND, "&&", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_AND, "&&", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '|' && str[i+1] == '|') {
 
             i++;
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_OR, "||", lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_OR, "||", lineNumber, fileIndex, tokenList);
 
         } else if(str[i] == '\"') {
 
@@ -525,7 +532,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 // In order to not mess up line counting, we're just
                 // going to make newlines inside strings a bad thing.
                 if(*strEnd == '\n') {
-                    nkiAddError(vm, lineNumber, "Newline inside of quoted string.");
+                    nkiAddErrorEx(vm, lineNumber, fileIndex, "Newline inside of quoted string.");
                     return nkfalse;
                 }
 
@@ -540,7 +547,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
 
             strUnescaped = nkiCompilerTokenizerUnescapeString(vm, strTmp);
 
-            nkiCompilerAddToken(vm, NK_TOKENTYPE_STRING, strUnescaped, lineNumber, tokenList);
+            nkiCompilerAddToken(vm, NK_TOKENTYPE_STRING, strUnescaped, lineNumber, fileIndex, tokenList);
 
             nkiFree(vm, strTmp);
             nkiFree(vm, strUnescaped);
@@ -578,6 +585,7 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
                 isFloat ? NK_TOKENTYPE_FLOAT : NK_TOKENTYPE_INTEGER,
                 tmp,
                 lineNumber,
+                fileIndex,
                 tokenList);
 
         } else if(nkiCompilerIsValidIdentifierCharacter(str[i], nktrue)) {
@@ -595,29 +603,29 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
             tmp[(i - startIndex)] = 0;
 
             if(!nkiStrcmp(tmp, "var")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_VAR, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_VAR, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "function")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_FUNCTION, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_FUNCTION, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "return")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_RETURN, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_RETURN, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "if")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_IF, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_IF, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "else")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_ELSE, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "while")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_WHILE, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "do")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_DO, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_DO, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "for")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_FOR, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "newobject")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_NEWOBJECT, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NEWOBJECT, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "nil")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "break")) {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, fileIndex, tokenList);
             } else {
-                nkiCompilerAddToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, tokenList);
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, fileIndex, tokenList);
             }
 
             nkiFree(vm, tmp);
@@ -631,8 +639,8 @@ nkbool nkiCompilerTokenize(struct NKVM *vm, const char *str, struct NKTokenList 
 
         } else {
 
-            nkiAddError(
-                vm, lineNumber, "Unknown token.");
+            nkiAddErrorEx(
+                vm, lineNumber, fileIndex, "Unknown token.");
 
             return nkfalse;
         }

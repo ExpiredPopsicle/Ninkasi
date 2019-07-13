@@ -86,7 +86,7 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
         if(stack->capacity > 0xffff) {
 
             nkiAddError(
-                vm, -1,
+                vm,
                 "Stack overflow.");
 
             return &stack->values[0];
@@ -103,14 +103,14 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
         // out of 32-bit integer".
         if(!newStackCapacity) {
             nkiAddError(
-                vm, -1,
+                vm,
                 "Stack ran out of address space.");
             return &stack->values[0];
         }
 
         if(newStackCapacity > vm->limits.maxStackSize) {
             nkiAddError(
-                vm, -1,
+                vm,
                 "Reached stack capacity limit.");
             return &stack->values[0];
         }
@@ -183,7 +183,7 @@ struct NKValue *nkiVmStackPop(struct NKVM *vm)
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
-        nkiAddError(vm, -1, "Stack underflow in pop.");
+        nkiAddError(vm, "Stack underflow in pop.");
         return &stack->values[0];
     }
 
@@ -201,7 +201,7 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
         // Stack underflow. We'll return the bottom of the stack, just
         // so that whatever is expecting a valid piece of data here
         // won't explode, but the error will be visible next check.
-        nkiAddError(vm, -1, "Stack underflow in popN.");
+        nkiAddError(vm, "Stack underflow in popN.");
         stack->size = 0;
         return;
     }

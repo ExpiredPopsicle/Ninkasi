@@ -72,7 +72,7 @@ nkbool nkiSerializeString_save(
 
     nkuint32_t len = nkiStrlen(str);
     if(len >= NK_UINT_MAX) {
-        nkiAddError(vm, -1, "String too long to serialize.");
+        nkiAddError(vm, "String too long to serialize.");
         return nkfalse;
     }
 
@@ -98,7 +98,7 @@ nkbool nkiSerializeString_loadInPlace(
     // Read length.
     NKI_SERIALIZE_BASIC(nkuint32_t, len);
     if(len >= maxBufferSize) { // ">=" Because of null terminator.
-        nkiAddError(vm, -1, "String too long to deserialize.");
+        nkiAddError(vm, "String too long to deserialize.");
         return nkfalse;
     }
 
@@ -124,7 +124,7 @@ nkbool nkiSerializeString_load(
     // Read length.
     NKI_SERIALIZE_BASIC(nkuint32_t, len);
     if(len >= NK_UINT_MAX) { // ">=" Because of null terminator.
-        nkiAddError(vm, -1, "String too long to deserialize.");
+        nkiAddError(vm, "String too long to deserialize.");
         return nkfalse;
     }
 
@@ -294,7 +294,7 @@ nkbool nkiSerializeObjectTable(
     // Ensure capacity is a power of two.
     NKI_SERIALIZE_BASIC(nkuint32_t, capacity);
     if(!nkiIsPow2(capacity)) {
-        nkiAddError(vm, -1, "Object table capacity is not a power of two.");
+        nkiAddError(vm, "Object table capacity is not a power of two.");
         return nkfalse;
     }
 
@@ -333,7 +333,7 @@ nkbool nkiSerializeObjectTable(
 
     NKI_SERIALIZE_BASIC(nkuint32_t, objectCount);
     if(objectCount > vm->objectTable.capacity) {
-        nkiAddError(vm, -1, "Object count exceeds object table capacity.");
+        nkiAddError(vm, "Object count exceeds object table capacity.");
         return nkfalse;
     }
 
@@ -374,13 +374,13 @@ nkbool nkiSerializeObjectTable(
             // Thanks AFL! Holy crap I'm an idiot for letting this one
             // slide by.
             if(index >= vm->objectTable.capacity) {
-                nkiAddError(vm, -1, "Object index exceeds object table capacity.");
+                nkiAddError(vm, "Object index exceeds object table capacity.");
                 nkiFree(vm, object);
                 return nkfalse;
             }
 
             if(vm->objectTable.objectTable[index]) {
-                nkiAddError(vm, -1, "Tried to load two object into the same location.");
+                nkiAddError(vm, "Tried to load two object into the same location.");
                 nkiFree(vm, object);
                 return nkfalse;
             }
@@ -438,7 +438,7 @@ nkbool nkiSerializeStringTable(
         // pointer. (FIXME: We might not need this after the addition
         // of nkiMallocArray.)
         if(~(nkuint32_t)0 / sizeof(struct NKVMString*) <= vm->stringTable.capacity) {
-            nkiAddError(vm, -1, "String table too large.");
+            nkiAddError(vm, "String table too large.");
             return nkfalse;
         }
 
@@ -457,7 +457,7 @@ nkbool nkiSerializeStringTable(
 
     // Thanks AFL!
     if(!nkiIsPow2(vm->stringTable.capacity)) {
-        nkiAddError(vm, -1, "String table capacity is not a power of two.");
+        nkiAddError(vm, "String table capacity is not a power of two.");
         return nkfalse;
     }
 
@@ -507,7 +507,7 @@ nkbool nkiSerializeStringTable(
 
                 NKI_SERIALIZE_BASIC(nkuint32_t, index);
                 if(index >= vm->stringTable.capacity) {
-                    nkiAddError(vm, -1, "String index exceeds string table capacity.");
+                    nkiAddError(vm, "String index exceeds string table capacity.");
                     return nkfalse;
                 }
 
@@ -519,7 +519,7 @@ nkbool nkiSerializeStringTable(
 
                     if(stringLen >= NK_UINT_MAX - structAndPaddingSize) {
                         nkiFree(vm, tmpStr);
-                        nkiAddError(vm, -1, "A string is longer than the addressable space to load it into.");
+                        nkiAddError(vm, "A string is longer than the addressable space to load it into.");
                         return nkfalse;
                     }
 
@@ -527,7 +527,7 @@ nkbool nkiSerializeStringTable(
                     // strings in the same slot.
                     if(vm->stringTable.stringTable[index]) {
                         nkiFree(vm, tmpStr);
-                        nkiAddError(vm, -1, "Two strings occupy the same slot in the string table.");
+                        nkiAddError(vm, "Two strings occupy the same slot in the string table.");
                         return nkfalse;
                     }
 
@@ -619,17 +619,17 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
     // left in a situation where we think we have a giant instruction
     // buffer when we really have a NULL pointer.
     if(vm->instructionAddressMask == ~(nkuint32_t)0) {
-        nkiAddError(vm, -1, "Instruction address mask is too large.");
+        nkiAddError(vm, "Instruction address mask is too large.");
         return nkfalse;
     }
 
     if(!nkiIsPow2(vm->instructionAddressMask + 1)) {
-        nkiAddError(vm, -1, "Instruction address mask is not a power of two minus one.");
+        nkiAddError(vm, "Instruction address mask is not a power of two minus one.");
         return nkfalse;
     }
 
     if(instructionLimitSearch > vm->instructionAddressMask) {
-        nkiAddError(vm, -1, "Too many instructions for given instruction address mask.");
+        nkiAddError(vm, "Too many instructions for given instruction address mask.");
         return nkfalse;
     }
 
@@ -650,12 +650,6 @@ nkbool nkiSerializeInstructions(struct NKVM *vm, NKVMSerializationWriter writer,
     {
         nkuint32_t i;
         for(i = 0; i <= instructionLimitSearch; i++) {
-
-            // Note: We're skipping the line number that's only
-            // visible on the debug version of the structure here, for
-            // binary compatibility between debug and non-debug
-            // versions.
-
             NKI_SERIALIZE_BASIC(struct NKInstruction, vm->instructions[i]);
         }
     }
@@ -671,12 +665,12 @@ nkbool nkiSerializeStatics(struct NKVM *vm, NKVMSerializationWriter writer, void
     // store it.)
     NKI_SERIALIZE_BASIC(nkuint32_t, staticAddressMask);
     if(!nkiIsPow2(staticAddressMask + 1)) {
-        nkiAddError(vm, -1, "Static space address mask is not a power of two minus one.");
+        nkiAddError(vm, "Static space address mask is not a power of two minus one.");
         return nkfalse;
     }
 
     if(staticAddressMask >= NK_UINT_MAX) {
-        nkiAddError(vm, -1, "Static space address mask is too large.");
+        nkiAddError(vm, "Static space address mask is too large.");
         return nkfalse;
     }
 
@@ -707,20 +701,20 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
     NKI_SERIALIZE_BASIC(nkuint32_t, stackSize);
     NKI_SERIALIZE_BASIC(nkuint32_t, stackCapacity);
     if(!nkiIsPow2(stackCapacity)) {
-        nkiAddError(vm, -1, "Stack capacity is not a power of two.");
+        nkiAddError(vm, "Stack capacity is not a power of two.");
         return nkfalse;
     }
 
     // Check stack capacity limit.
     if(stackCapacity > vm->limits.maxStackSize) {
-        nkiAddError(vm, -1, "Stack capacity is too large for limit.");
+        nkiAddError(vm, "Stack capacity is too large for limit.");
         return nkfalse;
     }
 
     // Thanks AFL! Stack size = 0 means stack index mask becomes
     // 0xffffffff, even though there's no stack.
     if(stackCapacity < 1) {
-        nkiAddError(vm, -1, "Stack capacity is zero.");
+        nkiAddError(vm, "Stack capacity is zero.");
         return nkfalse;
     }
 
@@ -879,12 +873,12 @@ nkbool nkiSerializeFunctionTable_inner(
                     vm->functionTable[i].externalFunctionId =
                         functionIdMapping[vm->functionTable[i].externalFunctionId.id];
                 } else {
-                    nkiAddError(vm, -1, "External function ID is outside external function count.");
+                    nkiAddError(vm, "External function ID is outside external function count.");
                     return nkfalse;
                 }
 
                 if(vm->functionTable[i].externalFunctionId.id == NK_INVALID_VALUE) {
-                    nkiAddError(vm, -1, "Cannot find new mapping for external function during deserialization.");
+                    nkiAddError(vm, "Cannot find new mapping for external function during deserialization.");
                     return nkfalse;
                 }
             }
@@ -1005,7 +999,7 @@ nkbool nkiSerializeExternalTypes(
     NKI_SERIALIZE_BASIC(nkuint32_t, serializedTypeCount);
 
     if(serializedTypeCount != vm->externalTypeCount) {
-        nkiAddError(vm, -1, "External type count in binary does not match VM.");
+        nkiAddError(vm, "External type count in binary does not match VM.");
         return nkfalse;
     }
 
@@ -1080,7 +1074,7 @@ nkbool nkiSerializeExternalTypes(
                 !vm->externalTypes[i].name ||
                 nkiStrcmp(typeName, vm->externalTypes[i].name))
             {
-                nkiAddError(vm, -1, "Type name mismatch inside binary.");
+                nkiAddError(vm, "Type name mismatch inside binary.");
                 nkiFree(vm, rawTypeMappingBuf);
                 return nkfalse;
             }
@@ -1108,7 +1102,7 @@ nkbool nkiSerializeExternalTypes(
             }
 
             if(n == vm->externalTypeCount) {
-                nkiAddError(vm, -1, "Could not find a matching type for deserialized external data type.");
+                nkiAddError(vm, "Could not find a matching type for deserialized external data type.");
                 nkiFree(vm, rawTypeMappingBuf);
                 return nkfalse;
             }
@@ -1190,7 +1184,7 @@ nkbool nkiSerializeExternalSubsystemData(
             nkiFree(vm, name);
 
             if(!data) {
-                nkiAddError(vm, -1, "External subsystem for serialized external subsystem data cannot be found.");
+                nkiAddError(vm, "External subsystem for serialized external subsystem data cannot be found.");
                 return nkfalse;
             }
 
@@ -1235,7 +1229,7 @@ nkbool nkiSerializeExternalObjects(
                     }
 
                 } else {
-                    nkiAddError(vm, -1, "External type value out of range.");
+                    nkiAddError(vm, "External type value out of range.");
                 }
             }
         }
@@ -1260,17 +1254,19 @@ nkbool nkiSerializeSourceFileList(
         nkiVmClearSourceFileList(vm);
 
         // Allocate new empty list to fill.
-        sourceFileList = nkiMalloc(vm, sizeof(char*) * sourceFileCount);
-        nkiMemset(sourceFileList, 0, sizeof(char*) * sourceFileCount);
+        sourceFileList = nkiMallocArray(vm, sizeof(char*), sourceFileCount);
+        for(i = 0; i < sourceFileCount; i++) {
+            sourceFileList[i] = NULL;
+        }
+
+        vm->sourceFileList = sourceFileList;
+        vm->sourceFileCount = sourceFileCount;
     }
 
     // Fill the list or write it out.
     for(i = 0; i < sourceFileCount; i++) {
-        NKI_SERIALIZE_STRING(vm->sourceFileList[i]);
+        NKI_SERIALIZE_STRING(sourceFileList[i]);
     }
-
-    vm->sourceFileList = sourceFileList;
-    vm->sourceFileCount = sourceFileCount;
 
     return nktrue;
 }
@@ -1286,7 +1282,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         nkiMemcpy(formatMarkerTmp, formatMarker, 5);
         NKI_SERIALIZE_DATA(formatMarkerTmp, 5);
         if(nkiMemcmp(formatMarkerTmp, formatMarker, 5)) {
-            nkiAddError(vm, -1, "Wrong binary format.");
+            nkiAddError(vm, "Wrong binary format.");
             return nkfalse;
         }
     }
@@ -1296,7 +1292,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
         nkuint32_t version = NKI_VERSION;
         NKI_SERIALIZE_BASIC(nkuint32_t, version);
         if(version != NKI_VERSION) {
-            nkiAddError(vm, -1, "Wrong binary VM version.");
+            nkiAddError(vm, "Wrong binary VM version.");
             return nkfalse;
         }
     }

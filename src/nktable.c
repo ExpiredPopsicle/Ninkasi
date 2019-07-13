@@ -192,7 +192,7 @@ nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entr
         // 0xffffffff, only 0x80000000, before overflowing to zero.
         if(!newCapacity) {
             nkiAddError(
-                vm, -1, "Address space exhaustion when adding item to table.");
+                vm, "Address space exhaustion when adding item to table.");
             return NK_INVALID_VALUE;
         }
 

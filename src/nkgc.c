@@ -88,7 +88,7 @@ void nkiVmGarbageCollect_markString(
         str->lastGCPass = gcState->currentGCPass;
     } else {
         nkiAddError(
-            gcState->vm, -1,
+            gcState->vm,
             "GC error: Bad string table index.");
     }
 }
@@ -108,7 +108,7 @@ void nkiVmGarbageCollect_addObject(
         }
     } else {
         // Thanks AFL!
-        nkiAddError(gcState->vm, -1, "Bad object reference in garbage collector.");
+        nkiAddError(gcState->vm, "Bad object reference in garbage collector.");
         return;
     }
 }

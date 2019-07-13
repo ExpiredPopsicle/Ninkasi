@@ -220,6 +220,11 @@ void nkiVmStaticDump(struct NKVM *vm);
 // error reporting.
 void nkiVmClearSourceFileList(struct NKVM *vm);
 
+// Add a source file to the source file list and return the index in
+// the list. If the file is already present in the list, just return
+// the index of that file.
+nkuint32_t nkiVmAddSourceFile(struct NKVM *vm, const char *filename);
+
 // ----------------------------------------------------------------------
 
 /// Run the compiled program.
