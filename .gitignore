@@ -40,4 +40,5 @@ crashes
 output_dos.txt
 output_linux.txt
 pkg-config/ninkasi.pc
+memtests
 

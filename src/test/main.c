@@ -402,6 +402,10 @@ nkbool checkErrors(struct NKVM *vm)
     return nkfalse;
 }
 
+#if NK_MALLOC_FAILURE_TEST_MODE
+extern nkuint32_t nkiMemFailRate;
+#endif // NK_MALLOC_FAILURE_TEST_MODE
+
 nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
 {
     int i;
@@ -424,6 +428,20 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
         if(strcmp("-c", argv[i]) == 0) {
 
             settings->compileOnly = nktrue;
+
+        } else if(strcmp("-f", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+              #if NK_MALLOC_FAILURE_TEST_MODE
+                nkiMemFailRate = atol(argv[i]);
+              #else
+                fprintf(stderr, "malloc failure test mode support is not compiled in! Ignoring -f!\n");
+              #endif // NK_MALLOC_FAILURE_TEST_MODE
+            } else {
+                fprintf(stderr, "Missing parameter for -f.\n");
+                return nkfalse;
+            }
 
         } else if(strcmp("-m", argv[i]) == 0) {
 
@@ -586,13 +604,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
     return vm;
 }
 
-
-
 #define ERROR_CODE 0
-
-#if NK_MALLOC_FAILURE_TEST_MODE
-extern nkuint32_t nkiMemFailRate;
-#endif // NK_MALLOC_FAILURE_TEST_MODE
 
 int main(int argc, char *argv[])
 {

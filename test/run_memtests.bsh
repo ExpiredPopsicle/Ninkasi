@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Horrible brute force allocation failure test. This is a way to test
+# handling of literally every single allocation in every single test
+# failing.
+
+cd "$(dirname "$0")/.."
+
+# Copy over and compile tests.
+if [ \! -d memtests ]; then
+	mkdir memtests
+fi
+
+cp test/*.nks memtests
+
+for i in memtests/*.nks; do
+    src/ninkasi_test -c $i
+done
+
+i=1000
+while [ "$i" -lt "2000" ]; do
+    echo "Running test with fail rate: $i"
+
+    for f in test/*.nks; do
+        echo "  Testing file: $f"
+        if (valgrind \
+                --error-exitcode=1 \
+                src/ninkasi_test "$f" -f "$i" &>/dev/null
+           ); then
+            echo > /dev/null
+        else
+            echo "    Allocation handler failure!"
+            echo "      File: $f"
+            echo "      Allocation fail rate (-f): $i"
+            exit 1
+        fi
+    done
+
+    i=$(expr "$i" + 1)
+done
+
