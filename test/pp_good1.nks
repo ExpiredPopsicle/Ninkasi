@@ -1,0 +1,4 @@
+// Should work. Comments on the end of a directive are valid.
+#file "pp_good1.nks" // Test comment.
+#line 1234
+

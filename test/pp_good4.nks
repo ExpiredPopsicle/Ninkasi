@@ -1,0 +1,5 @@
+// Technically this is okay. Parameter-less directives are just the
+// same as directives with empty ones.
+#file
+
+

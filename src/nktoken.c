@@ -244,8 +244,6 @@ nkbool nkiCompilerTokenize(
 
     while(i < len) {
 
-        // FIXME: Stop on "//"
-
         // Skip whitespace.
         while(i < len && nkiCompilerIsWhitespace(str[i])) {
             if(str[i] == '\n') {
@@ -261,7 +259,6 @@ nkbool nkiCompilerTokenize(
             nkuint32_t lineStart = i;
             nkuint32_t k;
             char *directive;
-            // char *secondToken;
             nkbool paramIsQuoted;
             nkuint32_t parameterStart;
             char *parameter = NULL;
@@ -275,7 +272,11 @@ nkbool nkiCompilerTokenize(
 
             // Skip past the directive.
             k = lineStart;
-            while(!nkiCompilerIsWhitespace(str[k]) && str[k]) {
+            k++; // Skip past the '#'.
+            while(!nkiCompilerIsWhitespace(str[k])
+                && str[k]
+                && nkiCompilerIsValidIdentifierCharacter(str[k], k == lineStart))
+            {
                 k++;
             }
 
@@ -318,10 +319,20 @@ nkbool nkiCompilerTokenize(
                         break;
                     }
 
+                    // If it's not a quoted string, then it must be a
+                    // number, so break if it's not a quoted string
+                    // and not a digit.
+                    if(!paramIsQuoted && (str[k] <= '0' || str[k] >= '9')) {
+                        break;
+                    }
+
+                    // If it's not a quoted string, then we have to
+                    // stop when we reach some whitespace.
                     if(!paramIsQuoted && nkiCompilerIsWhitespace(str[k])) {
                         break;
                     }
 
+                    // Handle escaped quotes.
                     if(str[k] == '\"' && !ignoreNext) {
                         k++; // Skip this and bail out.
                         break;
@@ -340,6 +351,29 @@ nkbool nkiCompilerTokenize(
 
             // Save a copy of the paramter.
             nkiStrcpy_s(parameter, str + parameterStart, k - parameterStart);
+
+            // Skip whitespace after the parameter.
+            while(str[k] && nkiCompilerIsWhitespace(str[k])) {
+                if(str[k] == '\n') {
+                    break;
+                }
+                k++;
+            }
+
+            // Error out if there's anything after the parameter.
+            if(str[k] && str[k] != '\n') {
+                if(str[k] == '/' && str[k+1] == '/') {
+                    // Start of a comment. Good. Nothing else left to do.
+                } else {
+                    nkiAddErrorEx(
+                        vm, lineNumber,
+                        fileIndex,
+                        "Extra token after parameter to preprocessor directive.");
+                    nkiFree(vm, directive);
+                    nkiFree(vm, parameter);
+                    return nkfalse;
+                }
+            }
 
             // Strip off quotes and unescape string.
             if(paramIsQuoted) {

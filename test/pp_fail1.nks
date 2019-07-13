@@ -1,0 +1,3 @@
+// Unquoted string. Should fail.
+#file fooblagh
+
