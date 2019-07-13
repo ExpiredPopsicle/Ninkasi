@@ -548,13 +548,13 @@ subsystemTestObject.testMethod();
 
 
 
-#file fooblagh
-#line 10001932342
+// #file fooblagh
+// #line 10001932342
 
-#file ""
-#file "afghj\"
-#file "adfsddf
-#file
+// #file ""
+// #file "afghj\"
+// #file "adfsddf
+// #file
 
 
 print("THIS IS THE LAST LINE OF THE TEST SCRIPT\n");

@@ -1,7 +1,5 @@
-TESTS=test.sh
+TESTS=run_tests.bsh
 
-EXTRA_DIST=test2.nks test.nks	\
-	diverr.nks evil.nks mandel.nks
-
+EXTRA_DIST=*.nks run_tests.bsh
 
 
