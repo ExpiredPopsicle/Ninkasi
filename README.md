@@ -204,6 +204,26 @@ function somestuff(x, y, z)
 Functions that do not have an explicit return statement will return an
 integer 0.
 
+#### Anonymous functions
+
+Functions may be declared without a name. When this syntax is used,
+the function declaration is considered an expression instead of an
+entire statement, the return value of which is the function object.
+
+```
+// Declare a function and assign it to a variable immediately.
+// Effectively the same as declaring it with the name. Note that the
+// semicolon is needed here to make this a complete statement, where it
+// is not needed in a named function declaration.
+var foo = function(a, b, c)
+{
+    return x + y + z;
+};
+
+// Declare an anonymous function and call it immediately.
+function(a) { print(a); }("This is a test.");
+```
+
 ### Function calls
 
 Functions are called with the parentheses operator.
