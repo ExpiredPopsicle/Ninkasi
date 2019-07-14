@@ -90,19 +90,19 @@ void nkiAddErrorEx(
     const char *filename = NULL;
     nkuint32_t spaceNeeded = 0;
 
-  #if NK_VM_DEBUG
-    // FIXME: Use file/line markers.
-    if(lineNumber == NK_INVALID_VALUE) {
-        struct NKInstruction *inst = &vm->instructions[
-            vm->instructionPointer & vm->instructionAddressMask];
-        lineNumber = inst->lineNumber;
+    // If either the file index or the line number are missing, fill
+    // in the value from the current position.
+    if(lineNumber == NK_INVALID_VALUE || fileIndex == NK_INVALID_VALUE) {
+        struct NKVMFilePositionMarker *marker = nkiVmFindCurrentSourceMarker(vm);
+        if(marker) {
+            if(lineNumber == NK_INVALID_VALUE) {
+                lineNumber = marker->lineNumber;
+            }
+            if(fileIndex == NK_INVALID_VALUE) {
+                fileIndex = marker->fileIndex;
+            }
+        }
     }
-    if(fileIndex == NK_INVALID_VALUE) {
-        struct NKInstruction *inst = &vm->instructions[
-            vm->instructionPointer & vm->instructionAddressMask];
-        fileIndex = inst->fileIndex;
-    }
-  #endif
 
     newError = (struct NKError *)nkiMalloc(
         vm,

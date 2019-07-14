@@ -1254,7 +1254,7 @@ nkbool nkiSerializeSourceFileList(
         nkiVmClearSourceFileList(vm);
 
         // Allocate new empty list to fill.
-        sourceFileList = nkiMallocArray(vm, sizeof(char*), sourceFileCount);
+        sourceFileList = (char**)nkiMallocArray(vm, sizeof(char*), sourceFileCount);
         for(i = 0; i < sourceFileCount; i++) {
             sourceFileList[i] = NULL;
         }
@@ -1266,6 +1266,48 @@ nkbool nkiSerializeSourceFileList(
     // Fill the list or write it out.
     for(i = 0; i < sourceFileCount; i++) {
         NKI_SERIALIZE_STRING(sourceFileList[i]);
+    }
+
+    return nktrue;
+}
+
+nkbool nkiSerializePositionMarkerList(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    nkuint32_t i;
+    nkuint32_t positionMarkerCount = vm->positionMarkerCount;
+    struct NKVMFilePositionMarker *positionMarkerList = vm->positionMarkerList;
+
+    NKI_SERIALIZE_BASIC(nkuint32_t, positionMarkerCount);
+
+    if(!writeMode) {
+
+        // Tear down old list.
+        nkiFree(vm, vm->positionMarkerList);
+        vm->positionMarkerList = NULL;
+        vm->positionMarkerCount = 0;
+
+        // Allocate new empty list to fill.
+        positionMarkerList = (struct NKVMFilePositionMarker*)nkiMallocArray(
+            vm, sizeof(struct NKVMFilePositionMarker),
+            positionMarkerCount);
+
+        for(i = 0; i < positionMarkerCount; i++) {
+            positionMarkerList[i].fileIndex = NK_INVALID_VALUE;
+            positionMarkerList[i].lineNumber = 0;
+            positionMarkerList[i].instructionIndex = NK_INVALID_VALUE;
+        }
+
+        vm->positionMarkerList = positionMarkerList;
+        vm->positionMarkerCount = positionMarkerCount;
+    }
+
+    // Fill the list or write it out.
+    for(i = 0; i < positionMarkerCount; i++) {
+        NKI_SERIALIZE_BASIC(
+            struct NKVMFilePositionMarker,
+            positionMarkerList[i]);
     }
 
     return nktrue;
@@ -1361,7 +1403,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeSourceFileList(vm, writer, userdata, writeMode));
 
-    // FIXME: Serialize file/line markers.
+    // Serialize file/line markers.
+    NKI_WRAPSERIALIZE(
+        nkiSerializePositionMarkerList(vm, writer, userdata, writeMode));
 
     return nktrue;
 }

@@ -218,6 +218,9 @@ void nkiVmInit(struct NKVM *vm)
 
     vm->sourceFileCount = 0;
     vm->sourceFileList = NULL;
+
+    vm->positionMarkerList = NULL;
+    vm->positionMarkerCount = 0;
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -326,6 +329,11 @@ void nkiVmDestroy(struct NKVM *vm)
 
         // Free source file list.
         nkiVmClearSourceFileList(vm);
+
+        // Clear marker list.
+        nkiFree(vm, vm->positionMarkerList);
+        vm->positionMarkerList = NULL;
+        vm->positionMarkerCount = 0;
 
 #if NK_EXTRA_FANCY_LEAK_TRACKING_LINUX
         nkiDumpLeakData(vm);
@@ -537,7 +545,7 @@ nkuint32_t nkiVmAddSourceFile(struct NKVM *vm, const char *filename)
         return NK_INVALID_VALUE;
     }
 
-    newList = nkiReallocArray(vm, vm->sourceFileList, sizeof(char*), newCount);
+    newList = (char**)nkiReallocArray(vm, vm->sourceFileList, sizeof(char*), newCount);
     vm->sourceFileList = newList;
     vm->sourceFileCount = newCount;
 
@@ -562,5 +570,34 @@ void nkiVmClearSourceFileList(struct NKVM *vm)
         nkiFree(vm, vm->sourceFileList);
         vm->sourceFileList = NULL;
     }
+}
+
+struct NKVMFilePositionMarker *nkiVmFindSourceMarker(
+    struct NKVM *vm, nkuint32_t instructionIndex)
+{
+    nkuint32_t i;
+
+    if(!vm->positionMarkerList) {
+        return NULL;
+    }
+
+    if(!vm->positionMarkerCount) {
+        return NULL;
+    }
+
+    for(i = 0; i + 1 < vm->positionMarkerCount; i++) {
+        if(vm->positionMarkerList[i+1].instructionIndex > instructionIndex) {
+            break;
+        }
+    }
+
+    return &vm->positionMarkerList[i];
+}
+
+struct NKVMFilePositionMarker *nkiVmFindCurrentSourceMarker(struct NKVM *vm)
+{
+    return nkiVmFindSourceMarker(
+        vm,
+        vm->instructionPointer & vm->instructionAddressMask);
 }
 

@@ -83,14 +83,6 @@ void nkiCompilerAddInstruction(
             nkiCompilerStackOffsetTable[inst->opcode & (NK_OPCODE_PADDEDCOUNT - 1)];
     }
 
-  #if NK_VM_DEBUG
-    // FIXME: Swap this out for line/file markers.
-    cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
-        nkiCompilerCurrentTokenLinenumber(cs);
-    cs->vm->instructions[cs->instructionWriteIndex].fileIndex =
-        nkiCompilerCurrentTokenFileIndex(cs);
-  #endif
-
     cs->instructionWriteIndex++;
 }
 
@@ -913,16 +905,22 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
             if(cs->currentLineNumber != cs->currentToken->lineNumber ||
                 cs->currentFileIndex != cs->currentToken->fileIndex)
             {
+                struct NKVMFilePositionMarker newMarker;
+
                 cs->currentLineNumber = cs->currentToken->lineNumber;
                 cs->currentFileIndex = cs->currentToken->fileIndex;
 
-                printf(
-                    "ASDF: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 "\n",
-                    cs->instructionWriteIndex, cs->currentLineNumber, cs->currentFileIndex);
+                newMarker.fileIndex = cs->currentToken->fileIndex;
+                newMarker.lineNumber = cs->currentToken->lineNumber;
+                newMarker.instructionIndex = cs->instructionWriteIndex;
 
-                // TODO: Add a file/line marker to a list of markers, if
-                // we decide to move that information out of the
-                // instruction type (we do want to).
+                cs->vm->positionMarkerList =
+                    (struct NKVMFilePositionMarker*)nkiReallocArray(
+                        cs->vm, cs->vm->positionMarkerList,
+                        sizeof(struct NKVMFilePositionMarker),
+                        cs->vm->positionMarkerCount + 1);
+
+                cs->vm->positionMarkerList[cs->vm->positionMarkerCount++] = newMarker;
             }
         }
     }

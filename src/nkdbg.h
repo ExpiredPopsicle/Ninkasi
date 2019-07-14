@@ -83,8 +83,7 @@ void nkiVmObjectTableSanityCheck(struct NKVM *vm);
 void nkiExternalHandleSanityCheck(struct NKVM *vm);
 
 /// Dump out a disassembly of the program to stdout. script can be
-/// NULL, but it can be used to show assembly and code side-by-side
-/// (NK_VM_DEBUG must be set to 1 for this to work).
+/// NULL, but it can be used to show assembly and code side-by-side.
 void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream);
 
 #endif // NINKASI_VMDBG_H

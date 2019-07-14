@@ -547,6 +547,26 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     }
 }
 
+nkuint32_t getVmStateChecksum(struct NKVM *vm)
+{
+    struct WriterTestBuffer buf;
+    nkbool c;
+    nkuint32_t checksum = 0;
+
+    memset(&buf, 0, sizeof(buf));
+    c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+
+    if(!c) {
+        return 0;
+    }
+
+    checksum = adler32(buf.data, buf.size);
+
+    free(buf.data);
+
+    return checksum;
+}
+
 struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 {
     nkuint32_t oldInstructionLimit = nkxGetRemainingInstructionLimit(vm);
@@ -584,6 +604,15 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
                 nkxVmDelete(newVm);
                 newVm = NULL;
             }
+
+            // Check to make sure that we get the same checksum if we
+            // serialize again, to make sure serializing and
+            // deserializing are totally reversible.
+            if(b) {
+                nkuint32_t checksum = getVmStateChecksum(newVm);
+                printf("Deserialize checksum: " NK_PRINTF_UINT32 "\n", checksum);
+            }
+
         }
 
         printf("Deleting old VM...\n");

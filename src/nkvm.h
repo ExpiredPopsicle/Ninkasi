@@ -114,6 +114,26 @@ struct NKVMExternalType
     NKVMExternalObjectGCMarkCallback gcMarkCallback;
 };
 
+// Debug position marker so we know where errors happened. One of
+// these will correspond to a block of instructions. It will take a
+// while to search through to find the marker for a specific
+// instruction, but it'll use a heck of a lot less memory than the way
+// we've been store file and line number info on every single
+// instruction.
+struct NKVMFilePositionMarker
+{
+    // Index into NKVM::instructions array for the start of a block of
+    // instrucions that come from a specific line and file.
+    nkuint32_t instructionIndex;
+
+    // Index into the NKVM::sourceFileList array, indicating which
+    // file the instruction (and following instructions) ccome from.
+    nkuint32_t fileIndex;
+
+    // Line number the instructions come from.
+    nkuint32_t lineNumber;
+};
+
 /// The VM object itself.
 struct NKVM
 {
@@ -182,7 +202,6 @@ struct NKVM
 
     void *userData;
 
-    // char **externalTypeNames;
     nkuint32_t externalTypeCount;
     struct NKVMExternalType *externalTypes;
 
@@ -197,15 +216,14 @@ struct NKVM
 
     struct NKVMExternalSubsystemData *subsystemDataTable[nkiVmExternalSubsystemHashTableSize];
 
+    // Source code file names, for error reporting and debugging.
     char **sourceFileList;
     nkuint32_t sourceFileCount;
 
-    // FIXME: Do file/line markers.
-    //   TODO: Serialize
-    //   TODO: Deserialize
-    //   TODO: Cleanup
-    //   TODO: Create
-    //   TODO: Implement function to get file/line for a given instruction.
+    // Position markers, so we know what file/line any given
+    // instruction comes from.
+    struct NKVMFilePositionMarker *positionMarkerList;
+    nkuint32_t positionMarkerCount;
 };
 
 /// Initialize an already-allocated VM.
@@ -218,15 +236,21 @@ const char *nkiVmGetOpcodeName(enum NKOpcode op);
 
 void nkiVmStaticDump(struct NKVM *vm);
 
-// Clear and free the source file list. This info isn't really needed
-// in a completely error-free program, because it's mainly used for
-// error reporting.
+/// Clear and free the source file list. This info isn't really needed
+/// in a completely error-free program, because it's mainly used for
+/// error reporting.
 void nkiVmClearSourceFileList(struct NKVM *vm);
 
-// Add a source file to the source file list and return the index in
-// the list. If the file is already present in the list, just return
-// the index of that file.
+/// Add a source file to the source file list and return the index in
+/// the list. If the file is already present in the list, just return
+/// the index of that file.
 nkuint32_t nkiVmAddSourceFile(struct NKVM *vm, const char *filename);
+
+/// Find the source file and line marker for a given instructtion.
+struct NKVMFilePositionMarker *nkiVmFindSourceMarker(struct NKVM *vm, nkuint32_t instructionIndex);
+
+/// Find the source file and line marker for the current instructtion.
+struct NKVMFilePositionMarker *nkiVmFindCurrentSourceMarker(struct NKVM *vm);
 
 // ----------------------------------------------------------------------
 

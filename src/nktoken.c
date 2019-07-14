@@ -231,7 +231,6 @@ nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
     return nkfalse;
 }
 
-
 void nkiCompilerPreprocessorSkipWhitespace(
     const char *str,
     nkuint32_t *k)
@@ -381,7 +380,7 @@ nkbool nkiCompilerGetPreprocessorTokens(
             }
 
             // Extract the token substring.
-            token = nkiMalloc(vm, tokenLength + 1);
+            token = (char*)nkiMalloc(vm, tokenLength + 1);
             nkiMemcpy(token, str + tokenStart, tokenLength);
             token[tokenLength] = 0;
 
@@ -394,7 +393,7 @@ nkbool nkiCompilerGetPreprocessorTokens(
 
             // Add the token to our list.
             tokenCount++;
-            tokens = nkiReallocArray(
+            tokens = (char**)nkiReallocArray(
                 vm, tokens,
                 sizeof(char*),
                 tokenCount);
