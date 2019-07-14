@@ -510,7 +510,7 @@ nkbool nkiCompilerTokenize(
                 //   #ifndef
                 //   #define (without macros)
                 //   #endif
-                //   #include (via a callback)
+                //   #include (load via a callback) (check recursion level)
 
             }
 

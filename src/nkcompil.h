@@ -93,6 +93,7 @@ struct NKCompilerState
 
     struct NKToken *currentToken;
     nkuint32_t currentLineNumber;
+    nkuint32_t currentFileIndex;
 
     nkuint32_t recursionCount;
 

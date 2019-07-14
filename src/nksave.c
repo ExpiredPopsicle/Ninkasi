@@ -1361,5 +1361,7 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeSourceFileList(vm, writer, userdata, writeMode));
 
+    // FIXME: Serialize file/line markers.
+
     return nktrue;
 }

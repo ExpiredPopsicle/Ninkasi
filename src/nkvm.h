@@ -197,12 +197,15 @@ struct NKVM
 
     struct NKVMExternalSubsystemData *subsystemDataTable[nkiVmExternalSubsystemHashTableSize];
 
-    // TODO: Serialize
-    // TODO: Deserialize
-    // TODO: Cleanup
-    // TODO: Create
     char **sourceFileList;
     nkuint32_t sourceFileCount;
+
+    // FIXME: Do file/line markers.
+    //   TODO: Serialize
+    //   TODO: Deserialize
+    //   TODO: Cleanup
+    //   TODO: Create
+    //   TODO: Implement function to get file/line for a given instruction.
 };
 
 /// Initialize an already-allocated VM.

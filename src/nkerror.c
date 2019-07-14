@@ -91,6 +91,7 @@ void nkiAddErrorEx(
     nkuint32_t spaceNeeded = 0;
 
   #if NK_VM_DEBUG
+    // FIXME: Use file/line markers.
     if(lineNumber == NK_INVALID_VALUE) {
         struct NKInstruction *inst = &vm->instructions[
             vm->instructionPointer & vm->instructionAddressMask];

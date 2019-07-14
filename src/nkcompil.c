@@ -84,6 +84,7 @@ void nkiCompilerAddInstruction(
     }
 
   #if NK_VM_DEBUG
+    // FIXME: Swap this out for line/file markers.
     cs->vm->instructions[cs->instructionWriteIndex].lineNumber =
         nkiCompilerCurrentTokenLinenumber(cs);
     cs->vm->instructions[cs->instructionWriteIndex].fileIndex =
@@ -908,7 +909,21 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
     if(cs->currentToken) {
         cs->currentToken = cs->currentToken->next;
         if(cs->currentToken) {
-            cs->currentLineNumber = cs->currentToken->lineNumber;
+
+            if(cs->currentLineNumber != cs->currentToken->lineNumber ||
+                cs->currentFileIndex != cs->currentToken->fileIndex)
+            {
+                cs->currentLineNumber = cs->currentToken->lineNumber;
+                cs->currentFileIndex = cs->currentToken->fileIndex;
+
+                printf(
+                    "ASDF: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 "\n",
+                    cs->instructionWriteIndex, cs->currentLineNumber, cs->currentFileIndex);
+
+                // TODO: Add a file/line marker to a list of markers, if
+                // we decide to move that information out of the
+                // instruction type (we do want to).
+            }
         }
     }
     return cs->currentToken;
@@ -945,7 +960,7 @@ nkuint32_t nkiCompilerCurrentTokenFileIndex(struct NKCompilerState *cs)
     if(cs->currentToken) {
         return cs->currentToken->fileIndex;
     }
-    return NK_INVALID_VALUE;
+    return cs->currentFileIndex;
 }
 
 const char *nkiCompilerCurrentTokenString(struct NKCompilerState *cs)
@@ -1037,6 +1052,7 @@ struct NKCompilerState *nkiCompilerCreate(
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
+    cs->currentFileIndex = NK_INVALID_VALUE;
 
     cs->staticVariableCount = 0;
 
@@ -1130,11 +1146,14 @@ nkbool nkiCompilerCompileScript(
     cs->currentToken = tokenList.first;
     cs->currentLineNumber =
         cs->currentToken ? cs->currentToken->lineNumber : 0;
+    cs->currentFileIndex =
+        cs->currentToken ? cs->currentToken->fileIndex : NK_INVALID_VALUE;
 
     success = nkiCompilerCompileBlock(cs, nktrue);
 
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
+    cs->currentFileIndex = NK_INVALID_VALUE;
     nkiCompilerDestroyTokenList(cs->vm, &tokenList);
 
     nkiCompilerPopRecursion(cs);

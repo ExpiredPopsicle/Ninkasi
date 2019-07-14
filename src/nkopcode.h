@@ -66,6 +66,7 @@ struct NKInstruction
         NKVMInternalFunctionID opData_functionId;
     };
 
+    // FIXME: Use file/line markers.
   #if NK_VM_DEBUG
     nkuint32_t lineNumber;
     nkuint32_t fileIndex;

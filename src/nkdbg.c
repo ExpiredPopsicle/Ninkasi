@@ -655,6 +655,7 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
 
             if(linePtr) {
 
+                // FIXME: Use file/line markers.
                 if(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {
 
                     while(lastLine < vm->instructions[i].lineNumber && lastLine < lineCount) {

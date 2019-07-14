@@ -44,6 +44,8 @@
 #ifndef NINKASI_VMCONFIG_H
 #define NINKASI_VMCONFIG_H
 
+// FIXME: Use file/line markers (remove this, because it only affects
+// file/line values stored in instructions).
 #define NK_VM_DEBUG 1
 
 #endif // NINKASI_VMCONFIG_H
