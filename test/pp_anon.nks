@@ -27,15 +27,20 @@ var foo2 = function() {
 
 
 
-#somedirective "foo\"butts"
-#somedirective foo butts
-#somedirective 
-#somedirective
-#somedirective "
-#somedirective "asdf
+// # test [ blagh
+
+// #somedirective "foo\"butts"
+//#somedirective foo butts
+//#somedirective 
+//#somedirective
+//#somedirective "
+//#somedirective "asdf
 
 
+// # this "is a quoted string with \"quotes\" inside of it" // And a comment
+// # this starts with a space
 
+#file butts
 
 #line 123456
-thijnsckjsdckdsckjsdc
+//thijnsckjsdckdsckjsdc

@@ -231,6 +231,188 @@ nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
     return nkfalse;
 }
 
+
+void nkiCompilerPreprocessorSkipWhitespace(
+    const char *str,
+    nkuint32_t *k)
+{
+    while(str[*k] && nkiCompilerIsWhitespace(str[*k])) {
+
+        // Bail out when we get to the end of the line.
+        if(str[*k] == '\n') {
+            break;
+        }
+
+        (*k)++;
+    }
+}
+
+void nkiCompilerFreeStringList(
+    struct NKVM *vm,
+    char **list,
+    nkuint32_t count)
+{
+    nkuint32_t k;
+    for(k = 0; k < count; k++) {
+        nkiFree(vm, list[k]);
+    }
+    nkiFree(vm, list);
+}
+
+nkbool nkiCompilerGetPreprocessorTokens(
+    struct NKVM *vm,
+    const char *str,
+    nkuint32_t lineNumber,
+    nkuint32_t fileIndex,
+    char ***tokenListOut,
+    nkuint32_t *tokenCountOut)
+{
+    nkuint32_t k = 0;
+    nkuint32_t tokenStart;
+    nkuint32_t tokenEnd;
+    nkbool tokenWasQuoted;
+
+    char **tokens = NULL;
+    nkuint32_t tokenCount = 0;
+
+    // Skip '#'.
+    if(str[k] == '#') {
+        k++;
+    }
+
+    nkiCompilerPreprocessorSkipWhitespace(str, &k);
+
+    while(str[k] && str[k] != '\n') {
+
+        tokenWasQuoted = nkfalse;
+        tokenStart = k;
+        tokenEnd = k;
+
+        if(nkiCompilerIsValidIdentifierCharacter(str[k], k == tokenStart)) {
+
+            // Attempt to parse an identifier.
+            while(nkiCompilerIsValidIdentifierCharacter(str[k], k == tokenStart)) {
+                k++;
+            }
+            tokenEnd = k;
+
+        } else if(str[k] >= '0' && str[k] <= '9') {
+
+            // Attempt to parse a number.
+            while(str[k] >= '0' && str[k] <= '9') {
+                k++;
+            }
+            tokenEnd = k;
+
+
+        } else if(str[k] == '"') {
+
+            nkbool skipNext = nkfalse;
+
+            tokenWasQuoted = nktrue;
+
+            // Skip first quote.
+            k++;
+            tokenStart = k;
+
+            // Attempt to parse a quoted string.
+            while(1) {
+
+                if(str[k] == '\\') {
+
+                    skipNext = !skipNext;
+
+                } else if(str[k] == '"') {
+
+                    if(!skipNext) {
+
+                        // Skip final '"'.
+                        tokenEnd = k;
+                        k++;
+                        break;
+
+                    }
+
+                } else {
+
+                    skipNext = nkfalse;
+
+                }
+
+                k++;
+            }
+
+        } else if(str[k] == '/' && str[k+1] == '/') {
+
+            // Comment. Skip through to the end of the line.
+            while(str[k] && str[k] != '\n') {
+                k++;
+            }
+
+            tokenStart = k;
+            tokenEnd = k;
+
+        } else {
+
+            // Spit out an error, cleanup, and return.
+            nkiAddErrorEx(
+                vm, lineNumber, fileIndex,
+                "Unknown preprocessor token.");
+
+            nkiCompilerFreeStringList(vm, tokens, tokenCount);
+
+            return nkfalse;
+        }
+
+        if(str[tokenStart] && str[tokenStart] != '\n') {
+
+            nkuint32_t tokenLength = tokenEnd - tokenStart;
+            char *token;
+
+            if(tokenLength == NK_UINT_MAX) {
+
+                nkiAddErrorEx(
+                    vm, lineNumber, fileIndex,
+                    "Bad preprocessor token.");
+
+                nkiCompilerFreeStringList(vm, tokens, tokenCount);
+
+                return nkfalse;
+            }
+
+            // Extract the token substring.
+            token = nkiMalloc(vm, tokenLength + 1);
+            nkiMemcpy(token, str + tokenStart, tokenLength);
+            token[tokenLength] = 0;
+
+            // Unescape the string if it was a quoted one.
+            if(tokenWasQuoted) {
+                char *tmp = token;
+                token = nkiCompilerTokenizerUnescapeString(vm, token);
+                nkiFree(vm, tmp);
+            }
+
+            // Add the token to our list.
+            tokenCount++;
+            tokens = nkiReallocArray(
+                vm, tokens,
+                sizeof(char*),
+                tokenCount);
+            tokens[tokenCount - 1] = token;
+
+        }
+
+        // Skip to the next token.
+        nkiCompilerPreprocessorSkipWhitespace(str, &k);
+
+    }
+
+    *tokenListOut = tokens;
+    *tokenCountOut = tokenCount;
+
+    return nktrue;
+}
+
 nkbool nkiCompilerTokenize(
     struct NKVM *vm,
     const char *str,
@@ -257,12 +439,8 @@ nkbool nkiCompilerTokenize(
 
             // Preprocessor directive.
             nkuint32_t lineStart = i;
-            nkuint32_t k;
-            char *directive;
-            nkbool paramIsQuoted;
-            nkuint32_t parameterStart;
-            char *parameter = NULL;
-            char *escapedParam = NULL;
+            char **tokenList = NULL;
+            nkuint32_t tokenCount = 0;
 
             // Figure out how long the line is, and also advance the
             // tokenization system past it.
@@ -270,140 +448,71 @@ nkbool nkiCompilerTokenize(
                 i++;
             }
 
-            // Skip past the directive.
-            k = lineStart;
-            k++; // Skip past the '#'.
-            while(!nkiCompilerIsWhitespace(str[k])
-                && str[k]
-                && nkiCompilerIsValidIdentifierCharacter(str[k], k == lineStart))
+            // Split line into tokens.
+            if(!nkiCompilerGetPreprocessorTokens(
+                    vm, str + lineStart,
+                    lineNumber, fileIndex,
+                    &tokenList, &tokenCount))
             {
-                k++;
+                nkiAddErrorEx(
+                    vm, lineNumber,
+                    fileIndex,
+                    "Preprocessor directive parse failure.");
+                return nkfalse;
             }
 
-            // Save the directive itself.
-            directive = nkiMalloc(vm, k - lineStart + 1);
-            nkiStrcpy_s(directive, str + lineStart, k - lineStart);
+            // Actually do something based on the preprocessed stuff.
+            if(tokenCount > 0) {
 
-            // Skip past whitespace after the directive.
-            while(nkiCompilerIsWhitespace(str[k])) {
+                if(!nkiStrcmp(tokenList[0], "line")) {
 
-                // Bail out if we see a newline.
-                if(str[k] == '\n') {
-                    break;
-                }
-
-                k++;
-            }
-
-            parameterStart = k;
-
-            // The only directive parameters we recognize are numbers
-            // and quoted strings, but we'll go ahead and handle them
-            // the same.
-            if(str[k] == '\"') {
-                k++;
-                paramIsQuoted = nktrue;
-            } else {
-                paramIsQuoted = nkfalse;
-            }
-
-            // Find the start and end of a quoted string.
-            {
-                nkbool ignoreNext = nkfalse;
-
-                while(str[k]) {
-
-                    // Newlines are end of the parameter list
-                    // regardless.
-                    if(str[k] == '\n') {
-                        break;
+                    if(tokenCount != 2) {
+                        nkiAddErrorEx(
+                            vm, lineNumber,
+                            fileIndex,
+                            "Incorrect number of parameters for #line directive.");
+                        nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+                        return nkfalse;
                     }
 
-                    // If it's not a quoted string, then it must be a
-                    // number, so break if it's not a quoted string
-                    // and not a digit.
-                    if(!paramIsQuoted && (str[k] <= '0' || str[k] >= '9')) {
-                        break;
+                    lineNumber = atol(tokenList[1]);
+
+                } else if(!nkiStrcmp(tokenList[0], "file")) {
+
+                    if(tokenCount != 2) {
+                        nkiAddErrorEx(
+                            vm, lineNumber,
+                            fileIndex,
+                            "Incorrect number of parameters for #file directive.");
+                        nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+                        return nkfalse;
                     }
 
-                    // If it's not a quoted string, then we have to
-                    // stop when we reach some whitespace.
-                    if(!paramIsQuoted && nkiCompilerIsWhitespace(str[k])) {
-                        break;
-                    }
+                    fileIndex = nkiVmAddSourceFile(vm, tokenList[1]);
 
-                    // Handle escaped quotes.
-                    if(str[k] == '\"' && !ignoreNext) {
-                        k++; // Skip this and bail out.
-                        break;
-                    } else if(str[k] == '\\' && paramIsQuoted) {
-                        ignoreNext = !ignoreNext;
-                    } else {
-                        ignoreNext = nkfalse;
-                    }
-
-                    k++;
-                }
-            }
-
-            parameter = nkiMalloc(vm, k - parameterStart + 1);
-            escapedParam = NULL;
-
-            // Save a copy of the paramter.
-            nkiStrcpy_s(parameter, str + parameterStart, k - parameterStart);
-
-            // Skip whitespace after the parameter.
-            while(str[k] && nkiCompilerIsWhitespace(str[k])) {
-                if(str[k] == '\n') {
-                    break;
-                }
-                k++;
-            }
-
-            // Error out if there's anything after the parameter.
-            if(str[k] && str[k] != '\n') {
-                if(str[k] == '/' && str[k+1] == '/') {
-                    // Start of a comment. Good. Nothing else left to do.
                 } else {
+
                     nkiAddErrorEx(
                         vm, lineNumber,
                         fileIndex,
-                        "Extra token after parameter to preprocessor directive.");
-                    nkiFree(vm, directive);
-                    nkiFree(vm, parameter);
+                        "Unknown preprocessor directive.");
+                    nkiCompilerFreeStringList(vm, tokenList, tokenCount);
                     return nkfalse;
-                }
-            }
 
-            // Strip off quotes and unescape string.
-            if(paramIsQuoted) {
-                escapedParam = parameter;
-                if(escapedParam[0] == '\"') {
-                    escapedParam = escapedParam + 1;
-                    if(escapedParam[0]) {
-                        if(escapedParam[nkiStrlen(escapedParam) - 1] == '\"') {
-                            escapedParam[nkiStrlen(escapedParam) - 1] = 0;
-                        }
-                    }
                 }
-                escapedParam = nkiCompilerTokenizerUnescapeString(vm, escapedParam);
-                nkiFree(vm, parameter);
-            } else {
-                escapedParam = parameter;
-            }
 
-            // Actually act on it.
-            if(!nkiStrcmp(directive, "#line")) {
-                lineNumber = atol(escapedParam);
-            } else if(!nkiStrcmp(directive, "#file")) {
-                fileIndex = nkiVmAddSourceFile(vm, escapedParam);
-            } else {
-                // Should we ignore this?
+                // TODO: Support...
+                //   #if (maybe without the real expression parsing)
+                //   #ifdef
+                //   #ifndef
+                //   #define (without macros)
+                //   #endif
+                //   #include (via a callback)
+
             }
 
             // Clean up.
-            nkiFree(vm, directive);
-            nkiFree(vm, escapedParam);
+            nkiCompilerFreeStringList(vm, tokenList, tokenCount);
 
         } else if(str[i] == '(') {
 
