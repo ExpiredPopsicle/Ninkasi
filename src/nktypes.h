@@ -75,6 +75,10 @@
 #define NK_PRINTF_UINTCHARSNEED    20
 #define NK_PRINTF_INTCHARSNEED     21
 
+#ifndef nkuint8_t
+#define nkuint8_t unsigned char
+#endif
+
 #ifndef nkbool
 #define nkbool nkuint8_t
 #endif
