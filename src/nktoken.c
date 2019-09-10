@@ -466,7 +466,7 @@ nkbool nkiCompilerTokenize(
                 if(!nkiStrcmp(tokenList[0], "line")) {
 
                     // Line directive from another preprocessor.
-                    if(tokenCount != 2) {
+                    if(tokenCount != 2 && tokenCount != 3) {
                         nkiAddErrorEx(
                             vm, lineNumber,
                             fileIndex,
@@ -476,6 +476,10 @@ nkbool nkiCompilerTokenize(
                     }
 
                     lineNumber = atol(tokenList[1]);
+
+                    if(tokenCount > 2) {
+                        fileIndex = nkiVmAddSourceFile(vm, tokenList[2]);
+                    }
 
                 } else if(!nkiStrcmp(tokenList[0], "file")) {
 

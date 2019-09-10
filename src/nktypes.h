@@ -63,13 +63,11 @@
 #if defined(NK_32BIT)
     typedef unsigned int nkuint32_t;
     typedef int nkint32_t;
-    typedef unsigned char nkbool;
 #   define NK_PRINTF_INT32 "%d"
 #   define NK_PRINTF_UINT32 "%u"
 #else
     typedef unsigned long int nkuint32_t;
     typedef long int nkint32_t;
-    typedef unsigned char nkbool;
 #   define NK_PRINTF_INT32 "%ld"
 #   define NK_PRINTF_UINT32 "%lu"
 #endif
@@ -77,11 +75,25 @@
 #define NK_PRINTF_UINTCHARSNEED    20
 #define NK_PRINTF_INTCHARSNEED     21
 
-#define nkfalse ((nkbool)0)
-#define nktrue ((nkbool)1)
+#ifndef nkbool
+#define nkbool nkuint8_t
+#endif
 
+#ifndef nktrue
+#define nktrue ((nkbool)1)
+#endif
+
+#ifndef nkfalse
+#define nkfalse ((nkbool)0)
+#endif
+
+#ifndef NK_INVALID_VALUE
 #define NK_INVALID_VALUE (~(nkuint32_t)0)
+#endif
+
+#ifndef NK_UINT_MAX
 #define NK_UINT_MAX (~(nkuint32_t)0)
+#endif
 
 // TODO: FIXME: Replace manual overflow checks with these!
 #define NK_CHECK_OVERFLOW_UINT_ADD(a, b, result, overflow)  \

@@ -608,6 +608,15 @@ void nkxAddError(
     struct NKVM *vm,
     const char *str);
 
+/// Manually add an error to the error list. Override the default
+/// filename and line number handling. For adding errors from a
+/// preprocessor stage.
+void nkxAddErrorEx(
+    struct NKVM *vm,
+    const char *str,
+    const char *filename,
+    nkuint32_t lineNumber);
+
 /// Get whether or not the VM has any errors.
 nkbool nkxVmHasErrors(struct NKVM *vm);
 

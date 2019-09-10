@@ -605,6 +605,21 @@ void nkxAddError(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void nkxAddErrorEx(
+    struct NKVM *vm,
+    const char *str,
+    const char *filename,
+    nkuint32_t lineNumber)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    {
+        nkuint32_t fileIndex = nkiVmAddSourceFile(vm, filename);
+        nkiAddErrorEx(vm, lineNumber, fileIndex, str);
+    }
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
 nkuint32_t nkxGetErrorLength(struct NKVM *vm)
 {
     // Makes no allocations. No need for wrapper.
