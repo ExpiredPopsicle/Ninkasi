@@ -259,6 +259,17 @@ nkint32_t nkiValueCompare(
         }
     }
 
+    // Handle some peculiarities of the nil type.
+    if(type == NK_VALUETYPE_NIL) {
+        if(in2->type == NK_VALUETYPE_NIL) {
+            return 0;
+        }
+        return 1;
+    }
+    if(in2->type == NK_VALUETYPE_NIL) {
+        return -1;
+    }
+
     switch(type) {
 
         case NK_VALUETYPE_INT: {
@@ -308,6 +319,9 @@ nkint32_t nkiValueCompare(
             {
                 return 0;
             } else {
+                // This comparison is "okay" without knowing the type.
+                // We know it's the wrong type and we're comparing in
+                // a generic way.
                 return in1->functionId.id < in2->functionId.id ? -1 : 1;
             }
         }
@@ -318,6 +332,9 @@ nkint32_t nkiValueCompare(
             {
                 return 0;
             } else {
+                // This comparison is "okay" without knowing the type.
+                // We know it's the wrong type and we're comparing in
+                // a generic way.
                 return in1->objectId < in2->objectId ? -1 : 1;
             }
         }
