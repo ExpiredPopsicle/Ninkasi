@@ -471,6 +471,7 @@ void nkiOpcode_call(struct NKVM *vm)
     nkuint32_t argumentCount = 0;
     NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
     struct NKVMFunction *funcOb = NULL;
+    struct NKValue *callableObjectData = NULL;
 
     // PEEK at the top of the stack. That's _argumentCount.
     argumentCount = nkiValueToInt(vm, nkiVmStackPeek(vm, (vm->stack.size - 1)));
@@ -480,10 +481,71 @@ void nkiOpcode_call(struct NKVM *vm)
         struct NKValue *functionIdValue = nkiVmStackPeek(
             vm, vm->stack.size - (argumentCount + 2));
 
+        nkuint32_t redirectionCount = 0;
+
+        // If we have an object instead of a function, then this may
+        // be a callable object. Look up the "_exec" field and "_data"
+        // field.
+        while(functionIdValue->type == NK_VALUETYPE_OBJECTID) {
+
+            struct NKValue *objectIdValue = functionIdValue;
+            struct NKValue index;
+
+            // FIXME: Make this less arbitrary.
+            redirectionCount++;
+            if(redirectionCount > 10) {
+                nkiAddError(
+                    vm,
+                    "Too many callable object redirections.");
+                return;
+            }
+
+            // Check for the function call field.
+            nkxValueSetString(vm, &index, "_exec");
+            functionIdValue = nkiVmObjectFindOrAddEntry_public(
+                vm, objectIdValue, &index, nktrue);
+
+            // Check for the data field.
+            nkxValueSetString(vm, &index, "_data");
+            callableObjectData = nkiVmObjectFindOrAddEntry_public(
+                vm, objectIdValue, &index, nktrue);
+
+            if(callableObjectData) {
+
+                nkuint32_t i = 0;
+                nkbool overflow = nkfalse;
+
+                NK_CHECK_OVERFLOW_UINT_ADD(argumentCount, 1, argumentCount, overflow);
+
+                if(!overflow) {
+
+                    // Make room for the _data contents on the stack.
+                    nkiVmStackPush_internal(vm);
+
+                    // Shift everything up the stack.
+                    for(i = argumentCount; i >= 1; i--) {
+                        vm->stack.values[vm->stack.size - argumentCount - 2 + i + 1] =
+                            vm->stack.values[vm->stack.size - argumentCount - 2 + i];
+                    }
+
+                    // Insert the _data contents into the beginning of
+                    // the stack.
+                    vm->stack.values[vm->stack.size - argumentCount - 1] =
+                        *callableObjectData;
+
+                } else {
+                    nkiAddError(
+                        vm,
+                        "Argument count overflow.");
+                    return;
+                }
+            }
+        }
+
         if(functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
             nkiAddError(
                 vm,
-                "Tried to call something that is not a function id.");
+                "Tried to call something that is not a function id or a callable object.");
             return;
         }
 
@@ -677,6 +739,8 @@ void nkiOpcode_call(struct NKVM *vm)
         }
 
     } else {
+
+        // Call an internal function.
 
         // Push the current instruction pointer (_returnPointer).
         nkiVmStackPushInt(vm, vm->instructionPointer);

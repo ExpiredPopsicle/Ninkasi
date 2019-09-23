@@ -314,8 +314,53 @@ There are no built-in functions to get the number of key/value pairs
 or iterate over them. These must be added as part of a library.
 (FIXME.)
 
+## Callable objects
+
+Ninkasi doesn't support closures, but you can effectively package up
+data with a function call as a callable object.
+
+If an "_exec" field in an object is set, then when you call that
+object as though it were a function, the function specified in the
+field will be called.
+
+If the "_data" field is set in an object being used as a callable
+object, then the function call will have the contents of the field
+inserted as the first argument to the function call.
+
+Zero-argument example:
+```
+var ob = newobject;
+ob._exec = function() {
+    print("Object call test.\n");
+};
+ob();
+```
+
+Inserted argument example:
+```
+var ob = newobject;
+ob._exec = function(data) {
+    print("Object call test.\n");
+    print("Data: ", data, "\n");
+};
+ob._data = "Test data";
+ob();
+```
+
+Multiple-argument example:
+```
+var ob = newobject;
+ob._exec = function(data, moreData) {
+    print("Object call test.\n");
+    print("Data: ", data, "\n");
+    print("More Data: ", moreData, "\n");
+};
+ob._data = "Test data";
+ob("More data");
+```
+
 What the API Prefixes Mean
-----------------------
+---------------------------
 
 1. nki* = Ninkasi internal
   - Called from inside VM code.
