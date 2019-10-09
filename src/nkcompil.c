@@ -1587,7 +1587,7 @@ nkbool nkiCompilerCompileBreakStatement(struct NKCompilerState *cs)
 nkbool nkiCompilerPushRecursion(struct NKCompilerState *cs)
 {
     // TODO: Make this limit configurable.
-    if(cs->recursionCount > 128) {
+    if(cs->recursionCount > 256) {
         nkiCompilerAddError(cs, "Reached recursion limit during compilation.");
         return nkfalse;
     }
