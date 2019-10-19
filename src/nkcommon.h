@@ -74,5 +74,7 @@
 #include "nksave.h"
 #include "nkshrink.h"
 #include "nktable.h"
+#include "nkcorout.h"
+#include "nkxp.h"
 
 #endif // NINKASI_COMMON_H

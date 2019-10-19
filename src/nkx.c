@@ -1084,3 +1084,82 @@ nkuint32_t nkxVmGetPeakMemoryUsage(struct NKVM *vm)
 {
     return vm->peakMemoryUsage;
 }
+
+// ----------------------------------------------------------------------
+// Memory stuff
+
+void *nkxMalloc(
+    struct NKVM *vm, nkuint32_t size)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiMalloc(vm, size);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+void *nkxMallocArray(
+    struct NKVM *vm, nkuint32_t size, nkuint32_t count)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiMallocArray(vm, size, count);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+void nkxFree(struct NKVM *vm, void *data)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiFree(vm, data);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+void *nkxRealloc(struct NKVM *vm, void *data, nkuint32_t size)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiRealloc(vm, data, size);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+void *nkxReallocArray(
+    struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t count)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiReallocArray(vm, data, size, count);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+char *nkxStrdup(struct NKVM *vm, const char *str)
+{
+    void *ret = NULL;
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY(ret);
+    ret = nkiStrdup(vm, str);
+    NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
+}
+
+// ----------------------------------------------------------------------
+// "protected" implementation
+//
+// This is all stuff that technically exists on the public API side.
+
+void nkxVmInitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmInitExecutionContext(vm, context);
+    NK_CLEAR_FAILURE_RECOVERY();
+}

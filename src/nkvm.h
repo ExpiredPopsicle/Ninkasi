@@ -269,6 +269,16 @@ struct NKVMFilePositionMarker *nkiVmFindSourceMarker(struct NKVM *vm, nkuint32_t
 /// Find the source file and line marker for the current instructtion.
 struct NKVMFilePositionMarker *nkiVmFindCurrentSourceMarker(struct NKVM *vm);
 
+/// Initialize an NKVMExecutionContext object.
+void nkiVmInitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
+
+/// Tear down an NKVMExecutionContext object.
+void nkiVmDeinitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
+
 // ----------------------------------------------------------------------
 
 /// Run the compiled program.

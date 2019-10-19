@@ -418,6 +418,23 @@ void subsystemTest_widgetGCData(struct NKVM *vm, struct NKValue *val, void *data
     }
 }
 
+void subsystemTest_widgetGCMark(
+    struct NKVM *vm, struct NKValue *value,
+    void *internalData, struct NKVMGCState *gcState)
+{
+    // FIXME: Screwing up our diffs.
+    //
+    // printf("Widget marked by GC: %p\n", internalData);
+    printf("Widget marked by GC\n");
+
+    // FIXME: This is redundant, because it's marking itself. This is
+    // an example of a call to nkxVmGarbageCollect_markValue, which
+    // should be used on data associated with this object that lives
+    // inside the VM, but where all those associations are external to
+    // VM data.
+    nkxVmGarbageCollect_markValue(vm, gcState, value);
+}
+
 // ----------------------------------------------------------------------
 // Functions callable from script code
 
@@ -599,23 +616,6 @@ void subsystemTest_serialize(struct NKVM *vm, void *internalData)
         // based on this. We don't trust data coming from the binary!
         nkxSerializeData(vm, &systemData->widgetCount, sizeof(nkuint32_t));
     }
-}
-
-void subsystemTest_widgetGCMark(
-    struct NKVM *vm, struct NKValue *value,
-    void *internalData, struct NKVMGCState *gcState)
-{
-    // FIXME: Screwing up our diffs.
-    //
-    // printf("Widget marked by GC: %p\n", internalData);
-    printf("Widget marked by GC\n");
-
-    // FIXME: This is redundant, because it's marking itself. This is
-    // an example of a call to nkxVmGarbageCollect_markValue, which
-    // should be used on data associated with this object that lives
-    // inside the VM, but where all those associations are external to
-    // VM data.
-    nkxVmGarbageCollect_markValue(vm, gcState, value);
 }
 
 void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)

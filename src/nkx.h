@@ -635,4 +635,35 @@ void nkxGetErrorText(struct NKVM *vm, char *buffer);
 /// testing serialized data.
 void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
 
+// ----------------------------------------------------------------------
+// Memory stuff
+
+/// Allocate memory. This goes through the VM's malloc callback
+/// assigned by the hosting application, and is tracked by the VM as
+/// an allocation for leak detection. The VM memory usage limits will
+/// also apply and an allocation failure will be tracked as any other
+/// VM allocation failure.
+void *nkxMalloc(
+    struct NKVM *vm, nkuint32_t size);
+
+/// Allocate an array. Use this instead of multiplying size and count
+/// yourself. This will detect integer overflow from the
+/// multiplication and return NULL if the value cannot be expressed in
+/// a nkuint32_t.
+void *nkxMallocArray(
+    struct NKVM *vm, nkuint32_t size, nkuint32_t count);
+
+/// Free memory.
+void nkxFree(struct NKVM *vm, void *data);
+
+/// Reallocate memory.
+void *nkxRealloc(struct NKVM *vm, void *data, nkuint32_t size);
+
+/// Reallocate an array. See nkxMallocArray() for why we do this.
+void *nkxReallocArray(
+    struct NKVM *vm, void *data, nkuint32_t size, nkuint32_t count);
+
+/// Duplicate a C string.
+char *nkxStrdup(struct NKVM *vm, const char *str);
+
 #endif // NINKASI_NKX

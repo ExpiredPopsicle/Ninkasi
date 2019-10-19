@@ -50,6 +50,7 @@
 // Ninkasi functions or types.
 
 #include "../nkx.h"
+#include "../nkcorout.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -236,6 +237,9 @@ int main(int argc, char *argv[])
     // Create the VM and compiler.
     vm = nkxVmCreate();
     compiler = nkxCompilerCreate(vm);
+
+    // Set up coroutine library.
+    nkxCoroutineLibrary_init(vm, compiler);
 
     // Set up some standard functions (print, etc).
     setupStdio(vm, compiler);

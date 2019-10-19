@@ -165,6 +165,13 @@ void nkiVmInitExecutionContext(
     context->coroutineObject.intData = 0;
 }
 
+void nkiVmDeinitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    nkiVmStackDestroy(vm, &context->stack);
+}
+
 void nkiVmInit(struct NKVM *vm)
 {
     // NOTE: By the time this function is called, the
@@ -299,7 +306,8 @@ void nkiVmDestroy(struct NKVM *vm)
 
         nkiVmStringTableDestroy(vm);
 
-        nkiVmStackDestroy(vm, &vm->rootExecutionContext.stack);
+        nkiVmDeinitExecutionContext(vm, &vm->rootExecutionContext);
+
         nkiErrorStateDestroy(vm);
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);

@@ -10,7 +10,8 @@ libninkasi_a_SOURCES = nkcommon.h nkcompil.c nkcompil.h nkconfig.h		\
 	nkmem.h nkobjs.c nkobjs.h nkopcode.c nkopcode.h nkopt.c nkopt.h		\
 	nkstack.c nkstack.h nkstring.c nkstring.h nktoken.c nktoken.h		\
 	nkvalue.c nkvm.c nkvm.h nkx.c nksave.h nksave.c nkgc.c nkshrink.c	\
-	nkshrink.h nktable.h nktable.c
+	nkshrink.h nktable.h nktable.c nkcorout.c nkcorout.h nkxp.c			\
+	nkxp.h
 
 ninkasi_includedir = ${includedir}/ninkasi
 ninkasi_include_HEADERS = nkx.h nktypes.h nkvalue.h nkenums.h nkfuncid.h

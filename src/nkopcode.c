@@ -798,6 +798,9 @@ void nkiOpcode_return(struct NKVM *vm)
     // Pop function id off the stack.
     nkiVmStackPop(vm);
 
+    // FIXME (COROUTINES): Check returnAddress validity. Possibly
+    // switch up to parent context.
+
     // Push _returnValue back onto the stack.
     {
         struct NKValue *returnValueWrite = nkiVmStackPush_internal(vm);
