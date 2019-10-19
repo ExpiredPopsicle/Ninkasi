@@ -6,9 +6,22 @@ cd "$(dirname "$0")/.."
 
 function run_script()
 {
+    echo "######################################################################" | \
+        tee -a output_linux.txt | \
+        tee -a output_dos.txt
+
+    echo "  Running test: $1" | \
+        tee -a output_linux.txt | \
+        tee -a output_dos.txt
+
+    echo "######################################################################" | \
+        tee -a output_linux.txt | \
+        tee -a output_dos.txt
+
     valgrind \
         --error-exitcode=1 \
         src/ninkasi_test "$1" | tee -a output_linux.txt
+
     rundos A.EXE "$1" | tee -a output_dos.txt
 }
 

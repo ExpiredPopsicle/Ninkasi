@@ -871,7 +871,10 @@ int main(int argc, char *argv[])
 
                         nkxVmShrink(vm);
 
-                        printf("vm before testserializer: %p\n", vm);
+                        // FIXME: Screwing up our diffs. Find a better
+                        // solution.
+
+                        // printf("vm before testserializer: %p\n", vm);
 
                         vm = testSerializer(vm, &settings);
                         if(!vm || checkErrors(vm)) {

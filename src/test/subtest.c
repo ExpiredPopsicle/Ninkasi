@@ -605,7 +605,10 @@ void subsystemTest_widgetGCMark(
     struct NKVM *vm, struct NKValue *value,
     void *internalData, struct NKVMGCState *gcState)
 {
-    printf("Widget marked by GC: %p\n", internalData);
+    // FIXME: Screwing up our diffs.
+    //
+    // printf("Widget marked by GC: %p\n", internalData);
+    printf("Widget marked by GC\n");
 
     // FIXME: This is redundant, because it's marking itself. This is
     // an example of a call to nkxVmGarbageCollect_markValue, which
@@ -619,7 +622,10 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 {
     struct SubsystemTest_InternalData *internalData = NULL;
 
-    printf("subsystemTest: Initializing on VM: %p\n", vm);
+    // FIXME: Screwing up our diffs.
+    //
+    // printf("subsystemTest: Initializing on VM: %p\n", vm);
+    printf("subsystemTest: Initializing on VM\n");
 
     subsystemTest_registerExitCheck();
 
