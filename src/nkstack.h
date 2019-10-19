@@ -75,10 +75,10 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count);
 struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index);
 
 /// Init the stack on the VM object.
-void nkiVmStackInit(struct NKVM *vm);
+void nkiVmStackInit(struct NKVM *vm, struct NKVMStack *stack);
 
 /// Tear down the stack on the VM object.
-void nkiVmStackDestroy(struct NKVM *vm);
+void nkiVmStackDestroy(struct NKVM *vm, struct NKVMStack *stack);
 
 /// Pushes a new value and returns a pointer to it (so the caller may
 /// fill it in).

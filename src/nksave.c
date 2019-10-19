@@ -693,10 +693,14 @@ nkbool nkiSerializeStatics(struct NKVM *vm, NKVMSerializationWriter writer, void
     return nktrue;
 }
 
-nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
+nkbool nkiSerializeStack(
+    struct NKVM *vm,
+    struct NKVMStack *stack,
+    NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
 {
-    nkuint32_t stackSize = vm->stack.size;
-    nkuint32_t stackCapacity = vm->stack.capacity;
+    nkuint32_t stackSize = stack->size;
+    nkuint32_t stackCapacity = stack->capacity;
 
     NKI_SERIALIZE_BASIC(nkuint32_t, stackSize);
     NKI_SERIALIZE_BASIC(nkuint32_t, stackCapacity);
@@ -718,42 +722,42 @@ nkbool nkiSerializeStack(struct NKVM *vm, NKVMSerializationWriter writer, void *
         return nkfalse;
     }
 
-    vm->stack.indexMask = vm->stack.capacity - 1;
+    stack->indexMask = stack->capacity - 1;
 
     // Make new stack space for read mode.
     if(!writeMode) {
-        //     nkiFree(vm, vm->stack.values);
-        //     vm->stack.values = NULL;
+        //     nkiFree(vm, stack->values);
+        //     stack->values = NULL;
 
-        //     vm->stack.values = nkiMallocArray(vm,
-        //         sizeof(struct NKValue), vm->stack.capacity);
+        //     stack->values = nkiMallocArray(vm,
+        //         sizeof(struct NKValue), stack->capacity);
 
         nkiVmStackClear(vm, nktrue);
-        vm->stack.values = (struct NKValue *)nkiReallocArray(
-            vm, vm->stack.values, sizeof(struct NKValue),
+        stack->values = (struct NKValue *)nkiReallocArray(
+            vm, stack->values, sizeof(struct NKValue),
             stackCapacity);
 
-        vm->stack.capacity = stackCapacity;
-        vm->stack.indexMask = stackCapacity - 1;
-        vm->stack.size = stackSize;
+        stack->capacity = stackCapacity;
+        stack->indexMask = stackCapacity - 1;
+        stack->size = stackSize;
 
         // Thanks AFL!
-        if(!vm->stack.values) {
+        if(!stack->values) {
             return nkfalse;
         }
 
-        nkiMemset(vm->stack.values, 0,
-            sizeof(struct NKValue) * (vm->stack.capacity));
+        nkiMemset(stack->values, 0,
+            sizeof(struct NKValue) * (stack->capacity));
     }
 
     // Thanks AFL!
-    if(vm->stack.capacity < vm->stack.size) {
+    if(stack->capacity < stack->size) {
         return nkfalse;
     }
 
     NKI_SERIALIZE_DATA(
-        vm->stack.values,
-        sizeof(struct NKValue) * (vm->stack.size));
+        stack->values,
+        sizeof(struct NKValue) * (stack->size));
 
     return nktrue;
 }
@@ -1348,11 +1352,20 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeStatics(vm, writer, userdata, writeMode));
 
+    // FIXME (COROUTINES): Add execution context serialization and
+    // then use that instead of directly serializing this value.
+
     NKI_WRAPSERIALIZE(
-        nkiSerializeStack(vm, writer, userdata, writeMode));
+        nkiSerializeStack(
+            vm, &vm->rootExecutionContext.stack,
+            writer, userdata, writeMode));
+
+    // FIXME (COROUTINES): Add execution context serialization and
+    // then use that instead of directly serializing this value.
 
     // Instruction pointer.
-    NKI_SERIALIZE_BASIC(nkuint32_t, vm->instructionPointer);
+    NKI_SERIALIZE_BASIC(
+        nkuint32_t, vm->rootExecutionContext.instructionPointer);
 
     // String table.
     NKI_WRAPSERIALIZE(

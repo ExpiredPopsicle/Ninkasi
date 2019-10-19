@@ -1,0 +1,10 @@
+* TODO Test the shit out of it with with AFL
+* TODO Make the serialization system save non-root stacks and IPs
+** TODO Write a function to save entire execution contexts
+* TODO New data type for coroutines
+** TODO Serialization/deserialization for that type
+** TODO Literally every other thing that we do for every other type
+* TODO Performance analysis with that extra level of indirection to IP lookup
+* TODO Replace most instances of vm->stack with vm->currentExecutionContext->stack
+* TODO Replace most instances of vm->instructionPointer with vm->currentExecutionContext->instructionPointer
+* TODO Make VM shrink code work with other stacks.

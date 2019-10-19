@@ -43,9 +43,8 @@
 
 #include "nkcommon.h"
 
-void nkiVmStackInit(struct NKVM *vm)
+void nkiVmStackInit(struct NKVM *vm, struct NKVMStack *stack)
 {
-    struct NKVMStack *stack = &vm->stack;
     stack->values = (struct NKValue *)nkiMalloc(
         vm, sizeof(struct NKValue));
     nkiMemset(stack->values, 0, sizeof(struct NKValue));
@@ -54,16 +53,15 @@ void nkiVmStackInit(struct NKVM *vm)
     stack->indexMask = 0;
 }
 
-void nkiVmStackDestroy(struct NKVM *vm)
+void nkiVmStackDestroy(struct NKVM *vm, struct NKVMStack *stack)
 {
-    struct NKVMStack *stack = &vm->stack;
     nkiFree(vm, stack->values);
     nkiMemset(stack, 0, sizeof(struct NKVMStack));
 }
 
 struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
 {
-    struct NKVMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     // Make a stack if we don't have one. This can happen with weird
     // binaries.
@@ -175,7 +173,7 @@ nkbool nkiVmStackPushString(struct NKVM *vm, const char *str)
 
 struct NKValue *nkiVmStackPop(struct NKVM *vm)
 {
-    struct NKVMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     // TODO: Shrink the stack if we can?
 
@@ -193,7 +191,7 @@ struct NKValue *nkiVmStackPop(struct NKVM *vm)
 
 void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
 {
-    struct NKVMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     // TODO: Shrink the stack if we can?
 
@@ -211,12 +209,12 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
 
 struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
 {
-    return &vm->stack.values[index & vm->stack.indexMask];
+    return &vm->currentExecutionContext->stack.values[index & vm->currentExecutionContext->stack.indexMask];
 }
 
 void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
 {
-    struct NKVMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     nkiMemset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;

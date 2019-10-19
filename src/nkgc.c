@@ -203,6 +203,18 @@ void nkiVmGarbageCollect_markReferenced(
     }
 }
 
+void nkiVmGarbageCollect_markStack(
+    struct NKVMGCState *gcState,
+    struct NKVMStack *stack)
+{
+    nkuint32_t i;
+    struct NKValue *values = stack->values;
+    for(i = 0; i < stack->size; i++) {
+        nkiVmGarbageCollect_markValue(
+            gcState, &values[i]);
+    }
+}
+
 void nkiVmGarbageCollect(struct NKVM *vm)
 {
     struct NKVMGCState gcState;
@@ -220,14 +232,23 @@ void nkiVmGarbageCollect(struct NKVM *vm)
         }
     }
 
-    // Iterate through the current stack.
+    // Iterate through the stacks, starting from the current coroutine
+    // stack and going up to the root context.
+    //
+    // FIXME (COROUTINES): Mark the current object that corresponds to
+    // the the coroutine.
     {
-        nkuint32_t i;
-        struct NKValue *values = vm->stack.values;
-        for(i = 0; i < vm->stack.size; i++) {
-            nkiVmGarbageCollect_markValue(
-                &gcState, &values[i]);
+        struct NKVMExecutionContext *currentContext = vm->currentExecutionContext;
+        struct NKVMExecutionContext *lastContext = NULL;
+        while(currentContext) {
+            nkiVmGarbageCollect_markStack(&gcState, &currentContext->stack);
+            lastContext = currentContext;
+            currentContext = currentContext->parent;
         }
+
+        // FIXME (THREADS): If we ever implement threads, then they
+        // won't necessarily be attached to the root context this way.
+        assert(lastContext == &vm->rootExecutionContext);
     }
 
     // Iterate through the current static space.

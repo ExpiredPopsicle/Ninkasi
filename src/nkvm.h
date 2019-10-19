@@ -134,14 +134,32 @@ struct NKVMFilePositionMarker
     nkuint32_t lineNumber;
 };
 
+struct NKVMExecutionContext
+{
+    // Stack data.
+    struct NKVMStack stack;
+
+    // Instruction pointer.
+    nkuint32_t instructionPointer;
+
+    // Parent context. This is the one to return to when yielding,
+    // returning, or ending.
+    struct NKVMExecutionContext *parent;
+
+    // Object that corresponds to whatever coroutine or thread we're
+    // in. This will be nil instead of an object for the root
+    // execution context.
+    struct NKValue coroutineObject;
+};
+
 /// The VM object itself.
 struct NKVM
 {
     // Errors.
     struct NKErrorState errorState;
 
-    // Stack data.
-    struct NKVMStack stack;
+    struct NKVMExecutionContext rootExecutionContext;
+    struct NKVMExecutionContext *currentExecutionContext;
 
     // Static data.
     struct NKValue *staticSpace;
@@ -150,7 +168,6 @@ struct NKVM
     // Instructions.
     struct NKInstruction *instructions;
     nkuint32_t instructionAddressMask;
-    nkuint32_t instructionPointer;
 
     // Strings.
     struct NKVMTable stringTable;

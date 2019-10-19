@@ -141,7 +141,7 @@ void nkxVmIterate(struct NKVM *vm, nkuint32_t count)
 
         // Check for end-of-program.
         if(vm->instructions[
-                vm->instructionPointer &
+                vm->currentExecutionContext->instructionPointer &
                 vm->instructionAddressMask].opcode == NK_OP_END)
         {
             break;
@@ -1066,7 +1066,7 @@ void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFun
 nkbool nkxVmProgramHasEnded(struct NKVM *vm)
 {
     return vm->instructions[
-        vm->instructionPointer &
+        vm->currentExecutionContext->instructionPointer &
         vm->instructionAddressMask].opcode == NK_OP_END;
 }
 

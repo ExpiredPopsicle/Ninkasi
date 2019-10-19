@@ -58,10 +58,10 @@ void nkiVmMoveObject(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
         nkuint32_t i;
 
         // Rewrite all stack references.
-        for(i = 0; i < vm->stack.size; i++) {
-            if(vm->stack.values[i].type == NK_VALUETYPE_OBJECTID) {
-                if(vm->stack.values[i].objectId == oldSlot) {
-                    vm->stack.values[i].objectId = newSlot;
+        for(i = 0; i < vm->currentExecutionContext->stack.size; i++) {
+            if(vm->currentExecutionContext->stack.values[i].type == NK_VALUETYPE_OBJECTID) {
+                if(vm->currentExecutionContext->stack.values[i].objectId == oldSlot) {
+                    vm->currentExecutionContext->stack.values[i].objectId = newSlot;
                 }
             }
         }
@@ -111,10 +111,10 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
     vm->stringTable.stringTable[oldSlot] = NULL;
 
     // Rewrite all stack references.
-    for(i = 0; i < vm->stack.size; i++) {
-        if(vm->stack.values[i].type == NK_VALUETYPE_STRING) {
-            if(vm->stack.values[i].stringTableEntry == oldSlot) {
-                vm->stack.values[i].stringTableEntry = newSlot;
+    for(i = 0; i < vm->currentExecutionContext->stack.size; i++) {
+        if(vm->currentExecutionContext->stack.values[i].type == NK_VALUETYPE_STRING) {
+            if(vm->currentExecutionContext->stack.values[i].stringTableEntry == oldSlot) {
+                vm->currentExecutionContext->stack.values[i].stringTableEntry = newSlot;
             }
         }
     }
@@ -217,8 +217,8 @@ void nkiVmShrink(struct NKVM *vm)
 
     // Reduce stack size.
     {
-        nkuint32_t newStackCapacity = vm->stack.capacity;
-        while((newStackCapacity >> 1) > vm->stack.size) {
+        nkuint32_t newStackCapacity = vm->currentExecutionContext->stack.capacity;
+        while((newStackCapacity >> 1) > vm->currentExecutionContext->stack.size) {
             newStackCapacity >>= 1;
         }
 
@@ -226,17 +226,17 @@ void nkiVmShrink(struct NKVM *vm)
             newStackCapacity = 1;
         }
 
-        if(newStackCapacity != vm->stack.capacity) {
-            vm->stack.values =
+        if(newStackCapacity != vm->currentExecutionContext->stack.capacity) {
+            vm->currentExecutionContext->stack.values =
                 (struct NKValue *)nkiReallocArray(
-                    vm, vm->stack.values,
+                    vm, vm->currentExecutionContext->stack.values,
                     sizeof(struct NKValue),
                     newStackCapacity);
 
-            vm->stack.capacity = newStackCapacity;
+            vm->currentExecutionContext->stack.capacity = newStackCapacity;
 
             // Thanks AFL!
-            vm->stack.indexMask = vm->stack.capacity - 1;
+            vm->currentExecutionContext->stack.indexMask = vm->currentExecutionContext->stack.capacity - 1;
         }
     }
 }

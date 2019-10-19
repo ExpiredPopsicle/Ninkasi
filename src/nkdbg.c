@@ -123,13 +123,13 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
     }
 
     fprintf(stream, "Stack:\n");
-    fprintf(stream, "  Capacity:  " NK_PRINTF_UINT32 "\n", vm->stack.capacity);
-    fprintf(stream, "  Size:      " NK_PRINTF_UINT32 "\n", vm->stack.size);
-    fprintf(stream, "  IndexMask: " NK_PRINTF_UINT32 "\n", vm->stack.indexMask);
+    fprintf(stream, "  Capacity:  " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.capacity);
+    fprintf(stream, "  Size:      " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.size);
+    fprintf(stream, "  IndexMask: " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.indexMask);
     fprintf(stream, "  Elements:\n");
-    for(i = 0; i < vm->stack.size; i++) {
+    for(i = 0; i < vm->currentExecutionContext->stack.size; i++) {
         fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
-        nkiValueDump(vm, &vm->stack.values[i], stream);
+        nkiValueDump(vm, &vm->currentExecutionContext->stack.values[i], stream);
         fprintf(stream, "\n");
     }
 
@@ -144,7 +144,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
     fprintf(stream, "Instructions:\n");
     fprintf(stream, "  instructionAddressMask: " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
-    fprintf(stream, "  instructionPointer:     " NK_PRINTF_UINT32 "\n", vm->instructionPointer);
+    fprintf(stream, "  instructionPointer:     " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->instructionPointer);
     nkiDbgDumpListing(vm, NULL, stream);
 
     fprintf(stream, "String table:\n");
@@ -446,7 +446,7 @@ void nkiVmStaticDump(struct NKVM *vm)
 void nkiVmStackDump(struct NKVM *vm)
 {
     nkuint32_t i;
-    struct NKVMStack *stack = &vm->stack;
+    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
     for(i = 0; i < stack->size; i++) {
         printf("%3d: ", i);
         nkiValueDump(vm, nkiVmStackPeek(vm, i), stdout);
@@ -621,7 +621,7 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
             // Start off with the instruction address and instruction
             // name.
             sprintf(lineBuf, "%s " NK_PRINTF_UINT32,
-                (i == vm->instructionPointer ? ">" : " "),
+                (i == vm->currentExecutionContext->instructionPointer ? ">" : " "),
                 i);
             nkiDbgPadLine(7, lineBuf, ' ');
 

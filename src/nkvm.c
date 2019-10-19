@@ -153,6 +153,18 @@ const char *nkiVmGetOpcodeName(enum NKOpcode op)
 // ----------------------------------------------------------------------
 // Init/shutdown
 
+void nkiVmInitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    nkiVmStackInit(vm, &context->stack);
+    context->instructionPointer = 0;
+    context->parent = NULL;
+
+    context->coroutineObject.type = NK_VALUETYPE_NIL;
+    context->coroutineObject.intData = 0;
+}
+
 void nkiVmInit(struct NKVM *vm)
 {
     // NOTE: By the time this function is called, the
@@ -180,8 +192,8 @@ void nkiVmInit(struct NKVM *vm)
     nkiVmInitOpcodeTable();
 
     nkiErrorStateInit(vm);
-    nkiVmStackInit(vm);
-    vm->instructionPointer = 0;
+    nkiVmInitExecutionContext(vm, &vm->rootExecutionContext);
+    vm->currentExecutionContext = &vm->rootExecutionContext;
 
     vm->instructions =
         (struct NKInstruction *)nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
@@ -287,7 +299,7 @@ void nkiVmDestroy(struct NKVM *vm)
 
         nkiVmStringTableDestroy(vm);
 
-        nkiVmStackDestroy(vm);
+        nkiVmStackDestroy(vm, &vm->rootExecutionContext.stack);
         nkiErrorStateDestroy(vm);
         nkiFree(vm, vm->instructions);
         nkiFree(vm, vm->functionTable);
@@ -352,7 +364,8 @@ void nkiVmIterate(struct NKVM *vm)
 {
     const nkuint32_t opcodeMask = (NK_OPCODE_PADDEDCOUNT - 1);
     struct NKInstruction *inst = &vm->instructions[
-        vm->instructionPointer & vm->instructionAddressMask];
+        vm->currentExecutionContext->instructionPointer &
+        vm->instructionAddressMask];
     nkuint32_t opcodeId = inst->opcode & opcodeMask;
 
     // Handle periodic garbage collection. Do this BEFORE the
@@ -380,13 +393,13 @@ void nkiVmIterate(struct NKVM *vm)
 
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);
-    vm->instructionPointer++;
+    vm->currentExecutionContext->instructionPointer++;
 }
 
 nkbool nkiVmExecuteProgram(struct NKVM *vm)
 {
     while(vm->instructions[
-            vm->instructionPointer &
+            vm->currentExecutionContext->instructionPointer &
             vm->instructionAddressMask].opcode != NK_OP_END)
     {
         nkiVmIterate(vm);
@@ -598,6 +611,7 @@ struct NKVMFilePositionMarker *nkiVmFindCurrentSourceMarker(struct NKVM *vm)
 {
     return nkiVmFindSourceMarker(
         vm,
-        vm->instructionPointer & vm->instructionAddressMask);
+        vm->currentExecutionContext->instructionPointer &
+        vm->instructionAddressMask);
 }
 

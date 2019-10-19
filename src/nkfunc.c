@@ -80,7 +80,7 @@ void nkiVmCallFunction(
         // Save whatever the real instruction pointer was so that we
         // can restore it after we're done with this artificially
         // injected function call.
-        nkuint32_t oldInstructionPtr = vm->instructionPointer;
+        nkuint32_t oldInstructionPtr = vm->currentExecutionContext->instructionPointer;
         nkuint32_t i;
 
         // Push the function ID itself onto the stack.
@@ -101,7 +101,7 @@ void nkiVmCallFunction(
         // it moves to the next instruction, we'll check for the
         // instruction pointer to equal NK_UINT_MAX, indicating that
         // the function call is complete.
-        vm->instructionPointer = (NK_UINT_MAX - 1);
+        vm->currentExecutionContext->instructionPointer = (NK_UINT_MAX - 1);
 
         // Execute the call instruction. When this returns we will
         // either be inside the function in the VM, or we will have
@@ -118,7 +118,7 @@ void nkiVmCallFunction(
         // normal instruction iteration process. We have to mimic that
         // normal instruction iteration process as long as we're using
         // the opcode directly.
-        vm->instructionPointer++;
+        vm->currentExecutionContext->instructionPointer++;
 
         // If the function call was a C function, we should have our
         // instruction pointer at NK_UINT_MAX right now. Otherwise
@@ -127,7 +127,7 @@ void nkiVmCallFunction(
         // we return, we'll just keep executing until we hit an error,
         // or the instruction pointer is at NK_UINT_MAX
         // (NK_UINT_MAX-1, +1 for the instruction iteration).
-        while(vm->instructionPointer != NK_UINT_MAX &&
+        while(vm->currentExecutionContext->instructionPointer != NK_UINT_MAX &&
             !vm->errorState.firstError)
         {
             nkiVmIterate(vm);
@@ -141,7 +141,7 @@ void nkiVmCallFunction(
         }
 
         // Restore old state.
-        vm->instructionPointer = oldInstructionPtr;
+        vm->currentExecutionContext->instructionPointer = oldInstructionPtr;
     }
 }
 
