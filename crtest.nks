@@ -1,0 +1,43 @@
+print("Test\n");
+
+
+function crTestFunc(foo, bar)
+{
+    print("Foo: ", foo, "\n");
+    print("Bar: ", bar, "\n");
+    coroutine_yield2(1234);
+    print("Foo: ", foo, "\n");
+    print("Bar: ", bar, "\n");
+    coroutine_yield2();
+    print("DONE\n");
+}
+
+var cr = coroutine_create2(crTestFunc, "asdf", "blah");
+
+var val1 = coroutine_resume2(cr);
+print("val1: ", val1, "\n");
+
+var val2 = coroutine_resume2(cr);
+print("val2: ", val2, "\n");
+
+
+
+
+
+
+
+
+// crTestFunc("val1", "val2");
+
+
+// -++coroutine_resume2(cr)[0];
+// coroutine_resume2[0](cr);
+
+
+var butt = object();
+
+butt[0] = 1234;
+print(butt[0], "\n");
+
+
+

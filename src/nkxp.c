@@ -41,41 +41,62 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_COMMON_H
-#define NINKASI_COMMON_H
+#include "nkcommon.h"
 
-#include <stdio.h>
-#include <assert.h>
-#include <malloc.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <setjmp.h>
+void nkxpVmInitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmInitExecutionContext(vm, context);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
 
-#include "nkconfig.h"
+void nkxpVmDeinitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiVmDeinitExecutionContext(vm, context);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
 
-#include "nktypes.h"
-#include "nkenums.h"
-#include "nkstack.h"
-#include "nkvalue.h"
-#include "nkopcode.h"
-#include "nkexpr.h"
-#include "nkopt.h"
-#include "nktoken.h"
-#include "nkdbg.h"
-#include "nkerror.h"
-#include "nkdynstr.h"
-#include "nkvm.h"
-#include "nkcompil.h"
-#include "nkstring.h"
-#include "nkfunc.h"
-#include "nkobjs.h"
-#include "nkmem.h"
-#include "nkfail.h"
-#include "nksave.h"
-#include "nkshrink.h"
-#include "nktable.h"
-#include "nkcorout.h"
-#include "nkxp.h"
-#include "nkfse.h"
+void nkxpVmPushExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    assert(!context->parent);
 
-#endif // NINKASI_COMMON_H
+    context->parent = vm->currentExecutionContext;
+    vm->currentExecutionContext = context;
+}
+
+void nkxpVmPopExecutionContext(
+    struct NKVM *vm)
+{
+    struct NKVMExecutionContext *context =
+        vm->currentExecutionContext;
+
+    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    assert(context->parent);
+
+    vm->currentExecutionContext =
+        context->parent;
+
+    context->parent = NULL;
+}
+
+void nkxpVmStackPushValue(
+    struct NKVM *vm,
+    struct NKValue *value)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    NK_SET_FAILURE_RECOVERY_VOID();
+    *nkiVmStackPush_internal(vm) = *value;
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+

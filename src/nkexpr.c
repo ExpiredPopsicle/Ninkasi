@@ -255,6 +255,17 @@ nkbool nkiCompilerExpressionParseFunctioncall(
     return nktrue;
 }
 
+nkuint32_t nkiCompilerCountCallArguments(struct NKExpressionAstNode *node)
+{
+    nkuint32_t argCount = 0;
+    struct NKExpressionAstNode *argumentAstNode = node->children[1];
+    while(argumentAstNode) {
+        argumentAstNode = argumentAstNode->children[1];
+        argCount++;
+    }
+    return argCount;
+}
+
 struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *cs)
 {
     struct NKToken **currentToken = &cs->currentToken;
@@ -360,6 +371,9 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
                 } else {
 
+                    // Function-style expression names get routed
+                    // through here as well as variable names and
+                    // stuff.
                     valueNode = (struct NKExpressionAstNode*)nkiMalloc(
                         cs->vm, sizeof(struct NKExpressionAstNode));
                     nkiMemset(valueNode, 0, sizeof(*valueNode));
@@ -509,6 +523,13 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
             } else if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
+                // FIXME (COROUTINES): Check to see if the last thing
+                // was a function-style expression and, if so, make
+                // that the parent (option 1)? This way the AST will
+                // still be a valid AST (operator node with operand
+                // children) before we start the emit stage.
+
+
                 // Handle function call "operator".
                 if(!nkiCompilerExpressionParseFunctioncall(postfixNode, cs)) {
                     NK_CLEANUP_INLOOP();
@@ -530,13 +551,52 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         }
 
         // Attach prefix and postfix operations.
+
         if(firstPostfixOp) {
-            assert(firstPostfixOp->children[0] == NULL);
-            firstPostfixOp->children[0] = valueNode;
+            if(valueNode->opOrValue->type == NK_TOKENTYPE_FUNCTIONSTYLEEXPRESSION &&
+                firstPostfixOp->opOrValue->type == NK_TOKENTYPE_PAREN_OPEN)
+            {
+                assert(!valueNode->children[0]);
+                assert(!valueNode->children[1]);
+
+                // Convert function-style expressions from the function call
+                // layout to its own node, with the arguments as children.
+                printf("FSE: Function style expression call: %s\n", valueNode->opOrValue->str);
+
+                // Nuke whatever was there.
+                if(firstPostfixOp->ownedToken) {
+                    nkiCompilerDeleteToken(cs->vm, firstPostfixOp->opOrValue);
+                }
+
+                // Copy the operator name token into the function call
+                // node, replacing the open paren with the operator
+                // name.
+                firstPostfixOp->opOrValue = (struct NKToken *)nkiMalloc(
+                    cs->vm, sizeof(struct NKToken));
+                nkiMemset(firstPostfixOp->opOrValue, 0, sizeof(struct NKToken));
+                firstPostfixOp->opOrValue->type = valueNode->opOrValue->type;
+                firstPostfixOp->opOrValue->str = nkiStrdup(cs->vm, valueNode->opOrValue->str);
+                firstPostfixOp->opOrValue->lineNumber = valueNode->opOrValue->lineNumber;
+
+                firstPostfixOp->ownedToken = nktrue;
+
+                nkiCompilerDeleteExpressionNode(cs->vm, valueNode);
+
+            } else {
+
+                // Attach postfix ops.
+                assert(firstPostfixOp->children[0] == NULL);
+                firstPostfixOp->children[0] = valueNode;
+            }
+
             valueNode = lastPostfixOp;
             lastPostfixOp = NULL;
+
         }
+
         if(lastPrefixOp) {
+
+            // Attach prefix ops.
             assert(lastPrefixOp->children[0] == NULL);
             lastPrefixOp->children[0] = valueNode;
             valueNode = firstPrefixOp;
@@ -770,7 +830,9 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
     }
 
     // Assignments are special, because we need to evaluate the left
-    // side as an LValue.
+    // side as an LValue. One of the reasons we convert inc/dec into
+    // normal +/- with assignment nodes is because we can funnel it
+    // through this special case.
     if(node->opOrValue->type == NK_TOKENTYPE_ASSIGNMENT) {
         nkiCompilerPopRecursion(cs);
         return nkiCompilerEmitExpressionAssignment(cs, node);
@@ -791,6 +853,8 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
     switch(node->opOrValue->type) {
 
         case NK_TOKENTYPE_FUNCTION: {
+            // Anonymous functions. Function id gets squished into the
+            // token string.
             NKVMInternalFunctionID id;
             id.id = atol(node->opOrValue->str);
             nkiCompilerEmitPushLiteralFunctionId(cs, id, nktrue);
@@ -888,20 +952,49 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
             nkiCompilerAddInstructionSimple(cs, NK_OP_OBJECTFIELDGET, nktrue);
             break;
 
+        case NK_TOKENTYPE_FUNCTIONSTYLEEXPRESSION:
+        {
+            // FIXME (COROUTINES): Finish implementing this.
+            if(node->isRootFunctionCallNode) {
+
+                // Count up the arguments.
+                nkuint32_t argumentCount = nkiCompilerCountCallArguments(node);
+
+                // // Pop all of them off.
+                // nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
+                // nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
+
+                // cs->context->stackFrameOffset -= argumentCount;
+
+                // // FIXME: Push the actual result.
+                // nkiCompilerEmitPushLiteralInt(cs, 12345678, nktrue);
+
+                nkiCompilerEmitFunctionStyleExpression(
+                    cs, node->opOrValue->str,
+                    argumentCount);
+            }
+        }
+
+        break;
+
         case NK_TOKENTYPE_PAREN_OPEN:
         case NK_TOKENTYPE_FUNCTIONCALL_WITHSELF:
         {
             // Function calls.
 
+            // FIXME (COROUTINES): Check to see if the first value
+            // (func ID) was a function-style expression and, if so,
+            // emit something totally different?
+
             if(node->isRootFunctionCallNode) {
 
                 // Count up the arguments.
-                nkuint32_t argumentCount = 0;
-                struct NKExpressionAstNode *argumentAstNode = node->children[1];
-                while(argumentAstNode) {
-                    argumentAstNode = argumentAstNode->children[1];
-                    argumentCount++;
-                }
+                nkuint32_t argumentCount = nkiCompilerCountCallArguments(node);
+                // struct NKExpressionAstNode *argumentAstNode = node->children[1];
+                // while(argumentAstNode) {
+                //     argumentAstNode = argumentAstNode->children[1];
+                //     argumentCount++;
+                // }
 
                 // Push argument count.
                 nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);

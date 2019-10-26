@@ -41,41 +41,37 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_COMMON_H
-#define NINKASI_COMMON_H
+// ----------------------------------------------------------------------
+// Ninkasi protected interface (NKXP).
+// ----------------------------------------------------------------------
+//
+// These are functions that are internal, but still exist on the
+// public side of the API. They're called without the protection of
+// the allocation failure handler and must add it themselves.
+//
+// These are utility functions for things like the coroutine
+// implementation, which must alter internal VM state, while still
+// existing as an external library, therefor having all of its
+// callbacks outside of the allocation failure wrapper.
 
-#include <stdio.h>
-#include <assert.h>
-#include <malloc.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <setjmp.h>
+/// Initialize an execution context (stack+IP).
+void nkxpVmInitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
 
-#include "nkconfig.h"
+void nkxpVmDeinitExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
 
-#include "nktypes.h"
-#include "nkenums.h"
-#include "nkstack.h"
-#include "nkvalue.h"
-#include "nkopcode.h"
-#include "nkexpr.h"
-#include "nkopt.h"
-#include "nktoken.h"
-#include "nkdbg.h"
-#include "nkerror.h"
-#include "nkdynstr.h"
-#include "nkvm.h"
-#include "nkcompil.h"
-#include "nkstring.h"
-#include "nkfunc.h"
-#include "nkobjs.h"
-#include "nkmem.h"
-#include "nkfail.h"
-#include "nksave.h"
-#include "nkshrink.h"
-#include "nktable.h"
-#include "nkcorout.h"
-#include "nkxp.h"
-#include "nkfse.h"
+void nkxpVmPushExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
 
-#endif // NINKASI_COMMON_H
+void nkxpVmPopExecutionContext(
+    struct NKVM *vm);
+
+void nkxpVmStackPushValue(
+    struct NKVM *vm,
+    struct NKValue *value);
+
+

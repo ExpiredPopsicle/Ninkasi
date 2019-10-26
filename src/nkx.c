@@ -144,6 +144,7 @@ void nkxVmIterate(struct NKVM *vm, nkuint32_t count)
                 vm->currentExecutionContext->instructionPointer &
                 vm->instructionAddressMask].opcode == NK_OP_END)
         {
+            nkiVmIterate(vm);
             break;
         }
 

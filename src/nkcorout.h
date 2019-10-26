@@ -41,41 +41,10 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_COMMON_H
-#define NINKASI_COMMON_H
+#ifndef NINKASI_COROUTINE_H
+#define NINKASI_COROUTINE_H
 
-#include <stdio.h>
-#include <assert.h>
-#include <malloc.h>
-#include <stdarg.h>
-#include <stdlib.h>
-#include <setjmp.h>
+void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs);
 
-#include "nkconfig.h"
+#endif // NINKASI_COROUTINE_H
 
-#include "nktypes.h"
-#include "nkenums.h"
-#include "nkstack.h"
-#include "nkvalue.h"
-#include "nkopcode.h"
-#include "nkexpr.h"
-#include "nkopt.h"
-#include "nktoken.h"
-#include "nkdbg.h"
-#include "nkerror.h"
-#include "nkdynstr.h"
-#include "nkvm.h"
-#include "nkcompil.h"
-#include "nkstring.h"
-#include "nkfunc.h"
-#include "nkobjs.h"
-#include "nkmem.h"
-#include "nkfail.h"
-#include "nksave.h"
-#include "nkshrink.h"
-#include "nktable.h"
-#include "nkcorout.h"
-#include "nkxp.h"
-#include "nkfse.h"
-
-#endif // NINKASI_COMMON_H

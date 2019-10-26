@@ -10,4 +10,4 @@
 * DONE Replace most instances of vm->instructionPointer with vm->currentExecutionContext->instructionPointer
 * TODO Make VM shrink code work with other stacks
 * TODO Test in C++ mode
-* TODO Stub out all the functions
+* DONE Stub out all the functions

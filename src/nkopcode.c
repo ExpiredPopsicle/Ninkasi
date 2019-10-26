@@ -546,6 +546,12 @@ void nkiOpcode_call(struct NKVM *vm)
             nkiAddError(
                 vm,
                 "Tried to call something that is not a function id or a callable object.");
+
+            // FIXME: Remove this.
+            nkiAddError(
+                vm,
+                nkiValueToString(vm, functionIdValue));
+
             return;
         }
 
@@ -818,6 +824,16 @@ void nkiOpcode_end(struct NKVM *vm)
 {
     // This doesn't actually do anything. The iteration loops know to
     // check for it and stop, though.
+
+    // Stack data remaining after the end of a progam is an indicator
+    // of a bug in the compiler, and a lot of these can be subtle and
+    // really irritating bugs, so we need to call them out as soon as
+    // we can.
+    if(vm->currentExecutionContext->stack.size) {
+        nkiAddError(
+            vm,
+            "Stack data remaining after end of program.");
+    }
 
     // Okay, it does do one thing, and that is keeping itself on the
     // end instruction.

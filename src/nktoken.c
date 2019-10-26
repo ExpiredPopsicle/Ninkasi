@@ -412,6 +412,24 @@ nkbool nkiCompilerGetPreprocessorTokens(
     return nktrue;
 }
 
+
+// // FIXME (COROUTINES): Have this check a list from elsewhere.
+// nkbool nkiCompilerIsFunctionStyleExpressionName(
+//     struct NKVM *vm, const char *str)
+// {
+//     if(!nkiStrcmp(str, "coroutine_create2")) {
+//         return nktrue;
+//     }
+//     if(!nkiStrcmp(str, "coroutine_yield2")) {
+//         return nktrue;
+//     }
+//     if(!nkiStrcmp(str, "coroutine_resume2")) {
+//         return nktrue;
+//     }
+//     return nkfalse;
+// }
+
+
 nkbool nkiCompilerTokenize(
     struct NKVM *vm,
     const char *str,
@@ -764,6 +782,8 @@ nkbool nkiCompilerTokenize(
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_NIL, tmp, lineNumber, fileIndex, tokenList);
             } else if(!nkiStrcmp(tmp, "break")) {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_BREAK, tmp, lineNumber, fileIndex, tokenList);
+            } else if(nkiCompilerIsFunctionStyleExpressionName(vm, tmp)) {
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_FUNCTIONSTYLEEXPRESSION, tmp, lineNumber, fileIndex, tokenList);
             } else {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_IDENTIFIER, tmp, lineNumber, fileIndex, tokenList);
             }
