@@ -124,6 +124,10 @@ static void nkiVmInitOpcodeTable(void)
     NK_SETUP_OP(NK_OP_PREPARESELFCALL,        nkiOpcode_prepareSelfCall,        0);
     NK_SETUP_OP(NK_OP_OBJECTFIELDGET_NOPOP,   nkiOpcode_objectFieldGet_noPop,   0);
 
+    NK_SETUP_OP(NK_OP_COROUTINE_CREATE,       nkiOpcode_coroutineCreate,        1);
+    NK_SETUP_OP(NK_OP_COROUTINE_YIELD,        nkiOpcode_coroutineYield,         1);
+    NK_SETUP_OP(NK_OP_COROUTINE_RESUME,       nkiOpcode_coroutineResume,        1);
+
     NK_SETUP_OP(NK_OP_PUSHNIL,                nkiOpcode_pushNil,                1);
 
     // Fill in the rest of the opcode table with no-ops. We just want

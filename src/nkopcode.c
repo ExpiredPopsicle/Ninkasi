@@ -1068,3 +1068,27 @@ void nkiOpcode_pushNil(struct NKVM *vm)
     struct NKValue *v = nkiVmStackPush_internal(vm);
     v->type = NK_VALUETYPE_NIL;
 }
+
+void nkiOpcode_coroutineCreate(struct NKVM *vm)
+{
+    // FIXME (COROUTINES): Make this actually return a coroutine.
+    struct NKValue *v = nkiVmStackPush_internal(vm);
+    v->type = NK_VALUETYPE_NIL;
+}
+
+void nkiOpcode_coroutineYield(struct NKVM *vm)
+{
+    // FIXME (COROUTINES): Make this actually return the yielded
+    // value. Also, switch contexts and stuff.
+    struct NKValue *v = nkiVmStackPush_internal(vm);
+    v->type = NK_VALUETYPE_NIL;
+}
+
+void nkiOpcode_coroutineResume(struct NKVM *vm)
+{
+    // FIXME (COROUTINES): Make this actually return the value passed
+    // in through resume(). Also, switch contexts and stuff.
+    struct NKValue *v = nkiVmStackPush_internal(vm);
+    v->type = NK_VALUETYPE_NIL;
+}
+

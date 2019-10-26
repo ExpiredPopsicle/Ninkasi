@@ -68,8 +68,7 @@ static nkbool nkiCompilerFSE_coroutineCreate(
     nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
     cs->context->stackFrameOffset -= argumentCount;
 
-    // FIXME: Push actual result.
-    nkiCompilerEmitPushLiteralInt(cs, 22222222, nktrue);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_CREATE, nktrue);
 
     return nktrue;
 }
@@ -83,8 +82,7 @@ static nkbool nkiCompilerFSE_coroutineYield(
     nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
     cs->context->stackFrameOffset -= argumentCount;
 
-    // FIXME: Push actual result.
-    nkiCompilerEmitPushLiteralInt(cs, 3333333, nktrue);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_YIELD, nktrue);
 
     return nktrue;
 }
@@ -98,8 +96,7 @@ static nkbool nkiCompilerFSE_coroutineResume(
     nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
     cs->context->stackFrameOffset -= argumentCount;
 
-    // FIXME: Push actual result.
-    nkiCompilerEmitPushLiteralInt(cs, 44444444, nktrue);
+    nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_RESUME, nktrue);
 
     return nktrue;
 }
