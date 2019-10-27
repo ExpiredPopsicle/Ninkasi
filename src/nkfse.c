@@ -80,12 +80,18 @@ static nkbool nkiCompilerFSE_coroutineYield(
     struct NKCompilerState *cs,
     nkuint32_t argumentCount)
 {
-    // Pop all args off.
-    nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
-    cs->context->stackFrameOffset -= argumentCount;
+    // Fill in a value to pass back if none was given.
+    if(argumentCount == 0) {
+        nkiCompilerEmitPushNil(cs, nktrue);
+    }
 
-    nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_YIELD, nktrue);
+    if(argumentCount > 1) {
+        nkiCompilerAddError(cs, "Too many arguments to yield().");
+        return nkfalse;
+    }
+
+    nkiCompilerAddInstructionSimple(
+        cs, NK_OP_COROUTINE_YIELD, nktrue);
 
     return nktrue;
 }
@@ -94,12 +100,23 @@ static nkbool nkiCompilerFSE_coroutineResume(
     struct NKCompilerState *cs,
     nkuint32_t argumentCount)
 {
-    // Pop all args off.
-    nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
-    cs->context->stackFrameOffset -= argumentCount;
+    if(argumentCount > 2) {
+        nkiCompilerAddError(cs, "Too many arguments to resume().");
+        return nkfalse;
+    }
 
-    nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_RESUME, nktrue);
+    if(argumentCount < 1) {
+        nkiCompilerAddError(cs, "Too few arguments to resume().");
+        return nkfalse;
+    }
+
+    // Fill in a value to pass in if none was given.
+    if(argumentCount == 1) {
+        nkiCompilerEmitPushNil(cs, nktrue);
+    }
+
+    nkiCompilerAddInstructionSimple(
+        cs, NK_OP_COROUTINE_RESUME, nktrue);
 
     return nktrue;
 }

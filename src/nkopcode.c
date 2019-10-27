@@ -1076,9 +1076,6 @@ void nkiOpcode_pushNil(struct NKVM *vm)
     v->type = NK_VALUETYPE_NIL;
 }
 
-// FIXME: Remove this.
-nkbool nopop = nkfalse;
-
 void nkiOpcode_coroutineCreate(struct NKVM *vm)
 {
     nkuint32_t i;
@@ -1165,7 +1162,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     vm->currentExecutionContext->instructionPointer++;
 
     // FIXME: Remove this.
-    for(i = 0; i < 100; i++) {
+    for(i = 0; i < 10000; i++) {
         nkiVmIterate(vm);
     }
 
@@ -1177,17 +1174,51 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
 
 void nkiOpcode_coroutineYield(struct NKVM *vm)
 {
-    // FIXME (COROUTINES): Make this actually return the yielded
-    // value. Also, switch contexts and stuff.
-    struct NKValue *v = nkiVmStackPush_internal(vm);
-    v->type = NK_VALUETYPE_NIL;
+    // // FIXME (COROUTINES): Make this actually return the yielded
+    // // value. Also, switch contexts and stuff.
+    // struct NKValue *v = nkiVmStackPush_internal(vm);
+    // v->type = NK_VALUETYPE_NIL;
+
+
+
+
+
+    struct NKValue *vp = nkiVmStackPop(vm);
+    struct NKValue v = {0};
+
+    if(!vp) {
+        return;
+    }
+
+    v = *vp;
+
+    struct NKValue *ret = nkiVmStackPush_internal(vm);
+    if(ret) {
+        *ret = v;
+    }
 }
 
 void nkiOpcode_coroutineResume(struct NKVM *vm)
 {
-    // FIXME (COROUTINES): Make this actually return the value passed
-    // in through resume(). Also, switch contexts and stuff.
-    struct NKValue *v = nkiVmStackPush_internal(vm);
-    v->type = NK_VALUETYPE_NIL;
+    // // // FIXME (COROUTINES): Make this actually return the value passed
+    // // // in through resume(). Also, switch contexts and stuff.
+    // // struct NKValue *v = nkiVmStackPush_internal(vm);
+    // // v->type = NK_VALUETYPE_NIL;
+
+
+
+    // struct NKValue *vp = nkiVmStackPop(vm);
+    // struct NKValue v = {0};
+
+    // if(!vp) {
+    //     return;
+    // }
+
+    // v = *vp;
+
+    // struct NKValue *ret = nkiVmStackPush_internal(vm);
+    // if(ret) {
+    //     *ret = v;
+    // }
 }
 
