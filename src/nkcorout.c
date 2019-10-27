@@ -56,12 +56,17 @@ void nkiCoroutineLibrary_coroutineGCMark(
         (struct NKVMExecutionContext *)internalData;
     nkuint32_t i;
 
-    assert(context->parent);
+    // assert(context->parent);
+
+    // FIXME: Remove this.
+    printf("GC MARKING COROUTINE\n");
 
     // Mark the parent (and let its own coroutineGCMark run at the
     // appropriate time). Don't process all parents.
-    nkiVmGarbageCollect_markValue(
-        gcState, &context->coroutineObject);
+    if(context->parent) {
+        nkiVmGarbageCollect_markValue(
+            gcState, &context->parent->coroutineObject);
+    }
 
     // Mark the entire stack.
     for(i = 0; i < context->stack.size; i++) {
@@ -91,7 +96,7 @@ void nkiCoroutineLibrary_coroutineSerializeData(
     // TODO (COROUTINES): Serialize the IP.
 }
 
-void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
+void nkxCoroutineLibrary_init(struct NKVM *vm)
 {
     // FIXME (COROUTINES): Add this to VM state instead of some
     // external system data.

@@ -50,7 +50,11 @@
 // Ninkasi functions or types.
 
 #include "../nkx.h"
+
+// FIXME: Remove this.
 #include "../nkcorout.h"
+// FIXME: Remove this.
+#include "../nkvm.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -238,8 +242,9 @@ int main(int argc, char *argv[])
     vm = nkxVmCreate();
     compiler = nkxCompilerCreate(vm);
 
-    // Set up coroutine library.
-    nkxCoroutineLibrary_init(vm, compiler);
+    // FIXME: Remove this.
+    vm->gcInfo.gcInterval = 1;
+    vm->gcInfo.gcCountdown = 1;
 
     // Set up some standard functions (print, etc).
     setupStdio(vm, compiler);

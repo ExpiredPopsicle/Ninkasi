@@ -246,7 +246,8 @@ void nkiVmInit(struct NKVM *vm)
     vm->positionMarkerList = NULL;
     vm->positionMarkerCount = 0;
 
-    // FIXME (COROUTINES): Add coroutine type initialization here!
+    // Set up coroutine library.
+    nkxCoroutineLibrary_init(vm);
 }
 
 void nkiVmDestroy(struct NKVM *vm)
@@ -405,6 +406,9 @@ void nkiVmIterate(struct NKVM *vm)
         }
         vm->gcInfo.gcCountdown = vm->gcInfo.gcInterval;
     }
+
+    // FIXME: Remove this.
+    nkiVmGarbageCollect(vm);
 
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);

@@ -1,5 +1,5 @@
-AM_CFLAGS = -g -Wall
-AM_LDFLAGS = -g -Wall
+AM_CFLAGS = -g -Wall -O0
+AM_LDFLAGS = -g -Wall -O0
 noinst_PROGRAMS = ninkasi_test
 bin_PROGRAMS = ninkasi
 lib_LIBRARIES = libninkasi.a

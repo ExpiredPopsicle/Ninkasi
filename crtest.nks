@@ -3,36 +3,56 @@ print("Test\n");
 
 function crTestFunc(foo, bar)
 {
+
+    var sub = coroutine_create2(
+        function() {
+            for(var i = 0; i < 100; ++i) {
+                print("Sub: ", i, "\n");
+                coroutine_yield2();
+            }
+        });
+
     print("Foo1: ", foo, "\n");
     print("Bar1: ", bar, "\n");
+    coroutine_resume2(sub);
     var yielded = coroutine_yield2(1234);
     print("Foo2: ", foo, "\n");
     print("Bar2: ", bar, "\n");
     print("Yie2: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2(1234);
     print("Foo3: ", foo, "\n");
     print("Bar3: ", bar, "\n");
     print("Yie3: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2();
     print("Foo4: ", foo, "\n");
     print("Bar4: ", bar, "\n");
     print("Yie4: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2(1234);
     print("Foo5: ", foo, "\n");
     print("Bar5: ", bar, "\n");
     print("Yie5: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2();
     print("Foo6: ", foo, "\n");
     print("Bar6: ", bar, "\n");
     print("Yie6: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2(1234);
     print("Foo7: ", foo, "\n");
     print("Bar7: ", bar, "\n");
     print("Yie7: ", yielded, "\n");
+    coroutine_resume2(sub);
     yielded = coroutine_yield2();
     print("COROUTINE FINISHED\n");
     // for(var i = 0; i < 1000; ++i) {
     // }
+
+
+
+
 }
 
 // crTestFunc("asdf", "blah");

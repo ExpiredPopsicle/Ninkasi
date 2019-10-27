@@ -1158,6 +1158,9 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         vm, &executionContext->coroutineObject,
         nkiVmFindExternalType(vm, "coroutine"));
 
+    // FIXME: Remove this.
+    assert(nkiVmFindExternalType(vm, "coroutine").id != NK_INVALID_VALUE);
+
     nkxVmObjectSetExternalData(
         vm, &executionContext->coroutineObject,
         executionContext);
@@ -1251,6 +1254,9 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
             nkiAddError(vm, "Tried to resume something that is not a coroutine.");
             return;
         }
+
+        // FIXME: Remove this.
+        assert(coroutineDataType.id != NK_INVALID_VALUE);
 
         // FIXME (COROUTINES): Type check this first.
         struct NKVMExecutionContext *context =

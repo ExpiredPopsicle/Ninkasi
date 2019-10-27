@@ -49,7 +49,7 @@ struct NKVMExecutionContext;
 struct NKCompilerState;
 
 void nkxCoroutineLibrary_init(
-    struct NKVM *vm, struct NKCompilerState *cs);
+    struct NKVM *vm);
 
 void nkiVmPushExecutionContext(
     struct NKVM *vm,
