@@ -251,6 +251,8 @@ int main(int argc, char *argv[])
     // Done compiling. Finalize everything.
     nkxCompilerFinalize(compiler);
 
+    nkxDbgDumpState(vm, stdout);
+
     // Check for compile errors.
     if(!checkNoErrors(vm)) {
         nkxVmDelete(vm);

@@ -406,6 +406,11 @@ void nkiVmIterate(struct NKVM *vm)
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);
     vm->currentExecutionContext->instructionPointer++;
+
+
+    // // FIXME: Remove this.
+    // nkxDbgDumpState(vm, stdout);
+
 }
 
 nkbool nkiVmExecuteProgram(struct NKVM *vm)

@@ -63,10 +63,13 @@ static nkbool nkiCompilerFSE_coroutineCreate(
     struct NKCompilerState *cs,
     nkuint32_t argumentCount)
 {
-    // Pop all args off.
-    nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
-    nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
+    // // Pop all args off.
+    // nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
+    // nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
     cs->context->stackFrameOffset -= argumentCount;
+
+    // FIXME: Check underflow.
+    nkiCompilerEmitPushLiteralInt(cs, argumentCount - 1, nkfalse);
 
     nkiCompilerAddInstructionSimple(cs, NK_OP_COROUTINE_CREATE, nktrue);
 

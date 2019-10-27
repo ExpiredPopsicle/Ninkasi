@@ -171,11 +171,17 @@ nkbool nkiVmStackPushString(struct NKVM *vm, const char *str)
     return nkfalse;
 }
 
+// // FIXME: Remove this.
+// extern nkbool nopop;
+
 struct NKValue *nkiVmStackPop(struct NKVM *vm)
 {
     struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     // TODO: Shrink the stack if we can?
+
+    // // FIXME: Remove this.
+    // assert(!nopop);
 
     if(stack->size == 0) {
         // Stack underflow. We'll return the bottom of the stack, just
@@ -194,6 +200,9 @@ void nkiVmStackPopN(struct NKVM *vm, nkuint32_t count)
     struct NKVMStack *stack = &vm->currentExecutionContext->stack;
 
     // TODO: Shrink the stack if we can?
+
+    // // FIXME: Remove this.
+    // assert(!nopop);
 
     if(stack->size < count) {
         // Stack underflow. We'll return the bottom of the stack, just

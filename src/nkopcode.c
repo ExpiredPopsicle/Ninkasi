@@ -468,6 +468,10 @@ void nkiOpcode_call(struct NKVM *vm)
     //   <_argumentCount number of arguments>
     //   function id
 
+    // // FIXME: Remove this.
+    // printf("in %s\n", __FUNCTION__);
+    // nkiVmStackDump(vm);
+
     nkuint32_t argumentCount = 0;
     NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
     struct NKVMFunction *funcOb = NULL;
@@ -750,6 +754,9 @@ void nkiOpcode_call(struct NKVM *vm)
 
         // Push the current instruction pointer (_returnPointer).
         nkiVmStackPushInt(vm, vm->currentExecutionContext->instructionPointer);
+
+        // printf("Pushed return pointer\n");
+        // nkiVmStackDump(vm);
 
         // Set the instruction pointer to the saved function object's
         // instruction pointer. Minus one, because the instruction
@@ -1069,11 +1076,103 @@ void nkiOpcode_pushNil(struct NKVM *vm)
     v->type = NK_VALUETYPE_NIL;
 }
 
+// FIXME: Remove this.
+nkbool nopop = nkfalse;
+
 void nkiOpcode_coroutineCreate(struct NKVM *vm)
 {
-    // FIXME (COROUTINES): Make this actually return a coroutine.
+    nkuint32_t i;
+
+    struct NKVMExecutionContext *executionContext =
+        nkxMalloc(vm, sizeof(struct NKVMExecutionContext));
+
+    struct NKVMExecutionContext *parentExecutionContext =
+        vm->currentExecutionContext;
+
+    struct NKValue argCountValue = *nkiVmStackPop(vm);
+    struct NKValue functionValue = {0};
+
+    nkint32_t argCount = nkiValueToInt(vm, &argCountValue);
+
+    if(argCount < 0) {
+        nkiAddError(vm, "Got negative argument count in coroutine creation.");
+        return;
+    }
+
+    if(argCount > parentExecutionContext->stack.size) {
+        nkiAddError(vm, "Argument count bigger than stack in coroutine creation.");
+        return;
+    }
+
+    // Save all the arguments.
+    struct NKValue *arguments = nkiMallocArray(
+        vm, sizeof(struct NKValue), argCount);
+    // FIXME: Check over/underflow.
+    nkiMemcpy(
+        arguments,
+        parentExecutionContext->stack.values + (parentExecutionContext->stack.size - argCount),
+        sizeof(struct NKValue) * argCount);
+
+    // Remove them from the stack.
+    nkiVmStackPopN(vm, argCount);
+
+    // Save the function itself.
+    struct NKValue *functionValuePtr = nkiVmStackPop(vm);
+    if(functionValuePtr) {
+        functionValue = *functionValuePtr;
+    }
+
+    // Create the coroutine object to leave on the stack.
     struct NKValue *v = nkiVmStackPush_internal(vm);
-    v->type = NK_VALUETYPE_NIL;
+
+    nkiVmInitExecutionContext(vm, executionContext);
+
+    v->type = NK_VALUETYPE_OBJECTID;
+    v->objectId = nkiVmObjectTableCreateObject(vm);
+
+    executionContext->coroutineObject = *v;
+
+    nkiVmObjectSetExternalType(
+        vm, &executionContext->coroutineObject,
+        nkiVmFindExternalType(vm, "coroutine"));
+
+    nkxVmObjectSetExternalData(
+        vm, &executionContext->coroutineObject,
+        executionContext);
+
+    // Switch to the new context.
+    nkxpVmPushExecutionContext(
+        vm, executionContext);
+
+    // Copy function ID to the new stack.
+    *nkiVmStackPush_internal(vm) = functionValue;
+
+    // Copy all the arguments into the new stack.
+    for(i = 0; i < argCount; i++) {
+        *nkiVmStackPush_internal(vm) =
+            arguments[i];
+    }
+
+    // Copy the argument count into the new stack.
+    nkiVmStackPushInt(vm, argCount);
+
+    // FIXME (COROUTINES): Set the IP to a magic value so we know what
+    // to return to.
+    nkiOpcode_call(vm);
+
+    // This is being done OUTSIDE of normal iteration, so we need to
+    // advance the IP ourselves!
+    vm->currentExecutionContext->instructionPointer++;
+
+    // FIXME: Remove this.
+    for(i = 0; i < 100; i++) {
+        nkiVmIterate(vm);
+    }
+
+    // Switch back to the original context.
+    nkxpVmPopExecutionContext(vm);
+
+    nkiFree(vm, arguments);
 }
 
 void nkiOpcode_coroutineYield(struct NKVM *vm)
