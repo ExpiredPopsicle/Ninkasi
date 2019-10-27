@@ -43,18 +43,6 @@
 
 #include "nkcommon.h"
 
-struct NKVMCoroutineInternalData
-{
-    NKVMExternalDataTypeID coroutineTypeId;
-};
-
-void nkxCoroutineLibrary_libraryCleanup(struct NKVM *vm, void *internalData)
-{
-    if(internalData) {
-        nkxFree(vm, internalData);
-    }
-}
-
 void nkxCoroutineLibrary_librarySerialize(struct NKVM *vm, void *internalData)
 {
     // I don't think there's anything we actually need to do here.
@@ -103,166 +91,15 @@ void nkiCoroutineLibrary_coroutineSerializeData(
     // TODO (COROUTINES): Serialize the IP.
 }
 
-void nkxCoroutineLibrary_coroutineCreate(struct NKVMFunctionCallbackData *data)
-{
-    struct NKVMCoroutineInternalData *internalData;
-    struct NKVM *vm = data->vm;
-
-    internalData =
-        (struct NKVMCoroutineInternalData *)nkxGetExternalSubsystemDataOrError(
-            data->vm, "coroutines");
-
-    if(data->argumentCount < 1) {
-        nkxAddError(vm, "Coroutine creation missing function argument.");
-        return;
-    }
-
-    if(internalData) {
-
-        // TODO (COROUTINES): Finish this.
-
-        //nkxVmFindExternalType?
-
-        struct NKVMExecutionContext *executionContext =
-            nkxMalloc(vm, sizeof(struct NKVMExecutionContext));
-
-        if(executionContext) {
-
-            nkuint32_t i;
-
-            nkxpVmInitExecutionContext(vm, executionContext);
-
-            nkxCreateObject(vm, &executionContext->coroutineObject);
-
-            nkxVmObjectSetExternalType(
-                vm, &executionContext->coroutineObject,
-                internalData->coroutineTypeId);
-
-            nkxVmObjectSetExternalData(
-                vm, &executionContext->coroutineObject,
-                executionContext);
-
-            nkiVmPushExecutionContext(
-                vm, executionContext);
-
-            // Push the function.
-            nkxpVmStackPushValue(
-                vm, &data->arguments[0]);
-
-            // Push all arguments.
-            for(i = 1; i < data->argumentCount; i++) {
-                nkxpVmStackPushValue(
-                    vm, &data->arguments[i]);
-            }
-
-            // Push argument count.
-            //
-            // FIXME (COROUTINES): Check overflow. (uint to int
-            // conversion)
-            {
-                struct NKValue argCount;
-                nkxValueSetInt(vm, &argCount, data->argumentCount - 1);
-                nkxpVmStackPushValue(
-                    vm, &argCount);
-            }
-
-            // FIXME (COROUTINES): Set IP to like a magic value or
-            // something?
-
-            // FIXME (COROUTINES): Wrap in nkxp.
-            nkiOpcode_call(vm);
-
-            // Switch back to the original context.
-            nkiVmPopExecutionContext(vm);
-        }
-
-        // TODO: Figure out what we're going to do when we hit the
-        // invebitable return statement.
-
-        data->returnValue = executionContext->coroutineObject;
-    }
-}
-
-void nkxCoroutineLibrary_coroutineResume(struct NKVMFunctionCallbackData *data)
-{
-    struct NKVMExecutionContext *context =
-        (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
-            data->vm, &data->arguments[0]);
-
-    nkiVmPushExecutionContext(data->vm, context);
-
-    // FIXME (COROUTINES): Push some junk onto the stack to make up
-    // for ascklmdc;kmasc;klsmc TLDR there's shit on the stack that's
-    // messing stuff up when this returns. It's probably our own
-    // return value.
-}
-
-void nkxCoroutineLibrary_coroutineYield(struct NKVMFunctionCallbackData *data)
-{
-    if(data->argumentCount > 0) {
-        data->returnValue = data->arguments[0];
-    }
-
-    if(data->argumentCount > 1) {
-        nkxAddError(data->vm, "Extra arguments in yield call.");
-    }
-
-    nkiVmPopExecutionContext(data->vm);
-}
-
 void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
 {
-    struct NKVMCoroutineInternalData *internalData =
-        (struct NKVMCoroutineInternalData*)nkxMalloc(
-            vm,
-            sizeof(struct NKVMCoroutineInternalData));
-
-    internalData->coroutineTypeId.id = NK_INVALID_VALUE;
-
-    // FIXME (COROUTINES): Not sure if we need this anymore.
-    if(!nkxInitSubsystem(
-            vm, cs, "coroutines",
-            internalData,
-            nkxCoroutineLibrary_libraryCleanup,
-            nkxCoroutineLibrary_librarySerialize))
-    {
-        nkxFree(vm, internalData);
-        return;
-    }
-
     // FIXME (COROUTINES): Add this to VM state instead of some
     // external system data.
-    internalData->coroutineTypeId = nkxVmRegisterExternalType(
+    nkxVmRegisterExternalType(
         vm, "coroutine",
         nkiCoroutineLibrary_coroutineSerializeData,
         nkiCoroutineLibrary_coroutineGCData,
         nkiCoroutineLibrary_coroutineGCMark);
-
-    if(internalData->coroutineTypeId.id == NK_INVALID_VALUE) {
-        nkxFree(vm, internalData);
-        return;
-    }
-
-    nkxVmSetupExternalFunction(
-        vm, cs, "coroutine_create",
-        nkxCoroutineLibrary_coroutineCreate,
-        nktrue,
-        // Arbitrary argument count so we can pass a ton of stuff to
-        // the function. First argument must be a function, though.
-        NK_INVALID_VALUE);
-
-    nkxVmSetupExternalFunction(
-        vm, cs, "coroutine_resume",
-        nkxCoroutineLibrary_coroutineResume,
-        nktrue,
-        1,
-        NK_VALUETYPE_OBJECTID, internalData->coroutineTypeId);
-
-    nkxVmSetupExternalFunction(
-        vm, cs, "coroutine_yield",
-        nkxCoroutineLibrary_coroutineYield,
-        nktrue,
-        NK_INVALID_VALUE); // 1 or 0 things to yield back
 }
 
 void nkiVmPopExecutionContext(
