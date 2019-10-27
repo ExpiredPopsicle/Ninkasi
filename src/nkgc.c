@@ -109,10 +109,6 @@ void nkiVmGarbageCollect_addObject(
     } else {
         // Thanks AFL!
         nkiAddError(gcState->vm, "Bad object reference in garbage collector.");
-
-        // FIXME: Remove this.
-        assert(0);
-
         return;
     }
 }
@@ -121,13 +117,7 @@ void nkiVmGarbageCollect_markValue(
     struct NKVMGCState *gcState,
     struct NKValue *v)
 {
-    // FIXME: Remove this.
-    printf("GC: Marking a value\n");
-
     if(v->type == NK_VALUETYPE_OBJECTID) {
-
-        // FIXME: Remove this.
-        printf("GC:   Value type is object: %u\n", v->objectId);
 
         // Add this object for a later pass to avoid over-recursion.
         nkiVmGarbageCollect_addObject(
@@ -147,9 +137,6 @@ void nkiVmGarbageCollect_markObject(
     struct NKVMObject *ob)
 {
     nkuint32_t bucket;
-
-    // FIXME: Remove this.
-    printf("GC: Marking object\n");
 
     // Did we already get this one?
     if(ob->lastGCPass == gcState->currentGCPass) {
@@ -234,8 +221,6 @@ void nkiVmGarbageCollect(struct NKVM *vm)
     nkiMemset(&gcState, 0, sizeof(gcState));
     gcState.currentGCPass = ++vm->gcInfo.lastGCPass;
     gcState.vm = vm;
-
-    printf("RUNNING GARBAGE COLLECTION\n");
 
     // Iterate through objects with external handles.
     {

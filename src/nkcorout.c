@@ -56,11 +56,6 @@ void nkiCoroutineLibrary_coroutineGCMark(
         (struct NKVMExecutionContext *)internalData;
     nkuint32_t i;
 
-    // assert(context->parent);
-
-    // FIXME: Remove this.
-    printf("GC MARKING COROUTINE\n");
-
     // Mark the parent (and let its own coroutineGCMark run at the
     // appropriate time). Don't process all parents.
     if(context->parent) {

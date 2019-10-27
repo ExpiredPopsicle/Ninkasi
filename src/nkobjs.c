@@ -84,15 +84,8 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
     nkuint32_t index)
 {
     if(index >= table->capacity) {
-
-        // FIXME: Remove this.
-        assert(0);
-
         return NULL;
     }
-
-    // FIXME: Remove this.
-    assert(table->objectTable[index]);
 
     return table->objectTable[index];
 }
@@ -137,9 +130,6 @@ void nkiVmObjectTableCleanupObject(
 {
     struct NKVMTable *table = &vm->objectTable;
     struct NKVMObject *ob = table->objectTable[objectTableIndex];
-
-    // FIXME: Remove this.
-    printf("GC: cleanupObject\n");
 
     if(ob) {
 
@@ -192,17 +182,10 @@ void nkiVmObjectTableCleanOldObjects(
     struct NKVMTable *table = &vm->objectTable;
     nkuint32_t i;
 
-    // FIXME: Remove this.
-    printf("GC: Cleaning old objects\n");
-
     for(i = 0; i < table->capacity; i++) {
         struct NKVMObject *ob = table->objectTable[i];
         if(ob) {
             if(lastGCPass != ob->lastGCPass) {
-
-                // FIXME: Remove this.
-                printf("GC:   Cleaning object: %u\n", ob->objectTableIndex);
-
                 nkiVmObjectTableCleanupObject(vm, i);
                 nkiTableEraseEntry(vm, table, i);
             }

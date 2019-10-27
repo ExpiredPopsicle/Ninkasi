@@ -468,10 +468,6 @@ void nkiOpcode_call(struct NKVM *vm)
     //   <_argumentCount number of arguments>
     //   function id
 
-    // // FIXME: Remove this.
-    // printf("in %s\n", __FUNCTION__);
-    // nkiVmStackDump(vm);
-
     nkuint32_t argumentCount = 0;
     NKVMInternalFunctionID functionId = { NK_INVALID_VALUE };
     struct NKVMFunction *funcOb = NULL;
@@ -550,12 +546,6 @@ void nkiOpcode_call(struct NKVM *vm)
             nkiAddError(
                 vm,
                 "Tried to call something that is not a function id or a callable object.");
-
-            // FIXME: Remove this.
-            nkiAddError(
-                vm,
-                nkiValueToString(vm, functionIdValue));
-
             return;
         }
 
@@ -1158,9 +1148,6 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         vm, &executionContext->coroutineObject,
         nkiVmFindExternalType(vm, "coroutine"));
 
-    // FIXME: Remove this.
-    assert(nkiVmFindExternalType(vm, "coroutine").id != NK_INVALID_VALUE);
-
     nkxVmObjectSetExternalData(
         vm, &executionContext->coroutineObject,
         executionContext);
@@ -1243,7 +1230,6 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
         struct NKValue val = *valueptr;
         struct NKValue coroutine = *coroutineptr;
 
-
         // FIXME (COROUTINES): Save this data type on the VM.
         NKVMExternalDataTypeID coroutineDataType =
             nkiVmFindExternalType(vm, "coroutine");
@@ -1254,9 +1240,6 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
             nkiAddError(vm, "Tried to resume something that is not a coroutine.");
             return;
         }
-
-        // FIXME: Remove this.
-        assert(coroutineDataType.id != NK_INVALID_VALUE);
 
         // FIXME (COROUTINES): Type check this first.
         struct NKVMExecutionContext *context =
