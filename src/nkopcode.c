@@ -1146,7 +1146,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     // FIXME (COROUTINES): Save this data type on the VM.
     nkiVmObjectSetExternalType(
         vm, &executionContext->coroutineObject,
-        nkiVmFindExternalType(vm, "coroutine"));
+        vm->internalObjectTypes.coroutine);
 
     nkxVmObjectSetExternalData(
         vm, &executionContext->coroutineObject,
@@ -1230,19 +1230,19 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
         struct NKValue val = *valueptr;
         struct NKValue coroutine = *coroutineptr;
 
-        // FIXME (COROUTINES): Save this data type on the VM.
         NKVMExternalDataTypeID coroutineDataType =
-            nkiVmFindExternalType(vm, "coroutine");
+            vm->internalObjectTypes.coroutine;
         NKVMExternalDataTypeID objectDataType =
             nkiVmObjectGetExternalType(vm, &coroutine);
+
+        struct NKVMExecutionContext *context = NULL;
 
         if(coroutineDataType.id != objectDataType.id) {
             nkiAddError(vm, "Tried to resume something that is not a coroutine.");
             return;
         }
 
-        // FIXME (COROUTINES): Type check this first.
-        struct NKVMExecutionContext *context =
+        context =
             (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
                 vm, &coroutine);
 

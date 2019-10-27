@@ -265,6 +265,10 @@ struct NKVM
 
     // FIXME (COROUTINES): Add a structure to contain specific complex
     // internal types like coroutines.
+    struct
+    {
+        NKVMExternalDataTypeID coroutine;
+    } internalObjectTypes;
 };
 
 /// Initialize an already-allocated VM.

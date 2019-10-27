@@ -412,24 +412,6 @@ nkbool nkiCompilerGetPreprocessorTokens(
     return nktrue;
 }
 
-
-// // FIXME (COROUTINES): Have this check a list from elsewhere.
-// nkbool nkiCompilerIsFunctionStyleExpressionName(
-//     struct NKVM *vm, const char *str)
-// {
-//     if(!nkiStrcmp(str, "coroutine_create2")) {
-//         return nktrue;
-//     }
-//     if(!nkiStrcmp(str, "coroutine_yield2")) {
-//         return nktrue;
-//     }
-//     if(!nkiStrcmp(str, "coroutine_resume2")) {
-//         return nktrue;
-//     }
-//     return nkfalse;
-// }
-
-
 nkbool nkiCompilerTokenize(
     struct NKVM *vm,
     const char *str,

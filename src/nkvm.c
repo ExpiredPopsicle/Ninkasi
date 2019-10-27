@@ -246,6 +246,8 @@ void nkiVmInit(struct NKVM *vm)
     vm->positionMarkerList = NULL;
     vm->positionMarkerCount = 0;
 
+    nkiMemset(&vm->internalObjectTypes, 0, sizeof(&vm->internalObjectTypes));
+
     // Set up coroutine library.
     nkxCoroutineLibrary_init(vm);
 }

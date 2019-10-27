@@ -93,13 +93,12 @@ void nkiCoroutineLibrary_coroutineSerializeData(
 
 void nkxCoroutineLibrary_init(struct NKVM *vm)
 {
-    // FIXME (COROUTINES): Add this to VM state instead of some
-    // external system data.
-    nkxVmRegisterExternalType(
-        vm, "coroutine",
-        nkiCoroutineLibrary_coroutineSerializeData,
-        nkiCoroutineLibrary_coroutineGCData,
-        nkiCoroutineLibrary_coroutineGCMark);
+    vm->internalObjectTypes.coroutine =
+        nkxVmRegisterExternalType(
+            vm, "coroutine",
+            nkiCoroutineLibrary_coroutineSerializeData,
+            nkiCoroutineLibrary_coroutineGCData,
+            nkiCoroutineLibrary_coroutineGCMark);
 }
 
 void nkiVmPopExecutionContext(
