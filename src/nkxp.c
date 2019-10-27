@@ -63,34 +63,6 @@ void nkxpVmDeinitExecutionContext(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
-// FIXME (COROUTINES): make internal
-void nkxpVmPushExecutionContext(
-    struct NKVM *vm,
-    struct NKVMExecutionContext *context)
-{
-    // FIXME (DONOTCHECKIN): Make this a runtime error.
-    assert(!context->parent);
-
-    context->parent = vm->currentExecutionContext;
-    vm->currentExecutionContext = context;
-}
-
-// FIXME (COROUTINES): make internal
-void nkxpVmPopExecutionContext(
-    struct NKVM *vm)
-{
-    struct NKVMExecutionContext *context =
-        vm->currentExecutionContext;
-
-    // FIXME (DONOTCHECKIN): Make this a runtime error.
-    assert(context->parent);
-
-    vm->currentExecutionContext =
-        context->parent;
-
-    context->parent = NULL;
-}
-
 void nkxpVmStackPushValue(
     struct NKVM *vm,
     struct NKValue *value)

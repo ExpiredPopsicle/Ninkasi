@@ -30,9 +30,9 @@ function crTestFunc(foo, bar)
     print("Bar7: ", bar, "\n");
     print("Yie7: ", yielded, "\n");
     yielded = coroutine_yield2();
-    print("DONE\n");
-    for(var i = 0; i < 1000; ++i) {
-    }
+    print("COROUTINE FINISHED\n");
+    // for(var i = 0; i < 1000; ++i) {
+    // }
 }
 
 // crTestFunc("asdf", "blah");
@@ -54,6 +54,16 @@ print("Done: ", crRet, "\n");
 print("Resuming coroutine 3...\n");
 crRet = coroutine_resume2(cr, "yield3");
 print("Done: ", crRet, "\n");
+
+print("Resuming coroutine x...\n");
+crRet = coroutine_resume2(cr, "yieldx");
+print("Done: ", crRet, "\n");
+
+for(var i = 0; i < 10; ++i) {
+    print("Resuming coroutine ", i, "...\n");
+    crRet = coroutine_resume2(cr, "yieldx");
+    print("Done: ", crRet, "\n");
+}
 
 // var val1 = coroutine_resume2(cr);
 // print("val1: ", val1, "\n");

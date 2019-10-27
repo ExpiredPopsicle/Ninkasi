@@ -44,7 +44,19 @@
 #ifndef NINKASI_COROUTINE_H
 #define NINKASI_COROUTINE_H
 
-void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs);
+struct NKVM;
+struct NKVMExecutionContext;
+struct NKCompilerState;
+
+void nkxCoroutineLibrary_init(
+    struct NKVM *vm, struct NKCompilerState *cs);
+
+void nkiVmPushExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context);
+
+void nkiVmPopExecutionContext(
+    struct NKVM *vm);
 
 #endif // NINKASI_COROUTINE_H
 

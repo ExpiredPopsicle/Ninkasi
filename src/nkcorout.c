@@ -60,8 +60,7 @@ void nkxCoroutineLibrary_librarySerialize(struct NKVM *vm, void *internalData)
     // I don't think there's anything we actually need to do here.
 }
 
-// FIXME (COROUTINES): Make this all nki. Should just be a rename.
-void nkxCoroutineLibrary_coroutineGCMark(
+void nkiCoroutineLibrary_coroutineGCMark(
     struct NKVM *vm, struct NKValue *value,
     void *internalData, struct NKVMGCState *gcState)
 {
@@ -73,28 +72,28 @@ void nkxCoroutineLibrary_coroutineGCMark(
 
     // Mark the parent (and let its own coroutineGCMark run at the
     // appropriate time). Don't process all parents.
-    nkxVmGarbageCollect_markValue(
-        vm, gcState, &context->coroutineObject);
+    nkiVmGarbageCollect_markValue(
+        gcState, &context->coroutineObject);
 
     // Mark the entire stack.
     for(i = 0; i < context->stack.size; i++) {
-        nkxVmGarbageCollect_markValue(
-            vm, gcState, &context->stack.values[i]);
+        nkiVmGarbageCollect_markValue(
+            gcState,
+            &context->stack.values[i]);
     }
 }
 
-// FIXME (COROUTINES): Make this all nki. Should just be a rename.
-void nkxCoroutineLibrary_coroutineGCData(
+void nkiCoroutineLibrary_coroutineGCData(
     struct NKVM *vm, struct NKValue *val, void *data)
 {
     struct NKVMExecutionContext *context =
         (struct NKVMExecutionContext *)data;
 
-    nkxpVmDeinitExecutionContext(vm, context);
-    nkxFree(vm, context);
+    nkiVmDeinitExecutionContext(vm, context);
+    nkiFree(vm, context);
 }
 
-void nkxCoroutineLibrary_coroutineSerializeData(
+void nkiCoroutineLibrary_coroutineSerializeData(
     struct NKVM *vm,
     struct NKValue *objectValue,
     void *data)
@@ -143,7 +142,7 @@ void nkxCoroutineLibrary_coroutineCreate(struct NKVMFunctionCallbackData *data)
                 vm, &executionContext->coroutineObject,
                 executionContext);
 
-            nkxpVmPushExecutionContext(
+            nkiVmPushExecutionContext(
                 vm, executionContext);
 
             // Push the function.
@@ -174,7 +173,7 @@ void nkxCoroutineLibrary_coroutineCreate(struct NKVMFunctionCallbackData *data)
             nkiOpcode_call(vm);
 
             // Switch back to the original context.
-            nkxpVmPopExecutionContext(vm);
+            nkiVmPopExecutionContext(vm);
         }
 
         // TODO: Figure out what we're going to do when we hit the
@@ -190,7 +189,7 @@ void nkxCoroutineLibrary_coroutineResume(struct NKVMFunctionCallbackData *data)
         (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
             data->vm, &data->arguments[0]);
 
-    nkxpVmPushExecutionContext(data->vm, context);
+    nkiVmPushExecutionContext(data->vm, context);
 
     // FIXME (COROUTINES): Push some junk onto the stack to make up
     // for ascklmdc;kmasc;klsmc TLDR there's shit on the stack that's
@@ -208,7 +207,7 @@ void nkxCoroutineLibrary_coroutineYield(struct NKVMFunctionCallbackData *data)
         nkxAddError(data->vm, "Extra arguments in yield call.");
     }
 
-    nkxpVmPopExecutionContext(data->vm);
+    nkiVmPopExecutionContext(data->vm);
 }
 
 void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
@@ -235,9 +234,9 @@ void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
     // external system data.
     internalData->coroutineTypeId = nkxVmRegisterExternalType(
         vm, "coroutine",
-        nkxCoroutineLibrary_coroutineSerializeData,
-        nkxCoroutineLibrary_coroutineGCData,
-        nkxCoroutineLibrary_coroutineGCMark);
+        nkiCoroutineLibrary_coroutineSerializeData,
+        nkiCoroutineLibrary_coroutineGCData,
+        nkiCoroutineLibrary_coroutineGCMark);
 
     if(internalData->coroutineTypeId.id == NK_INVALID_VALUE) {
         nkxFree(vm, internalData);
@@ -266,5 +265,29 @@ void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
         NK_INVALID_VALUE); // 1 or 0 things to yield back
 }
 
+void nkiVmPopExecutionContext(
+    struct NKVM *vm)
+{
+    struct NKVMExecutionContext *context =
+        vm->currentExecutionContext;
 
+    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    assert(context->parent);
+
+    vm->currentExecutionContext =
+        context->parent;
+
+    context->parent = NULL;
+}
+
+void nkiVmPushExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context)
+{
+    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    assert(!context->parent);
+
+    context->parent = vm->currentExecutionContext;
+    vm->currentExecutionContext = context;
+}
 

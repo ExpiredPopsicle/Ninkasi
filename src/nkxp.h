@@ -63,12 +63,6 @@ void nkxpVmDeinitExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context);
 
-void nkxpVmPushExecutionContext(
-    struct NKVM *vm,
-    struct NKVMExecutionContext *context);
-
-void nkxpVmPopExecutionContext(
-    struct NKVM *vm);
 
 void nkxpVmStackPushValue(
     struct NKVM *vm,

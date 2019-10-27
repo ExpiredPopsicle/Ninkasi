@@ -811,17 +811,40 @@ void nkiOpcode_return(struct NKVM *vm)
     // Pop function id off the stack.
     nkiVmStackPop(vm);
 
-    // FIXME (COROUTINES): Check returnAddress validity. Possibly
-    // switch up to parent context.
+    if(returnAddress == NK_INVALID_VALUE) {
 
-    // Push _returnValue back onto the stack.
-    {
-        struct NKValue *returnValueWrite = nkiVmStackPush_internal(vm);
-        *returnValueWrite = *returnValue;
+        // This is the last return value of a coroutine, so we need to
+        // switch contexts back to the parent and return a value the
+        // same way a yield instruction would.
+
+        struct NKValue *finalCoroutineOutput = NULL;
+
+        // Set state to finished so it won't restart or keep running
+        // from an invalid instruction pointer.
+        vm->currentExecutionContext->coroutineState = NK_COROUTINE_FINISHED;
+        vm->currentExecutionContext->instructionPointer = NK_INVALID_VALUE;
+
+        // Switch contexts.
+        nkiVmPopExecutionContext(vm);
+
+        // Set return value.
+        finalCoroutineOutput = nkiVmStackPush_internal(vm);
+        if(finalCoroutineOutput) {
+            *finalCoroutineOutput = *returnValue;
+        }
+
+    } else {
+
+        // Push _returnValue back onto the stack.
+        {
+            struct NKValue *returnValueWrite = nkiVmStackPush_internal(vm);
+            *returnValueWrite = *returnValue;
+        }
+
+        // Set the instruction pointer to _returnPointer - 1.
+        vm->currentExecutionContext->instructionPointer = returnAddress;
+
     }
-
-    // Set the instruction pointer to _returnPointer - 1.
-    vm->currentExecutionContext->instructionPointer = returnAddress;
 
     // Expected stack state at end...
     //   _returnValue
@@ -1140,7 +1163,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         executionContext);
 
     // Switch to the new context.
-    nkxpVmPushExecutionContext(
+    nkiVmPushExecutionContext(
         vm, executionContext);
 
     // Copy function ID to the new stack.
@@ -1155,8 +1178,9 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     // Copy the argument count into the new stack.
     nkiVmStackPushInt(vm, argCount);
 
-    // FIXME (COROUTINES): Set the IP to a magic value so we know what
-    // to return to.
+    // Set the IP to a magic value so we recognize it when we try to
+    // return.
+    executionContext->instructionPointer = NK_INVALID_VALUE;
 
     // Initiate the function.
     nkiOpcode_call(vm);
@@ -1169,7 +1193,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     // move us into the function body.
 
     // Switch back to the original context.
-    nkxpVmPopExecutionContext(vm);
+    nkiVmPopExecutionContext(vm);
 
     // Clean up.
     nkiFree(vm, arguments);
@@ -1177,23 +1201,27 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
 
 void nkiOpcode_coroutineYield(struct NKVM *vm)
 {
-    // FIXME (COROUTINES): Check to make sure we're not in the root
-    // context.
+    if(vm->currentExecutionContext == &vm->rootExecutionContext) {
 
-    struct NKValue *vp = nkiVmStackPop(vm);
-    struct NKValue v = {0};
+        nkiAddError(vm, "Tried to yield from the root execution context.");
 
-    if(!vp) {
-        return;
-    }
+    } else {
 
-    v = *vp;
+        // Retrieve return value from the coroutine execution context.
+        struct NKValue *vp = nkiVmStackPop(vm);
+        struct NKValue v = {0};
+        if(vp) {
+            v = *vp;
+        }
 
-    nkxpVmPopExecutionContext(vm);
+        // Switch back to old context.
+        nkiVmPopExecutionContext(vm);
 
-    struct NKValue *ret = nkiVmStackPush_internal(vm);
-    if(ret) {
-        *ret = v;
+        // Set return value.
+        struct NKValue *ret = nkiVmStackPush_internal(vm);
+        if(ret) {
+            *ret = v;
+        }
     }
 }
 
@@ -1241,7 +1269,7 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
             }
 
             // Switch contexts.
-            nkxpVmPushExecutionContext(vm, context);
+            nkiVmPushExecutionContext(vm, context);
 
             if(context->coroutineState == NK_COROUTINE_CREATED) {
 
