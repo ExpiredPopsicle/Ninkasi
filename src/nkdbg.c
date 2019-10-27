@@ -255,6 +255,8 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
                 }
             }
             fprintf(stream, "      externalDataType: " NK_PRINTF_UINT32 "\n", ob->externalDataType.id);
+
+            // FIXME (COROUTINES): Dump coroutine state.
         }
     }
 

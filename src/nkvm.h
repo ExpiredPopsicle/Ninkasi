@@ -134,6 +134,26 @@ struct NKVMFilePositionMarker
     nkuint32_t lineNumber;
 };
 
+enum NKVMCoroutineState
+{
+    // Not a coroutine. Probably the root context.
+    NK_COROUTINE_INVALID,
+
+    // Created, but not yet resumed. In this state we don't push
+    // anything onto the coroutine's own stack, because it has not
+    // executed a yield() from which to return a value.
+    NK_COROUTINE_CREATED,
+
+    // Created and has executed. From here on, all resumes will leave
+    // a value on the stack that was passed in from the parent
+    // context.
+    NK_COROUTINE_RUNNING,
+
+    // The coroutine has finished. All calls to resume at this point
+    // should do nothing and return nil.
+    NK_COROUTINE_FINISHED,
+};
+
 struct NKVMExecutionContext
 {
     // Stack data.
@@ -150,6 +170,7 @@ struct NKVMExecutionContext
     // in. This will be nil instead of an object for the root
     // execution context.
     struct NKValue coroutineObject;
+    enum NKVMCoroutineState coroutineState;
 };
 
 /// The VM object itself.
@@ -241,6 +262,9 @@ struct NKVM
     // instruction comes from.
     struct NKVMFilePositionMarker *positionMarkerList;
     nkuint32_t positionMarkerCount;
+
+    // FIXME (COROUTINES): Add a structure to contain specific complex
+    // internal types like coroutines.
 };
 
 /// Initialize an already-allocated VM.

@@ -1317,7 +1317,12 @@ nkbool nkiSerializePositionMarkerList(
     return nktrue;
 }
 
-#define NKI_VERSION 2
+// ABI-compatibility-breaking version change history:
+// ----------------------------------------------------------------------
+//   1-2 - ???
+//   3   - Coroutines added
+//
+#define NKI_VERSION 3
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
@@ -1362,6 +1367,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     // FIXME (COROUTINES): Add execution context serialization and
     // then use that instead of directly serializing this value.
+
+    // FIXME (COROUTINES): Do we need to serialize the coroutine type
+    // ID? I don't think we do...
 
     // Instruction pointer.
     NKI_SERIALIZE_BASIC(

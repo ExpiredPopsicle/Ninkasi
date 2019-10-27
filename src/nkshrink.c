@@ -43,6 +43,10 @@
 
 #include "nkcommon.h"
 
+// FIXME (COROUTINES): Make this stuff support coroutines. Will
+// probably have to iterate over every coroutine object and shrink its
+// stack.
+
 void nkiVmMoveObject(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
 {
     assert(vm->objectTable.capacity > newSlot);

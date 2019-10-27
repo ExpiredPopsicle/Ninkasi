@@ -1128,7 +1128,9 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     v->objectId = nkiVmObjectTableCreateObject(vm);
 
     executionContext->coroutineObject = *v;
+    executionContext->coroutineState = NK_COROUTINE_CREATED;
 
+    // FIXME (COROUTINES): Save this data type on the VM.
     nkiVmObjectSetExternalType(
         vm, &executionContext->coroutineObject,
         nkiVmFindExternalType(vm, "coroutine"));
@@ -1155,33 +1157,28 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
 
     // FIXME (COROUTINES): Set the IP to a magic value so we know what
     // to return to.
+
+    // Initiate the function.
     nkiOpcode_call(vm);
 
-    // // This is being done OUTSIDE of normal iteration, so we need to
-    // // advance the IP ourselves!
-    // vm->currentExecutionContext->instructionPointer++;
-
-    // // FIXME: Remove this.
-    // for(i = 0; i < 10000; i++) {
-    //     nkiVmIterate(vm);
-    // }
+    // Note: This will leave the IP in the new context pointing at the
+    // instruction before the actual function body! IP increment
+    // happens after the instruction is executed, so we're expecting
+    // the resume() instruction to switch us into the new context, and
+    // then the increment that happens after the resume() to fully
+    // move us into the function body.
 
     // Switch back to the original context.
     nkxpVmPopExecutionContext(vm);
 
+    // Clean up.
     nkiFree(vm, arguments);
 }
 
 void nkiOpcode_coroutineYield(struct NKVM *vm)
 {
-    // // FIXME (COROUTINES): Make this actually return the yielded
-    // // value. Also, switch contexts and stuff.
-    // struct NKValue *v = nkiVmStackPush_internal(vm);
-    // v->type = NK_VALUETYPE_NIL;
-
-
-
-
+    // FIXME (COROUTINES): Check to make sure we're not in the root
+    // context.
 
     struct NKValue *vp = nkiVmStackPop(vm);
     struct NKValue v = {0};
@@ -1216,15 +1213,52 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
         struct NKValue coroutine = *coroutineptr;
 
 
+        // FIXME (COROUTINES): Save this data type on the VM.
+        NKVMExternalDataTypeID coroutineDataType =
+            nkiVmFindExternalType(vm, "coroutine");
+        NKVMExternalDataTypeID objectDataType =
+            nkiVmObjectGetExternalType(vm, &coroutine);
 
-
+        if(coroutineDataType.id != objectDataType.id) {
+            nkiAddError(vm, "Tried to resume something that is not a coroutine.");
+            return;
+        }
 
         // FIXME (COROUTINES): Type check this first.
         struct NKVMExecutionContext *context =
             (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
                 vm, &coroutine);
 
-        nkxpVmPushExecutionContext(vm, context);
+        if(context) {
+
+            // If the coroutine has finished, just return a nil
+            // immediately.
+            if(context->coroutineState == NK_COROUTINE_FINISHED) {
+                val.type = NK_VALUETYPE_NIL;
+                val.intData = 0;
+                *nkiVmStackPush_internal(vm) = val;
+                return;
+            }
+
+            // Switch contexts.
+            nkxpVmPushExecutionContext(vm, context);
+
+            if(context->coroutineState == NK_COROUTINE_CREATED) {
+
+                // The coroutine hasn't issued any yield() yet, so we
+                // don't want to push anything onto its stack yet.
+                context->coroutineState = NK_COROUTINE_RUNNING;
+
+            } else if(context->coroutineState == NK_COROUTINE_RUNNING) {
+
+                // The coroutine has already been running, so the last
+                // thing it did before exiting was initiate a yield().
+                // This is the return value for the yield().
+                *nkiVmStackPush_internal(vm) = val;
+
+            }
+        }
+
 
 
 

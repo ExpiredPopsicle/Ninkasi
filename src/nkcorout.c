@@ -60,6 +60,7 @@ void nkxCoroutineLibrary_librarySerialize(struct NKVM *vm, void *internalData)
     // I don't think there's anything we actually need to do here.
 }
 
+// FIXME (COROUTINES): Make this all nki. Should just be a rename.
 void nkxCoroutineLibrary_coroutineGCMark(
     struct NKVM *vm, struct NKValue *value,
     void *internalData, struct NKVMGCState *gcState)
@@ -82,6 +83,7 @@ void nkxCoroutineLibrary_coroutineGCMark(
     }
 }
 
+// FIXME (COROUTINES): Make this all nki. Should just be a rename.
 void nkxCoroutineLibrary_coroutineGCData(
     struct NKVM *vm, struct NKValue *val, void *data)
 {
@@ -218,6 +220,7 @@ void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
 
     internalData->coroutineTypeId.id = NK_INVALID_VALUE;
 
+    // FIXME (COROUTINES): Not sure if we need this anymore.
     if(!nkxInitSubsystem(
             vm, cs, "coroutines",
             internalData,
@@ -228,6 +231,8 @@ void nkxCoroutineLibrary_init(struct NKVM *vm, struct NKCompilerState *cs)
         return;
     }
 
+    // FIXME (COROUTINES): Add this to VM state instead of some
+    // external system data.
     internalData->coroutineTypeId = nkxVmRegisterExternalType(
         vm, "coroutine",
         nkxCoroutineLibrary_coroutineSerializeData,

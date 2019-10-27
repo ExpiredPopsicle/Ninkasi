@@ -5,25 +5,31 @@ function crTestFunc(foo, bar)
 {
     print("Foo1: ", foo, "\n");
     print("Bar1: ", bar, "\n");
-    coroutine_yield2(1234);
+    var yielded = coroutine_yield2(1234);
     print("Foo2: ", foo, "\n");
     print("Bar2: ", bar, "\n");
-    coroutine_yield2(1234);
+    print("Yie2: ", yielded, "\n");
+    yielded = coroutine_yield2(1234);
     print("Foo3: ", foo, "\n");
     print("Bar3: ", bar, "\n");
-    coroutine_yield2();
+    print("Yie3: ", yielded, "\n");
+    yielded = coroutine_yield2();
     print("Foo4: ", foo, "\n");
     print("Bar4: ", bar, "\n");
-    coroutine_yield2(1234);
+    print("Yie4: ", yielded, "\n");
+    yielded = coroutine_yield2(1234);
     print("Foo5: ", foo, "\n");
     print("Bar5: ", bar, "\n");
-    coroutine_yield2();
+    print("Yie5: ", yielded, "\n");
+    yielded = coroutine_yield2();
     print("Foo6: ", foo, "\n");
     print("Bar6: ", bar, "\n");
-    coroutine_yield2(1234);
+    print("Yie6: ", yielded, "\n");
+    yielded = coroutine_yield2(1234);
     print("Foo7: ", foo, "\n");
     print("Bar7: ", bar, "\n");
-    coroutine_yield2();
+    print("Yie7: ", yielded, "\n");
+    yielded = coroutine_yield2();
     print("DONE\n");
     for(var i = 0; i < 1000; ++i) {
     }
@@ -37,8 +43,16 @@ print("Done.\n");
 
 
 
-print("Resuming coroutine...\n");
-var crRet = coroutine_resume2(cr);
+print("Resuming coroutine 1...\n");
+var crRet = coroutine_resume2(cr); // Starts execution. Doesn't get to pass anything in.
+print("Done: ", crRet, "\n");
+
+print("Resuming coroutine 2...\n");
+crRet = coroutine_resume2(cr, "yield2");
+print("Done: ", crRet, "\n");
+
+print("Resuming coroutine 3...\n");
+crRet = coroutine_resume2(cr, "yield3");
 print("Done: ", crRet, "\n");
 
 // var val1 = coroutine_resume2(cr);

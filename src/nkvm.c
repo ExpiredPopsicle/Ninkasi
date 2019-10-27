@@ -167,6 +167,7 @@ void nkiVmInitExecutionContext(
 
     context->coroutineObject.type = NK_VALUETYPE_NIL;
     context->coroutineObject.intData = 0;
+    context->coroutineState = NK_COROUTINE_INVALID;
 }
 
 void nkiVmDeinitExecutionContext(
@@ -244,6 +245,8 @@ void nkiVmInit(struct NKVM *vm)
 
     vm->positionMarkerList = NULL;
     vm->positionMarkerCount = 0;
+
+    // FIXME (COROUTINES): Add coroutine type initialization here!
 }
 
 void nkiVmDestroy(struct NKVM *vm)
