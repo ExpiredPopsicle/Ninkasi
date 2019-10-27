@@ -1157,14 +1157,14 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     // to return to.
     nkiOpcode_call(vm);
 
-    // This is being done OUTSIDE of normal iteration, so we need to
-    // advance the IP ourselves!
-    vm->currentExecutionContext->instructionPointer++;
+    // // This is being done OUTSIDE of normal iteration, so we need to
+    // // advance the IP ourselves!
+    // vm->currentExecutionContext->instructionPointer++;
 
-    // FIXME: Remove this.
-    for(i = 0; i < 10000; i++) {
-        nkiVmIterate(vm);
-    }
+    // // FIXME: Remove this.
+    // for(i = 0; i < 10000; i++) {
+    //     nkiVmIterate(vm);
+    // }
 
     // Switch back to the original context.
     nkxpVmPopExecutionContext(vm);
@@ -1192,6 +1192,8 @@ void nkiOpcode_coroutineYield(struct NKVM *vm)
 
     v = *vp;
 
+    nkxpVmPopExecutionContext(vm);
+
     struct NKValue *ret = nkiVmStackPush_internal(vm);
     if(ret) {
         *ret = v;
@@ -1205,7 +1207,37 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
     // // struct NKValue *v = nkiVmStackPush_internal(vm);
     // // v->type = NK_VALUETYPE_NIL;
 
+    struct NKValue *valueptr = nkiVmStackPop(vm);
+    struct NKValue *coroutineptr = nkiVmStackPop(vm);
 
+    if(valueptr && coroutineptr) {
+
+        struct NKValue val = *valueptr;
+        struct NKValue coroutine = *coroutineptr;
+
+
+
+
+
+        // FIXME (COROUTINES): Type check this first.
+        struct NKVMExecutionContext *context =
+            (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
+                vm, &coroutine);
+
+        nkxpVmPushExecutionContext(vm, context);
+
+
+
+
+
+
+        // FIXME (COROUTINES): We can't return a value for the first
+        // call, or the stack frame will get completely messed up.
+        // This is, otherwise, what we want to do.
+
+        // struct NKValue *ret = nkiVmStackPush_internal(vm);
+        // *ret = val;
+    }
 
     // struct NKValue *vp = nkiVmStackPop(vm);
     // struct NKValue v = {0};
