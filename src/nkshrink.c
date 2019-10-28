@@ -244,30 +244,19 @@ void nkiVmShrink(struct NKVM *vm)
     nkiTableShrink(vm, &vm->objectTable);
     nkiTableShrink(vm, &vm->stringTable);
 
-    // Reduce stack size.
-    // {
-    //     nkuint32_t newStackCapacity = vm->currentExecutionContext->stack.capacity;
-    //     while((newStackCapacity >> 1) > vm->currentExecutionContext->stack.size) {
-    //         newStackCapacity >>= 1;
-    //     }
-
-    //     if(newStackCapacity < 1) {
-    //         newStackCapacity = 1;
-    //     }
-
-    //     if(newStackCapacity != vm->currentExecutionContext->stack.capacity) {
-    //         vm->currentExecutionContext->stack.values =
-    //             (struct NKValue *)nkiReallocArray(
-    //                 vm, vm->currentExecutionContext->stack.values,
-    //                 sizeof(struct NKValue),
-    //                 newStackCapacity);
-
-    //         vm->currentExecutionContext->stack.capacity = newStackCapacity;
-
-    //         // Thanks AFL!
-    //         vm->currentExecutionContext->stack.indexMask = vm->currentExecutionContext->stack.capacity - 1;
-    //     }
-    // }
-
+    // Shrink the stack capacity in the root context.
     nkiVmShrinkStack(vm, &vm->rootExecutionContext.stack);
+
+    // Iterate through all objects, find the coroutines, and shrink
+    // their stacks too.
+    for(nkuint32_t i = 0; i < vm->objectTable.capacity; i++) {
+        struct NKVMObject *ob = vm->objectTable.objectTable[i];
+        if(ob && ob->externalDataType.id ==
+            vm->internalObjectTypes.coroutine.id)
+        {
+            struct NKVMExecutionContext *context =
+                (struct NKVMExecutionContext *)ob->externalData;
+            nkiVmShrinkStack(vm, &context->stack);
+        }
+    }
 }
