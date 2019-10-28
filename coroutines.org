@@ -8,6 +8,6 @@
 * TODO Performance analysis with that extra level of indirection to IP lookup
 * DONE Replace most instances of vm->stack with vm->currentExecutionContext->stack
 * DONE Replace most instances of vm->instructionPointer with vm->currentExecutionContext->instructionPointer
-* TODO Make VM shrink code work with other stacks
+* DONE Make VM shrink code work with other stacks
 * TODO Test in C++ mode
 * DONE Stub out all the functions

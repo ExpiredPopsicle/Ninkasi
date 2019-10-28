@@ -193,7 +193,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             fprintf(stream, "      stringTableIndex: " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->stringTableIndex);
             fprintf(stream, "      dontGC:           " NK_PRINTF_UINT32 "\n", (nkuint32_t)(vm->stringTable.stringTable[i]->dontGC ? 1 : 0));
             fprintf(stream, "      hash:             " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->hash);
-            fprintf(stream, "      data:             ");
+            fprintf(stream, "      data:             %s\n", vm->stringTable.stringTable[i]->str);
             fprintf(stream, "      lastGCPass:       " NK_PRINTF_UINT32 "\n", vm->stringTable.stringTable[i]->lastGCPass);
             nkiDbgDumpRaw(stream, vm->stringTable.stringTable[i]->str, nkiStrlen(vm->stringTable.stringTable[i]->str));
             fprintf(stream, "\n");
@@ -256,7 +256,10 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             }
             fprintf(stream, "      externalDataType: " NK_PRINTF_UINT32 "\n", ob->externalDataType.id);
 
-            // FIXME (COROUTINES): Dump coroutine state.
+            // FIXME (COROUTINES): (Finish this) Dump coroutine state.
+            if(ob->externalDataType.id == vm->internalObjectTypes.coroutine.id) {
+                fprintf(stream, "      coroutine stack:\n");
+            }
         }
     }
 

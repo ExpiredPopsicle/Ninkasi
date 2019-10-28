@@ -1143,11 +1143,10 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     executionContext->coroutineObject = *v;
     executionContext->coroutineState = NK_COROUTINE_CREATED;
 
-    // FIXME (COROUTINES): Save this data type on the VM.
+    // Set coroutine object type.
     nkiVmObjectSetExternalType(
         vm, &executionContext->coroutineObject,
         vm->internalObjectTypes.coroutine);
-
     nkxVmObjectSetExternalData(
         vm, &executionContext->coroutineObject,
         executionContext);
@@ -1217,11 +1216,6 @@ void nkiOpcode_coroutineYield(struct NKVM *vm)
 
 void nkiOpcode_coroutineResume(struct NKVM *vm)
 {
-    // // // FIXME (COROUTINES): Make this actually return the value passed
-    // // // in through resume(). Also, switch contexts and stuff.
-    // // struct NKValue *v = nkiVmStackPush_internal(vm);
-    // // v->type = NK_VALUETYPE_NIL;
-
     struct NKValue *valueptr = nkiVmStackPop(vm);
     struct NKValue *coroutineptr = nkiVmStackPop(vm);
 
@@ -1275,33 +1269,6 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
 
             }
         }
-
-
-
-
-
-
-
-        // FIXME (COROUTINES): We can't return a value for the first
-        // call, or the stack frame will get completely messed up.
-        // This is, otherwise, what we want to do.
-
-        // struct NKValue *ret = nkiVmStackPush_internal(vm);
-        // *ret = val;
     }
-
-    // struct NKValue *vp = nkiVmStackPop(vm);
-    // struct NKValue v = {0};
-
-    // if(!vp) {
-    //     return;
-    // }
-
-    // v = *vp;
-
-    // struct NKValue *ret = nkiVmStackPush_internal(vm);
-    // if(ret) {
-    //     *ret = v;
-    // }
 }
 

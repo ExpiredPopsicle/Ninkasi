@@ -263,8 +263,7 @@ struct NKVM
     struct NKVMFilePositionMarker *positionMarkerList;
     nkuint32_t positionMarkerCount;
 
-    // FIXME (COROUTINES): Add a structure to contain specific complex
-    // internal types like coroutines.
+    // Internal data types.
     struct
     {
         NKVMExternalDataTypeID coroutine;
