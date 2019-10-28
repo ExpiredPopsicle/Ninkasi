@@ -411,6 +411,7 @@ void nkiVmIterate(struct NKVM *vm)
 
     // FIXME: Remove this.
     nkiVmGarbageCollect(vm);
+    nkiVmShrink(vm);
 
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);

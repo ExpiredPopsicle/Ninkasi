@@ -152,7 +152,32 @@ void nkiVmMoveString(struct NKVM *vm, nkuint32_t oldSlot, nkuint32_t newSlot)
     }
 }
 
-extern nkuint32_t nkiVmCount;
+void nkiVmShrinkStack(
+    struct NKVM *vm,
+    struct NKVMStack *stack)
+{
+    nkuint32_t newStackCapacity = stack->capacity;
+    while((newStackCapacity >> 1) > stack->size) {
+        newStackCapacity >>= 1;
+    }
+
+    if(newStackCapacity < 1) {
+        newStackCapacity = 1;
+    }
+
+    if(newStackCapacity != stack->capacity) {
+        stack->values =
+            (struct NKValue *)nkiReallocArray(
+                vm, stack->values,
+                sizeof(struct NKValue),
+                newStackCapacity);
+
+        stack->capacity = newStackCapacity;
+
+        // Thanks AFL!
+        stack->indexMask = stack->capacity - 1;
+    }
+}
 
 void nkiVmShrink(struct NKVM *vm)
 {
@@ -220,27 +245,29 @@ void nkiVmShrink(struct NKVM *vm)
     nkiTableShrink(vm, &vm->stringTable);
 
     // Reduce stack size.
-    {
-        nkuint32_t newStackCapacity = vm->currentExecutionContext->stack.capacity;
-        while((newStackCapacity >> 1) > vm->currentExecutionContext->stack.size) {
-            newStackCapacity >>= 1;
-        }
+    // {
+    //     nkuint32_t newStackCapacity = vm->currentExecutionContext->stack.capacity;
+    //     while((newStackCapacity >> 1) > vm->currentExecutionContext->stack.size) {
+    //         newStackCapacity >>= 1;
+    //     }
 
-        if(newStackCapacity < 1) {
-            newStackCapacity = 1;
-        }
+    //     if(newStackCapacity < 1) {
+    //         newStackCapacity = 1;
+    //     }
 
-        if(newStackCapacity != vm->currentExecutionContext->stack.capacity) {
-            vm->currentExecutionContext->stack.values =
-                (struct NKValue *)nkiReallocArray(
-                    vm, vm->currentExecutionContext->stack.values,
-                    sizeof(struct NKValue),
-                    newStackCapacity);
+    //     if(newStackCapacity != vm->currentExecutionContext->stack.capacity) {
+    //         vm->currentExecutionContext->stack.values =
+    //             (struct NKValue *)nkiReallocArray(
+    //                 vm, vm->currentExecutionContext->stack.values,
+    //                 sizeof(struct NKValue),
+    //                 newStackCapacity);
 
-            vm->currentExecutionContext->stack.capacity = newStackCapacity;
+    //         vm->currentExecutionContext->stack.capacity = newStackCapacity;
 
-            // Thanks AFL!
-            vm->currentExecutionContext->stack.indexMask = vm->currentExecutionContext->stack.capacity - 1;
-        }
-    }
+    //         // Thanks AFL!
+    //         vm->currentExecutionContext->stack.indexMask = vm->currentExecutionContext->stack.capacity - 1;
+    //     }
+    // }
+
+    nkiVmShrinkStack(vm, &vm->rootExecutionContext.stack);
 }

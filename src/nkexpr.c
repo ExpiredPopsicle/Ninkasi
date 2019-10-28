@@ -523,13 +523,6 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
             } else if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
-                // FIXME (COROUTINES): Check to see if the last thing
-                // was a function-style expression and, if so, make
-                // that the parent (option 1)? This way the AST will
-                // still be a valid AST (operator node with operand
-                // children) before we start the emit stage.
-
-
                 // Handle function call "operator".
                 if(!nkiCompilerExpressionParseFunctioncall(postfixNode, cs)) {
                     NK_CLEANUP_INLOOP();
@@ -954,59 +947,49 @@ nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpression
 
         case NK_TOKENTYPE_FUNCTIONSTYLEEXPRESSION:
         {
-            // FIXME (COROUTINES): Finish implementing this.
+            // Function-style expressions.
             if(node->isRootFunctionCallNode) {
 
                 // Count up the arguments.
-                nkuint32_t argumentCount = nkiCompilerCountCallArguments(node);
+                nkuint32_t argumentCount =
+                    nkiCompilerCountCallArguments(node);
 
-                // // Pop all of them off.
-                // nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
-                // nkiCompilerAddInstructionSimple(cs, NK_OP_POPN, nkfalse);
-
-                // cs->context->stackFrameOffset -= argumentCount;
-
-                // // FIXME: Push the actual result.
-                // nkiCompilerEmitPushLiteralInt(cs, 12345678, nktrue);
-
+                // Run the specific FSE-emitter for this.
                 nkiCompilerEmitFunctionStyleExpression(
                     cs, node->opOrValue->str,
                     argumentCount);
-            }
-        }
 
-        break;
+            } else {
+
+                nkiCompilerAddError(cs, "Corrupted AST in FSE creation.");
+                return nkfalse;
+            }
+
+        } break;
 
         case NK_TOKENTYPE_PAREN_OPEN:
         case NK_TOKENTYPE_FUNCTIONCALL_WITHSELF:
         {
             // Function calls.
-
-            // FIXME (COROUTINES): Check to see if the first value
-            // (func ID) was a function-style expression and, if so,
-            // emit something totally different?
-
             if(node->isRootFunctionCallNode) {
 
                 // Count up the arguments.
                 nkuint32_t argumentCount = nkiCompilerCountCallArguments(node);
-                // struct NKExpressionAstNode *argumentAstNode = node->children[1];
-                // while(argumentAstNode) {
-                //     argumentAstNode = argumentAstNode->children[1];
-                //     argumentCount++;
-                // }
 
                 // Push argument count.
                 nkiCompilerEmitPushLiteralInt(cs, argumentCount, nkfalse);
 
+                // Handle self-calls.
                 if(node->opOrValue->type == NK_TOKENTYPE_FUNCTIONCALL_WITHSELF) {
                     nkiCompilerAddInstructionSimple(cs, NK_OP_PREPARESELFCALL, nkfalse);
                     argumentCount++;
                 }
 
+                // Emit function call.
                 nkiCompilerAddInstructionSimple(cs, NK_OP_CALL, nkfalse);
 
                 cs->context->stackFrameOffset -= argumentCount;
+
             }
 
         } break;
