@@ -1,13 +1,15 @@
 * TODO Test the shit out of it with with AFL
-* TODO Make the serialization system save non-root stacks and IPs
-** TODO Write a function to save entire execution contexts
-** TODO Deserializer sets the execution context back to whatever it was
-* TODO New data type for coroutines
-** TODO Serialization/deserialization for that type
-** TODO Literally every other thing that we do for every other type
 * TODO Performance analysis with that extra level of indirection to IP lookup
+* TODO Test in C++ mode
+* DONE Make the serialization system save non-root stacks and IPs
+** DONE Write a function to save entire execution contexts
+** DONE Deserializer sets the execution context back to whatever it was
+* DONE New data type for coroutines
+** DONE Serialization/deserialization for that type
+** DONE Literally every other thing that we do for every other type
 * DONE Replace most instances of vm->stack with vm->currentExecutionContext->stack
 * DONE Replace most instances of vm->instructionPointer with vm->currentExecutionContext->instructionPointer
 * DONE Make VM shrink code work with other stacks
-* TODO Test in C++ mode
 * DONE Stub out all the functions
+* TODO Backport fixes to main branch?
+Look for "sizeof(&"
