@@ -78,6 +78,10 @@ struct NKVMObject
 void nkiVmObjectTableInit(struct NKVM *vm);
 void nkiVmObjectTableDestroy(struct NKVM *vm);
 
+struct NKVMObject *nkiVmGetObjectFromValue(
+    struct NKVM *vm,
+    struct NKValue *value);
+
 struct NKVMObject *nkiVmObjectTableGetEntryById(
     struct NKVMTable *table,
     nkuint32_t index);

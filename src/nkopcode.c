@@ -1094,7 +1094,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     nkuint32_t i;
 
     struct NKVMExecutionContext *executionContext =
-        nkxMalloc(vm, sizeof(struct NKVMExecutionContext));
+        nkiMalloc(vm, sizeof(struct NKVMExecutionContext));
 
     struct NKVMExecutionContext *parentExecutionContext =
         vm->currentExecutionContext;

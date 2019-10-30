@@ -170,7 +170,9 @@ struct NKVMExecutionContext
     // in. This will be nil instead of an object for the root
     // execution context.
     struct NKValue coroutineObject;
-    enum NKVMCoroutineState coroutineState;
+
+    // This corresponds to the NKVMCoroutineState enum.
+    nkuint32_t coroutineState;
 };
 
 /// The VM object itself.
@@ -346,6 +348,10 @@ void nkiVmCallFunction(
 /// all.)
 struct NKValue *nkiVmFindGlobalVariable(
     struct NKVM *vm, const char *name);
+
+// Returns nktrue if the instruction pointer is pointing at an "end"
+// instruction.
+nkbool nkiVmProgramHasEnded(struct NKVM *vm);
 
 // ----------------------------------------------------------------------
 // External data interface

@@ -46,8 +46,17 @@
 
 #include "nktypes.h"
 
+// Main (internal) entry point for serialization and deserialization.
 nkbool nkiVmSerialize(
     struct NKVM *vm,
+    NKVMSerializationWriter writer,
+    void *userdata,
+    nkbool writeMode);
+
+// Used by coroutine serialization and deserialization.
+nkbool nkiSerializeStack(
+    struct NKVM *vm,
+    struct NKVMStack *stack,
     NKVMSerializationWriter writer,
     void *userdata,
     nkbool writeMode);

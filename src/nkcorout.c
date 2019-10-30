@@ -86,9 +86,62 @@ void nkiCoroutineLibrary_coroutineSerializeData(
     struct NKValue *objectValue,
     void *data)
 {
-    // TODO (COROUTINES): Serialize the whole stack.
+    struct NKVMExecutionContext *context =
+        (struct NKVMExecutionContext *)data;
 
-    // TODO (COROUTINES): Serialize the IP.
+    // FIXME (COROUTINES): We either need error tracking in here, or
+    // to move this into nksave.c, and do all the usual tracking
+    // there.
+
+    // FIXME (COROUTINES): Make a function to serialize execution
+    // contexts and use that for both the root execution context and
+    // this.
+
+    if(!context) {
+        context = (struct NKVMExecutionContext *)nkiMalloc(
+            vm, sizeof(struct NKVMExecutionContext));
+
+        nkiMemset(context, 0, sizeof(*context));
+
+        nkiVmInitExecutionContext(vm, context);
+        nkiVmObjectSetExternalData(
+            vm, objectValue, context);
+        nkiVmObjectSetExternalType(
+            vm, objectValue, vm->internalObjectTypes.coroutine);
+    }
+
+    nkxSerializeData(
+        vm,
+        &context->instructionPointer,
+        sizeof(context->instructionPointer));
+
+    // FIXME: Remove this.
+    // printf("Serialize stack 1 (%d): %u %u %u\n",
+    //     vm->serializationState.writeMode,
+    //     context->stack.size,
+    //     context->stack.capacity,
+    //     context->stack.indexMask);
+
+    nkiSerializeStack(
+        vm,
+        &context->stack,
+        vm->serializationState.writer,
+        vm->serializationState.userdata,
+        vm->serializationState.writeMode);
+
+    // FIXME: Remove this.
+    // printf("Serialize stack 2 (%d): %u %u %u\n",
+    //     vm->serializationState.writeMode,
+    //     context->stack.size,
+    //     context->stack.capacity,
+    //     context->stack.indexMask);
+
+    nkxSerializeData(
+        vm,
+        &context->coroutineState,
+        sizeof(context->coroutineState));
+
+    context->coroutineObject = *objectValue;
 }
 
 void nkxCoroutineLibrary_init(struct NKVM *vm)
@@ -107,7 +160,7 @@ void nkiVmPopExecutionContext(
     struct NKVMExecutionContext *context =
         vm->currentExecutionContext;
 
-    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    // TODO (COROUTINES): Make this a runtime error.
     assert(context->parent);
 
     vm->currentExecutionContext =
@@ -120,7 +173,7 @@ void nkiVmPushExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context)
 {
-    // FIXME (DONOTCHECKIN): Make this a runtime error.
+    // TODO (COROUTINES): Make this a runtime error.
     assert(!context->parent);
 
     context->parent = vm->currentExecutionContext;

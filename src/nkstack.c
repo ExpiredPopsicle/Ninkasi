@@ -212,17 +212,18 @@ struct NKValue *nkiVmStackPeek(struct NKVM *vm, nkuint32_t index)
     return &vm->currentExecutionContext->stack.values[index & vm->currentExecutionContext->stack.indexMask];
 }
 
-void nkiVmStackClear(struct NKVM *vm, nkbool freeMem)
+void nkiVmStackClear(
+    struct NKVM *vm, struct NKVMStack *stack,
+    nkbool freeMem)
 {
-    struct NKVMStack *stack = &vm->currentExecutionContext->stack;
-
     nkiMemset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     stack->size = 0;
 
     if(freeMem) {
         stack->values = (struct NKValue *)nkiReallocArray(
-            vm, stack->values, sizeof(struct NKValue), 1);
-        stack->capacity = 1;
+            vm, stack->values, sizeof(struct NKValue), 2);
+        stack->capacity = 2;
         stack->indexMask = 1;
+        nkiMemset(stack->values, 0, sizeof(struct NKValue) * stack->capacity);
     }
 }

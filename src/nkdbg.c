@@ -109,6 +109,29 @@ void nkiDbgDumpRaw(FILE *stream, void *data, nkuint32_t len)
     }
 }
 
+void nkiDbgDumpExecutionContext(
+    struct NKVM *vm, FILE *stream,
+    struct NKVMExecutionContext *context)
+{
+    nkuint32_t i;
+
+    fprintf(stream, "Execution context:\n");
+    fprintf(stream, "  instructionPointer: " NK_PRINTF_UINT32 "\n",
+        context->instructionPointer);
+
+    fprintf(stream, "  Stack:\n");
+    fprintf(stream, "    Capacity:  " NK_PRINTF_UINT32 "\n", context->stack.capacity);
+    fprintf(stream, "    Size:      " NK_PRINTF_UINT32 "\n", context->stack.size);
+    fprintf(stream, "    IndexMask: " NK_PRINTF_UINT32 "\n", context->stack.indexMask);
+    fprintf(stream, "    Elements:\n");
+
+    for(i = 0; i < context->stack.size; i++) {
+        fprintf(stream, "      " NK_PRINTF_UINT32 ": ", i);
+        nkiValueDump(vm, &context->stack.values[i], stream);
+        fprintf(stream, "\n");
+    }
+}
+
 void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 {
     nkuint32_t i;
@@ -122,16 +145,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
         }
     }
 
-    fprintf(stream, "Stack:\n");
-    fprintf(stream, "  Capacity:  " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.capacity);
-    fprintf(stream, "  Size:      " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.size);
-    fprintf(stream, "  IndexMask: " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->stack.indexMask);
-    fprintf(stream, "  Elements:\n");
-    for(i = 0; i < vm->currentExecutionContext->stack.size; i++) {
-        fprintf(stream, "    " NK_PRINTF_UINT32 ": ", i);
-        nkiValueDump(vm, &vm->currentExecutionContext->stack.values[i], stream);
-        fprintf(stream, "\n");
-    }
+    nkiDbgDumpExecutionContext(vm, stream, &vm->rootExecutionContext);
 
     fprintf(stream, "Statics:\n");
     fprintf(stream, "  staticAddressMask: " NK_PRINTF_UINT32 "\n", vm->staticAddressMask);
@@ -144,7 +158,6 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
     fprintf(stream, "Instructions:\n");
     fprintf(stream, "  instructionAddressMask: " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
-    fprintf(stream, "  instructionPointer:     " NK_PRINTF_UINT32 "\n", vm->currentExecutionContext->instructionPointer);
     nkiDbgDumpListing(vm, NULL, stream);
 
     fprintf(stream, "String table:\n");
@@ -256,9 +269,9 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
             }
             fprintf(stream, "      externalDataType: " NK_PRINTF_UINT32 "\n", ob->externalDataType.id);
 
-            // FIXME (COROUTINES): (Finish this) Dump coroutine state.
             if(ob->externalDataType.id == vm->internalObjectTypes.coroutine.id) {
-                fprintf(stream, "      coroutine stack:\n");
+                fprintf(stream, "      coroutine data:\n");
+                nkiDbgDumpExecutionContext(vm, stream, (struct NKVMExecutionContext*)ob->externalData);
             }
         }
     }

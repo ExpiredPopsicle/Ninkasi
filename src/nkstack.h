@@ -88,7 +88,9 @@ struct NKValue *nkiVmStackPush_internal(struct NKVM *vm);
 /// set to nktrue, but this will cause an extra reallocation and
 /// should NOT be used in places where an allocation error could cause
 /// issues (such as VM cleanup).
-void nkiVmStackClear(struct NKVM *vm, nkbool freeMem);
+void nkiVmStackClear(
+    struct NKVM *vm, struct NKVMStack *stack,
+    nkbool freeMem);
 
 #endif // NINKASI_VMSTACK_H
 

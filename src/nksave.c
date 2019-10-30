@@ -697,7 +697,8 @@ nkbool nkiSerializeStack(
     struct NKVM *vm,
     struct NKVMStack *stack,
     NKVMSerializationWriter writer,
-    void *userdata, nkbool writeMode)
+    void *userdata,
+    nkbool writeMode)
 {
     nkuint32_t stackSize = stack->size;
     nkuint32_t stackCapacity = stack->capacity;
@@ -732,7 +733,7 @@ nkbool nkiSerializeStack(
         //     stack->values = nkiMallocArray(vm,
         //         sizeof(struct NKValue), stack->capacity);
 
-        nkiVmStackClear(vm, nktrue);
+        nkiVmStackClear(vm, stack, nktrue);
         stack->values = (struct NKValue *)nkiReallocArray(
             vm, stack->values, sizeof(struct NKValue),
             stackCapacity);
@@ -1317,6 +1318,84 @@ nkbool nkiSerializePositionMarkerList(
     return nktrue;
 }
 
+nkbool nkiSerializeActiveCoroutines(
+    struct NKVM *vm, NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    if(writeMode) {
+
+        struct NKVMExecutionContext *context = vm->currentExecutionContext;
+
+        while(context) {
+            NKI_SERIALIZE_BASIC(struct NKValue, context->coroutineObject);
+            context = context->parent;
+        }
+
+    } else {
+
+        // Load all object IDs and link them.
+
+        struct NKValue inValue;
+        struct NKVMExecutionContext *currentContext = NULL;
+        struct NKVMExecutionContext *chainEnd = NULL;
+
+        do {
+
+            NKI_SERIALIZE_BASIC(struct NKValue, inValue);
+
+            struct NKVMExecutionContext *executionContext = NULL;
+            struct NKVMObject *object = nkiVmGetObjectFromValue(vm, &inValue);
+
+            // Check to see if it's an object ID or nil. If it's an
+            // object, look it up and ensure the type matches. If it
+            // does, add it to the chain. If it's nil, then link to
+            // root context. Otherwise, throw an error.
+
+            if(inValue.type == NK_VALUETYPE_NIL) {
+                executionContext = &vm->rootExecutionContext;
+            } else if(inValue.type == NK_VALUETYPE_OBJECTID &&
+                object &&
+                object->externalDataType.id == vm->internalObjectTypes.coroutine.id)
+            {
+                executionContext = (struct NKVMExecutionContext*)object->externalData;
+            } else {
+                // Invalid coroutine object.
+                nkiAddError(vm, "Invalid object in coroutine chain.");
+                return nkfalse;
+            }
+
+            // The first context we find is the current context that's
+            // executing in the VM.
+            if(!currentContext) {
+                currentContext = executionContext;
+            }
+
+            // The chainEnd is the last one we've linked. We'll keep
+            // linking more and replacing that pointer as we go.
+            if(!chainEnd) {
+                chainEnd = executionContext;
+            } else {
+
+                // Check parent to make sure we aren't making a loop.
+                if(chainEnd->parent) {
+                    nkiAddError(vm, "Corrupt coroutine chain.");
+                    return nkfalse;
+                }
+
+                // Add this to the chain.
+                chainEnd->parent = executionContext;
+                chainEnd = executionContext;
+            }
+
+        } while(inValue.type != NK_VALUETYPE_NIL);
+
+        // Set current context.
+        vm->currentExecutionContext = currentContext;
+    }
+
+    return nktrue;
+}
+
 // ABI-compatibility-breaking version change history:
 // ----------------------------------------------------------------------
 //   1-2 - ???
@@ -1362,7 +1441,8 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
 
     NKI_WRAPSERIALIZE(
         nkiSerializeStack(
-            vm, &vm->rootExecutionContext.stack,
+            vm,
+            &vm->rootExecutionContext.stack,
             writer, userdata, writeMode));
 
     // FIXME (COROUTINES): Add execution context serialization and
@@ -1427,6 +1507,10 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Serialize file/line markers.
     NKI_WRAPSERIALIZE(
         nkiSerializePositionMarkerList(vm, writer, userdata, writeMode));
+
+    // Serialize active coroutines.
+    NKI_WRAPSERIALIZE(
+        nkiSerializeActiveCoroutines(vm, writer, userdata, writeMode));
 
     return nktrue;
 }

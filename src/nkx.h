@@ -207,7 +207,11 @@ nkuint32_t nkxVmObjectGetSize(
     struct NKVM *vm,
     struct NKValue *objectId);
 
-/// Returns nktrue if the program has ended.
+/// Returns true if the program has ended. If there are no errors, it
+/// is still valid to call functions in the VM. In many cases this
+/// just means the program has set up all its event callbacks and is
+/// waiting, but it has still reached the end of the script and seen
+/// an "end" instruction.
 nkbool nkxVmProgramHasEnded(struct NKVM *vm);
 
 /// Returns true if an allocation error has occurred.

@@ -161,7 +161,10 @@ void nkiVmInitExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context)
 {
+    // nkiMemset(context, 0, sizeof(*context));
+
     nkiVmStackInit(vm, &context->stack);
+
     context->instructionPointer = 0;
     context->parent = NULL;
 
@@ -246,7 +249,9 @@ void nkiVmInit(struct NKVM *vm)
     vm->positionMarkerList = NULL;
     vm->positionMarkerCount = 0;
 
-    nkiMemset(&vm->internalObjectTypes, 0, sizeof(&vm->internalObjectTypes));
+    nkiMemset(
+        &vm->internalObjectTypes, 0,
+        sizeof(vm->internalObjectTypes));
 
     // Set up coroutine library.
     nkxCoroutineLibrary_init(vm);
@@ -303,7 +308,9 @@ void nkiVmDestroy(struct NKVM *vm)
         // a final garbage collection pass before we start making the
         // VM unusable, so that GC callbacks get hit for external data
         // and that stuff can clean up in a conventional manner.
-        nkiVmStackClear(vm, nkfalse);
+        nkiVmStackClear(
+            vm, &vm->rootExecutionContext.stack,
+            nkfalse);
         nkiMemset(
             vm->staticSpace, 0,
             (vm->staticAddressMask + 1) * sizeof(struct NKValue));
