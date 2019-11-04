@@ -4,7 +4,7 @@ cd "$(dirname "$0")"/..
 
 mkdir afl_out
 sudo mount -t tmpfs tmpfs afl_out
-sudo chown expiredpopsicle:expiredpopsicle afl_out
+sudo chown $USER:$USER afl_out
 cd /sys/devices/system/cpu
 echo performance | sudo tee cpu*/cpufreq/scaling_governor
 

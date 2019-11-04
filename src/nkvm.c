@@ -416,10 +416,6 @@ void nkiVmIterate(struct NKVM *vm)
         vm->gcInfo.gcCountdown = vm->gcInfo.gcInterval;
     }
 
-    // FIXME: Remove this.
-    nkiVmGarbageCollect(vm);
-    nkiVmShrink(vm);
-
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);
     vm->currentExecutionContext->instructionPointer++;

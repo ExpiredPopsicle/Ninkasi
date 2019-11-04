@@ -311,49 +311,49 @@ int main(int argc, char *argv[])
 
     // FIXME: Restore this.
 
-    // // Run the program.
-    // nkxVmIterate(vm, NK_UINT_MAX);
+    // Run the program.
+    nkxVmIterate(vm, NK_UINT_MAX);
 
-    // FIXME: Remove this.
-    nkuint32_t iter = 0;
-    while(!nkxVmProgramHasEnded(vm)) {
+    // // FIXME: Remove this.
+    // nkuint32_t iter = 0;
+    // while(!nkxVmProgramHasEnded(vm)) {
 
-        // printf("Iterate %u\n", iter++);
+    //     // printf("Iterate %u\n", iter++);
 
-        // char testoutname[512];
-        // sprintf(testoutname, "testout/%.6u_1.txt", iter);
-        // FILE *testout = fopen(testoutname, "wb+");
-        // nkxDbgDumpState(vm, testout);
-        // fclose(testout);
+    //     // char testoutname[512];
+    //     // sprintf(testoutname, "testout/%.6u_1.txt", iter);
+    //     // FILE *testout = fopen(testoutname, "wb+");
+    //     // nkxDbgDumpState(vm, testout);
+    //     // fclose(testout);
 
-        // // if(iter < 26)
-        {
-            serializePtr = 0;
-            nkxVmSerialize(vm, serializeWriter, NULL, nktrue);
+    //     // // // if(iter < 26)
+    //     // {
+    //     //     serializePtr = 0;
+    //     //     nkxVmSerialize(vm, serializeWriter, NULL, nktrue);
 
-            nkxVmDelete(vm);
-            vm = nkxVmCreate();
-            vm->gcInfo.gcInterval = 1;
-            vm->gcInfo.gcCountdown = 1;
-            setupStdio(vm, NULL);
+    //     //     nkxVmDelete(vm);
+    //     //     vm = nkxVmCreate();
+    //     //     vm->gcInfo.gcInterval = 1;
+    //     //     vm->gcInfo.gcCountdown = 1;
+    //     //     setupStdio(vm, NULL);
 
-            serializePtr = 0;
-            nkxVmSerialize(vm, serializeWriter, NULL, nkfalse);
-        }
+    //     //     serializePtr = 0;
+    //     //     nkxVmSerialize(vm, serializeWriter, NULL, nkfalse);
+    //     // }
 
-        // sprintf(testoutname, "testout/%.6u_2.txt", iter);
-        // testout = fopen(testoutname, "wb+");
-        // nkxDbgDumpState(vm, testout);
-        // fclose(testout);
+    //     // sprintf(testoutname, "testout/%.6u_2.txt", iter);
+    //     // testout = fopen(testoutname, "wb+");
+    //     // nkxDbgDumpState(vm, testout);
+    //     // fclose(testout);
 
-        if(!checkNoErrors(vm)) {
-            nkxVmDelete(vm);
-            free(scriptText);
-            return 1;
-        }
+    //     if(!checkNoErrors(vm)) {
+    //         nkxVmDelete(vm);
+    //         free(scriptText);
+    //         return 1;
+    //     }
 
-        nkxVmIterate(vm, 1);
-    }
+    //     nkxVmIterate(vm, 1);
+    // }
 
     // FIXME: Remove this.
     nkxVmSerialize(vm, serializeWriter, NULL, nktrue);
