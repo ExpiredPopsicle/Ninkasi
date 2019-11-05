@@ -41,53 +41,21 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-// TODO: Phase out this entire system.
+#ifndef NINKASI_TEST_STUFF_H
+#define NINKASI_TEST_STUFF_H
 
-#ifndef NINKASI_VMDBG_H
-#define NINKASI_VMDBG_H
+#include "../nkx.h"
 
-#include <stdio.h>
+void testHandle1(struct NKVMFunctionCallbackData *data);
+void testHandle2(struct NKVMFunctionCallbackData *data);
+void vmFuncPrint(struct NKVMFunctionCallbackData *data);
+void doGCCallbackThing(struct NKVMFunctionCallbackData *data);
+void setGCCallbackThing(struct NKVMFunctionCallbackData *data);
+void testSubsystemCleanup(struct NKVMFunctionCallbackData *data);
+void testVMFunc(struct NKVMFunctionCallbackData *data);
+void testVMCatastrophe(struct NKVMFunctionCallbackData *data);
+void getHash(struct NKVMFunctionCallbackData *data);
 
-struct NKVMTable;
+void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs);
 
-/// Dump the entire (known) state of the VM. For comparison when
-/// testing serialized data.
-void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
-
-/// Verify that the holes in the string table match the entries that
-/// are actually NULL, but no more and no less.
-void nkiCheckStringTableHoles(struct NKVM *vm);
-
-/// Dump the contents of the string table to stdout for debugging.
-void nkiVmStringTableDump(struct NKVM *vm);
-
-/// Dump the contents of the object table to stdout for debugging.
-void nkiVmObjectTableDump(struct NKVM *vm);
-
-/// Dump the contents of the static area to stdout for debugging.
-void nkiVmStaticDump(struct NKVM *vm);
-
-/// Dump the contents of the stack to stdout for debugging.
-void nkiVmStackDump(struct NKVM *vm);
-
-/// Dump a value to stdout for debugging purposes.
-nkbool nkiValueDump(struct NKVM *vm, struct NKValue *value, FILE *stream);
-
-/// Check that every object in the object table has an index value
-/// that matches its actual index.
-void nkiVmObjectTableSanityCheck(struct NKVM *vm);
-
-/// Check that every object in the object table is in the linked list
-/// if it's has outstanding external handles, or not in the linked
-/// list if it does not.
-void nkiExternalHandleSanityCheck(struct NKVM *vm);
-
-/// Dump out a disassembly of the program to stdout. script can be
-/// NULL, but it can be used to show assembly and code side-by-side.
-void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream);
-
-/// Do some sanity checks on the states of coroutines.
-void nkiDbgCheckCoroutines(struct NKVM *vm);
-
-#endif // NINKASI_VMDBG_H
-
+#endif // NINKASI_TEST_STUFF_H

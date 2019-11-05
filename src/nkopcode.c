@@ -486,7 +486,7 @@ void nkiOpcode_call(struct NKVM *vm)
         // If we have an object instead of a function, then this may
         // be a callable object. Look up the "_exec" field and "_data"
         // field.
-        while(functionIdValue->type == NK_VALUETYPE_OBJECTID) {
+        while(functionIdValue && functionIdValue->type == NK_VALUETYPE_OBJECTID) {
 
             struct NKValue *objectIdValue = functionIdValue;
             struct NKValue index;
@@ -542,7 +542,7 @@ void nkiOpcode_call(struct NKVM *vm)
             }
         }
 
-        if(functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
+        if(!functionIdValue || functionIdValue->type != NK_VALUETYPE_FUNCTIONID) {
             nkiAddError(
                 vm,
                 "Tried to call something that is not a function id or a callable object.");
@@ -1093,8 +1093,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
 {
     nkuint32_t i;
 
-    struct NKVMExecutionContext *executionContext =
-        nkiMalloc(vm, sizeof(struct NKVMExecutionContext));
+    struct NKVMExecutionContext *executionContext = NULL;
 
     struct NKVMExecutionContext *parentExecutionContext =
         vm->currentExecutionContext;
@@ -1103,6 +1102,8 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     struct NKValue functionValue = {0};
 
     nkint32_t argCount = nkiValueToInt(vm, &argCountValue);
+
+    struct NKValue *arguments = NULL;
 
     if(argCount < 0) {
         nkiAddError(vm, "Got negative argument count in coroutine creation.");
@@ -1114,8 +1115,11 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         return;
     }
 
+    executionContext =
+        nkiMalloc(vm, sizeof(struct NKVMExecutionContext));
+
     // Save all the arguments.
-    struct NKValue *arguments = nkiMallocArray(
+    arguments = nkiMallocArray(
         vm, sizeof(struct NKValue), argCount);
     // FIXME: Check over/underflow.
     nkiMemcpy(
@@ -1248,6 +1252,11 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
                 val.type = NK_VALUETYPE_NIL;
                 val.intData = 0;
                 *nkiVmStackPush_internal(vm) = val;
+                return;
+            }
+
+            if(context->parent) {
+                nkiAddError(vm, "Tried to recursively resume an active coroutine.");
                 return;
             }
 

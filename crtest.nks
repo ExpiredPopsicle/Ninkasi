@@ -124,3 +124,16 @@ print("butt[0]: ", butt[0], "\n");
 // print("butt[0]: ", butt[0], "\n");
 // print("butt[0]: ", butt[0], "\n");
 // print("butt[0]: ", butt[0], "\n");
+
+
+
+// var recurseCr;
+// function recurseTest()
+// {
+//     coroutine_resume2(recurseCr);
+// }
+
+// recurseCr = coroutine_create2(recurseTest);
+
+// coroutine_resume2(recurseCr);
+

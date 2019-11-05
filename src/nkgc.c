@@ -217,6 +217,9 @@ void nkiVmGarbageCollect_markStack(
 
 void nkiVmGarbageCollect(struct NKVM *vm)
 {
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
+
     struct NKVMGCState gcState;
     nkiMemset(&gcState, 0, sizeof(gcState));
     gcState.currentGCPass = ++vm->gcInfo.lastGCPass;

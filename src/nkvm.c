@@ -209,6 +209,7 @@ void nkiVmInit(struct NKVM *vm)
     nkiErrorStateInit(vm);
     nkiVmInitExecutionContext(vm, &vm->rootExecutionContext);
     vm->currentExecutionContext = &vm->rootExecutionContext;
+    vm->currentExecutionContext->coroutineState = NK_COROUTINE_RUNNING;
 
     vm->instructions =
         (struct NKInstruction *)nkiMalloc(vm, sizeof(struct NKInstruction) * 4);
@@ -387,6 +388,9 @@ void nkiVmDestroy(struct NKVM *vm)
 
 void nkiVmIterate(struct NKVM *vm)
 {
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
+
     const nkuint32_t opcodeMask = (NK_OPCODE_PADDEDCOUNT - 1);
     struct NKInstruction *inst = &vm->instructions[
         vm->currentExecutionContext->instructionPointer &
@@ -419,6 +423,12 @@ void nkiVmIterate(struct NKVM *vm)
     // Do the instruction.
     nkiOpcodeTable[opcodeId](vm);
     vm->currentExecutionContext->instructionPointer++;
+
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
+
+    // // FIXME: Remove this.
+    // printf("CYCLES LEFT: %u\n", vm->instructionsLeftBeforeTimeout);
 }
 
 nkbool nkiVmExecuteProgram(struct NKVM *vm)

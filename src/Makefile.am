@@ -19,7 +19,8 @@ ninkasi_include_HEADERS = nkx.h nktypes.h nkvalue.h nkenums.h nkfuncid.h
 libninkasi_a_headers = ${include_HEADERS}
 
 ninkasi_test_LDADD = libninkasi.a
-ninkasi_test_SOURCES = test/main.c test/subtest.c test/subtest.h
+ninkasi_test_SOURCES = test/main.c test/subtest.c test/subtest.h	\
+	test/stuff.c test/stuff.h test/settings.c test/settings.h
 
 ninkasi_LDADD = libninkasi.a
 ninkasi_SOURCES = interp/main.c

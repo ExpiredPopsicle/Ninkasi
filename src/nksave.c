@@ -1370,6 +1370,13 @@ nkbool nkiSerializeActiveCoroutines(
                 currentContext = executionContext;
             }
 
+            // All coroutines in the list of active coroutines must be
+            // in the running state.
+            if(executionContext->coroutineState != NK_COROUTINE_RUNNING) {
+                nkiAddError(vm, "Dormant coroutine recorded in active coroutine chain.");
+                executionContext->coroutineState = NK_COROUTINE_RUNNING;
+            }
+
             // The chainEnd is the last one we've linked. We'll keep
             // linking more and replacing that pointer as we go.
             if(!chainEnd) {
@@ -1380,6 +1387,11 @@ nkbool nkiSerializeActiveCoroutines(
                 if(chainEnd->parent) {
                     nkiAddError(vm, "Corrupt coroutine chain.");
                     return nkfalse;
+                }
+
+                if(chainEnd == &vm->rootExecutionContext) {
+                    // FIXME: Remove this.
+                    assert(0);
                 }
 
                 // Add this to the chain.
@@ -1393,6 +1405,9 @@ nkbool nkiSerializeActiveCoroutines(
         vm->currentExecutionContext = currentContext;
     }
 
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
+
     return nktrue;
 }
 
@@ -1405,6 +1420,9 @@ nkbool nkiSerializeActiveCoroutines(
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
+
     // Serialize format marker.
     {
         const char *formatMarker = "\0NKVM";
@@ -1511,6 +1529,9 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Serialize active coroutines.
     NKI_WRAPSERIALIZE(
         nkiSerializeActiveCoroutines(vm, writer, userdata, writeMode));
+
+    // FIXME: Remove this.
+    nkiDbgCheckCoroutines(vm);
 
     return nktrue;
 }

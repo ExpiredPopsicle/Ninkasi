@@ -714,3 +714,20 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
     }
 }
 
+void nkiDbgCheckCoroutines(struct NKVM *vm)
+{
+    struct NKVMExecutionContext *context = vm->currentExecutionContext;
+    assert(!vm->rootExecutionContext.parent);
+    while(context) {
+        if(context == &vm->rootExecutionContext) {
+            break;
+        }
+        struct NKVMObject *object = nkiVmGetObjectFromValue(vm, &context->coroutineObject);
+        struct NKVMExecutionContext *objectContext = nkiVmObjectGetExternalData(vm, &context->coroutineObject);
+        assert(object);
+        assert(context->coroutineObject.objectId == object->objectTableIndex);
+        assert(objectContext == context);
+        assert(context->coroutineState == NK_COROUTINE_RUNNING);
+        context = context->parent;
+    }
+}

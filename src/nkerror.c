@@ -160,6 +160,12 @@ void nkiAddErrorEx(
         filename,
         (lineNumber != NK_INVALID_VALUE) ? lineNumber : 0,
         str);
+
+    // FIXME: Remove this.
+    fprintf(
+        stderr,
+        "%s\n",
+        newError->errorText);
 }
 
 nkuint32_t nkiGetErrorCount(struct NKVM *vm)
