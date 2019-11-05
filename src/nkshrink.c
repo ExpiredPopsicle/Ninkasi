@@ -196,32 +196,35 @@ void nkiVmShrink(struct NKVM *vm)
     // reliably. Moving objects around in the object table will mess
     // up references to those objects!
 
-    // while(emptyHoleSearch < vm->objectTable.capacity) {
-    //     if(!vm->objectTable.objectTable[emptyHoleSearch]) {
+    while(emptyHoleSearch < vm->objectTable.capacity) {
+        if(!vm->objectTable.objectTable[emptyHoleSearch]) {
 
-    //         // Skip up to the empty hole so we only look at moving
-    //         // something from after it into this slot.
-    //         if(objectSearch < emptyHoleSearch) {
-    //             objectSearch = emptyHoleSearch + 1;
-    //         }
+            // Skip up to the empty hole so we only look at moving
+            // something from after it into this slot.
+            if(objectSearch < emptyHoleSearch) {
+                objectSearch = emptyHoleSearch + 1;
+            }
 
-    //         // Find an object to move into this slot.
-    //         while(objectSearch < vm->objectTable.capacity) {
-    //             if(vm->objectTable.objectTable[objectSearch]) {
-    //                 if(!vm->objectTable.objectTable[objectSearch]->externalHandleCount) {
-    //                     // Found something for this hole!
-    //                     nkiVmMoveObject(vm, objectSearch, emptyHoleSearch);
-    //                     break;
-    //                 }
-    //             }
-    //             objectSearch++;
-    //         }
-    //     }
-    //     emptyHoleSearch++;
-    // }
+            // Find an object to move into this slot.
+            while(objectSearch < vm->objectTable.capacity) {
+                if(vm->objectTable.objectTable[objectSearch]) {
+                    if(!vm->objectTable.objectTable[objectSearch]->externalHandleCount &&
+                        vm->objectTable.objectTable[objectSearch]->externalDataType.id !=
+                        vm->internalObjectTypes.coroutine.id)
+                    {
+                        // Found something for this hole!
+                        nkiVmMoveObject(vm, objectSearch, emptyHoleSearch);
+                        break;
+                    }
+                }
+                objectSearch++;
+            }
+        }
+        emptyHoleSearch++;
+    }
 
-    // emptyHoleSearch = 0;
-    // objectSearch = 0;
+    emptyHoleSearch = 0;
+    objectSearch = 0;
 
     // FIXME: Remove this.
     nkiDbgCheckCoroutines(vm);
@@ -250,14 +253,8 @@ void nkiVmShrink(struct NKVM *vm)
         emptyHoleSearch++;
     }
 
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
-
     nkiTableShrink(vm, &vm->objectTable);
     nkiTableShrink(vm, &vm->stringTable);
-
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
 
     // Shrink the stack capacity in the root context.
     nkiVmShrinkStack(vm, &vm->rootExecutionContext.stack);

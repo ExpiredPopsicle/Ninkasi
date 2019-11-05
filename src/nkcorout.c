@@ -115,26 +115,12 @@ void nkiCoroutineLibrary_coroutineSerializeData(
         &context->instructionPointer,
         sizeof(context->instructionPointer));
 
-    // FIXME: Remove this.
-    // printf("Serialize stack 1 (%d): %u %u %u\n",
-    //     vm->serializationState.writeMode,
-    //     context->stack.size,
-    //     context->stack.capacity,
-    //     context->stack.indexMask);
-
     nkiSerializeStack(
         vm,
         &context->stack,
         vm->serializationState.writer,
         vm->serializationState.userdata,
         vm->serializationState.writeMode);
-
-    // FIXME: Remove this.
-    // printf("Serialize stack 2 (%d): %u %u %u\n",
-    //     vm->serializationState.writeMode,
-    //     context->stack.size,
-    //     context->stack.capacity,
-    //     context->stack.indexMask);
 
     nkxSerializeData(
         vm,
