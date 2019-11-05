@@ -24,6 +24,7 @@ function addTerm()
         -geom "80x25+${XPOS}+${YPOS}" \
         -e "afl-fuzz \
         -t 1000 \
+        -x misc/afl.dict \
         -i afl_in \
         -o afl_out \
         -"${AFLTYPE}" "afl-${TERMCOUNTER}" \

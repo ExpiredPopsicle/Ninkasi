@@ -716,6 +716,9 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
 
 void nkiDbgCheckCoroutines(struct NKVM *vm)
 {
+    // FIXME: Remove this.
+    return;
+
     struct NKVMExecutionContext *context = vm->currentExecutionContext;
     assert(!vm->rootExecutionContext.parent);
     while(context) {
