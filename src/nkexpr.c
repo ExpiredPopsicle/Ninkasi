@@ -552,11 +552,11 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                 assert(!valueNode->children[0]);
                 assert(!valueNode->children[1]);
 
-                // Convert function-style expressions from the function call
-                // layout to its own node, with the arguments as children.
-                printf("FSE: Function style expression call: %s\n", valueNode->opOrValue->str);
+                // Convert function-style expressions from the
+                // function call layout to its own node, with the
+                // arguments as children.
 
-                // Nuke whatever was there.
+                // Clean up whatever token was there.
                 if(firstPostfixOp->ownedToken) {
                     nkiCompilerDeleteToken(cs->vm, firstPostfixOp->opOrValue);
                 }
@@ -570,7 +570,6 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                 firstPostfixOp->opOrValue->type = valueNode->opOrValue->type;
                 firstPostfixOp->opOrValue->str = nkiStrdup(cs->vm, valueNode->opOrValue->str);
                 firstPostfixOp->opOrValue->lineNumber = valueNode->opOrValue->lineNumber;
-
                 firstPostfixOp->ownedToken = nktrue;
 
                 nkiCompilerDeleteExpressionNode(cs->vm, valueNode);
