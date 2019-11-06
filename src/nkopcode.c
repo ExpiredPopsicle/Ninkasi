@@ -1289,8 +1289,16 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
 void nkiOpcode_len(struct NKVM *vm)
 {
     struct NKValue *valueptr = nkiVmStackPop(vm);
+
     if(valueptr) {
+
         struct NKValue *outptr = nkiVmStackPush_internal(vm);
+
+        if(valueptr->type != NK_VALUETYPE_OBJECTID) {
+            nkiAddError(vm, "Non-object passed into len().");
+            return;
+        }
+
         if(outptr) {
             nkiValueSetInt(vm, outptr, nkiVmObjectGetSize(vm, valueptr));
         }

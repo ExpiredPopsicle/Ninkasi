@@ -310,9 +310,23 @@ Output:
 Note that the dot only works with strings coded directly into the
 script, where the brackets can contain any valid expression.
 
-There are no built-in functions to get the number of key/value pairs
-or iterate over them. These must be added as part of a library.
-(FIXME.)
+You may get the number of elements inside an object with the len()
+expression:
+
+```
+var newob = object();
+newob[0] = 1234;
+newob[1] = 5678;
+newob[2] = 9101;
+
+print("Ob len: ", len(newob), "\n");
+```
+
+Output:
+
+```
+Ob len: 3
+```
 
 ## Callable objects
 

@@ -1,0 +1,27 @@
+// ----------------------------------------------------------------------
+// len() tests
+
+var newob = object();
+newob[0] = 1234;
+newob[1] = 5678;
+newob[2] = 9101;
+
+print("Ob len: ", len(newob), "\n");
+
+function push(ob, val)
+{
+    ob[len(ob)] = val;
+}
+
+push(newob, "asdf");
+push(newob, "what");
+push(newob, "stuff");
+push(newob, object());
+push(newob, function() { });
+
+for(var i = 0; i < len(newob); ++i) {
+    print("Ob val ", i, ": ", newob[i], "\n");
+}
+
+print("Final length: ", len(newob), "\n");
+
