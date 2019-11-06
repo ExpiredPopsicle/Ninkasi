@@ -180,17 +180,11 @@ void nkiVmShrink(struct NKVM *vm)
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
 
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
-
     // VMs with errors may be in an unpredictable or inconsistent
     // state. Bail out here, just in case.
     if(nkiVmHasErrors(vm)) {
         return;
     }
-
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
 
     // FIXME: I don't think we can actually do the following code
     // reliably. Moving objects around in the object table will mess
@@ -208,6 +202,15 @@ void nkiVmShrink(struct NKVM *vm)
             // Find an object to move into this slot.
             while(objectSearch < vm->objectTable.capacity) {
                 if(vm->objectTable.objectTable[objectSearch]) {
+
+                    // Objects with external handles active can't be
+                    // moved because we can't update those handles
+                    // with the new ID.
+
+                    // FIXME: Coroutines can't be moved because we
+                    // haven't implemented support for rewriting the
+                    // object IDs after the fact.
+
                     if(!vm->objectTable.objectTable[objectSearch]->externalHandleCount &&
                         vm->objectTable.objectTable[objectSearch]->externalDataType.id !=
                         vm->internalObjectTypes.coroutine.id)
@@ -225,9 +228,6 @@ void nkiVmShrink(struct NKVM *vm)
 
     emptyHoleSearch = 0;
     objectSearch = 0;
-
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
 
     while(emptyHoleSearch < vm->stringTable.capacity) {
         if(!vm->stringTable.stringTable[emptyHoleSearch]) {

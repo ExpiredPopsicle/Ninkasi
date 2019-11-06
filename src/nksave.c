@@ -1390,8 +1390,8 @@ nkbool nkiSerializeActiveCoroutines(
                 }
 
                 if(chainEnd == &vm->rootExecutionContext) {
-                    // FIXME: Remove this.
-                    assert(0);
+                    nkiAddError(vm, "Corrupt coroutine chain.");
+                    return nkfalse;
                 }
 
                 // Add this to the chain.
@@ -1405,9 +1405,6 @@ nkbool nkiSerializeActiveCoroutines(
         vm->currentExecutionContext = currentContext;
     }
 
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
-
     return nktrue;
 }
 
@@ -1420,9 +1417,6 @@ nkbool nkiSerializeActiveCoroutines(
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
-
     // Serialize format marker.
     {
         const char *formatMarker = "\0NKVM";
@@ -1529,9 +1523,6 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     // Serialize active coroutines.
     NKI_WRAPSERIALIZE(
         nkiSerializeActiveCoroutines(vm, writer, userdata, writeMode));
-
-    // FIXME: Remove this.
-    nkiDbgCheckCoroutines(vm);
 
     return nktrue;
 }
