@@ -723,7 +723,8 @@ void nkiDbgCheckCoroutines(struct NKVM *vm)
             break;
         }
         struct NKVMObject *object = nkiVmGetObjectFromValue(vm, &context->coroutineObject);
-        struct NKVMExecutionContext *objectContext = nkiVmObjectGetExternalData(vm, &context->coroutineObject);
+        struct NKVMExecutionContext *objectContext =
+            (struct NKVMExecutionContext *)nkiVmObjectGetExternalData(vm, &context->coroutineObject);
         assert(object);
         assert(context->coroutineObject.objectId == object->objectTableIndex);
         assert(objectContext == context);

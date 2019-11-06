@@ -465,9 +465,6 @@ int main(int argc, char *argv[])
 
             while(!nkxVmProgramHasEnded(vm)) {
 
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
-
                 // Figure out how many iterations we can do
                 // before the next shrink/serialize test
                 // happens.
@@ -479,18 +476,12 @@ int main(int argc, char *argv[])
                     iterationCount = shrinkCounter;
                 }
 
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
-
                 // Iterate. Normally we'd iterate for multiple
                 // instructions, but in this case we're going
                 // to do one at a time so we can fire off the
                 // shrink and serializer tests at certain
                 // intervals.
                 nkxVmIterate(vm, iterationCount);
-
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
 
                 // Adjust counters according to how many
                 // operations we probably ran.
@@ -501,9 +492,6 @@ int main(int argc, char *argv[])
                     serializerCounter -= iterationCount;
                 }
 
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
-
                 // Test the VM memory shrink functionality at
                 // intervals.
                 if(shrinkCounter == 0) {
@@ -513,32 +501,17 @@ int main(int argc, char *argv[])
                     shrinkCounter--;
                 }
 
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
-
                 // Test the serializer at intervals.
                 if(serializerCounter == 0) {
 
-                    // FIXME: Remove this.
-                    nkiDbgCheckCoroutines(vm);
-
                     nkxVmGarbageCollect(vm);
-
-                    // FIXME: Remove this.
-                    nkiDbgCheckCoroutines(vm);
 
                     nkxVmShrink(vm);
 
-                    // FIXME: Remove this.
-                    nkiDbgCheckCoroutines(vm);
-
-                    // FIXME: Screwing up our diffs. Find a better
-                    // solution.
+                    // FIXME: This was screwing up our diffs because
+                    // of the pointer value. Find a better solution.
 
                     // printf("vm before testserializer: %p\n", vm);
-
-                    // FIXME: Remove this.
-                    nkiDbgCheckCoroutines(vm);
 
                     vm = testSerializer(vm, &settings);
                     if(!vm || checkErrors(vm)) {
@@ -547,28 +520,16 @@ int main(int argc, char *argv[])
                     }
                     serializerCounter = settings.serializerTestFrequency;
 
-                    // FIXME: Remove this.
-                    nkiDbgCheckCoroutines(vm);
-
                 } else {
                     serializerCounter--;
                 }
-
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
 
                 // Bail out on errors.
                 if(nkxGetErrorCount(vm)) {
                     printf("An error occurred.\n");
                     break;
                 }
-
-                // FIXME: Remove this.
-                nkiDbgCheckCoroutines(vm);
             }
-
-            // FIXME: Remove this.
-            nkiDbgCheckCoroutines(vm);
 
             // Example of searching for a global variable in the
             // VM.
@@ -581,10 +542,6 @@ int main(int argc, char *argv[])
                     printf("Value NOT found.\n");
                 }
             }
-
-            // FIXME: Remove this.
-            nkiDbgCheckCoroutines(vm);
-
         }
 
         printf("----------------------------------------------------------------------\n");

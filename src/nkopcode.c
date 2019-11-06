@@ -1099,7 +1099,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         vm->currentExecutionContext;
 
     struct NKValue argCountValue = *nkiVmStackPop(vm);
-    struct NKValue functionValue = {0};
+    struct NKValue functionValue = { { NK_VALUETYPE_NIL }, { 0 } };
 
     nkint32_t argCount = nkiValueToInt(vm, &argCountValue);
 
@@ -1110,16 +1110,17 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
         return;
     }
 
-    if(argCount > parentExecutionContext->stack.size) {
+    if((nkuint32_t)argCount > parentExecutionContext->stack.size) {
         nkiAddError(vm, "Argument count bigger than stack in coroutine creation.");
         return;
     }
 
     executionContext =
-        nkiMalloc(vm, sizeof(struct NKVMExecutionContext));
+        (struct NKVMExecutionContext*)nkiMalloc(
+            vm, sizeof(struct NKVMExecutionContext));
 
     // Save all the arguments.
-    arguments = nkiMallocArray(
+    arguments = (struct NKValue *)nkiMallocArray(
         vm, sizeof(struct NKValue), argCount);
     // FIXME: Check over/underflow.
     nkiMemcpy(
@@ -1163,7 +1164,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     *nkiVmStackPush_internal(vm) = functionValue;
 
     // Copy all the arguments into the new stack.
-    for(i = 0; i < argCount; i++) {
+    for(i = 0; i < (nkuint32_t)argCount; i++) {
         *nkiVmStackPush_internal(vm) =
             arguments[i];
     }
@@ -1202,7 +1203,7 @@ void nkiOpcode_coroutineYield(struct NKVM *vm)
 
         // Retrieve return value from the coroutine execution context.
         struct NKValue *vp = nkiVmStackPop(vm);
-        struct NKValue v = {0};
+        struct NKValue v = { { NK_VALUETYPE_NIL }, { 0 } };
         if(vp) {
             v = *vp;
         }

@@ -1142,7 +1142,7 @@ void *nkxReallocArray(
 
 char *nkxStrdup(struct NKVM *vm, const char *str)
 {
-    void *ret = NULL;
+    char *ret = NULL;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiStrdup(vm, str);

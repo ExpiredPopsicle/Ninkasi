@@ -902,7 +902,7 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
         cs->currentToken = cs->currentToken->next;
         if(cs->currentToken) {
 
-            if(cs->currentLineNumber != cs->currentToken->lineNumber ||
+            if((nkint32_t)cs->currentLineNumber != cs->currentToken->lineNumber ||
                 cs->currentFileIndex != cs->currentToken->fileIndex)
             {
                 struct NKVMFilePositionMarker newMarker;
