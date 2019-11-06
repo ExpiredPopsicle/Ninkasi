@@ -1,0 +1,135 @@
+// ----------------------------------------------------------------------
+// Coroutine test code
+// ----------------------------------------------------------------------
+// This file demonstrates and tests the coroutine functionality in
+// Ninkasi.
+
+// ----------------------------------------------------------------------
+// Messy test case
+
+function crTestFunc(foo, bar)
+{
+    // Make a recursive coroutine.
+    var sub = coroutine(
+        function() {
+            for(var i = 0; i < 100; ++i) {
+                print("Sub: ", i, "\n");
+                yield();
+            }
+        });
+
+    print("Foo1: ", foo, "\n");
+    print("Bar1: ", bar, "\n");
+    resume(sub);
+    var yielded = yield(1234);
+    print("Foo2: ", foo, "\n");
+    print("Bar2: ", bar, "\n");
+    print("Yie2: ", yielded, "\n");
+    resume(sub);
+    yielded = yield(1234);
+    print("Foo3: ", foo, "\n");
+    print("Bar3: ", bar, "\n");
+    print("Yie3: ", yielded, "\n");
+    resume(sub);
+    yielded = yield();
+    print("Foo4: ", foo, "\n");
+    print("Bar4: ", bar, "\n");
+    print("Yie4: ", yielded, "\n");
+    resume(sub);
+    yielded = yield(1234);
+    print("Foo5: ", foo, "\n");
+    print("Bar5: ", bar, "\n");
+    print("Yie5: ", yielded, "\n");
+    resume(sub);
+    yielded = yield();
+    print("Foo6: ", foo, "\n");
+    print("Bar6: ", bar, "\n");
+    print("Yie6: ", yielded, "\n");
+    resume(sub);
+    yielded = yield(1234);
+    print("Foo7: ", foo, "\n");
+    print("Bar7: ", bar, "\n");
+    print("Yie7: ", yielded, "\n");
+    resume(sub);
+    yielded = yield();
+    print("COROUTINE FINISHED\n");
+}
+
+print("Creating coroutine...\n");
+var cr = coroutine(crTestFunc, "asdf", "blah");
+print("Done.\n");
+
+print("Resuming coroutine 1...\n");
+var crRet = resume(cr); // Starts execution. Doesn't get to pass anything in.
+print("Done: ", crRet, "\n");
+
+print("Resuming coroutine 2...\n");
+crRet = resume(cr, "yield");
+print("Done: ", crRet, "\n");
+
+print("Resuming coroutine 3...\n");
+crRet = resume(cr, "yield3");
+print("Done: ", crRet, "\n");
+
+print("Resuming coroutine x...\n");
+crRet = resume(cr, "yieldx");
+print("Done: ", crRet, "\n");
+
+for(var i = 0; i < 10; ++i) {
+    print("Resuming coroutine ", i, "...\n");
+    crRet = resume(cr, "yieldx");
+    print("Done: ", crRet, "\n");
+}
+
+// ----------------------------------------------------------------------
+// Super simple example case
+
+function functionToCall()
+{
+    print("Hello\n");
+    yield();
+    print("there!\n");
+}
+
+var coroutineObject = coroutine(functionToCall);
+
+print("1... ");
+resume(coroutineObject);
+print("2... ");
+resume(coroutineObject);
+
+// ----------------------------------------------------------------------
+// Stuff passed to coroutines through function arguments
+
+function functionToCall2(a, b, c)
+{
+    print("a: ", a, "\n");
+    yield();
+    print("b: ", b, "\n");
+    yield();
+    print("c: ", c, "\n");
+}
+
+var coroutineObject2 = coroutine(functionToCall2, 1, 2, 3);
+resume(coroutineObject2);
+resume(coroutineObject2);
+resume(coroutineObject2);
+
+// ----------------------------------------------------------------------
+// Stuff passed between coroutines and parent contexts
+
+function functionToCall3()
+{
+    var value = 0;
+    while(1) {
+        value = value + yield(value);
+    }
+}
+
+var coroutineObject3 = coroutine(functionToCall3);
+for(var i = 0; i < 10; ++i) {
+    var yieldedValue = resume(coroutineObject3, i);
+    print("yieldedValue: ", yieldedValue, "\n");
+}
+
+

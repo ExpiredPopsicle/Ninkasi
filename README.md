@@ -282,17 +282,17 @@ Object are hash tables which are stored in a pool that is regularly
 garbage-collected. The keys and values for this hash table can be any
 of the basic types.
 
-Objects can be created with the "newobject" keyword.
+Objects can be created with the "object()" expression.
 
 ```
-var foo = newobject;
+var foo = object();
 ```
 
 The contents of objects can be accessed with the brackets operator, or
 the dot ('.').
 
 ```
-var foo = newobject;
+var foo = object();
 var junk = 45;
 foo["asdf"] = 1234;
 foo[junk] = 5678;
@@ -329,7 +329,7 @@ inserted as the first argument to the function call.
 
 Zero-argument example:
 ```
-var ob = newobject;
+var ob = object();
 ob._exec = function() {
     print("Object call test.\n");
 };
@@ -338,7 +338,7 @@ ob();
 
 Inserted argument example:
 ```
-var ob = newobject;
+var ob = object();
 ob._exec = function(data) {
     print("Object call test.\n");
     print("Data: ", data, "\n");
@@ -349,7 +349,7 @@ ob();
 
 Multiple-argument example:
 ```
-var ob = newobject;
+var ob = object();
 ob._exec = function(data, moreData) {
     print("Object call test.\n");
     print("Data: ", data, "\n");
@@ -357,6 +357,85 @@ ob._exec = function(data, moreData) {
 };
 ob._data = "Test data";
 ob("More data");
+```
+
+### Coroutines
+
+Ninkasi supports coroutines!
+
+Here's an example:
+```
+// This is the function that the coroutine will execute.
+function functionToCall()
+{
+    print("Hello\n");
+    // Yield control back to the parent context.
+    yield();
+    print("there!\n");
+}
+
+// Create the coroutine object.
+var coroutineObject = coroutine(functionToCall);
+
+// Run it.
+print("1... ");
+resume(coroutineObject);
+print("2... ");
+resume(coroutineObject);
+```
+
+Output:
+
+```
+1... Hello
+2... there!
+```
+
+Functions that take multiple arguments may be used as the coroutine
+function. The arguments to the function must be passed into the
+coroutine() expression.
+
+```
+function functionToCall2(a, b, c)
+{
+    print("a: ", a, "\n");
+    yield();
+    print("b: ", b, "\n");
+    yield();
+    print("c: ", c, "\n");
+}
+
+var coroutineObject2 = coroutine(functionToCall2, 1, 2, 3);
+resume(coroutineObject2);
+resume(coroutineObject2);
+resume(coroutineObject2);
+```
+
+Output:
+
+```
+a: 1
+b: 2
+c: 3
+```
+
+Values may also be passed between the parent context and the coroutine
+through the yield() and resume() expressions.
+
+```
+function functionToCall3()
+{
+    var value = 0;
+    while(1) {
+        value = value + yield(value);
+    }
+}
+
+var coroutineObject3 = coroutine(functionToCall3);
+for(var i = 0; i < 10; ++i) {
+    var yieldedValue = resume(coroutineObject3, i);
+    print("yieldedValue: ", yieldedValue, "\n");
+}
 ```
 
 What the API Prefixes Mean
@@ -423,6 +502,18 @@ error.
 
 Sandboxing
 ----------
+
+TODO
+
+### Safe external object lifetime management
+
+TODO
+
+### Safely cleaning up a VM that has suffered a catastrophic (malloc) failure
+
+TODO
+
+### Safely serializing and deserializing external data
 
 TODO
 

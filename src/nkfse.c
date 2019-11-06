@@ -138,12 +138,11 @@ static nkbool nkiCompilerFSE_createObject(
     return nktrue;
 }
 
-// FIXME (COROUTINES): Finalize these names.
 static struct NKFunctionStyleExpression nkiFunctionStyleExpressionList[] = {
-    { "coroutine_create2", nkiCompilerFSE_coroutineCreate },
-    { "coroutine_yield2",  nkiCompilerFSE_coroutineYield  },
-    { "coroutine_resume2", nkiCompilerFSE_coroutineResume },
-    { "object",            nkiCompilerFSE_createObject    },
+    { "coroutine", nkiCompilerFSE_coroutineCreate },
+    { "yield",     nkiCompilerFSE_coroutineYield  },
+    { "resume",    nkiCompilerFSE_coroutineResume },
+    { "object",    nkiCompilerFSE_createObject    },
 };
 
 const nkuint32_t nkiFunctionStyleExpressionCount =
