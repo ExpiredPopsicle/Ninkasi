@@ -138,11 +138,26 @@ static nkbool nkiCompilerFSE_createObject(
     return nktrue;
 }
 
+static nkbool nkiCompilerFSE_len(
+    struct NKCompilerState *cs,
+    nkuint32_t argumentCount)
+{
+    if(argumentCount != 1) {
+        nkiCompilerAddError(cs, "Incorrect number of arguments to len().");
+        return nkfalse;
+    }
+
+    nkiCompilerAddInstructionSimple(cs, NK_OP_LEN, nktrue);
+
+    return nktrue;
+}
+
 static struct NKFunctionStyleExpression nkiFunctionStyleExpressionList[] = {
     { "coroutine", nkiCompilerFSE_coroutineCreate },
     { "yield",     nkiCompilerFSE_coroutineYield  },
     { "resume",    nkiCompilerFSE_coroutineResume },
     { "object",    nkiCompilerFSE_createObject    },
+    { "len",       nkiCompilerFSE_len             },
 };
 
 const nkuint32_t nkiFunctionStyleExpressionCount =

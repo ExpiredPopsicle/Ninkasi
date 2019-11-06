@@ -123,6 +123,8 @@ enum NKOpcode
     NK_OP_COROUTINE_YIELD,
     NK_OP_COROUTINE_RESUME,
 
+    NK_OP_LEN,
+
     NK_OPCODE_REALCOUNT,
 
     // This must be a power of two.
