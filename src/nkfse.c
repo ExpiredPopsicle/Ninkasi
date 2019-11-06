@@ -151,7 +151,8 @@ const nkuint32_t nkiFunctionStyleExpressionCount =
 nkbool nkiCompilerIsFunctionStyleExpressionName(
     struct NKVM *vm, const char *str)
 {
-    for(nkuint32_t i = 0; i < nkiFunctionStyleExpressionCount; i++) {
+    nkuint32_t i;
+    for(i = 0; i < nkiFunctionStyleExpressionCount; i++) {
         if(!nkiStrcmp(str, nkiFunctionStyleExpressionList[i].name)) {
             return nktrue;
         }
@@ -164,7 +165,8 @@ nkbool nkiCompilerEmitFunctionStyleExpression(
     struct NKCompilerState *cs,
     const char *name, nkuint32_t argumentCount)
 {
-    for(nkuint32_t i = 0; i < nkiFunctionStyleExpressionCount; i++) {
+    nkuint32_t i;
+    for(i = 0; i < nkiFunctionStyleExpressionCount; i++) {
         if(!nkiStrcmp(name, nkiFunctionStyleExpressionList[i].name)) {
             return nkiFunctionStyleExpressionList[i].emitter(cs, argumentCount);
         }

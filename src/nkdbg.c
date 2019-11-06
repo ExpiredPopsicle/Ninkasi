@@ -719,11 +719,13 @@ void nkiDbgCheckCoroutines(struct NKVM *vm)
     struct NKVMExecutionContext *context = vm->currentExecutionContext;
     assert(!vm->rootExecutionContext.parent);
     while(context) {
+        struct NKVMObject *object;
+        struct NKVMExecutionContext *objectContext;
         if(context == &vm->rootExecutionContext) {
             break;
         }
-        struct NKVMObject *object = nkiVmGetObjectFromValue(vm, &context->coroutineObject);
-        struct NKVMExecutionContext *objectContext =
+        object = nkiVmGetObjectFromValue(vm, &context->coroutineObject);
+        objectContext =
             (struct NKVMExecutionContext *)nkiVmObjectGetExternalData(vm, &context->coroutineObject);
         assert(object);
         assert(context->coroutineObject.objectId == object->objectTableIndex);

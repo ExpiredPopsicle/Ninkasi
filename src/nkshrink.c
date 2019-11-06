@@ -179,6 +179,7 @@ void nkiVmShrink(struct NKVM *vm)
 {
     nkuint32_t emptyHoleSearch = 0;
     nkuint32_t objectSearch = 0;
+    nkuint32_t i;
 
     // VMs with errors may be in an unpredictable or inconsistent
     // state. Bail out here, just in case.
@@ -261,7 +262,7 @@ void nkiVmShrink(struct NKVM *vm)
 
     // Iterate through all objects, find the coroutines, and shrink
     // their stacks too.
-    for(nkuint32_t i = 0; i < vm->objectTable.capacity; i++) {
+    for(i = 0; i < vm->objectTable.capacity; i++) {
         struct NKVMObject *ob = vm->objectTable.objectTable[i];
         if(ob && ob->externalDataType.id ==
             vm->internalObjectTypes.coroutine.id)

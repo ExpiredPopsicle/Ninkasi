@@ -1104,6 +1104,8 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     nkint32_t argCount = nkiValueToInt(vm, &argCountValue);
 
     struct NKValue *arguments = NULL;
+    struct NKValue *functionValuePtr = NULL;
+    struct NKValue *coroutineObjectReturn = NULL;
 
     if(argCount < 0) {
         nkiAddError(vm, "Got negative argument count in coroutine creation.");
@@ -1132,20 +1134,20 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     nkiVmStackPopN(vm, argCount);
 
     // Save the function itself.
-    struct NKValue *functionValuePtr = nkiVmStackPop(vm);
+    functionValuePtr = nkiVmStackPop(vm);
     if(functionValuePtr) {
         functionValue = *functionValuePtr;
     }
 
     // Create the coroutine object to leave on the stack.
-    struct NKValue *v = nkiVmStackPush_internal(vm);
+    coroutineObjectReturn = nkiVmStackPush_internal(vm);
 
     nkiVmInitExecutionContext(vm, executionContext);
 
-    v->type = NK_VALUETYPE_OBJECTID;
-    v->objectId = nkiVmObjectTableCreateObject(vm);
+    coroutineObjectReturn->type = NK_VALUETYPE_OBJECTID;
+    coroutineObjectReturn->objectId = nkiVmObjectTableCreateObject(vm);
 
-    executionContext->coroutineObject = *v;
+    executionContext->coroutineObject = *coroutineObjectReturn;
     executionContext->coroutineState = NK_COROUTINE_CREATED;
 
     // Set coroutine object type.
@@ -1195,6 +1197,8 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
 
 void nkiOpcode_coroutineYield(struct NKVM *vm)
 {
+    struct NKValue *ret = NULL;
+
     if(vm->currentExecutionContext == &vm->rootExecutionContext) {
 
         nkiAddError(vm, "Tried to yield from the root execution context.");
@@ -1212,7 +1216,7 @@ void nkiOpcode_coroutineYield(struct NKVM *vm)
         nkiVmPopExecutionContext(vm);
 
         // Set return value.
-        struct NKValue *ret = nkiVmStackPush_internal(vm);
+        ret = nkiVmStackPush_internal(vm);
         if(ret) {
             *ret = v;
         }

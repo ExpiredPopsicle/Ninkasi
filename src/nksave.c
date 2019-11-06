@@ -1341,10 +1341,12 @@ nkbool nkiSerializeActiveCoroutines(
 
         do {
 
+            struct NKVMExecutionContext *executionContext = NULL;
+            struct NKVMObject *object = NULL;
+
             NKI_SERIALIZE_BASIC(struct NKValue, inValue);
 
-            struct NKVMExecutionContext *executionContext = NULL;
-            struct NKVMObject *object = nkiVmGetObjectFromValue(vm, &inValue);
+            object = nkiVmGetObjectFromValue(vm, &inValue);
 
             // Check to see if it's an object ID or nil. If it's an
             // object, look it up and ensure the type matches. If it
