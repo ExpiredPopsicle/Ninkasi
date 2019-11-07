@@ -93,7 +93,9 @@ nkbool nkiCompilerIsPostfixOperator(struct NKToken *token)
     return token && (
         token->type == NK_TOKENTYPE_BRACKET_OPEN ||
         token->type == NK_TOKENTYPE_PAREN_OPEN ||
-        token->type == NK_TOKENTYPE_DOT);
+        token->type == NK_TOKENTYPE_DOT ||
+        token->type == NK_TOKENTYPE_INCREMENT ||
+        token->type == NK_TOKENTYPE_DECREMENT);
 }
 
 nkint32_t nkiCompilerGetPrecedence(enum NKTokenType t)
@@ -528,6 +530,37 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                     NK_CLEANUP_INLOOP();
                     nkiCompilerPopRecursion(cs);
                     return NULL;
+                }
+
+            } else if(
+                nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_INCREMENT ||
+                nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_DECREMENT)
+            {
+                struct NKToken *oldToken = postfixNode->opOrValue;
+                nkbool ownedOldToken = postfixNode->ownedToken;
+                struct NKToken *newToken = (struct NKToken *)nkiMalloc(
+                    cs->vm, sizeof(struct NKToken));
+
+                // Set up a new token with the post
+                // increment/decrement IDs.
+                nkiMemset(newToken, 0, sizeof(*newToken));
+                newToken->type =
+                    oldToken->type == NK_TOKENTYPE_INCREMENT ?
+                    NK_TOKENTYPE_POSTINCREMENT : NK_TOKENTYPE_POSTDECREMENT;
+                newToken->str = nkiStrdup(cs->vm,
+                    oldToken->type == NK_TOKENTYPE_INCREMENT ? "++" : "--");
+                newToken->next = NULL;
+                newToken->lineNumber = cs->currentToken->lineNumber;
+
+                postfixNode->opOrValue = newToken;
+                postfixNode->ownedToken = nktrue;
+
+                nkiCompilerNextToken(cs);
+
+                // Clean up old token.
+                if(ownedOldToken) {
+                    nkiCompilerDeleteToken(cs->vm, oldToken);
+                    postfixNode->opOrValue = NULL;
                 }
 
             } else {
@@ -1052,7 +1085,8 @@ struct NKExpressionAstNode *nkiCompilerCloneExpressionTree(
 
 void nkiCompilerExpressionExpandIncrementsAndDecrements(
     struct NKCompilerState *cs,
-    struct NKExpressionAstNode *node)
+    struct NKExpressionAstNode *node,
+    nkbool returnValueCanBeDiscarded)
 {
     if(!node) {
         return;
@@ -1063,7 +1097,9 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
     }
 
     if(node->opOrValue->type == NK_TOKENTYPE_INCREMENT ||
-        node->opOrValue->type == NK_TOKENTYPE_DECREMENT)
+        node->opOrValue->type == NK_TOKENTYPE_DECREMENT ||
+        node->opOrValue->type == NK_TOKENTYPE_POSTINCREMENT ||
+        node->opOrValue->type == NK_TOKENTYPE_POSTDECREMENT)
     {
         assert(node->children[0]);
         assert(!node->children[1]);
@@ -1081,6 +1117,11 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             struct NKToken *oldToken = node->opOrValue;
             nkbool wasOwningToken = node->ownedToken;
 
+            enum NKTokenType simpleType =
+                (oldToken->type == NK_TOKENTYPE_INCREMENT ||
+                    oldToken->type == NK_TOKENTYPE_POSTINCREMENT) ?
+                NK_TOKENTYPE_INCREMENT : NK_TOKENTYPE_DECREMENT;
+
             struct NKToken *literalOneToken =
                 (struct NKToken *)nkiMalloc(
                     cs->vm, sizeof(struct NKToken));
@@ -1091,7 +1132,10 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
                 (struct NKToken *)nkiMalloc(
                     cs->vm, sizeof(struct NKToken));
             char *oneTokenStr = nkiStrdup(cs->vm, "1");
-            char *addTokenStr = nkiStrdup(cs->vm, oldToken->type == NK_TOKENTYPE_INCREMENT ? "+" : "-");
+            char *addTokenStr = nkiStrdup(
+                cs->vm,
+                simpleType == NK_TOKENTYPE_INCREMENT ?
+                "+" : "-");
             char *assignTokenStr = nkiStrdup(cs->vm, "=");
 
             // Generate a node for the number 1.
@@ -1109,7 +1153,7 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             // Generate a node that just adds 1 to the value.
             additionNode->opOrValue = additionToken;
             additionNode->opOrValue->type =
-                oldToken->type == NK_TOKENTYPE_INCREMENT ? NK_TOKENTYPE_PLUS : NK_TOKENTYPE_MINUS;
+                simpleType == NK_TOKENTYPE_INCREMENT ? NK_TOKENTYPE_PLUS : NK_TOKENTYPE_MINUS;
             additionNode->opOrValue->str = addTokenStr;
             additionNode->opOrValue->lineNumber = node->opOrValue->lineNumber;
             additionNode->opOrValue->next = NULL;
@@ -1119,9 +1163,9 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             additionNode->ownedToken = nktrue;
             additionNode->isRootFunctionCallNode = nkfalse;
 
-            // Generate a node that assigns the added value back to
-            // the original value. This just turns this node into an
-            // assignment node.
+            // Turn this node into one that assigns the added value
+            // back to the original value. This just turns this node
+            // into an assignment node.
             node->opOrValue = assignmentToken;
             node->opOrValue->type = NK_TOKENTYPE_ASSIGNMENT;
             node->opOrValue->str = assignTokenStr;
@@ -1133,6 +1177,69 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
             node->ownedToken = nktrue;
             node->isRootFunctionCallNode = nkfalse;
 
+            // For post increment/decrement, we're going to just add a
+            // node that adds or subtracts back from the final value
+            // to restore it to what it was before the operation,
+            // which means inserting a new node into this hierarchy.
+            if(oldToken->type == NK_TOKENTYPE_POSTDECREMENT ||
+                oldToken->type == NK_TOKENTYPE_POSTINCREMENT)
+            {
+                // Skip doing this for stuff where we're not going to
+                // use the return value.
+                if(!returnValueCanBeDiscarded) {
+
+                    // Create a new node and copy the current root
+                    // into that.
+                    struct NKExpressionAstNode *shiftedRootNode =
+                        (struct NKExpressionAstNode *)nkiMalloc(
+                            cs->vm, sizeof(struct NKExpressionAstNode));
+                    *shiftedRootNode = *node;
+
+                    // Turn the root node into an addition or
+                    // subtraction node, with the old root as one of
+                    // the children.
+                    node->opOrValue =
+                        (struct NKToken *)nkiMalloc(
+                            cs->vm, sizeof(struct NKToken));
+                    node->opOrValue->type =
+                        simpleType == NK_TOKENTYPE_INCREMENT
+                        ? NK_TOKENTYPE_MINUS
+                        : NK_TOKENTYPE_PLUS;
+                    node->opOrValue->str = nkiStrdup(
+                        cs->vm,
+                        simpleType == NK_TOKENTYPE_INCREMENT
+                        ? "-"
+                        : "+");
+                    node->opOrValue->lineNumber = oldToken->lineNumber;
+                    node->opOrValue->next = NULL;
+                    node->children[0] = shiftedRootNode;
+                    node->children[1] =
+                        (struct NKExpressionAstNode*)nkiMalloc(
+                            cs->vm, sizeof(struct NKExpressionAstNode));
+                    node->stackNext = NULL;
+                    node->ownedToken = nktrue;
+                    node->isRootFunctionCallNode = nkfalse;
+
+                    // Copy the literal one node for the second child
+                    // (the number to add or subtract).
+                    *node->children[1] = *literalOneNode;
+                    node->children[1]->opOrValue = nkiMalloc(
+                        cs->vm, sizeof(struct NKToken));
+                    *node->children[1]->opOrValue = *literalOneToken;
+                    node->children[1]->opOrValue->str = nkiStrdup(
+                        cs->vm, literalOneToken->str);
+
+                } else {
+
+                    // If we hit this case, then the return value from
+                    // the expression can be ignored, meaning that we
+                    // don't have to do the extra addition/subtraction
+                    // for a post increment/decrement, so just skip
+                    // it.
+
+                }
+            }
+
             if(wasOwningToken) {
                 nkiCompilerDeleteToken(cs->vm, oldToken);
             }
@@ -1142,19 +1249,21 @@ void nkiCompilerExpressionExpandIncrementsAndDecrements(
 
         if(node->children[0]) {
             nkiCompilerExpressionExpandIncrementsAndDecrements(
-                cs, node->children[0]);
+                cs, node->children[0], nkfalse);
         }
 
         if(node->children[1]) {
             nkiCompilerExpressionExpandIncrementsAndDecrements(
-                cs, node->children[1]);
+                cs, node->children[1], nkfalse);
         }
     }
 
     nkiCompilerPopRecursion(cs);
 }
 
-struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs)
+struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(
+    struct NKCompilerState *cs,
+    nkbool returnValueCanBeDiscarded)
 {
     struct NKExpressionAstNode *node;
 
@@ -1166,7 +1275,7 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
 
     if(node) {
         nkiCompilerExpressionExpandIncrementsAndDecrements(
-            cs, node);
+            cs, node, returnValueCanBeDiscarded);
         nkiCompilerOptimizeConstants(cs->vm, &node);
     }
 
@@ -1180,7 +1289,9 @@ struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCom
     return node;
 }
 
-nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs)
+nkbool nkiCompilerCompileExpression(
+    struct NKCompilerState *cs,
+    nkbool returnValueCanBeDiscarded)
 {
     struct NKExpressionAstNode *node;
 
@@ -1188,7 +1299,8 @@ nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs)
         return nkfalse;
     }
 
-    node = nkiCompilerCompileExpressionWithoutEmit(cs);
+    node = nkiCompilerCompileExpressionWithoutEmit(
+        cs, returnValueCanBeDiscarded);
 
     if(node) {
         nkbool ret;

@@ -487,7 +487,7 @@ nkbool nkiCompilerCompileStatement(struct NKCompilerState *cs)
 
         default:
             // Fall back to just parsing an expression.
-            if(!nkiCompilerCompileExpression(cs)) {
+            if(!nkiCompilerCompileExpression(cs, nktrue)) {
                 return nkfalse;
             }
 
@@ -607,7 +607,7 @@ nkbool nkiCompilerCompileVariableDeclaration(struct NKCompilerState *cs)
 
             NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_ASSIGNMENT);
 
-            if(!nkiCompilerCompileExpression(cs)) {
+            if(!nkiCompilerCompileExpression(cs, nkfalse)) {
                 nkiCompilerPopRecursion(cs);
                 return nkfalse;
             }
@@ -673,7 +673,7 @@ nkbool nkiCompilerCompileReturnStatement(struct NKCompilerState *cs)
 
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_RETURN);
 
-    if(!nkiCompilerCompileExpression(cs)) {
+    if(!nkiCompilerCompileExpression(cs, nkfalse)) {
         nkiCompilerPopRecursion(cs);
         return nkfalse;
     }
@@ -1212,7 +1212,7 @@ nkbool nkiCompilerCompileIfStatement(struct NKCompilerState *cs)
     NK_EXPECT_AND_SKIP_STATEMENT(NK_TOKENTYPE_PAREN_OPEN);
 
     // Generate the expression code.
-    if(!nkiCompilerCompileExpression(cs)) {
+    if(!nkiCompilerCompileExpression(cs, nkfalse)) {
         nkiCompilerPopRecursion(cs);
         return nkfalse;
     }
@@ -1312,7 +1312,7 @@ nkbool nkiCompilerCompileWhileStatement(struct NKCompilerState *cs)
     }
 
     // Generate the expression code.
-    if(!nkiCompilerCompileExpression(cs)) {
+    if(!nkiCompilerCompileExpression(cs, nkfalse)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1391,7 +1391,7 @@ nkbool nkiCompilerCompileDoWhileStatement(struct NKCompilerState *cs)
     }
 
     // Generate the expression code.
-    if(!nkiCompilerCompileExpression(cs)) {
+    if(!nkiCompilerCompileExpression(cs, nkfalse)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1468,7 +1468,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
     loopStartAddress = cs->instructionWriteIndex;
 
     // Generate test expression code.
-    if(!nkiCompilerCompileExpression(cs)) {
+    if(!nkiCompilerCompileExpression(cs, nkfalse)) {
         nkiCompilerPopContextCount(cs, 2);
         nkiCompilerPopRecursion(cs);
         return nkfalse;
@@ -1483,7 +1483,7 @@ nkbool nkiCompilerCompileForStatement(struct NKCompilerState *cs)
 
     // Parse the increment expression, but don't emit yet (we'll do
     // this at the end, before the jump back).
-    incrementExpression = nkiCompilerCompileExpressionWithoutEmit(cs);
+    incrementExpression = nkiCompilerCompileExpressionWithoutEmit(cs, nktrue);
 
     // Skip ")"
     if(!incrementExpression || !nkiCompilerExpectAndSkipToken(cs, NK_TOKENTYPE_PAREN_CLOSE)) {

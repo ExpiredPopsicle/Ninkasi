@@ -182,6 +182,11 @@ enum NKTokenType
     NK_TOKENTYPE_INDEXINTO_NOPOP,
     NK_TOKENTYPE_FUNCTIONCALL_WITHSELF,
 
+    // Special cases for post increment/decrement so we can tell the
+    // difference between it and pre increment/decrement in the AST.
+    NK_TOKENTYPE_POSTINCREMENT,
+    NK_TOKENTYPE_POSTDECREMENT,
+
     NK_TOKENTYPE_NIL,
 
     NK_TOKENTYPE_BREAK,

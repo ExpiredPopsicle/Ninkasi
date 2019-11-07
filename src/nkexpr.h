@@ -88,7 +88,7 @@ struct NKExpressionAstNode
     // should be deleted with it.
     nkbool ownedToken;
 
-    // Nktrue if this is the first node in a chain of function call
+    // nktrue if this is the first node in a chain of function call
     // argument nodes. The left side of this (children[0]) will be the
     // function lookup, and the right side will be the first argument.
     // The argument's node will have an expression on the left for the
@@ -116,14 +116,18 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 /// operator conversions, like turning increment/decrement operations
 /// into read/(add/subtract)/store operations. Does NOT emit
 /// instructions.
-struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(struct NKCompilerState *cs);
+struct NKExpressionAstNode *nkiCompilerCompileExpressionWithoutEmit(
+    struct NKCompilerState *cs,
+    nkbool returnValueCanBeDiscarded);
 
 /// Emit instructions for a parsed and converted AST.
 nkbool nkiCompilerEmitExpression(struct NKCompilerState *cs, struct NKExpressionAstNode *node);
 
 /// Parse an expression tree, optimize it, apply needed operator
 /// transformations, and emit instructions into the VM.
-nkbool nkiCompilerCompileExpression(struct NKCompilerState *cs);
+nkbool nkiCompilerCompileExpression(
+    struct NKCompilerState *cs,
+    nkbool returnValueCanBeDiscarded);
 
 #endif // NINKASI_EXPRESSN_H
 
