@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# This script will run all the scripts in the test directory with
+# artificial allocation failures for every single different malloc
+# case to verify handling of malloc failures.
+
+# Bring us up to the project root directory.
+cd "$(dirname "$0")/.."
+
+# Make sure we bail out on error.
+set -e
+
+#for i in crashes/*; do
+#for i in afl_out/*/crashes/*; do
+#for i in afl_in/*; do
+
+k=0
+# while [ $k -le 200000 ]; do
+while [ $k -le 10000 ]; do
+
+    echo "----------------------------------------------------------------------"
+    echo "  Testing failure rate: $k"
+    echo "----------------------------------------------------------------------"
+
+    k=$(expr $k + 1)
+
+    for i in test/*.nk?; do
+    # for i in test/prepost.nks test/crtest.nks; do
+        echo "Checking script: $i"
+        src/ninkasi_test -f "$k" "$i" &>/dev/null
+    done
+
+done
+
+echo "----------------------------------------------------------------------"
+echo "  DONE. ALL TESTS PASSED!"
+echo "----------------------------------------------------------------------"
+
+
+
