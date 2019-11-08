@@ -1410,6 +1410,40 @@ nkbool nkiSerializeActiveCoroutines(
     return nktrue;
 }
 
+nkbool nkiSerializeExecutionContext(
+    struct NKVM *vm,
+    struct NKVMExecutionContext *context,
+    nkbool serializeCoroutineData,
+    NKVMSerializationWriter writer,
+    void *userdata, nkbool writeMode)
+{
+    // Serialize instruction pointer.
+    NKI_SERIALIZE_BASIC(
+        nkuint32_t,
+        context->instructionPointer);
+
+    // Serialize stack.
+    NKI_WRAPSERIALIZE(
+        nkiSerializeStack(
+            vm,
+            &context->stack,
+            writer,
+            userdata,
+            writeMode));
+
+    // Coroutine data.
+    if(serializeCoroutineData) {
+
+        // Coroutine state.
+        NKI_SERIALIZE_BASIC(
+            nkuint32_t,
+            context->coroutineState);
+
+    }
+
+    return nktrue;
+}
+
 // ABI-compatibility-breaking version change history:
 // ----------------------------------------------------------------------
 //   1-2 - ???
@@ -1450,24 +1484,11 @@ nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *use
     NKI_WRAPSERIALIZE(
         nkiSerializeStatics(vm, writer, userdata, writeMode));
 
-    // FIXME (COROUTINES): Add execution context serialization and
-    // then use that instead of directly serializing this value.
-
+    // Root execution context.
     NKI_WRAPSERIALIZE(
-        nkiSerializeStack(
-            vm,
-            &vm->rootExecutionContext.stack,
+        nkiSerializeExecutionContext(
+            vm, &vm->rootExecutionContext, nkfalse,
             writer, userdata, writeMode));
-
-    // FIXME (COROUTINES): Add execution context serialization and
-    // then use that instead of directly serializing this value.
-
-    // FIXME (COROUTINES): Do we need to serialize the coroutine type
-    // ID? I don't think we do...
-
-    // Instruction pointer.
-    NKI_SERIALIZE_BASIC(
-        nkuint32_t, vm->rootExecutionContext.instructionPointer);
 
     // String table.
     NKI_WRAPSERIALIZE(

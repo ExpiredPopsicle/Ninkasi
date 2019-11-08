@@ -54,11 +54,11 @@ nkbool nkiVmSerialize(
     nkbool writeMode);
 
 // Used by coroutine serialization and deserialization.
-nkbool nkiSerializeStack(
+nkbool nkiSerializeExecutionContext(
     struct NKVM *vm,
-    struct NKVMStack *stack,
+    struct NKVMExecutionContext *context,
+    nkbool serializeCoroutineData,
     NKVMSerializationWriter writer,
-    void *userdata,
-    nkbool writeMode);
+    void *userdata, nkbool writeMode);
 
 #endif // NINKASI_SAVE_H

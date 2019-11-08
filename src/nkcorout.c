@@ -89,14 +89,6 @@ void nkiCoroutineLibrary_coroutineSerializeData(
     struct NKVMExecutionContext *context =
         (struct NKVMExecutionContext *)data;
 
-    // FIXME (COROUTINES): We either need error tracking in here, or
-    // to move this into nksave.c, and do all the usual tracking
-    // there.
-
-    // FIXME (COROUTINES): Make a function to serialize execution
-    // contexts and use that for both the root execution context and
-    // this.
-
     if(!context) {
         context = (struct NKVMExecutionContext *)nkiMalloc(
             vm, sizeof(struct NKVMExecutionContext));
@@ -110,22 +102,14 @@ void nkiCoroutineLibrary_coroutineSerializeData(
             vm, objectValue, vm->internalObjectTypes.coroutine);
     }
 
-    nkxSerializeData(
-        vm,
-        &context->instructionPointer,
-        sizeof(context->instructionPointer));
-
-    nkiSerializeStack(
-        vm,
-        &context->stack,
+    if(!nkiSerializeExecutionContext(
+        vm, context, nktrue,
         vm->serializationState.writer,
         vm->serializationState.userdata,
-        vm->serializationState.writeMode);
-
-    nkxSerializeData(
-        vm,
-        &context->coroutineState,
-        sizeof(context->coroutineState));
+        vm->serializationState.writeMode))
+    {
+        nkiAddError(vm, "Coroutine serialization failed.");
+    }
 
     context->coroutineObject = *objectValue;
 }
@@ -146,8 +130,10 @@ void nkiVmPopExecutionContext(
     struct NKVMExecutionContext *context =
         vm->currentExecutionContext;
 
-    // TODO (COROUTINES): Make this a runtime error.
-    assert(context->parent);
+    if(!context->parent) {
+        nkiAddError(vm, "Cannot yield out of the root context.\n");
+        return;
+    }
 
     vm->currentExecutionContext =
         context->parent;
@@ -159,8 +145,10 @@ void nkiVmPushExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context)
 {
-    // TODO (COROUTINES): Make this a runtime error.
-    assert(!context->parent);
+    if(context->parent) {
+        nkiAddError(vm, "Cannot switch to an already-active coroutine.\n");
+        return;
+    }
 
     context->parent = vm->currentExecutionContext;
     vm->currentExecutionContext = context;
