@@ -1,0 +1,21 @@
+// ----------------------------------------------------------------------
+// Pre/post increment/decrement tests
+
+var i = 0;
+print("i:   ", i, "\n");
+print("++i: ", ++i, "\n");
+print("i:   ", i, "\n");
+print("i++: ", i++, "\n");
+print("i:   ", i, "\n");
+print("--i: ", --i, "\n");
+print("i:   ", i, "\n");
+print("i--: ", i--, "\n");
+print("i:   ", i, "\n");
+
+for(i = 0; i < 20; i++) {
+    print("#");
+}
+print("\n");
+i++;
+i--;
+
