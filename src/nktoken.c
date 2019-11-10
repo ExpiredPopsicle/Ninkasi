@@ -228,6 +228,9 @@ nkbool nkiCompilerIsValidIdentifierCharacter(char c, nkbool isFirstCharacter)
     if(c >= 'a' && c <= 'z') return nktrue;
     if(c >= 'A' && c <= 'Z') return nktrue;
 
+    // All your UTF-8 is valid for identifiers now.
+    if((unsigned char)c >= 0x80) return nktrue;
+
     return nkfalse;
 }
 
