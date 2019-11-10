@@ -164,6 +164,10 @@
 #endif
 
 // Bytes.
+#if CHAR_BIT != 8
+#  error "Ninkasi cannot be compiled on any platform where the 'char' type is not 8 bits."
+#endif
+
 #ifndef nkuint8_t
 #  define nkuint8_t unsigned char
 #endif
