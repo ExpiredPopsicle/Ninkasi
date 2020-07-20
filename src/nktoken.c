@@ -509,15 +509,6 @@ nkbool nkiCompilerTokenize(
                     return nkfalse;
 
                 }
-
-                // TODO: Support...
-                //   #if (maybe without the real expression parsing)
-                //   #ifdef
-                //   #ifndef
-                //   #define (without macros)
-                //   #endif
-                //   #include (load via a callback) (check recursion level)
-
             }
 
             // Clean up.
