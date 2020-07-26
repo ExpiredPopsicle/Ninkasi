@@ -441,7 +441,7 @@ nkbool nkiCompilerTokenize(
 
             // Preprocessor directive.
             nkuint32_t lineStart = i;
-            char **tokenList = NULL;
+            char **tokenStringList = NULL;
             nkuint32_t tokenCount = 0;
 
             // Figure out how long the line is, and also advance the
@@ -454,7 +454,7 @@ nkbool nkiCompilerTokenize(
             if(!nkiCompilerGetPreprocessorTokens(
                     vm, str + lineStart,
                     lineNumber, fileIndex,
-                    &tokenList, &tokenCount))
+                    &tokenStringList, &tokenCount))
             {
                 nkiAddErrorEx(
                     vm, lineNumber,
@@ -466,7 +466,7 @@ nkbool nkiCompilerTokenize(
             // Actually do something based on the preprocessed stuff.
             if(tokenCount > 0) {
 
-                if(!nkiStrcmp(tokenList[0], "line")) {
+                if(!nkiStrcmp(tokenStringList[0], "line")) {
 
                     // Line directive from another preprocessor.
                     if(tokenCount != 2 && tokenCount != 3) {
@@ -474,17 +474,17 @@ nkbool nkiCompilerTokenize(
                             vm, lineNumber,
                             fileIndex,
                             "Incorrect number of parameters for #line directive.");
-                        nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+                        nkiCompilerFreeStringList(vm, tokenStringList, tokenCount);
                         return nkfalse;
                     }
 
-                    lineNumber = atol(tokenList[1]);
+                    lineNumber = atol(tokenStringList[1]);
 
                     if(tokenCount > 2) {
-                        fileIndex = nkiVmAddSourceFile(vm, tokenList[2]);
+                        fileIndex = nkiVmAddSourceFile(vm, tokenStringList[2]);
                     }
 
-                } else if(!nkiStrcmp(tokenList[0], "file")) {
+                } else if(!nkiStrcmp(tokenStringList[0], "file")) {
 
                     // File directive from another preprocessor.
                     if(tokenCount != 2) {
@@ -492,11 +492,11 @@ nkbool nkiCompilerTokenize(
                             vm, lineNumber,
                             fileIndex,
                             "Incorrect number of parameters for #file directive.");
-                        nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+                        nkiCompilerFreeStringList(vm, tokenStringList, tokenCount);
                         return nkfalse;
                     }
 
-                    fileIndex = nkiVmAddSourceFile(vm, tokenList[1]);
+                    fileIndex = nkiVmAddSourceFile(vm, tokenStringList[1]);
 
                 } else {
 
@@ -505,14 +505,14 @@ nkbool nkiCompilerTokenize(
                         vm, lineNumber,
                         fileIndex,
                         "Unknown preprocessor directive.");
-                    nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+                    nkiCompilerFreeStringList(vm, tokenStringList, tokenCount);
                     return nkfalse;
 
                 }
             }
 
             // Clean up.
-            nkiCompilerFreeStringList(vm, tokenList, tokenCount);
+            nkiCompilerFreeStringList(vm, tokenStringList, tokenCount);
 
         } else if(str[i] == '(') {
 
@@ -650,8 +650,8 @@ nkbool nkiCompilerTokenize(
             const char *strEnd   = &str[i+1];
             char *strTmp         = NULL;
             char *strUnescaped   = NULL;
-            nkuint32_t len         = 0;
-            nkbool skipNextQuote   = nkfalse;
+            nkuint32_t quotedLen = 0;
+            nkbool skipNextQuote = nkfalse;
 
             while(*strEnd != 0 && (skipNextQuote || *strEnd != '\"')) {
 
@@ -674,10 +674,10 @@ nkbool nkiCompilerTokenize(
             }
 
             // Copy the subsection of the string within the quotes.
-            len = (strEnd - strStart);
-            strTmp = (char *)nkiMalloc(vm, len + 1);
-            nkiMemcpy(strTmp, strStart, len);
-            strTmp[len] = 0;
+            quotedLen = (strEnd - strStart);
+            strTmp = (char *)nkiMalloc(vm, quotedLen + 1);
+            nkiMemcpy(strTmp, strStart, quotedLen);
+            strTmp[quotedLen] = 0;
 
             strUnescaped = nkiCompilerTokenizerUnescapeString(vm, strTmp);
 
@@ -687,7 +687,7 @@ nkbool nkiCompilerTokenize(
             nkiFree(vm, strUnescaped);
 
             // Skip the whole string and end quote.
-            i += len + 1;
+            i += quotedLen + 1;
 
         } else if(nkiCompilerIsNumber(str[i])) {
 

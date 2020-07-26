@@ -470,9 +470,9 @@ NKVMExternalFunctionID nkxVmSetupExternalFunction(
                 funcOb->argTypes[i] = t;
 
                 if(t == NK_VALUETYPE_OBJECTID) {
-                    NKVMExternalDataTypeID id;
-                    id = va_arg(args, NKVMExternalDataTypeID);
-                    funcOb->argExternalTypes[i] = id;
+                    NKVMExternalDataTypeID objectExternalTypeId;
+                    objectExternalTypeId = va_arg(args, NKVMExternalDataTypeID);
+                    funcOb->argExternalTypes[i] = objectExternalTypeId;
                 }
             }
 

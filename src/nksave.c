@@ -481,9 +481,9 @@ nkbool nkiSerializeStringTable(
             nkuint32_t i;
             for(i = 0; i < vm->stringTable.capacity; i++) {
                 if(vm->stringTable.stringTable[i]) {
-                    char *tmp = vm->stringTable.stringTable[i]->str;
+                    char *strTmp = vm->stringTable.stringTable[i]->str;
                     NKI_SERIALIZE_BASIC(nkuint32_t, i);
-                    NKI_SERIALIZE_STRING(tmp);
+                    NKI_SERIALIZE_STRING(strTmp);
                     NKI_SERIALIZE_BASIC(nkuint32_t, vm->stringTable.stringTable[i]->lastGCPass);
                     NKI_SERIALIZE_BASIC(nkbool, vm->stringTable.stringTable[i]->dontGC);
                 }
@@ -1118,8 +1118,6 @@ nkbool nkiSerializeExternalTypes(
     // table and reassign every external type ID based on the mapping
     // we figured out.
     if(!writeMode) {
-
-        nkuint32_t i;
 
         for(i = 0; i < vm->objectTable.capacity; i++) {
             if(vm->objectTable.objectTable[i]) {
