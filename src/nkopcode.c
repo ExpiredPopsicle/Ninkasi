@@ -533,6 +533,15 @@ void nkiOpcode_call(struct NKVM *vm)
                     vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - argumentCount - 1] =
                         *callableObjectData;
 
+                    // We also have to adjust the _argumentCount
+                    // coming into this function, right at the top of
+                    // the stack. Otherwise the return instruction
+                    // won't know how much to pop off when done.
+                    nkiValueSetInt(
+                        vm,
+                        &vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - 1],
+                        argumentCount);
+
                 } else {
                     nkiAddError(
                         vm,

@@ -1,0 +1,9 @@
+
+var ob = newobject;
+ob._exec = function(butts) {
+    var foo = "bar";
+    print("foo: ", foo, "\n");
+};
+ob._data = "blah blah blah";
+ob();
+
