@@ -1,7 +1,6 @@
 
 var ob = newobject;
-ob._exec = function(butts) {
-    var foo = "bar";
+ob._exec = function(foo) {
     print("foo: ", foo, "\n");
 };
 ob._data = "blah blah blah";
