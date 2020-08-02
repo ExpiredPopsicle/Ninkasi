@@ -45,9 +45,7 @@
 #define NINKASI_ENUMS_H
 
 // Some compilers don't allow forward declarations for enums, so we're
-// just jamming all the enums for this system into this one file. The
-// older standards also don't allow C++ style comments but fuck it,
-// whatever.
+// just jamming all the enums for this system into this one file.
 
 enum NKValueType
 {
