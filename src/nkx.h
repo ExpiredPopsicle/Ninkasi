@@ -185,6 +185,9 @@ void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str);
 /// Write a function ID into an NKValue.
 void nkxValueSetFunction(struct NKVM *vm, struct NKValue *value, NKVMInternalFunctionID id);
 
+/// Write a nil into an NKValue.
+void nkxValueSetNil(struct NKVM *vm, struct NKValue *value);
+
 /// Clear a field on an object.
 void nkxVmObjectClearEntry(
     struct NKVM *vm,

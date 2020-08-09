@@ -747,6 +747,12 @@ void nkxValueSetString(struct NKVM *vm, struct NKValue *value, const char *str)
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void nkxValueSetNil(struct NKVM *vm, struct NKValue *value)
+{
+    value->type = NK_VALUETYPE_NIL;
+    value->intData = 0;
+}
+
 void nkxCreateObject(struct NKVM *vm, struct NKValue *outValue)
 {
     NK_FAILURE_RECOVERY_DECL();
