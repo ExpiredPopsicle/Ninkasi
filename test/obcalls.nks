@@ -1,0 +1,15 @@
+print("Butts\n");
+
+function testFunc(asdf)
+{
+    print("blargh ", asdf, "\n");
+}
+
+var ob = object();
+ob["foo"] = testFunc;
+ob.foo("asdsadfsdf");
+
+ob->foo();
+
+ob["blah"] = 1234567;
+print(ob.blah, "\n");
