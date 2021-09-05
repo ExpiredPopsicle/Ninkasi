@@ -94,6 +94,7 @@ nkbool nkiCompilerIsPostfixOperator(struct NKToken *token)
         token->type == NK_TOKENTYPE_BRACKET_OPEN ||
         token->type == NK_TOKENTYPE_PAREN_OPEN ||
         token->type == NK_TOKENTYPE_DOT ||
+        token->type == NK_TOKENTYPE_C_INDIRECTION ||
         token->type == NK_TOKENTYPE_INCREMENT ||
         token->type == NK_TOKENTYPE_DECREMENT);
 }
@@ -398,6 +399,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
         // Deal with postfix operators.
         while(nkiCompilerIsPostfixOperator(*currentToken)) {
 
+            enum NKTokenType currentTokenType;
             struct NKExpressionAstNode *postfixNode =
                 (struct NKExpressionAstNode *)nkiMalloc(
                     cs->vm, sizeof(struct NKExpressionAstNode));
@@ -415,11 +417,13 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                 firstPostfixOp = postfixNode;
             }
 
-            if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_DOT) {
-
+            currentTokenType = nkiCompilerCurrentTokenType(cs);
+            if(currentTokenType == NK_TOKENTYPE_DOT ||
+                currentTokenType == NK_TOKENTYPE_C_INDIRECTION)
+            {
                 // Handle index-into, or function call with "self" param.
 
-                NK_EXPECT_AND_SKIP(NK_TOKENTYPE_DOT);
+                nkiCompilerNextToken(cs);
 
                 if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_IDENTIFIER) {
 
@@ -429,6 +433,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
 
                     struct NKExpressionAstNode *indexIntoNode = postfixNode;
 
+                    // Value node for the string.
                     nkiMemset(identifierStringNode, 0, sizeof(*identifierStringNode));
                     identifierStringNode->opOrValue = (struct NKToken *)nkiMalloc(
                         cs->vm, sizeof(struct NKToken));
@@ -438,6 +443,7 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                     identifierStringNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
                     identifierStringNode->ownedToken = nktrue;
 
+                    // Expression node for the index-into operation.
                     indexIntoNode->opOrValue = (struct NKToken *)nkiMalloc(
                         cs->vm, sizeof(struct NKToken));
                     indexIntoNode->opOrValue->type = NK_TOKENTYPE_BRACKET_OPEN;
@@ -450,54 +456,63 @@ struct NKExpressionAstNode *nkiCompilerParseExpression(struct NKCompilerState *c
                     NK_EXPECT_AND_SKIP(NK_TOKENTYPE_IDENTIFIER);
 
                     // Now see if this is a function call.
-                    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
+                    if(currentTokenType == NK_TOKENTYPE_C_INDIRECTION) {
 
-                        struct NKExpressionAstNode *functionCallNode =
-                            (struct NKExpressionAstNode *)nkiMalloc(
-                                cs->vm, sizeof(struct NKExpressionAstNode));
+                        if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_PAREN_OPEN) {
 
-                        functionCallNode->opOrValue = (struct NKToken *)nkiMalloc(
-                            cs->vm, sizeof(struct NKToken));
-                        functionCallNode->opOrValue->type = NK_TOKENTYPE_PAREN_OPEN;
-                        functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
-                        functionCallNode->opOrValue->next = NULL;
-                        functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
-                        functionCallNode->ownedToken = nktrue;
-                        functionCallNode->children[0] = indexIntoNode;
-                        functionCallNode->children[1] = NULL;
+                            struct NKExpressionAstNode *functionCallNode =
+                                (struct NKExpressionAstNode *)nkiMalloc(
+                                    cs->vm, sizeof(struct NKExpressionAstNode));
 
-                        if(!functionCallNode->opOrValue->str ||
-                            !nkiCompilerExpressionParseFunctioncall(
-                                functionCallNode, cs))
-                        {
-                            nkiFree(cs->vm, functionCallNode->opOrValue->str);
-                            nkiFree(cs->vm, functionCallNode->opOrValue);
-                            functionCallNode->opOrValue = NULL;
-                            functionCallNode->children[0] = NULL;
-                            nkiCompilerDeleteExpressionNode(cs->vm, functionCallNode);
+                            functionCallNode->opOrValue = (struct NKToken *)nkiMalloc(
+                                cs->vm, sizeof(struct NKToken));
+                            functionCallNode->opOrValue->type = NK_TOKENTYPE_PAREN_OPEN;
+                            functionCallNode->opOrValue->str = nkiStrdup(cs->vm, "(");
+                            functionCallNode->opOrValue->next = NULL;
+                            functionCallNode->opOrValue->lineNumber = cs->currentToken->lineNumber;
+                            functionCallNode->ownedToken = nktrue;
+                            functionCallNode->children[0] = indexIntoNode;
+                            functionCallNode->children[1] = NULL;
+
+                            if(!functionCallNode->opOrValue->str ||
+                                !nkiCompilerExpressionParseFunctioncall(
+                                    functionCallNode, cs))
+                            {
+                                nkiFree(cs->vm, functionCallNode->opOrValue->str);
+                                nkiFree(cs->vm, functionCallNode->opOrValue);
+                                functionCallNode->opOrValue = NULL;
+                                functionCallNode->children[0] = NULL;
+                                nkiCompilerDeleteExpressionNode(cs->vm, functionCallNode);
+                                NK_CLEANUP_INLOOP();
+                                nkiCompilerPopRecursion(cs);
+                                return NULL;
+                            }
+
+                            // Make sure the "self" value stays on the stack.
+                            indexIntoNode->opOrValue->type =
+                                NK_TOKENTYPE_INDEXINTO_NOPOP;
+
+                            // And switch to a version of the function
+                            // call that knows that the "self" parameter
+                            // is going to be before the function itself
+                            // in the stack.
+                            functionCallNode->opOrValue->type =
+                                NK_TOKENTYPE_FUNCTIONCALL_WITHSELF;
+
+                            if(firstPostfixOp == postfixNode) {
+                                firstPostfixOp = indexIntoNode;
+                            }
+                            if(lastPostfixOp == postfixNode) {
+                                lastPostfixOp = functionCallNode;
+                            }
+                            postfixNode = functionCallNode;
+
+                        } else {
+                            nkiCompilerAddError(cs, "Expected function call after '->'.");
                             NK_CLEANUP_INLOOP();
                             nkiCompilerPopRecursion(cs);
                             return NULL;
                         }
-
-                        // Make sure the "self" value stays on the stack.
-                        indexIntoNode->opOrValue->type =
-                            NK_TOKENTYPE_INDEXINTO_NOPOP;
-
-                        // And switch to a version of the function
-                        // call that knows that the "self" parameter
-                        // is going to be before the function itself
-                        // in the stack.
-                        functionCallNode->opOrValue->type =
-                            NK_TOKENTYPE_FUNCTIONCALL_WITHSELF;
-
-                        if(firstPostfixOp == postfixNode) {
-                            firstPostfixOp = indexIntoNode;
-                        }
-                        if(lastPostfixOp == postfixNode) {
-                            lastPostfixOp = functionCallNode;
-                        }
-                        postfixNode = functionCallNode;
                     }
 
                 } else {

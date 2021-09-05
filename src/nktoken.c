@@ -554,7 +554,12 @@ nkbool nkiCompilerTokenize(
             if(str[i+1] == '-') {
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_DECREMENT, "--", lineNumber, fileIndex, tokenList);
                 i++;
+            } else if(str[i+1] == '>') {
+                // C-indirection ("->") operator.
+                nkiCompilerAddToken(vm, NK_TOKENTYPE_C_INDIRECTION, "->", lineNumber, fileIndex, tokenList);
+                i++;
             } else {
+                // Just a "-".
                 nkiCompilerAddToken(vm, NK_TOKENTYPE_MINUS, "-", lineNumber, fileIndex, tokenList);
             }
 

@@ -1446,8 +1446,9 @@ nkbool nkiSerializeExecutionContext(
 // ----------------------------------------------------------------------
 //   1-2 - ???
 //   3   - Coroutines added
-//
-#define NKI_VERSION 3
+//   4   - '.' object call changed to '->'.
+
+#define NKI_VERSION 4
 
 nkbool nkiVmSerialize(struct NKVM *vm, NKVMSerializationWriter writer, void *userdata, nkbool writeMode)
 {
