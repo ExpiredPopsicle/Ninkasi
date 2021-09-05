@@ -163,8 +163,6 @@ void nkiVmInitExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context)
 {
-    // nkiMemset(context, 0, sizeof(*context));
-
     nkiVmStackInit(vm, &context->stack);
 
     context->instructionPointer = 0;

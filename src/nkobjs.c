@@ -391,6 +391,22 @@ nkbool nkiVmObjectSetExternalType(
     return nktrue;
 }
 
+nkbool nkiVmObjectClearExternalDataAndType(
+    struct NKVM *vm,
+    struct NKValue *object)
+{
+    struct NKVMObject *ob = nkiVmGetObjectFromValue(vm, object);
+    if(ob) {
+        ob->externalDataType.id = NK_INVALID_VALUE;
+        ob->externalData = NULL;
+    } else {
+        nkiAddError(
+            vm, "Bad object ID in nkiVmObjectClearExternalType.");
+        return nkfalse;
+    }
+    return nktrue;
+}
+
 NKVMExternalDataTypeID nkiVmObjectGetExternalType(
     struct NKVM *vm,
     struct NKValue *object)

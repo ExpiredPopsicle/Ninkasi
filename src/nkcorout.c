@@ -100,7 +100,11 @@ void nkiCoroutineLibrary_coroutineSerializeData(
             !nkiVmObjectSetExternalType(vm, objectValue, vm->internalObjectTypes.coroutine))
         {
             // Failed to set execution context. Clean it up.
+            nkiVmObjectClearExternalDataAndType(
+                vm, objectValue);
+            nkiVmDeinitExecutionContext(vm, context);
             nkiFree(vm, context);
+            nkiAddError(vm, "Failed to set execution context for coroutine.");
         }
     }
 

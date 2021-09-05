@@ -1184,10 +1184,12 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
             vm, &executionContext->coroutineObject,
             executionContext))
     {
-        nkiAddError(vm, "Failed to set execution context for coroutine.");
+        nkiVmObjectClearExternalDataAndType(
+            vm, &executionContext->coroutineObject);
         nkiFree(vm, arguments);
         nkiVmDeinitExecutionContext(vm, executionContext);
         nkiFree(vm, executionContext);
+        nkiAddError(vm, "Failed to set execution context for coroutine.");
         return;
     }
 

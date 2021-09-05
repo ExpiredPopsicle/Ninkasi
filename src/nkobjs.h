@@ -136,6 +136,10 @@ void *nkiVmObjectGetExternalData(
     struct NKVM *vm,
     struct NKValue *object);
 
+nkbool nkiVmObjectClearExternalDataAndType(
+    struct NKVM *vm,
+    struct NKValue *object);
+
 // VM-teardown function. Does not create table holes.
 void nkiVmObjectTableCleanAllObjects(
     struct NKVM *vm);
