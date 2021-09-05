@@ -535,8 +535,8 @@ void nkiOpcode_call(struct NKVM *vm)
 
                     // Shift everything up the stack.
                     for(i = argumentCount; i >= 1; i--) {
-                        stackValues[(stackSizeMinusArguments + i + 1) | stackMask] =
-                            stackValues[(stackSizeMinusArguments + i) | stackMask];
+                        stackValues[(stackSizeMinusArguments + i + 1) & stackMask] =
+                            stackValues[(stackSizeMinusArguments + i) & stackMask];
                     }
 
                     // Insert the _data contents into the beginning of

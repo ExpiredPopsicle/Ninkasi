@@ -55,8 +55,10 @@ void nkiVmStackInit(struct NKVM *vm, struct NKVMStack *stack)
 
 void nkiVmStackDestroy(struct NKVM *vm, struct NKVMStack *stack)
 {
-    nkiFree(vm, stack->values);
-    nkiMemset(stack, 0, sizeof(struct NKVMStack));
+    if(stack) {
+        nkiFree(vm, stack->values);
+        nkiMemset(stack, 0, sizeof(struct NKVMStack));
+    }
 }
 
 struct NKValue *nkiVmStackPush_internal(struct NKVM *vm)
