@@ -535,15 +535,17 @@ const char *nkxVmGetExternalTypeName(
     return nkiVmGetExternalTypeName(vm, id);
 }
 
-void nkxVmObjectSetExternalType(
+nkbool nkxVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
     NKVMExternalDataTypeID externalType)
 {
+    nkbool ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    nkiVmObjectSetExternalType(vm, object, externalType);
+    ret = nkiVmObjectSetExternalType(vm, object, externalType);
     NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
 }
 
 NKVMExternalDataTypeID nkxVmObjectGetExternalType(
@@ -558,15 +560,17 @@ NKVMExternalDataTypeID nkxVmObjectGetExternalType(
     return ret;
 }
 
-void nkxVmObjectSetExternalData(
+nkbool nkxVmObjectSetExternalData(
     struct NKVM *vm,
     struct NKValue *object,
     void *data)
 {
+    nkbool ret;
     NK_FAILURE_RECOVERY_DECL();
     NK_SET_FAILURE_RECOVERY_VOID();
-    nkiVmObjectSetExternalData(vm, object, data);
+    ret = nkiVmObjectSetExternalData(vm, object, data);
     NK_CLEAR_FAILURE_RECOVERY();
+    return ret;
 }
 
 // No error handler, and no internal allocations. This is a

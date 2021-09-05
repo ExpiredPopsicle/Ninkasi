@@ -454,7 +454,7 @@ void nkxCreateObject(
     struct NKValue *outValue);
 
 /// Set the external type of an object.
-void nkxVmObjectSetExternalType(
+nkbool nkxVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
     NKVMExternalDataTypeID externalType);
@@ -465,7 +465,7 @@ NKVMExternalDataTypeID nkxVmObjectGetExternalType(
     struct NKValue *object);
 
 /// Set a pointer to some external data to associate with this object.
-void nkxVmObjectSetExternalData(
+nkbool nkxVmObjectSetExternalData(
     struct NKVM *vm,
     struct NKValue *object,
     void *data);

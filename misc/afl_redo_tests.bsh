@@ -6,13 +6,18 @@
 # Bring us up to the project root directory.
 cd "$(dirname "$0")/.."
 
-# Make sure we bail out on error.
+# Make sure we bail out on the first error.
 set -e
 
-#for i in crashes/*; do
-#for i in afl_out/*/crashes/*; do
-#for i in afl_in/*; do
-for i in afl_out/*/crashes/* afl_in/* crashes/*; do
+# Find all the new stuff from AFL.
+CRASH_LIST="$(find afl_out | (grep "/crashes/" || true) | (grep -v "README.txt" || true))"
+
+# Add in any saved crashes.
+if [ -e crashes ]; then
+    CRASH_LIST="${CRASH_LIST} $(find crashes | grep crashes/ || true)"
+fi
+
+for i in ${CRASH_LIST}; do
 	echo "CHECKING ERRORS: $i"
 	#valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i >/dev/null
 	# valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all ./a.out $i >/dev/null

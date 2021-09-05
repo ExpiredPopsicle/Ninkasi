@@ -44,7 +44,9 @@
 #ifndef NINKASI_OBJECTS_H
 #define NINKASI_OBJECTS_H
 
+#include "nkfuncid.h"
 #include "nktable.h"
+#include "nkvalue.h"
 
 /// Dumb linked-list for key/value pairs inside of an object.
 struct NKVMObjectElement
@@ -116,7 +118,7 @@ void nkiVmObjectReleaseHandle(struct NKVM *vm, struct NKValue *value);
 
 nkuint32_t nkiVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *value);
 
-void nkiVmObjectSetExternalType(
+nkbool nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
     NKVMExternalDataTypeID externalType);
@@ -125,7 +127,7 @@ NKVMExternalDataTypeID nkiVmObjectGetExternalType(
     struct NKVM *vm,
     struct NKValue *object);
 
-void nkiVmObjectSetExternalData(
+nkbool nkiVmObjectSetExternalData(
     struct NKVM *vm,
     struct NKValue *object,
     void *data);

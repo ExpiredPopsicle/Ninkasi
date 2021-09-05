@@ -44,6 +44,8 @@
 #ifndef NINKASI_VMSTACK_H
 #define NINKASI_VMSTACK_H
 
+#include "nktypes.h"
+
 struct NKValue;
 struct NKVM;
 

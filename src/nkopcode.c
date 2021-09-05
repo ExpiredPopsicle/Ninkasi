@@ -519,13 +519,24 @@ void nkiOpcode_call(struct NKVM *vm)
 
                 if(!overflow) {
 
+                    struct NKVMStack *stack = &(vm->currentExecutionContext->stack);
+                    struct NKValue *stackValues;
+                    nkuint32_t stackSize;
+                    nkuint32_t stackMask;
+                    nkuint32_t stackSizeMinusArguments;
+
                     // Make room for the _data contents on the stack.
                     nkiVmStackPush_internal(vm);
 
+                    stackValues = stack->values;
+                    stackSize = stack->size;
+                    stackMask = stack->indexMask;
+                    stackSizeMinusArguments = stackSize - argumentCount - 2;
+
                     // Shift everything up the stack.
                     for(i = argumentCount; i >= 1; i--) {
-                        vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - argumentCount - 2 + i + 1] =
-                            vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - argumentCount - 2 + i];
+                        stackValues[(stackSizeMinusArguments + i + 1) | stackMask] =
+                            stackValues[(stackSizeMinusArguments + i) | stackMask];
                     }
 
                     // Insert the _data contents into the beginning of
@@ -575,9 +586,15 @@ void nkiOpcode_call(struct NKVM *vm)
     if(funcOb->argumentCount != NK_INVALID_VALUE &&
         funcOb->argumentCount != argumentCount)
     {
+        struct NKDynString *errStr =
+            nkiDynStrCreate(vm, "Incorrect argument count for function call. Expected: ");
+        nkiDynStrAppendUint32(errStr, funcOb->argumentCount);
+        nkiDynStrAppend(errStr, " Found: ");
+        nkiDynStrAppendUint32(errStr, argumentCount);
         nkiAddError(
             vm,
-            "Incorrect argument count for function call.");
+            errStr->data);
+        nkiDynStrDelete(errStr);
         return;
     }
 

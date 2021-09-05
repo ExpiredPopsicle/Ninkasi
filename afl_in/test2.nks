@@ -106,7 +106,7 @@ function foo_bar(self, x, y, z)
 
 foo.bar = foo_bar;
 
-foo.bar(1, 2, 3);
+foo->bar(1, 2, 3);
 
 print(foo.cheese, "\n");
 
@@ -537,13 +537,13 @@ print("Test string: ", subsystemTest_getTestString(), "\n");
 
 print("subsystemTestObject.testField: ", subsystemTestObject.testField, "\n");
 print("subsystemTestObject.testMethod...\n");
-subsystemTestObject.testMethod();
+subsystemTestObject->testMethod();
 subsystemTestObject.testField = "asdfwhatever";
-subsystemTestObject.testMethod();
+subsystemTestObject->testMethod();
 subsystemTestObject.testField = "Another thing!";
-subsystemTestObject.testMethod();
+subsystemTestObject->testMethod();
 subsystemTestObject.testField = "Hey cool, it works!";
-subsystemTestObject.testMethod();
+subsystemTestObject->testMethod();
 
 
 // #file fooblagh

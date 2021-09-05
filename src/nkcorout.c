@@ -96,10 +96,12 @@ void nkiCoroutineLibrary_coroutineSerializeData(
         nkiMemset(context, 0, sizeof(*context));
 
         nkiVmInitExecutionContext(vm, context);
-        nkiVmObjectSetExternalData(
-            vm, objectValue, context);
-        nkiVmObjectSetExternalType(
-            vm, objectValue, vm->internalObjectTypes.coroutine);
+        if(!nkiVmObjectSetExternalData(vm, objectValue, context) ||
+            !nkiVmObjectSetExternalType(vm, objectValue, vm->internalObjectTypes.coroutine))
+        {
+            // Failed to set execution context. Clean it up.
+            nkiFree(vm, context);
+        }
     }
 
     if(!nkiSerializeExecutionContext(

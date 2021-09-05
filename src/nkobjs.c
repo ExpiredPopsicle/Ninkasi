@@ -375,7 +375,7 @@ nkuint32_t nkiVmObjectGetExternalHandleCount(struct NKVM *vm, struct NKValue *va
     return ob->externalHandleCount;
 }
 
-void nkiVmObjectSetExternalType(
+nkbool nkiVmObjectSetExternalType(
     struct NKVM *vm,
     struct NKValue *object,
     NKVMExternalDataTypeID externalType)
@@ -386,7 +386,9 @@ void nkiVmObjectSetExternalType(
     } else {
         nkiAddError(
             vm, "Bad object ID in nkiVmObjectSetExternalType.");
+        return nkfalse;
     }
+    return nktrue;
 }
 
 NKVMExternalDataTypeID nkiVmObjectGetExternalType(
@@ -404,7 +406,7 @@ NKVMExternalDataTypeID nkiVmObjectGetExternalType(
     return ret;
 }
 
-void nkiVmObjectSetExternalData(
+nkbool nkiVmObjectSetExternalData(
     struct NKVM *vm,
     struct NKValue *object,
     void *data)
@@ -415,7 +417,9 @@ void nkiVmObjectSetExternalData(
     } else {
         nkiAddError(
             vm, "Bad object ID in nkiVmObjectSetExternalData.");
+        return nkfalse;
     }
+    return nktrue;
 }
 
 // Note: No error additions or allocations in here, because this must
