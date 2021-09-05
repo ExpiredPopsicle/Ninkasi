@@ -1177,12 +1177,19 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     executionContext->coroutineState = NK_COROUTINE_CREATED;
 
     // Set coroutine object type.
-    nkiVmObjectSetExternalType(
-        vm, &executionContext->coroutineObject,
-        vm->internalObjectTypes.coroutine);
-    nkxVmObjectSetExternalData(
-        vm, &executionContext->coroutineObject,
-        executionContext);
+    if(!nkiVmObjectSetExternalType(
+            vm, &executionContext->coroutineObject,
+            vm->internalObjectTypes.coroutine) ||
+        nkxVmObjectSetExternalData(
+            vm, &executionContext->coroutineObject,
+            executionContext))
+    {
+        nkiAddError(vm, "Failed to set execution context for coroutine.");
+        nkiFree(vm, arguments);
+        nkiVmDeinitExecutionContext(vm, executionContext);
+        nkiFree(vm, executionContext);
+        return;
+    }
 
     // Switch to the new context.
     nkiVmPushExecutionContext(

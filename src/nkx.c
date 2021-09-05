@@ -540,9 +540,9 @@ nkbool nkxVmObjectSetExternalType(
     struct NKValue *object,
     NKVMExternalDataTypeID externalType)
 {
-    nkbool ret;
+    nkbool ret = nkfalse;
     NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
+    NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmObjectSetExternalType(vm, object, externalType);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
@@ -565,9 +565,9 @@ nkbool nkxVmObjectSetExternalData(
     struct NKValue *object,
     void *data)
 {
-    nkbool ret;
+    nkbool ret = nkfalse;
     NK_FAILURE_RECOVERY_DECL();
-    NK_SET_FAILURE_RECOVERY_VOID();
+    NK_SET_FAILURE_RECOVERY(ret);
     ret = nkiVmObjectSetExternalData(vm, object, data);
     NK_CLEAR_FAILURE_RECOVERY();
     return ret;
