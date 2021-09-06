@@ -776,6 +776,15 @@ nkbool nkiCompilerCompileFunctionDefinition(
         nkiCompilerAddError(cs, "Expected '('.");
     }
 
+    // Add the function id itself as a variable inside the function
+    // (because it's on the stack anyway).
+    varTmp = nkiCompilerAddVariable(cs, "_functionId", nktrue, nktrue);
+    // Thanks AFL!
+    if(varTmp) {
+        varTmp->doNotPopWhenOutOfScope = nktrue;
+    }
+    cs->context->stackFrameOffset++;
+
     // Read variable names and skip commas until we get to a closing
     // parenthesis.
     while(nkiCompilerCurrentTokenType(cs) != NK_TOKENTYPE_INVALID) {
@@ -785,10 +794,8 @@ nkbool nkiCompilerCompileFunctionDefinition(
 
             const char *argumentName = nkiCompilerCurrentTokenString(cs);
 
-            // FIXME: Some day, figure out why the heck the variables
-            // are offset +1 in the stack.
-            cs->context->stackFrameOffset++;
             varTmp = nkiCompilerAddVariable(cs, argumentName, nktrue, nktrue);
+            cs->context->stackFrameOffset++;
 
             // Thanks AFL!
             if(varTmp) {
@@ -823,15 +830,6 @@ nkbool nkiCompilerCompileFunctionDefinition(
 
     // Store the function start address on the function object.
     functionObject->firstInstructionIndex = cs->instructionWriteIndex;
-
-    // Add the function id itself as a variable inside the function
-    // (because it's on the stack anyway).
-    varTmp = nkiCompilerAddVariable(cs, "_functionId", nktrue, nktrue);
-    // Thanks AFL!
-    if(varTmp) {
-        varTmp->doNotPopWhenOutOfScope = nktrue;
-    }
-    cs->context->stackFrameOffset++;
 
     // We'll check this against the stored function argument count as
     // part of the CALL instruction, and throw an error if it doesn't
