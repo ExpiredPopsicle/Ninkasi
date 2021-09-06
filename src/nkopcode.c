@@ -541,7 +541,8 @@ void nkiOpcode_call(struct NKVM *vm)
 
                     // Insert the _data contents into the beginning of
                     // the stack.
-                    vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - argumentCount - 1] =
+                    stackValues[
+                        (stackSize - argumentCount - 1) & stackMask] =
                         *callableObjectData;
 
                     // We also have to adjust the _argumentCount
@@ -550,7 +551,7 @@ void nkiOpcode_call(struct NKVM *vm)
                     // won't know how much to pop off when done.
                     nkiValueSetInt(
                         vm,
-                        &vm->currentExecutionContext->stack.values[vm->currentExecutionContext->stack.size - 1],
+                        &stackValues[(stackSize - 1) & stackMask],
                         argumentCount);
 
                 } else {
