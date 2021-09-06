@@ -1180,7 +1180,7 @@ void nkiOpcode_coroutineCreate(struct NKVM *vm)
     if(!nkiVmObjectSetExternalType(
             vm, &executionContext->coroutineObject,
             vm->internalObjectTypes.coroutine) ||
-        nkxVmObjectSetExternalData(
+        !nkiVmObjectSetExternalData(
             vm, &executionContext->coroutineObject,
             executionContext))
     {

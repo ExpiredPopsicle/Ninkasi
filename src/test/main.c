@@ -367,7 +367,6 @@ int main(int argc, char *argv[])
             nkxVmDelete(vm);
             return settings.exitErrorCode;
         }
-
     }
 
     printf("Script loaded. Compiling...\n");

@@ -368,8 +368,7 @@ nkbool nkiSerializeObjectTable(
             // wrapper that would return without deallocating.
             object = (struct NKVMObject *)nkiMalloc(
                 vm, sizeof(struct NKVMObject));
-            nkiMemset(object, 0, sizeof(struct NKVMObject));
-            object->objectTableIndex = index;
+            nkiVmObjectInit(object, index);
 
             // Thanks AFL! Holy crap I'm an idiot for letting this one
             // slide by.

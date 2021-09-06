@@ -90,6 +90,16 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
     return table->objectTable[index];
 }
 
+void nkiVmObjectInit(
+    struct NKVMObject *newObject, nkuint32_t index)
+{
+    nkiMemset(newObject, 0, sizeof(struct NKVMObject));
+    newObject->objectTableIndex = index;
+    newObject->lastGCPass = 0;
+    newObject->externalDataType.id = NK_INVALID_VALUE;
+    newObject->externalData = NULL;
+}
+
 nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVM *vm)
 {
@@ -97,9 +107,9 @@ nkuint32_t nkiVmObjectTableCreateObject(
     nkuint32_t index = NK_INVALID_VALUE;
     struct NKVMObject *newObject = (struct NKVMObject *)nkiMalloc(
         vm, sizeof(struct NKVMObject));
-    nkiMemset(newObject, 0, sizeof(*newObject));
 
     index = nkiTableAddEntry(vm, table, newObject);
+    nkiVmObjectInit(newObject, index);
 
     // Thanks AFL! This check/error might not be needed anymore, but
     // only because we removed the part where we would assign it to
@@ -109,11 +119,6 @@ nkuint32_t nkiVmObjectTableCreateObject(
         nkiFree(vm, newObject);
         return NK_INVALID_VALUE;
     }
-
-    newObject->objectTableIndex = index;
-    newObject->lastGCPass = 0;
-    newObject->externalDataType.id = NK_INVALID_VALUE;
-    newObject->externalData = NULL;
 
     // Tick the garbage collector so we eventually do another GC pass
     // when we have enough new objects.

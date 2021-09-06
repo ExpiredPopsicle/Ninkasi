@@ -56,18 +56,21 @@ void nkiCoroutineLibrary_coroutineGCMark(
         (struct NKVMExecutionContext *)internalData;
     nkuint32_t i;
 
-    // Mark the parent (and let its own coroutineGCMark run at the
-    // appropriate time). Don't process all parents.
-    if(context->parent) {
-        nkiVmGarbageCollect_markValue(
-            gcState, &context->parent->coroutineObject);
-    }
+    if(context) {
 
-    // Mark the entire stack.
-    for(i = 0; i < context->stack.size; i++) {
-        nkiVmGarbageCollect_markValue(
-            gcState,
-            &context->stack.values[i]);
+        // Mark the parent (and let its own coroutineGCMark run at the
+        // appropriate time). Don't process all parents.
+        if(context->parent) {
+            nkiVmGarbageCollect_markValue(
+                gcState, &context->parent->coroutineObject);
+        }
+
+        // Mark the entire stack.
+        for(i = 0; i < context->stack.size; i++) {
+            nkiVmGarbageCollect_markValue(
+                gcState,
+                &context->stack.values[i]);
+        }
     }
 }
 
@@ -77,8 +80,10 @@ void nkiCoroutineLibrary_coroutineGCData(
     struct NKVMExecutionContext *context =
         (struct NKVMExecutionContext *)data;
 
-    nkiVmDeinitExecutionContext(vm, context);
-    nkiFree(vm, context);
+    if(context) {
+        nkiVmDeinitExecutionContext(vm, context);
+        nkiFree(vm, context);
+    }
 }
 
 void nkiCoroutineLibrary_coroutineSerializeData(
@@ -89,6 +94,9 @@ void nkiCoroutineLibrary_coroutineSerializeData(
     struct NKVMExecutionContext *context =
         (struct NKVMExecutionContext *)data;
 
+    // If no context exists, we're in read mode. But that mostly
+    // matters because it means we have to allocate a new object to
+    // store stuff in.
     if(!context) {
         context = (struct NKVMExecutionContext *)nkiMalloc(
             vm, sizeof(struct NKVMExecutionContext));
@@ -105,15 +113,20 @@ void nkiCoroutineLibrary_coroutineSerializeData(
             nkiVmDeinitExecutionContext(vm, context);
             nkiFree(vm, context);
             nkiAddError(vm, "Failed to set execution context for coroutine.");
+            return;
         }
     }
 
-    if(!nkiSerializeExecutionContext(
-        vm, context, nktrue,
-        vm->serializationState.writer,
-        vm->serializationState.userdata,
-        vm->serializationState.writeMode))
-    {
+    if(context) {
+        if(!nkiSerializeExecutionContext(
+                vm, context, nktrue,
+                vm->serializationState.writer,
+                vm->serializationState.userdata,
+                vm->serializationState.writeMode))
+        {
+            nkiAddError(vm, "Coroutine serialization failed.");
+        }
+    } else {
         nkiAddError(vm, "Coroutine serialization failed.");
     }
 
@@ -151,6 +164,11 @@ void nkiVmPushExecutionContext(
     struct NKVM *vm,
     struct NKVMExecutionContext *context)
 {
+    if(!context) {
+        nkiAddError(vm, "Invalid context in nkiVmPushExecutionContext.\n");
+        return;
+    }
+
     if(context->parent) {
         nkiAddError(vm, "Cannot switch to an already-active coroutine.\n");
         return;

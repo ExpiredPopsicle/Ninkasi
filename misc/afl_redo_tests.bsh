@@ -22,11 +22,11 @@ for i in ${CRASH_LIST}; do
 	#valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all src/ninkasi_test $i >/dev/null
 	# valgrind --track-origins=yes --error-exitcode=1 --leak-check=full --show-leak-kinds=all ./a.out $i >/dev/null
 	#valgrind --leak-check=full --track-origins=yes src/ninkasi_test $i
-	#valgrind --error-exitcode=1 src/ninkasi_test $i
+	valgrind --error-exitcode=1 src/ninkasi_test $i
 	#afl-showmap -o trace.txt -c -- src/ninkasi_test $i
 	#afl-showmap -o trace.txt -c -- ./nk2 $i
 	#src/ninkasi_test $i >/dev/null
-	src/ninkasi_test $i
+    #src/ninkasi_test $i
 done
 
 echo "DONE. No crashes found."

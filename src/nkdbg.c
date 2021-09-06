@@ -716,6 +716,8 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
 
 void nkiDbgCheckCoroutines(struct NKVM *vm)
 {
+    // Check every coroutine in the current stack of execution
+    // contexts for consistency.
     struct NKVMExecutionContext *context = vm->currentExecutionContext;
     assert(!vm->rootExecutionContext.parent);
     while(context) {
@@ -733,4 +735,20 @@ void nkiDbgCheckCoroutines(struct NKVM *vm)
         assert(context->coroutineState == NK_COROUTINE_RUNNING);
         context = context->parent;
     }
+
+    // // Check that every single coroutine object has an externalData
+    // // filled.
+    // {
+    //     nkuint32_t i;
+    //     for(i = 0; i < vm->objectTable.capacity; i++) {
+    //         struct NKVMObject *ob = (struct NKVMObject*)vm->objectTable.data[i];
+    //         if(ob) {
+    //             if(ob->externalDataType.id == vm->internalObjectTypes.coroutine.id) {
+    //                 printf("%u\n", ob->externalDataType.id);
+    //                 printf("%u\n", vm->internalObjectTypes.coroutine.id);
+    //                 assert(ob->externalData);
+    //             }
+    //         }
+    //     }
+    // }
 }

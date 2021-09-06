@@ -88,6 +88,9 @@ struct NKVMObject *nkiVmObjectTableGetEntryById(
     struct NKVMTable *table,
     nkuint32_t index);
 
+void nkiVmObjectInit(
+    struct NKVMObject *newObject, nkuint32_t index);
+
 nkuint32_t nkiVmObjectTableCreateObject(
     struct NKVM *vm);
 
