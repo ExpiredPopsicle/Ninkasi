@@ -323,7 +323,6 @@ nkint32_t nkiMemcmp(const void *a, const void *b, nkuint32_t len)
     for(i = 0; i < len; i++) {
         if(pa[i] > pb[i]) return 1;
         if(pa[i] < pb[i]) return -1;
-        i++;
     }
     return 0;
 }
