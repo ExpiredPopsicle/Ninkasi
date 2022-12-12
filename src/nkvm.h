@@ -132,6 +132,10 @@ struct NKVMFilePositionMarker
 
     // Line number the instructions come from.
     nkuint32_t lineNumber;
+
+    // Line number the instructions come from, ignoring #file and
+    // #line directives.
+    nkuint32_t actualLineNumber;
 };
 
 enum NKVMCoroutineState

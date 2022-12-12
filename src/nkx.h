@@ -640,7 +640,7 @@ void nkxGetErrorText(struct NKVM *vm, char *buffer);
 
 /// Dump the entire (known) state of the VM. For comparison when
 /// testing serialized data.
-void nkxDbgDumpState(struct NKVM *vm, FILE *stream);
+void nkxDbgDumpState(struct NKVM *vm, const char *script, FILE *stream);
 
 // ----------------------------------------------------------------------
 // Memory stuff

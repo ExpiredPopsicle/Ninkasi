@@ -132,7 +132,7 @@ void nkiDbgDumpExecutionContext(
     }
 }
 
-void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
+void nkiDbgDumpState(struct NKVM *vm, const char *script, FILE *stream)
 {
     nkuint32_t i;
 
@@ -158,7 +158,7 @@ void nkiDbgDumpState(struct NKVM *vm, FILE *stream)
 
     fprintf(stream, "Instructions:\n");
     fprintf(stream, "  instructionAddressMask: " NK_PRINTF_UINT32 "\n", vm->instructionAddressMask);
-    nkiDbgDumpListing(vm, NULL, stream);
+    nkiDbgDumpListing(vm, script, stream);
 
     fprintf(stream, "String table:\n");
     fprintf(stream, "  capacity: " NK_PRINTF_UINT32 "\n", vm->stringTable.capacity);
@@ -618,9 +618,9 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
 
     // FIXME: (markers) Debug source code output is broken.
 
-    // nkuint32_t lastLine = 0;
-    // nkuint32_t lineCount = script ? nkiDbgCountLines(script) : 0;
-    // const char *linePtr = script;
+    nkuint32_t lastLine = 0;
+    nkuint32_t lineCount = script ? nkiDbgCountLines(script) : 0;
+    const char *linePtr = script;
 
     char lineBuf[80];
     char paramBuf[80];
@@ -673,38 +673,37 @@ void nkiDbgDumpListing(struct NKVM *vm, const char *script, FILE *stream)
             // of the introduction of file/line markers, and probably
             // since the introduction of file/line stuff entirely.
 
-            // if(linePtr) {
+            if(linePtr) {
 
-            //     struct NKVMFilePositionMarker *marker =
-            //         nkiVmFindSourceMarker(vm, i);
+                struct NKVMFilePositionMarker *marker =
+                    nkiVmFindSourceMarker(vm, i);
 
-            //     if(marker && lastLine < marker->lineNumber && lastLine < lineCount) {
+                if(marker && lastLine < marker->actualLineNumber && lastLine < lineCount) {
 
-            //         while(lastLine < marker->lineNumber && lastLine < lineCount) {
+                    while(lastLine < marker->actualLineNumber && lastLine < lineCount) {
 
-            //             // Add the source code to this line and print
-            //             // it.
-            //             nkiDbgPadLine(sizeof(lineBuf)/2, lineBuf, ' ');
-            //             nkiDbgAppendLine(sizeof(lineBuf), lineBuf, " ; ");
-            //             nkiDbgAppendLine(sizeof(lineBuf), lineBuf, linePtr);
-            //             fprintf(stream, "%s\n", lineBuf);
+                        // Add the source code to this line and print
+                        // it.
+                        nkiDbgPadLine(sizeof(lineBuf)/2, lineBuf, ' ');
+                        nkiDbgAppendLine(sizeof(lineBuf), lineBuf, " ; ");
+                        nkiDbgAppendLine(sizeof(lineBuf), lineBuf, linePtr);
+                        fprintf(stream, "%s\n", lineBuf);
 
-            //             // Move to the next line. Clear the lineBuf in
-            //             // case we have multiple source lines for this
-            //             // one line of assembly.
-            //             linePtr = nkiDbgGetNextLine(linePtr);
-            //             lastLine++;
-            //             lineBuf[0] = 0;
-            //         }
+                        // Move to the next line. Clear the lineBuf in
+                        // case we have multiple source lines for this
+                        // one line of assembly.
+                        linePtr = nkiDbgGetNextLine(linePtr);
+                        lastLine++;
+                        lineBuf[0] = 0;
+                    }
 
-            //     } else {
+                } else {
 
-            //         fprintf(stream, "%s\n", lineBuf);
+                    fprintf(stream, "%s\n", lineBuf);
 
-            //     }
+                }
 
-            // } else
-            {
+            } else {
 
                 fprintf(stream, "%s\n", lineBuf);
 

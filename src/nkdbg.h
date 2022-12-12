@@ -49,10 +49,11 @@
 #include <stdio.h>
 
 struct NKVMTable;
+struct NKVM;
 
 /// Dump the entire (known) state of the VM. For comparison when
 /// testing serialized data.
-void nkiDbgDumpState(struct NKVM *vm, FILE *stream);
+void nkiDbgDumpState(struct NKVM *vm, const char *script, FILE *stream);
 
 /// Verify that the holes in the string table match the entries that
 /// are actually NULL, but no more and no less.

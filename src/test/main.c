@@ -449,6 +449,9 @@ int main(int argc, char *argv[])
 
     } else {
 
+        assert(script);
+        nkxDbgDumpState(vm, script, stdout);
+
         printf("----------------------------------------------------------------------\n");
         printf("  Execution begin\n");
         printf("----------------------------------------------------------------------\n");

@@ -77,6 +77,8 @@ void nkiCompilerAddInstruction(
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;
 
+    
+
     // Adjust stack frame offset, if necessary.
     if(adjustStackFrame && cs->context) {
         cs->context->stackFrameOffset +=
@@ -907,10 +909,12 @@ struct NKToken *nkiCompilerNextToken(struct NKCompilerState *cs)
 
                 cs->currentLineNumber = cs->currentToken->lineNumber;
                 cs->currentFileIndex = cs->currentToken->fileIndex;
+                cs->currentActualLineNumber = cs->currentToken->actualLineNumber;
 
                 newMarker.fileIndex = cs->currentToken->fileIndex;
                 newMarker.lineNumber = cs->currentToken->lineNumber;
                 newMarker.instructionIndex = cs->instructionWriteIndex;
+                newMarker.actualLineNumber = cs->currentToken->actualLineNumber;
 
                 cs->vm->positionMarkerList =
                     (struct NKVMFilePositionMarker*)nkiReallocArray(
@@ -1049,6 +1053,7 @@ struct NKCompilerState *nkiCompilerCreate(
     cs->currentToken = NULL;
     cs->currentLineNumber = 0;
     cs->currentFileIndex = NK_INVALID_VALUE;
+    cs->currentActualLineNumber = 0;
 
     cs->staticVariableCount = 0;
 

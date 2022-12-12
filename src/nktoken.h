@@ -45,6 +45,7 @@
 #define NINKASI_TOKENIZE_H
 
 #include "nkenums.h"
+#include "nktypes.h"
 
 struct NKVM;
 
@@ -55,6 +56,9 @@ struct NKToken
     struct NKToken *next;
     nkint32_t lineNumber;
     nkuint32_t fileIndex;
+
+    // Actual line number, ignoring #file and #line directives.
+    nkint32_t actualLineNumber;
 };
 
 struct NKTokenList
@@ -72,6 +76,7 @@ void nkiCompilerAddToken(
     const char *str,
     nkint32_t lineNumber,
     nkuint32_t fileIndex,
+    nkint32_t actualLineNumber,
     struct NKTokenList *tokenList);
 nkbool nkiCompilerTokenize(
     struct NKVM *vm,
