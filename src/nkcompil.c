@@ -404,7 +404,7 @@ nkbool nkiCompilerExpectAndSkipToken(
     do {                                            \
         if(!nkiCompilerExpectAndSkipToken(cs, x)) { \
             nkiCompilerPopRecursion(cs);            \
-            return nkfalse;                           \
+            return nkfalse;                         \
         }                                           \
     } while(0)
 
