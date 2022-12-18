@@ -840,6 +840,9 @@ nkbool nkiCompilerEmitExpressionAssignment(struct NKCompilerState *cs, struct NK
         } break;
 
         default: {
+            // FIXME: For post increment/decrement, this spits out the
+            // wrong value. Possibly related to the generated nodes we
+            // make for it.
             struct NKDynString *dynStr =
                 nkiDynStrCreate(cs->vm, "Operator or value cannot be used to generate an LValue: ");
             nkiDynStrAppend(dynStr, node->children[0]->opOrValue->str);

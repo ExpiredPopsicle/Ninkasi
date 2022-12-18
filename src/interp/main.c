@@ -189,6 +189,73 @@ void printFunc(struct NKVMFunctionCallbackData *data)
     }
 }
 
+void stringGetASCII(struct NKVMFunctionCallbackData *data)
+{
+    struct NKValue *string = &data->arguments[0];
+    struct NKValue *index =  &data->arguments[1];
+
+    const char *cstring = nkxValueToString(data->vm, string);
+
+    char outString[2] = { 0, 0 };
+    nkint32_t indexAsInt = nkxValueToInt(data->vm, index);
+
+    if(indexAsInt < 0 || indexAsInt >= strlen(cstring)) {
+        nkxAddError(data->vm, "String ASCII index out of range!");
+        return;
+    }
+
+    outString[0] = cstring[indexAsInt];
+
+    nkxValueSetString(
+        data->vm,
+        &data->returnValue,
+        outString);
+}
+
+void stringGetLengthASCII(struct NKVMFunctionCallbackData *data)
+{
+    struct NKValue *string = &data->arguments[0];
+    const char *cstring = nkxValueToString(data->vm, string);
+
+    nkxValueSetInt(
+        data->vm,
+        &data->returnValue,
+        strlen(cstring));
+}
+
+void loadFile(struct NKVMFunctionCallbackData *data)
+{
+    const char *filename = nkxValueToString(
+        data->vm, &data->arguments[0]);
+
+    FILE *inFile = fopen(filename, "rb");
+    size_t fileSize;
+
+    if(!inFile) {
+        nkxAddError(data->vm, "Cannot open file.");
+        return;
+    }
+
+    fseek(inFile, 0, SEEK_END);
+    fileSize = ftell(inFile);
+    fseek(inFile, 0, SEEK_SET);
+
+    char *buf = malloc(fileSize + 1);
+
+    fread(buf, fileSize, 1, inFile);
+    buf[fileSize] = 0;
+
+    fclose(inFile);
+
+    nkxValueSetString(
+        data->vm,
+        &data->returnValue,
+        buf);
+
+    free(buf);
+}
+
+
 // This just sets up IO functions in the VM.
 void setupStdio(struct NKVM *vm, struct NKCompilerState *compiler)
 {
@@ -200,6 +267,25 @@ void setupStdio(struct NKVM *vm, struct NKCompilerState *compiler)
         vm, compiler, "print",
         printFunc, nktrue,
         NK_INVALID_VALUE);
+
+    nkxVmSetupExternalFunction(
+        vm, compiler, "stringGetASCII",
+        stringGetASCII, nktrue,
+        2,
+        NK_VALUETYPE_STRING,
+        NK_VALUETYPE_INT);
+
+    nkxVmSetupExternalFunction(
+        vm, compiler, "stringGetLengthASCII",
+        stringGetLengthASCII, nktrue,
+        1,
+        NK_VALUETYPE_STRING);
+
+    nkxVmSetupExternalFunction(
+        vm, compiler, "loadFile",
+        loadFile, nktrue,
+        1,
+        NK_VALUETYPE_STRING);
 
     // FIXME: This program might actually be useful if we had some way
     // of doing input instead of just output.

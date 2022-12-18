@@ -55,7 +55,7 @@ struct NKVMString
     nkbool dontGC;
     nkuint32_t hash;
 
-    // Must be last. We're going to allocated VMStrings with enough
+    // Must be last. We're going to allocate VMStrings with enough
     // extra space that we can treat this array as an
     // arbitrarily-sized one, with the data extending off the end of
     // the structure.
