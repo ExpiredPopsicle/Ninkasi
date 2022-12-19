@@ -268,7 +268,7 @@ void scanFileDirectives(const char *script)
         if(strlen(lines[i]) >= strlen(memFailPct)) {
             if(memcmp(lines[i], memFailPct, strlen(memFailPct)) == 0) {
                 nkiMemFailRate = atol(lines[i] + strlen(memFailPct));
-                printf("Setting mem fail rate: " NK_PRINTF_UINT32 "\n", nkiMemFailRate);
+                writeLog(1, "Setting mem fail rate: " NK_PRINTF_UINT32 "\n", nkiMemFailRate);
             }
         }
     }

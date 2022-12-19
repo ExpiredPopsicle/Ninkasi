@@ -55,6 +55,7 @@
 //    1 - (default) Startup/shutdown stuff from the test harness.
 //    2 - Extra stuff that interrupts script output and look messy as
 //        heck.
+//    3 - All of the above, plus state dumps before and after.
 void writeLog(int verbosity, const char *format, ...);
 void writeError(const char *format, ...);
 

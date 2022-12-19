@@ -272,7 +272,7 @@ char *loadScript(const char *filename, nkuint32_t *scriptSize)
 nkbool checkErrors(struct NKVM *vm)
 {
     if(!vm) {
-        fprintf(stderr, "Error: VM has gone missing.\n");
+        writeError("Error: VM has gone missing.\n");
         return nktrue;
     }
 
@@ -282,8 +282,8 @@ nkbool checkErrors(struct NKVM *vm)
         char *buf = (char*)malloc(errorBufLen);
         nkxGetErrorText(vm, buf);
 
-        fprintf(stderr, "Errors detected:\n");
-        fprintf(stderr, "%s\n", buf);
+        writeError("Errors detected:\n");
+        writeError("%s\n", buf);
 
         free(buf);
 
@@ -327,7 +327,7 @@ int main(int argc, char *argv[])
     }
 
     if(!script) {
-        fprintf(stderr, "Script failed to even load.\n");
+        writeError("Script failed to even load.\n");
         return 1;
     }
 
@@ -336,7 +336,7 @@ int main(int argc, char *argv[])
     if(checkErrors(vm)) {
         free(script);
         nkxVmDelete(vm);
-        printf("Failed to create VM!\n");
+        writeError("Failed to create VM!\n");
         return getGlobalSettings()->exitErrorCode;
     }
 
@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    printf("Script loaded. Compiling...\n");
+    writeLog(1, "Script loaded. Compiling...\n");
 
     if(getGlobalSettings()->compileOnly) {
 
@@ -433,8 +433,7 @@ int main(int argc, char *argv[])
         }
 
         if(!outputFilename) {
-            fprintf(
-                stderr,
+            writeError(
                 "Cannot determine output file for %s.\n",
                 getGlobalSettings()->filename);
             free(script);
@@ -451,7 +450,7 @@ int main(int argc, char *argv[])
 
         out = fopen(outputFilename, "wb+");
         if(!out) {
-            fprintf(stderr,
+            writeError(
                 "Cannot open %s for writing.\n",
                 outputFilename);
             return 1;
@@ -465,11 +464,13 @@ int main(int argc, char *argv[])
     } else {
 
         assert(script);
-        nkxDbgDumpState(vm, script, stdout);
+        if(getGlobalSettings()->verbosity >= 3) {
+            nkxDbgDumpState(vm, script, stdout);
+        }
 
-        printf("----------------------------------------------------------------------\n");
-        printf("  Execution begin\n");
-        printf("----------------------------------------------------------------------\n");
+        writeLog(1, "----------------------------------------------------------------------\n");
+        writeLog(1, "  Execution begin\n");
+        writeLog(1, "----------------------------------------------------------------------\n");
 
         if(!nkxVmHasErrors(vm)) {
 
@@ -520,7 +521,7 @@ int main(int argc, char *argv[])
                 if(serializerCounter == 0) {
                     vm = testSerializer(vm);
                     if(!vm || checkErrors(vm)) {
-                        printf("testSerializer failed\n");
+                        writeError("testSerializer failed\n");
                         break;
                     }
                     serializerCounter =
@@ -531,25 +532,25 @@ int main(int argc, char *argv[])
 
                 // Bail out on errors.
                 if(nkxGetErrorCount(vm)) {
-                    printf("An error occurred.\n");
+                    writeError("An error occurred.\n");
                     break;
                 }
             }
         }
 
-        printf("----------------------------------------------------------------------\n");
-        printf("  Execution end\n");
-        printf("----------------------------------------------------------------------\n");
+        writeLog(1, "----------------------------------------------------------------------\n");
+        writeLog(1, "  Execution end\n");
+        writeLog(1, "----------------------------------------------------------------------\n");
 
         // Example of searching for a global variable in the
         // VM.
         if(vm) {
             struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
-            printf("Searched for readMeFromC variable...\n  ");
+            writeLog(1, "Searched for readMeFromC variable...\n  ");
             if(v) {
-                printf("Value found: %s\n", nkxValueToString(vm, v));
+                writeLog(1, "Value found: %s\n", nkxValueToString(vm, v));
             } else {
-                printf("Value NOT found.\n");
+                writeLog(1, "Value NOT found.\n");
             }
         }
 
@@ -560,25 +561,26 @@ int main(int argc, char *argv[])
         }
     }
 
-    // printf("Final dumpstate before GC...\n");
-    // nkxDbgDumpState(vm, stdout);
+    // if(getGlobalSettings()->verbosity >= 3) {
+    //     printf("Final dumpstate before GC...\n");
+    //     nkxDbgDumpState(vm, stdout);
+    // }
 
-    printf("Final garbage collection pass...\n");
+    writeLog(1, "Final garbage collection pass...\n");
     nkxVmGarbageCollect(vm);
 
-    printf("Final shrink pass...\n");
+    writeLog(1, "Final shrink pass...\n");
     nkxVmShrink(vm);
 
-    printf("Final dumpstate...\n");
-    nkxDbgDumpState(vm, script, stdout);
+    if(getGlobalSettings()->verbosity >= 3) {
+        writeLog(1, "Final dumpstate...\n");
+        nkxDbgDumpState(vm, script, stdout);
+    }
 
-    // printf("Final stack again...\n");
-    // nkiVmStackDump(vm);
-
-    printf("Final serialized state...\n");
+    writeLog(1, "Final serialized state...\n");
     if(nkxVmHasAllocationFailure(vm)) {
 
-        printf("Error was allocation error. Skipping serialization.\n");
+       writeLog(1, "Error was allocation error. Skipping serialization.\n");
 
     } else {
 
@@ -587,40 +589,40 @@ int main(int argc, char *argv[])
 
         struct WriterTestBuffer buf;
         memset(&buf, 0, sizeof(buf));
-        printf("Serializing...\n");
+        writeLog(1, "Serializing...\n");
 
         serializerSuccess = nkxVmSerialize(vm, writerTest, &buf, nktrue);
         dumpBufChecksum(&buf);
 
         if(!serializerSuccess) {
-            printf("Error occurred during serialization. 1\n");
+            writeError("Error occurred during serialization.\n");
             free(buf.data);
             free(script);
             nkxVmDelete(vm);
             return getGlobalSettings()->exitErrorCode;
         }
 
-        printf("Performing final deserialization test...\n");
+        writeLog(1, "Performing final deserialization test...\n");
         newVm = nkxVmCreate();
         initInternalFunctions(newVm, NULL);
         serializerSuccess = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
         if(!serializerSuccess) {
-            printf("Deserialization of previously serialized VM state failed!\n");
+            writeError("Deserialization of previously serialized VM state failed!\n");
         } else {
-            printf("Success!\n");
+            writeLog(1, "Success!\n");
         }
 
-        printf("Cleaning up after deserialization test...\n");
+        writeLog(1, "Cleaning up after deserialization test...\n");
         nkxVmDelete(newVm);
         free(buf.data);
     }
 
-    printf("Peak memory usage:    " NK_PRINTF_UINT32 "\n", nkxVmGetPeakMemoryUsage(vm));
-    printf("Current memory usage: " NK_PRINTF_UINT32 "\n", nkxVmGetCurrentMemoryUsage(vm));
+    writeLog(1, "Peak memory usage:    " NK_PRINTF_UINT32 "\n", nkxVmGetPeakMemoryUsage(vm));
+    writeLog(1, "Current memory usage: " NK_PRINTF_UINT32 "\n", nkxVmGetCurrentMemoryUsage(vm));
 
-    printf("Cleaning up main VM...\n");
+    writeLog(1, "Cleaning up main VM...\n");
     nkxVmDelete(vm);
-    printf("Done!\n");
+    writeLog(1, "Done!\n");
 
     free(script);
 

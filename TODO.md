@@ -31,6 +31,8 @@
 - Test harness cleanup.
 - TODOs cleanup.
 - Compiler warning system.
-- Verbosity settings for test harness.
-x Command line instruction count limit for test harness.
 - Check for examples of external-to-internal calls.
+
+# Done stuff
+- Verbosity settings for test harness.
+- Command line instruction count limit for test harness.
