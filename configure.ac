@@ -1,5 +1,5 @@
-AC_PREREQ([2.69])
-AC_INIT(ninkasi, 0.4, expiredpopsicle@gmail.com)
+AC_PREREQ([2.71])
+AC_INIT([ninkasi],[0.4],[expiredpopsicle@gmail.com])
 AC_CONFIG_SRCDIR([src/nkopt.h])
 AM_INIT_AUTOMAKE([subdir-objects])
 
@@ -22,5 +22,6 @@ AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset strdup])
 
 AC_CONFIG_FILES([Makefile pkg-config/ninkasi.pc])
-AC_OUTPUT(src/Makefile test/Makefile pkg-config/Makefile)
+AC_CONFIG_FILES([src/Makefile test/Makefile pkg-config/Makefile])
+AC_OUTPUT
 

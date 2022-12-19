@@ -41,20 +41,21 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_TEST_STUFF_H
-#define NINKASI_TEST_STUFF_H
+#ifndef NINKASI_TEST_LOGGING_H
+#define NINKASI_TEST_LOGGING_H
 
 #include "../nkx.h"
+#include <stdarg.h>
 
-void testHandle1(struct NKVMFunctionCallbackData *data);
-void testHandle2(struct NKVMFunctionCallbackData *data);
-void vmFuncPrint(struct NKVMFunctionCallbackData *data);
-void doGCCallbackThing(struct NKVMFunctionCallbackData *data);
-void setGCCallbackThing(struct NKVMFunctionCallbackData *data);
-void testVMFunc(struct NKVMFunctionCallbackData *data);
-void testVMCatastrophe(struct NKVMFunctionCallbackData *data);
-void getHash(struct NKVMFunctionCallbackData *data);
+// Check verbosity and write to stdout.
+//
+// Verbosity levels:
+//   -1 - Print nothing.
+//    0 - Intentional output from the script.
+//    1 - (default) Startup/shutdown stuff from the test harness.
+//    2 - Extra stuff that interrupts script output and look messy as
+//        heck.
+void writeLog(int verbosity, const char *format, ...);
+void writeError(const char *format, ...);
 
-void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs);
-
-#endif // NINKASI_TEST_STUFF_H
+#endif // NINKASI_TEST_LOGGING_H

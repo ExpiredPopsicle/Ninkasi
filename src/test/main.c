@@ -51,6 +51,7 @@
 #include "subtest.h"
 #include "stuff.h"
 #include "settings.h"
+#include "logging.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -83,7 +84,18 @@ nkuint32_t adler32(void *data, nkuint32_t size)
 
 void dumpBufChecksum(struct WriterTestBuffer *buf)
 {
-    printf("Saved state checksum: " NK_PRINTF_UINT32 "\n", adler32(buf->data, buf->size));
+    writeLog(2, "Saved state checksum: " NK_PRINTF_UINT32 "\n", adler32(buf->data, buf->size));
+}
+
+void dumpBufHex(int verbosity, void *data, nkuint32_t size)
+{
+    const char charMap[17] = { "0123456789abcdef" };
+    nkuint32_t i = 0;
+    for(i = 0; i < size; i++) {
+        const char *c = (const char *)data + i;
+        writeLog(verbosity, "%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
+    }
+    writeLog(verbosity, "\n");
 }
 
 nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
@@ -94,36 +106,28 @@ nkbool writerTest(void *data, nkuint32_t size, void *userdata, nkbool writeMode)
 
         if(writeMode) {
 
+            // Writing path.
             nkuint32_t oldSize = testBuf->size;
             testBuf->size += size;
             testBuf->data = (char*)realloc(testBuf->data, testBuf->size);
             if(!testBuf->data) {
-                fprintf(stderr, "Realloc failure to size: " NK_PRINTF_UINT32 "\n", testBuf->size);
+                writeError("Realloc failure to size: " NK_PRINTF_UINT32 "\n", testBuf->size);
                 assert(testBuf->data);
             }
             memcpy(testBuf->data + oldSize, data, size);
 
         } else {
 
+            // Loading path.
             if(size <= testBuf->size - testBuf->readPtr) {
                 memcpy(data, testBuf->data + testBuf->readPtr, size);
                 testBuf->readPtr += size;
             } else {
-                printf("END OF BUFFER!\n");
+                writeError("Premature end of buffer!\n");
                 return nkfalse;
             }
         }
     }
-
-    // {
-    //     const char charMap[17] = { "0123456789abcdef" };
-    //     nkuint32_t i = 0;
-    //     for(i = 0; i < size; i++) {
-    //         const char *c = (const char *)data + i;
-    //         printf("%c%c", charMap[(*c & 0xf0) >> 4], charMap[*c & 0xf]);
-    //     }
-    //     printf("\n");
-    // }
 
     return nktrue;
 }
@@ -148,40 +152,59 @@ nkuint32_t getVmStateChecksum(struct NKVM *vm)
     return checksum;
 }
 
-struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
+// Copy limits from the command line settings in the Settings struct
+// to the VM.
+void setVmLimits(
+    struct NKVM *vm)
 {
-    nkuint32_t oldInstructionLimit = nkxGetRemainingInstructionLimit(vm);
+    nkxSetMaxAllocatedMemory(
+        vm, getGlobalSettings()->maxMemory);
+    nkxSetRemainingInstructionLimit(
+        vm, getGlobalSettings()->instructionCountLimit);
+}
+
+struct NKVM *testSerializer(struct NKVM *vm)
+{
+    // This will get reset with the new VM so record it so we can set
+    // it back.
+    nkuint32_t oldInstructionLimit =
+        nkxGetRemainingInstructionLimit(vm);
+
+    // Output buffer.
     struct WriterTestBuffer buf;
     memset(&buf, 0, sizeof(buf));
 
-    printf("----------------------------------------------------------------------\n");
+    writeLog(2, "Testing serializer...\n");
 
-    printf("Testing serializer...\n");
+    writeLog(2, "Garbage collecting before serializing...\n");
+    nkxVmGarbageCollect(vm);
+    writeLog(2, "Shrinking serializing...\n");
+    nkxVmShrink(vm);
 
     {
-        nkbool c = nkxVmSerialize(vm, writerTest, &buf, nktrue);
+        nkbool serializerSuccess =
+            nkxVmSerialize(vm, writerTest, &buf, nktrue);
         dumpBufChecksum(&buf);
 
-        if(!c) {
-            printf("Error occurred during serialization. 2\n");
+        if(!serializerSuccess) {
+            writeError("Error occurred during serialization.\n");
             free(buf.data);
             nkxVmDelete(vm);
-            printf("----------------------------------------------------------------------\n");
             return NULL;
         }
     }
 
     {
         struct NKVM *newVm = nkxVmCreate();
-        nkxSetMaxAllocatedMemory(newVm, settings->maxMemory);
+        setVmLimits(newVm);
         initInternalFunctions(newVm, NULL);
 
-        printf("Deserializing...\n");
+        writeLog(2, "Deserializing...\n");
         {
             nkbool b = nkxVmSerialize(newVm, writerTest, &buf, nkfalse);
             if(!b) {
-                printf("Deserialization of previously serialized VM state failed.\n");
-                printf("Deleting new VM...\n");
+                writeLog(2, "Deserialization of previously serialized VM state failed.\n");
+                writeLog(2, "Deleting new VM...\n");
                 nkxVmDelete(newVm);
                 newVm = NULL;
             }
@@ -191,12 +214,12 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
             // deserializing are totally reversible.
             if(b) {
                 nkuint32_t checksum = getVmStateChecksum(newVm);
-                printf("Deserialize checksum: " NK_PRINTF_UINT32 "\n", checksum);
+                writeLog(2, "Deserialize checksum: " NK_PRINTF_UINT32 "\n", checksum);
             }
 
         }
 
-        printf("Deleting old VM...\n");
+        writeLog(2, "Deleting old VM...\n");
 
         nkxVmDelete(vm);
 
@@ -205,8 +228,7 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 
     free(buf.data);
 
-    printf("----------------------------------------------------------------------\n");
-
+    // Restore old instruction count limit.
     if(vm) {
         nkxSetRemainingInstructionLimit(vm, oldInstructionLimit);
     }
@@ -217,41 +239,12 @@ struct NKVM *testSerializer(struct NKVM *vm, struct Settings *settings)
 // ----------------------------------------------------------------------
 // Script loaders
 
-char *loadScript(const char *filename, nkuint32_t *scriptSize)
-{
-    FILE *in = fopen(filename, "rb");
-    nkuint32_t len;
-    char *buf;
-
-    if(!in) {
-        return NULL;
-    }
-
-    fseek(in, 0, SEEK_END);
-    len = ftell(in);
-    fseek(in, 0, SEEK_SET);
-
-    buf = (char*)malloc(len + 1);
-    fread(buf, len, 1, in);
-    buf[len] = 0;
-
-    fclose(in);
-
-    if(scriptSize) {
-        *scriptSize = len;
-    }
-
-    printf("Loaded script with checksum: " NK_PRINTF_UINT32 "\n", adler32(buf, len));
-
-    return buf;
-}
-
-char *loadScriptFromStdin(nkuint32_t *scriptSize)
+char *loadScriptFromStream(nkuint32_t *scriptSize, FILE *in)
 {
     size_t bufSize = 256;
     size_t scriptLen = 0;
     char *buf = (char*)malloc(bufSize);
-    while(fread(&buf[scriptLen], 1, 1, stdin) > 0) {
+    while(fread(&buf[scriptLen], 1, 1, in) > 0) {
         scriptLen++;
         buf[scriptLen] = 0;
         if(scriptLen + 1 >= bufSize) {
@@ -262,6 +255,14 @@ char *loadScriptFromStdin(nkuint32_t *scriptSize)
     if(scriptSize) {
         *scriptSize = scriptLen;
     }
+    return buf;
+}
+
+char *loadScript(const char *filename, nkuint32_t *scriptSize)
+{
+    FILE *in = fopen(filename, "rb");
+    char *buf = loadScriptFromStream(scriptSize,in);
+    fclose(in);
     return buf;
 }
 
@@ -296,25 +297,33 @@ nkbool checkErrors(struct NKVM *vm)
 
 int main(int argc, char *argv[])
 {
-    struct Settings settings;
     char *script = NULL;
     nkuint32_t scriptSize = 0;
     struct NKVM *vm = NULL;
 
-    if(!parseCmdLine(argc, argv, &settings)) {
+    if(!parseCmdLine(argc, argv)) {
         return 1;
     }
 
-    // Load script file.
-    if(settings.filename) {
-        if(strcmp(settings.filename, "-") == 0) {
-            script = loadScriptFromStdin(&scriptSize);
+    // Load script file or standard input.
+    if(getGlobalSettings()->filename) {
+
+        if(strcmp(getGlobalSettings()->filename, "-") == 0) {
+            // "-" as a filename means load from stdin.
+            script = loadScriptFromStream(&scriptSize, stdin);
         } else {
-            script = loadScript(settings.filename, &scriptSize);
+            // Load from an actual file.
+            script = loadScript(getGlobalSettings()->filename, &scriptSize);
         }
+
     } else {
-        fprintf(stderr, "No input file specified.\n");
-        return 1;
+
+        // Default to loading from stdin.
+        script = loadScriptFromStream(&scriptSize, stdin);
+
+        // Filename is still used internally, and freed from heap at
+        // the end.
+        getGlobalSettings()->filename = strdup("");
     }
 
     if(!script) {
@@ -322,33 +331,36 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // Create the VM (for the first time.)
     vm = nkxVmCreate();
     if(checkErrors(vm)) {
         free(script);
         nkxVmDelete(vm);
-        return settings.exitErrorCode;
+        printf("Failed to create VM!\n");
+        return getGlobalSettings()->exitErrorCode;
     }
 
-    nkxSetMaxAllocatedMemory(vm, settings.maxMemory);
+    setVmLimits(vm);
 
     // NKVM binary blobs start with \0.
     if(script && script[0] != 0) {
 
         struct NKCompilerState *cs;
 
-        scanFileDirectives(script, &settings);
+        scanFileDirectives(script);
 
         // Compile the script.
         cs = nkxCompilerCreate(vm);
         if(cs) {
             initInternalFunctions(vm, cs);
-            nkxCompilerCompileScript(cs, script, settings.filename);
+            nkxCompilerCompileScript(
+                cs, script, getGlobalSettings()->filename);
             nkxCompilerFinalize(cs);
         }
         if(checkErrors(vm)) {
             free(script);
             nkxVmDelete(vm);
-            return settings.exitErrorCode;
+            return getGlobalSettings()->exitErrorCode;
         }
 
     } else {
@@ -365,23 +377,23 @@ int main(int argc, char *argv[])
         if(!nkxVmSerialize(vm, writerTest, &buf, nkfalse)) {
             free(script);
             nkxVmDelete(vm);
-            return settings.exitErrorCode;
+            return getGlobalSettings()->exitErrorCode;
         }
     }
 
     printf("Script loaded. Compiling...\n");
 
-    if(settings.compileOnly) {
+    if(getGlobalSettings()->compileOnly) {
 
         FILE *out = NULL;
         struct WriterTestBuffer buf;
         char *outputFilename = NULL;
 
-        if(settings.filename) {
+        if(getGlobalSettings()->filename) {
 
             char *newFilename = NULL;
             const char *oldFilename =
-                settings.filename ? settings.filename :
+                getGlobalSettings()->filename ? getGlobalSettings()->filename :
                 "stdin.nks";
 
             // Attempt to determine the extension by starting from
@@ -415,16 +427,19 @@ int main(int argc, char *argv[])
         // If our input is another nkb file, then I guess we
         // should do file.nkb.nkb. Maybe we can diff the files and
         // make sure they come out the same again.
-        if(!strcmp(outputFilename, settings.filename)) {
+        if(!strcmp(outputFilename, getGlobalSettings()->filename)) {
             outputFilename = (char*)realloc(outputFilename, strlen(outputFilename) + 1 + 4);
             strcat(outputFilename, ".nkb");
         }
 
         if(!outputFilename) {
-            fprintf(stderr, "Cannot determine output file for %s.\n", settings.filename);
+            fprintf(
+                stderr,
+                "Cannot determine output file for %s.\n",
+                getGlobalSettings()->filename);
             free(script);
             nkxVmDelete(vm);
-            return settings.exitErrorCode;
+            return getGlobalSettings()->exitErrorCode;
         }
 
         buf.data = NULL;
@@ -458,12 +473,10 @@ int main(int argc, char *argv[])
 
         if(!nkxVmHasErrors(vm)) {
 
-            nkuint32_t serializerCounter = settings.serializerTestFrequency;
-            nkuint32_t shrinkCounter = settings.shrinkFrequency;
-
-            // TODO: Give this value a command line parameter.
-            nkxSetRemainingInstructionLimit(vm, (1024L * 1024L));
-            // nkxSetRemainingInstructionLimit(vm, NK_INVALID_VALUE);
+            nkuint32_t serializerCounter =
+                getGlobalSettings()->serializerTestFrequency;
+            nkuint32_t shrinkCounter =
+                getGlobalSettings()->shrinkFrequency;
 
             while(!nkxVmProgramHasEnded(vm)) {
 
@@ -498,30 +511,20 @@ int main(int argc, char *argv[])
                 // intervals.
                 if(shrinkCounter == 0) {
                     nkxVmShrink(vm);
-                    shrinkCounter = settings.shrinkFrequency;
+                    shrinkCounter = getGlobalSettings()->shrinkFrequency;
                 } else {
                     shrinkCounter--;
                 }
 
                 // Test the serializer at intervals.
                 if(serializerCounter == 0) {
-
-                    nkxVmGarbageCollect(vm);
-
-                    nkxVmShrink(vm);
-
-                    // FIXME: This was screwing up our diffs because
-                    // of the pointer value. Find a better solution.
-
-                    // printf("vm before testserializer: %p\n", vm);
-
-                    vm = testSerializer(vm, &settings);
+                    vm = testSerializer(vm);
                     if(!vm || checkErrors(vm)) {
                         printf("testSerializer failed\n");
                         break;
                     }
-                    serializerCounter = settings.serializerTestFrequency;
-
+                    serializerCounter =
+                        getGlobalSettings()->serializerTestFrequency;
                 } else {
                     serializerCounter--;
                 }
@@ -532,28 +535,28 @@ int main(int argc, char *argv[])
                     break;
                 }
             }
-
-            // Example of searching for a global variable in the
-            // VM.
-            if(vm) {
-                struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
-                printf("Searched for readMeFromC variable...\n  ");
-                if(v) {
-                    printf("Value found: %s\n", nkxValueToString(vm, v));
-                } else {
-                    printf("Value NOT found.\n");
-                }
-            }
         }
 
         printf("----------------------------------------------------------------------\n");
         printf("  Execution end\n");
         printf("----------------------------------------------------------------------\n");
 
+        // Example of searching for a global variable in the
+        // VM.
+        if(vm) {
+            struct NKValue *v = nkxVmFindGlobalVariable(vm, NULL, "readMeFromC");
+            printf("Searched for readMeFromC variable...\n  ");
+            if(v) {
+                printf("Value found: %s\n", nkxValueToString(vm, v));
+            } else {
+                printf("Value NOT found.\n");
+            }
+        }
+
         if(checkErrors(vm)) {
             free(script);
             nkxVmDelete(vm);
-            return settings.exitErrorCode;
+            return getGlobalSettings()->exitErrorCode;
         }
     }
 
@@ -566,8 +569,8 @@ int main(int argc, char *argv[])
     printf("Final shrink pass...\n");
     nkxVmShrink(vm);
 
-    // printf("Final dumpstate...\n");
-    // nkxDbgDumpState(vm, stdout);
+    printf("Final dumpstate...\n");
+    nkxDbgDumpState(vm, script, stdout);
 
     // printf("Final stack again...\n");
     // nkiVmStackDump(vm);
@@ -594,7 +597,7 @@ int main(int argc, char *argv[])
             free(buf.data);
             free(script);
             nkxVmDelete(vm);
-            return settings.exitErrorCode;
+            return getGlobalSettings()->exitErrorCode;
         }
 
         printf("Performing final deserialization test...\n");

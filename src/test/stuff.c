@@ -44,6 +44,7 @@
 #include "../nkx.h"
 #include "subtest.h"
 #include "stuff.h"
+#include "logging.h"
 
 #include <stdio.h>
 #include <assert.h>
@@ -71,98 +72,20 @@ void vmFuncPrint(struct NKVMFunctionCallbackData *data)
     nkuint32_t i;
 
     for(i = 0; i < data->argumentCount; i++) {
-        // printf("\033[1m%s\033[0m", nkxValueToString(data->vm, &data->arguments[i]));
-        printf("%s", nkxValueToString(data->vm, &data->arguments[i]));
+        writeLog(0, nkxValueToString(data->vm, &data->arguments[i]));
     }
 }
 
-// // This should probably be tracked separately for each VM.
-// static NKVMExternalFunctionID doGCCallbackThing_id;
-
-void doGCCallbackThing(struct NKVMFunctionCallbackData *data)
-{
-    // TODO: Add standard argument count handler.
-    if(data->argumentCount != 1) {
-        nkxAddError(
-            data->vm,
-            "Bad argument count in doGCCallbackThing.");
-        return;
-    }
-
-    // {
-    //     struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
-    //     if(id.id != NK_INVALID_VALUE) {
-    //         printf("This thing isn't a basic object!\n");
-    //         return;
-    //     }
-    // }
-
-    assert(data->argumentCount == 1);
-    printf("GC callback called.\n");
-    {
-        NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
-        // if(strcmp(nkxVmGetExternalTypeName(vm, id), "footype")) {
-        //     printf("This thing isn't a basic object!\n");
-        //     return;
-        // }
-        printf("GCing external of type %s\n", nkxVmGetExternalTypeName(data->vm, id));
-    }
-
-    {
-        char *externalData = (char*)nkxVmObjectGetExternalData(data->vm, &data->arguments[0]);
-        printf("GCing external data: %s\n", externalData);
-        // free(externalData);
-    }
-}
-
+// FIXME: Remove this (and remove reference in test code.)
 void setGCCallbackThing(struct NKVMFunctionCallbackData *data)
 {
-    // if(data->argumentCount != 1) {
-    //     nkiAddError(
-    //         data->vm,
-    //         -1, "Bad argument count in setGCCallbackThing.");
-    //     return;
-    // }
-
-    // assert(data->argumentCount == 1);
-    // printf("Setting GC callback.\n");
-
-    // doGCCallbackThing_id =
-    //     nkxVmRegisterExternalFunction(data->vm, "doGCCallbackThing", doGCCallbackThing);
-
-    // {
-    //     struct NKVMExternalDataTypeID id = nkxVmObjectGetExternalType(data->vm, &data->arguments[0]);
-    //     if(id.id != NK_INVALID_VALUE) {
-    //         printf("This thing isn't a basic object!\n");
-    //         return;
-    //     }
-    // }
-
-    // nkxVmObjectSetGarbageCollectionCallback(
-    //     data->vm, &data->arguments[0], doGCCallbackThing_id);
-
-    // nkxVmObjectSetExternalData(data->vm, &data->arguments[0], "butts");
-
-    // {
-    //     NKVMExternalFunctionID serializationCallbackId = nkxVmRegisterExternalFunction(
-    //         data->vm, "doSerializationCallbackThing", doSerializationCallbackThing);
-    //     nkxVmObjectSetSerializationCallback(
-    //         data->vm, &data->arguments[0], serializationCallbackId);
-    // }
-
-    // {
-    //     NKVMExternalDataTypeID id = nkxVmRegisterExternalType(data->vm, "footype");
-    //     printf("Registered external type %s\n", nkxVmGetExternalTypeName(data->vm, id));
-    //     nkxVmObjectSetExternalType(data->vm, &data->arguments[0], id);
-    // }
 }
 
-void testSubsystemCleanup(struct NKVMFunctionCallbackData *data)
-{
-}
-
+// Test calling back into a function from a callback.
 void testVMFunc(struct NKVMFunctionCallbackData *data)
 {
+    nkuint32_t i;
+
     // Thanks AFL!
     static nkuint32_t recursionCounter = 0;
     if(recursionCounter > 32) {
@@ -170,15 +93,18 @@ void testVMFunc(struct NKVMFunctionCallbackData *data)
     }
     recursionCounter++;
 
-    // nkuint32_t i;
-    printf("testVMFunc hit!\n");
-    // for(i = 0; i < data->argumentCount; i++) {
-    //     printf("Argument %d: %s\n", i,
-    //         nkxValueToString(data->vm, &data->arguments[i]));
-    // }
+    writeLog(0, "testVMFunc hit!\n");
 
+    // Dump all the extra parameters, for funsies.
+    for(i = 0; i < data->argumentCount; i++) {
+        writeLog(0, "Argument %d: %s\n", i,
+            nkxValueToString(data->vm, &data->arguments[i]));
+    }
+
+    // Test return value.
     data->returnValue.intData = 565656;
 
+    // Make sure we have the function argument.
     if(data->argumentCount != 1) {
         nkxAddError(
             data->vm,
@@ -186,9 +112,16 @@ void testVMFunc(struct NKVMFunctionCallbackData *data)
         return;
     }
 
-    nkxVmCallFunction(data->vm, &data->arguments[0], 0, NULL, &data->returnValue);
+    // Test calling back into the VM.
+    nkxVmCallFunction(
+        data->vm,
+        &data->arguments[0],
+        0, NULL, &data->returnValue);
 
-    printf("Got data back from VM: %s\n", nkxValueToString(data->vm, &data->returnValue));
+    // Print out whatever return value we got.
+    writeLog(
+        0, "Got data back from VM: %s\n",
+        nkxValueToString(data->vm, &data->returnValue));
 }
 
 void testVMCatastrophe(struct NKVMFunctionCallbackData *data)
@@ -221,16 +154,11 @@ void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs)
     nkxVmRegisterExternalFunction(vm, "hash2", getHash);
     nkxVmRegisterExternalFunction(vm, "testHandle1", testHandle1);
     nkxVmRegisterExternalFunction(vm, "testHandle2", testHandle2);
+
+    // FIXME: Remove this (and remove reference in test code.)
     nkxVmRegisterExternalFunction(vm, "setGCCallbackThing", setGCCallbackThing);
 
-    // FIXME: FIX THE DEMO. DON'T REGISTER THIS LATE.
-    nkxVmRegisterExternalFunction(vm, "doGCCallbackThing", doGCCallbackThing);
-
     nkxVmRegisterExternalType(vm, "footype", NULL, NULL, NULL);
-
-    // nkxSetExternalSubsystemCleanupCallback(vm, "testSubsystem", testSubsystemCleanup);
-    // nkxSetExternalSubsystemSerializationCallback(vm, "testSubsystem", testSubsystemSerialize);
-    // nkxSetExternalSubsystemData(vm, "testSubsystem", "ASDFASDFASDFASDFASDFASDF");
 
     if(cs) {
 

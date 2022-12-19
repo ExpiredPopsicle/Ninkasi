@@ -46,6 +46,13 @@
 #include <string.h>
 #include <stdlib.h>
 
+static struct Settings globalSettings;
+
+struct Settings *getGlobalSettings()
+{
+    return &globalSettings;
+}
+
 void printHelp(const char *argv0, nkbool isError)
 {
     FILE *stream = isError ? stderr : stdout;
@@ -67,6 +74,9 @@ void printHelp(const char *argv0, nkbool isError)
         "  -ee <num>   Set the return code to use on non-fatal errors. Defauts to 0.\n"
         "              (We expect scripts to fail in fuzzing, but not the VM to\n"
         "              break.)\n"
+        "  -il <count> Set the instruction count limit. (Only checked during garbage\n"
+        "              collection.\n"
+        "  -v <level>  Set the verbosity level of output (default: 1).\n"
         "  --help      You just stepped in it.\n"
         "  --          Use this to indicate that the filename may contain a dash so\n"
         "              it does not get confused for an option. No more options may\n"
@@ -79,10 +89,11 @@ void printHelp(const char *argv0, nkbool isError)
 extern nkuint32_t nkiMemFailRate;
 #endif // NK_MALLOC_FAILURE_TEST_MODE
 
-nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
+nkbool parseCmdLine(int argc, char *argv[])
 {
     int i;
     nkbool noMoreSwitches = nkfalse;
+    struct Settings *settings = &globalSettings;
 
     // Set up some nice defaults.
     memset(settings, 0, sizeof(*settings));
@@ -94,6 +105,13 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
     // doing.
     settings->serializerTestFrequency = 1100;
     settings->shrinkFrequency = 1024;
+
+    // Default to disabling the instruction count limit feature.
+    settings->instructionCountLimit = NK_INVALID_VALUE;
+
+    // Default level of verbosity shows startup/shutdown messages, but
+    // not console spam when running.
+    settings->verbosity = 1;
 
     for(i = 1; i < argc; i++) {
 
@@ -152,6 +170,26 @@ nkbool parseCmdLine(int argc, char *argv[], struct Settings *settings)
                 settings->exitErrorCode = atoi(argv[i]);
             } else {
                 fprintf(stderr, "Missing parameter for -ee.\n");
+                return nkfalse;
+            }
+
+        } else if(strcmp("-il", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+                settings->instructionCountLimit = atoi(argv[i]);
+            } else {
+                fprintf(stderr, "Missing parameter for -il.\n");
+                return nkfalse;
+            }
+
+        } else if(strcmp("-v", argv[i]) == 0) {
+
+            i++;
+            if(i < argc) {
+                settings->verbosity = atoi(argv[i]);
+            } else {
+                fprintf(stderr, "Missing parameter for -v.\n");
                 return nkfalse;
             }
 
@@ -215,7 +253,7 @@ char **splitLines(const char *str, nkuint32_t *lineCount)
     return lines;
 }
 
-void scanFileDirectives(const char *script, struct Settings *settings)
+void scanFileDirectives(const char *script)
 {
   #if NK_MALLOC_FAILURE_TEST_MODE
     // First, scan for some directives. We want the random

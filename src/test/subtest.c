@@ -55,6 +55,7 @@
 // functions.
 
 #include "subtest.h"
+#include "logging.h"
 
 #include "../nkx.h"
 
@@ -178,8 +179,7 @@ void subsystemTest_debugOnly_exitCheck(void)
 
     // Dump all still-allocated blocks.
     while(header) {
-        fprintf(
-            stderr,
+        writeError(
             "Block still allocated: %p: %s\n",
             header + 1,
             header->description);
@@ -187,8 +187,7 @@ void subsystemTest_debugOnly_exitCheck(void)
     }
 
     if(subsystemTest_debugOnly_dataCount) {
-        fprintf(
-            stderr,
+        writeError(
             "Debug data count: " NK_PRINTF_UINT32 "\n",
             subsystemTest_debugOnly_dataCount);
     }
@@ -303,7 +302,7 @@ void subsystemTest_widgetCreate(struct NKVMFunctionCallbackData *data)
             }
 
             internalData->widgetCount++;
-            printf("Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
+            writeLog(2, "Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
 
         }
     }
@@ -413,7 +412,7 @@ void subsystemTest_widgetGCData(struct NKVM *vm, struct NKValue *val, void *data
         if(widgetData) {
             subsystemTest_freeWrapper(widgetData);
             internalData->widgetCount--;
-            printf("Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
+            writeLog(2, "Widget count now: " NK_PRINTF_UINT32 "\n", internalData->widgetCount);
         }
     }
 }
@@ -422,10 +421,7 @@ void subsystemTest_widgetGCMark(
     struct NKVM *vm, struct NKValue *value,
     void *internalData, struct NKVMGCState *gcState)
 {
-    // FIXME: Screwing up our diffs.
-    //
-    // printf("Widget marked by GC: %p\n", internalData);
-    printf("Widget marked by GC\n");
+    writeLog(2, "Widget marked by GC.\n");
 
     // FIXME: This is redundant, because it's marking itself. This is
     // an example of a call to nkxVmGarbageCollect_markValue, which
@@ -486,14 +482,14 @@ void subsystemTest_printTestString(struct NKVMFunctionCallbackData *data)
             data->vm, "subsystemTest");
 
     if(internalData) {
-        printf("subsystemTest_print: %s\n", internalData->testString);
+        writeLog(0, "subsystemTest_print: %s\n", internalData->testString);
     }
 }
 
 void subsystemTest_widget_selfCallTest(struct NKVMFunctionCallbackData *data)
 {
-    printf("Widget self-call test...\n");
-    printf("  Argument count: " NK_PRINTF_UINT32 "\n", data->argumentCount);
+    writeLog(0, "Widget self-call test...\n");
+    writeLog(0, "  Argument count: " NK_PRINTF_UINT32 "\n", data->argumentCount);
 
     {
         struct NKValue testDataId;
@@ -502,7 +498,7 @@ void subsystemTest_widget_selfCallTest(struct NKVMFunctionCallbackData *data)
         testData = nkxVmObjectFindOrAddEntry(
             data->vm, &data->arguments[0], &testDataId, nktrue);
         if(testData) {
-            printf("  Test data: %s\n", nkxValueToString(data->vm, testData));
+            writeLog(0, "  Test data: %s\n", nkxValueToString(data->vm, testData));
         }
     }
 }
@@ -515,7 +511,7 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
     struct SubsystemTest_InternalData *systemData =
         (struct SubsystemTest_InternalData*)internalData;
 
-    printf("subsystemTest_cleanup\n");
+    writeLog(2, "subsystemTest_cleanup\n");
 
     if(systemData) {
 
@@ -527,12 +523,12 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
             // nkx functions that can still operate when the
             // out-of-memory error flag is set.
             void *objectExternalData = nkxVmObjectGetExternalData(vm, &ob);
-            printf("Object found for cleanup: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 "\n",
+            writeLog(2, "Object found for cleanup: " NK_PRINTF_UINT32 " - " NK_PRINTF_UINT32 "\n",
                 ob.objectId, index);
             subsystemTest_freeWrapper(objectExternalData);
 
             systemData->widgetCount--;
-            printf("(Cleanup) Widget count now: " NK_PRINTF_UINT32 "\n", systemData->widgetCount);
+            writeLog(2, "(Cleanup) Widget count now: " NK_PRINTF_UINT32 "\n", systemData->widgetCount);
         }
 
         // Free all of our internal data that's not attached to single
@@ -542,7 +538,7 @@ void subsystemTest_cleanup(struct NKVM *vm, void *internalData)
 
     } else {
 
-        printf("systemData not found!\n");
+        writeError("systemData not found!\n");
 
     }
 
@@ -622,10 +618,7 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
 {
     struct SubsystemTest_InternalData *internalData = NULL;
 
-    // FIXME: Screwing up our diffs.
-    //
-    // printf("subsystemTest: Initializing on VM: %p\n", vm);
-    printf("subsystemTest: Initializing on VM\n");
+    writeLog(2, "subsystemTest: Initializing on VM\n");
 
     subsystemTest_registerExitCheck();
 
@@ -658,7 +651,9 @@ void subsystemTest_initLibrary(struct NKVM *vm, struct NKCompilerState *cs)
         subsystemTest_widgetGCData,
         subsystemTest_widgetGCMark);
 
-    nkxVmSetupExternalFunction(vm, cs, "subsystemTest_setTestString", subsystemTest_setTestString,
+    nkxVmSetupExternalFunction(
+        vm, cs, "subsystemTest_setTestString",
+        subsystemTest_setTestString,
         nktrue,
         1,
         NK_VALUETYPE_STRING);

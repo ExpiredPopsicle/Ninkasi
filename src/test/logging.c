@@ -41,20 +41,28 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
-#ifndef NINKASI_TEST_STUFF_H
-#define NINKASI_TEST_STUFF_H
+#include "logging.h"
+#include "settings.h"
+#include <stdio.h>
 
-#include "../nkx.h"
+void writeLog(int verbosity, const char *format, ...)
+{
+    if(verbosity <= getGlobalSettings()->verbosity) {
+        va_list args;
+        va_start(args, format);
 
-void testHandle1(struct NKVMFunctionCallbackData *data);
-void testHandle2(struct NKVMFunctionCallbackData *data);
-void vmFuncPrint(struct NKVMFunctionCallbackData *data);
-void doGCCallbackThing(struct NKVMFunctionCallbackData *data);
-void setGCCallbackThing(struct NKVMFunctionCallbackData *data);
-void testVMFunc(struct NKVMFunctionCallbackData *data);
-void testVMCatastrophe(struct NKVMFunctionCallbackData *data);
-void getHash(struct NKVMFunctionCallbackData *data);
+        vprintf(format, args);
 
-void initInternalFunctions(struct NKVM *vm, struct NKCompilerState *cs);
+        va_end(args);
+    }
+}
 
-#endif // NINKASI_TEST_STUFF_H
+void writeError(const char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+
+    vfprintf(stderr, format, args);
+
+    va_end(args);
+}

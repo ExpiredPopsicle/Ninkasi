@@ -21,3 +21,16 @@
 # C++ API?
 - Operator overloading for easy NKValue manipulation is difficult
   without extra tracking of which objects go to which VM.
+
+# Stream 2022-12-18
+- Switch internal string format from to null-terminated to just storing length.
+  - We'll still have to keep the null terminator, or at least room for it, like std::string.
+- String encoding/decoding.
+- String indexing.
+- Start peeling away setjmp/longjmp use.
+- Test harness cleanup.
+- TODOs cleanup.
+- Compiler warning system.
+- Verbosity settings for test harness.
+x Command line instruction count limit for test harness.
+- Check for examples of external-to-internal calls.

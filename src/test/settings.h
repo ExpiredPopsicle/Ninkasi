@@ -53,18 +53,18 @@ struct Settings
     nkuint32_t maxMemory;
     nkuint32_t serializerTestFrequency;
     nkuint32_t shrinkFrequency;
+    nkuint32_t instructionCountLimit;
+    nkint32_t verbosity;
     int exitErrorCode;
-
-    // FIXME: Add cycle limit.
 };
 
+struct Settings *getGlobalSettings();
+
 nkbool parseCmdLine(
-    int argc, char *argv[],
-    struct Settings *settings);
+    int argc, char *argv[]);
 
 void scanFileDirectives(
-    const char *scriptText,
-    struct Settings *settings);
+    const char *scriptText);
 
 #endif // NINKASI_TEST_SETTINGS_H
 
