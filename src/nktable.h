@@ -71,11 +71,5 @@ void nkiTableEraseEntry(struct NKVM *vm, struct NKVMTable *table, nkuint32_t ind
 nkuint32_t nkiTableAddEntry(struct NKVM *vm, struct NKVMTable *table, void *entryData);
 void nkiTableShrink(struct NKVM *vm, struct NKVMTable *table);
 
-// Mostly-internal stuff. FIXME: Only exposed because of massive code
-// duplication between string and object tables. Remove global
-// visibility when all of that is consolidated.
-void nkiTableCreateHole(struct NKVM *vm, struct NKVMTable *table, nkuint32_t holeIndex);
-void nkiTableResetHoles(struct NKVM *vm, struct NKVMTable *table);
-
 #endif // NINKASI_TABLE_H
 
