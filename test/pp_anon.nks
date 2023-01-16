@@ -1,46 +1,31 @@
+// Anonymous function tests.
+
+// Call inline function directly.
 function() {
     print("ASDFmdclkmdlksdclksdls,dcl;,\n");
 }();
 
+// Should do nothing.
 1 + 2 + 3;
 
-
+// Anonymous function assigned to variable and called.
 var test = function() { print("HOLY SHIT\n"); };
-
 test();
 
+// Should do nothing.
 1 + 2 + 3;
 
-
-
+// Call an inline function directly.
 function() {
     print("ASDF\n");
 }();
 
+// Normal function declaration.
 function foo()
 {
     print("ASDF\n");
 }
 
+// Anonymous function assigned to variable (equivalent to above).
 var foo2 = function() {
 };
-
-
-
-// # test [ blagh
-
-// #somedirective "foo\"butts"
-//#somedirective foo butts
-//#somedirective 
-//#somedirective
-//#somedirective "
-//#somedirective "asdf
-
-
-// # this "is a quoted string with \"quotes\" inside of it" // And a comment
-// # this starts with a space
-
-#file butts
-
-#line 123456
-//thijnsckjsdckdsckjsdc

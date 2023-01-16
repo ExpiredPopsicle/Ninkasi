@@ -1,3 +1,8 @@
+// Infinite recursion through a C callback test.
+//
+// Works only with test harness.
+//
+// Expected result: Stack overflow runtime error (handled).
 
 function foobar()
 {

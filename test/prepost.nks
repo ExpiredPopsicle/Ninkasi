@@ -1,5 +1,4 @@
-// ----------------------------------------------------------------------
-// Pre/post increment/decrement tests
+// Pre/post increment/decrement tests.
 
 var i = 0;
 print("i:   ", i, "\n");

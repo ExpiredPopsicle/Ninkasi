@@ -1,4 +1,6 @@
-
+// Coroutine abuse test.
+//
+// Test for the REPL to see how it handles errors inside a coroutine.
 
 function crtestfunc(a) { yield(); print(500 / a); yield(); }
 

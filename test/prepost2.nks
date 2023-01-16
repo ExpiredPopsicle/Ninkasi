@@ -1,3 +1,7 @@
+// Pre/post increment/decrement test.
+//
+// This one should fail with a compile error.
+
 var k = 0;
 ++k++;
 
