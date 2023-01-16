@@ -40,10 +40,12 @@
 
 # Stream 2022-01-15
 - Modify test harness to use the FIXED file loading code from interp.
-- Create actual VM functions to handle all the weird stuff we did in
+x Create actual VM functions to handle all the weird stuff we did in
   the interpreter for error handling in the REPL.
 - FSE for is_coroutine_finished.
 - Make malloc failure in REPL not-resumable.
-- Figure out what the heck to do with coroutine execution context when an error occurs.
-  - Take coroutine objects and turn them into NILs for everything in
+x Figure out what the heck to do with coroutine execution context when an error occurs.
+  n Take coroutine objects and turn them into NILs for everything in
     the execution context stack?
+- Restore old compile flags.
+- Disable extra fancy leak tracking.

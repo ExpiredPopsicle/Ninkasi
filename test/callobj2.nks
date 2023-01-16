@@ -1,0 +1,16 @@
+
+var ob = newobject;
+ob._exec = function(foo, recursion) {
+    print("foo: ", foo, "\n");
+    if(recursion > 0) {
+        print("functionId:    ", _functionId, "\n"); // (foo, recursion - 1);
+        print("returnPointer: ", _returnPointer, "\n"); // (foo, recursion - 1);
+        print("argumentCount: ", _argumentCount, "\n"); // (foo, recursion - 1);
+        _functionId(recursion - 1);
+    }
+};
+ob._data = "blah blah blah";
+ob(10);
+
+print(ob._exec);
+

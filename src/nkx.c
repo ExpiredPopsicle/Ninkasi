@@ -331,6 +331,12 @@ void nkxCompilerClearReplErrorState(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+nkuint32_t nkxCompilerGetInstructionWriteIndex(
+    struct NKCompilerState *cs)
+{
+    return cs->instructionWriteIndex;
+}
+
 const char *nkxValueToString(struct NKVM *vm, struct NKValue *value)
 {
     NK_FAILURE_RECOVERY_DECL();

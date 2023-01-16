@@ -1,0 +1,13 @@
+
+
+function crtestfunc(a) { yield(); print(500 / a); yield(); }
+
+var crtest = coroutine(crtestfunc, 0);
+
+while(1) { resume(crtest); }
+
+while(1) { resume(crtest); }
+
+while(1) { resume(crtest); }
+
+print("\n\ncan we do this?\n\n");

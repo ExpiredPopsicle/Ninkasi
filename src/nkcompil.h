@@ -237,7 +237,6 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error);
 nkbool nkiCompilerPushRecursion(struct NKCompilerState *cs);
 void nkiCompilerPopRecursion(struct NKCompilerState *cs);
 
-
 // ----------------------------------------------------------------------
 // REPL-relevant stuff.
 

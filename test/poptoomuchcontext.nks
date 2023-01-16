@@ -1,0 +1,11 @@
+print("Foo\n");
+{
+    print("Bar\n");
+}
+print("Whatever\n");
+}
+}
+}
+}
+}
+print("Whatever2\n");

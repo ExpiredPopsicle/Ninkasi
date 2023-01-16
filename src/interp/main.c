@@ -55,10 +55,6 @@
 #include <string.h>
 #include <malloc.h>
 
-// FIXME: Remove this!
-#include "../nkcompil.h"
-#include "../nkvm.h"
-
 // This gets filled with information in parseCmdLine.
 struct Settings
 {
@@ -69,7 +65,7 @@ struct Settings
 // Dump the --help text to stdout.
 void showHelp(const char *argv0)
 {
-    printf("Usage: %s <script filename>\n\n", argv0);
+    printf("Usage: %s [script filename]\n\n", argv0);
 
     printf(
         "Ninkasi Command Line Interpreter 0.01\n"
@@ -88,11 +84,6 @@ void showHelp(const char *argv0)
 int parseCmdLine(int argc, char *argv[], struct Settings *settings)
 {
     int i;
-
-    // if(argc < 2) {
-    //     fprintf(stderr, "error: No filename given.\n");
-    //     return 0;
-    // }
 
     for(i = 1; i < argc; i++) {
 
@@ -126,43 +117,8 @@ int parseCmdLine(int argc, char *argv[], struct Settings *settings)
     return 1;
 }
 
-// // This loads a file into a heap-allocated buffer. Returns NULL on
-// // error.
-// char *loadScript(const char *filename)
-// {
-//     FILE *in = fopen(filename, "rb");
-//     long len;
-//     char *buf;
-
-//     if(!in) {
-//         fprintf(stderr, "error: Failed to open %s.\n", filename);
-//         return NULL;
-//     }
-
-//     fseek(in, 0, SEEK_END);
-//     len = ftell(in);
-//     fseek(in, 0, SEEK_SET);
-
-//     if(len + 1 <= 0) {
-//         fprintf(stderr, "error: Bad file length.\n");
-//         return NULL;
-//     }
-
-//     buf = (char*)malloc(len + 1);
-
-//     if(!buf) {
-//         fprintf(stderr, "error: malloc() failed when loading script.\n");
-//         return NULL;
-//     }
-
-//     fread(buf, len, 1, in);
-//     buf[len] = 0;
-
-//     fclose(in);
-
-//     return buf;
-// }
-
+// This loads a file into a heap-allocated buffer. Returns NULL on
+// error.
 char *loadScriptFromStream(nkuint32_t *scriptSize, FILE *in, nkbool stopOnNewline)
 {
     size_t bufSize = 256;
@@ -181,14 +137,19 @@ char *loadScriptFromStream(nkuint32_t *scriptSize, FILE *in, nkbool stopOnNewlin
 
         (*scriptSize)++;
 
+        // Add null terminator immediately.
         buf[*scriptSize] = 0;
 
-        if(*scriptSize + 2 >= bufSize) {
+        // Reallocate input buffer if necessary.
+        if(*scriptSize + 1 >= bufSize) {
 
+            // Double buffer size.
             bufSize <<= 1;
 
-            char *newBuf = (char*)realloc(buf, bufSize+2);
+            // Allocate.
+            char *newBuf = (char*)realloc(buf, bufSize);
 
+            // Handle allocation failure.
             if(!newBuf) {
                 free(buf);
                 buf = NULL;
@@ -199,8 +160,9 @@ char *loadScriptFromStream(nkuint32_t *scriptSize, FILE *in, nkbool stopOnNewlin
             buf = newBuf;
         }
 
+        // Sometimes we just want to read up until the next newline.
         if(buf[*scriptSize - 1] == '\n' && stopOnNewline) {
-            return buf;
+            break;
         }
     }
 
@@ -372,20 +334,22 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // No filename? Put us into REPL-mode.
     if(!settings.scriptFilename) {
-        settings.replMode = nktrue;
-    }
 
-    if(!settings.replMode) {
+        // No filename? Put us into REPL-mode.
+        settings.replMode = nktrue;
+
+    } else {
+
+        // File name exists. Load it.
         scriptText = loadScript(settings.scriptFilename, &scriptSize);
         if(!scriptText) {
             // Script failed to load.
+            fprintf(stderr, "error: Script failed to load.\n");
             return 1;
         }
-    }
 
-    // At this point we should have a loaded script file.
+    }
 
     // Create the VM and compiler.
     vm = nkxVmCreate();
@@ -400,7 +364,7 @@ int main(int argc, char *argv[])
 
         while(1) {
 
-            nkuint32_t oldWritePointer = 0;
+            nkuint32_t oldWritePointer = nkxCompilerGetInstructionWriteIndex(compiler);
 
             // Read text.
             printf("\n>>> ");
@@ -413,33 +377,39 @@ int main(int argc, char *argv[])
                 break;
             }
 
-            // Compile and append executable code.
-
-            // FIXME: Remove this! Replace it with an actual interface!
-            oldWritePointer = compiler->instructionWriteIndex;
-
+            // Attempt to compile new code.
             nkxCompilerCompileScript(compiler, scriptText, "<stdin>");
             free(scriptText);
 
+            // Finalize and run.
             if(checkNoErrors(vm)) {
-                // Finalize and run.
                 nkxCompilerPartiallyFinalize(compiler);
                 nkxVmIterate(vm, NK_UINT_MAX);
             }
 
+            // Dump errors, if necessary.
             if(!checkNoErrors(vm)) {
-
                 printErrors(vm);
                 nkxCompilerClearReplErrorState(
                     compiler, oldWritePointer);
             }
+
+            // Abort on allocation failures.
+            if(nkxVmHasAllocationFailure(vm)) {
+                fprintf(stderr, "error: Allocation failure detected. Aborting.\n");
+                break;
+            }
         }
 
     } else {
+
+        // Just run the script.
         nkxCompilerCompileScript(compiler, scriptText, settings.scriptFilename);
+
     }
 
-    // Done compiling. Finalize everything.
+    // Done compiling. Finalize everything. This also frees the
+    // compiler state.
     nkxCompilerFinalize(compiler);
 
     // Check for compile errors.

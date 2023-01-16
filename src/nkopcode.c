@@ -1285,6 +1285,11 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
             (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
                 vm, &coroutine);
 
+        if(context->coroutineState == NK_COROUTINE_INVALID) {
+            nkiAddError(vm, "Tried to resume an invalid coroutine.");
+            return;
+        }
+
         if(context) {
 
             // If the coroutine has finished, just return a nil

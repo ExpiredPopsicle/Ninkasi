@@ -592,10 +592,16 @@ void nkxCompilerPartiallyFinalize(struct NKCompilerState *cs);
 nkbool nkxCompilerIsAtRootContext(struct NKCompilerState *cs);
 
 // Attempt to clear out the error state of the VM and restore it to a
-// point where it can be executed again.
+// point where it can be executed again. instructionPointerReset is
+// where to reset the instruction pointer to.
 void nkxCompilerClearReplErrorState(
     struct NKCompilerState *cs,
     nkuint32_t instructionPointerReset);
+
+// Get the index of the instruction write pointer, so it can be reset
+// to this later in case of an error.
+nkuint32_t nkxCompilerGetInstructionWriteIndex(
+    struct NKCompilerState *cs);
 
 // ----------------------------------------------------------------------
 // Serializer

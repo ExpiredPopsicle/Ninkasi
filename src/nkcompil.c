@@ -1676,13 +1676,19 @@ void nkiCompilerClearReplErrorState(
         struct NKVMExecutionContext *context = cs->vm->currentExecutionContext;
         struct NKVMExecutionContext *parent = context->parent;
 
+        // Reset the context.
         nkiVmDeinitExecutionContext(cs->vm, context);
         nkiVmInitExecutionContext(cs->vm, context);
 
+        // Stop if we're at the root execution context.
         if(!parent) {
             break;
         }
 
+        // Mark it as invalid, so we can't resume it.
+        context->coroutineState = NK_COROUTINE_INVALID;
+
+        // Move up to the next execution context.
         cs->vm->currentExecutionContext = parent;
     }
 

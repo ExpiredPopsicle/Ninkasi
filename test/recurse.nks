@@ -1,0 +1,7 @@
+
+function foobar()
+{
+    cfunc(foobar);
+}
+
+foobar();
