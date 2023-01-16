@@ -301,6 +301,36 @@ void nkxCompilerFinalize(
     NK_CLEAR_FAILURE_RECOVERY();
 }
 
+void nkxCompilerPartiallyFinalize(
+    struct NKCompilerState *cs)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    struct NKVM *vm = cs->vm;
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiCompilerPartiallyFinalize(cs);
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
+nkbool nkxCompilerIsAtRootContext(
+    struct NKCompilerState *cs)
+{
+    return nkiCompilerIsAtRootContext(cs);
+}
+
+void nkxCompilerClearReplErrorState(
+    struct NKCompilerState *cs,
+    nkuint32_t instructionPointerReset)
+{
+    NK_FAILURE_RECOVERY_DECL();
+    struct NKVM *vm = cs->vm;
+    NK_SET_FAILURE_RECOVERY_VOID();
+    nkiCompilerClearReplErrorState(
+        cs,
+        instructionPointerReset);
+
+    NK_CLEAR_FAILURE_RECOVERY();
+}
+
 const char *nkxValueToString(struct NKVM *vm, struct NKValue *value)
 {
     NK_FAILURE_RECOVERY_DECL();

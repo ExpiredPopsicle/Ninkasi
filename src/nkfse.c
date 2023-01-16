@@ -121,6 +121,27 @@ static nkbool nkiCompilerFSE_coroutineResume(
     return nktrue;
 }
 
+
+// FIXME: Make this a real thing.
+//
+// static nkbool nkiCompilerFSE_coroutineIsFinished(
+//     struct NKCompilerState *cs,
+//     nkuint32_t argumentCount)
+// {
+//     if(argumentCount != 1) {
+//         nkiCompilerAddError(cs, "Incorrect argument count to coroutine_finished().");
+//         return nkfalse;
+//     }
+
+
+//     nkiCompilerAddInstructionSimple(
+//         cs, NK_OP_COROUTINE_YIELD, nktrue);
+    
+
+//     return nktrue;
+// }
+
+
 static nkbool nkiCompilerFSE_createObject(
     struct NKCompilerState *cs,
     nkuint32_t argumentCount)

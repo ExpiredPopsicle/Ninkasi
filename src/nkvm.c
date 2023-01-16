@@ -573,6 +573,8 @@ nkuint32_t nkiVmAddSourceFile(struct NKVM *vm, const char *filename)
     char **newList = NULL;
     nkuint32_t newIndex = vm->sourceFileCount;
 
+    assert(filename);
+
     // First search the list for it.
     for(i = 0; i < vm->sourceFileCount; i++) {
         if(nkiStrcmp(filename, vm->sourceFileList[i]) == 0) {
@@ -640,4 +642,3 @@ struct NKVMFilePositionMarker *nkiVmFindCurrentSourceMarker(struct NKVM *vm)
         vm->currentExecutionContext->instructionPointer &
         vm->instructionAddressMask);
 }
-

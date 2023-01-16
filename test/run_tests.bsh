@@ -22,12 +22,16 @@ function run_script()
         --error-exitcode=1 \
         src/ninkasi_test "$1" | tee -a output_linux.txt
 
-    rundos A.EXE "$1" | tee -a output_dos.txt
+    if [ -e A.EXE ]; then
+        rundos A.EXE "$1" | tee -a output_dos.txt
+    fi
 }
 
 for i in test/*.nks; do
     run_script "$i"
 done
 
-dos2unix output_dos.txt
-diff output_linux.txt output_dos.txt || true
+if [ -e A.EXE ]; then
+    dos2unix output_dos.txt
+    diff output_linux.txt output_dos.txt || true
+fi

@@ -46,6 +46,8 @@
 
 #include <setjmp.h>
 
+#include "nkmem.h"
+
 #include "nkerror.h"
 #include "nkstack.h"
 #include "nkopcode.h"

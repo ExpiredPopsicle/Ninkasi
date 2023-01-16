@@ -581,6 +581,23 @@ void nkxCompilerFinalize(
     struct NKCompilerState *cs);
 
 // ----------------------------------------------------------------------
+// REPL-specific compiler interface.
+
+// Make the VM executable and set up global variable references
+// without freeing compiler or context.
+void nkxCompilerPartiallyFinalize(struct NKCompilerState *cs);
+
+// Returns true if we're at the root compiler context (not waiting for
+// addition lines to close braces or anything.
+nkbool nkxCompilerIsAtRootContext(struct NKCompilerState *cs);
+
+// Attempt to clear out the error state of the VM and restore it to a
+// point where it can be executed again.
+void nkxCompilerClearReplErrorState(
+    struct NKCompilerState *cs,
+    nkuint32_t instructionPointerReset);
+
+// ----------------------------------------------------------------------
 // Serializer
 
 /// Serialize the entire VM state.

@@ -237,4 +237,14 @@ void nkiCompilerAddError(struct NKCompilerState *cs, const char *error);
 nkbool nkiCompilerPushRecursion(struct NKCompilerState *cs);
 void nkiCompilerPopRecursion(struct NKCompilerState *cs);
 
+
+// ----------------------------------------------------------------------
+// REPL-relevant stuff.
+
+nkbool nkiCompilerIsAtRootContext(struct NKCompilerState *cs);
+void nkiCompilerPartiallyFinalize(struct NKCompilerState *cs);
+void nkiCompilerClearReplErrorState(
+    struct NKCompilerState *cs,
+    nkuint32_t instructionPointerReset);
+
 #endif // NINKASI_COMPILER_H

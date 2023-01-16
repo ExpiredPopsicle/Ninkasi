@@ -77,8 +77,6 @@ void nkiCompilerAddInstruction(
 
     cs->vm->instructions[cs->instructionWriteIndex] = *inst;
 
-    
-
     // Adjust stack frame offset, if necessary.
     if(adjustStackFrame && cs->context) {
         cs->context->stackFrameOffset +=
@@ -563,6 +561,7 @@ nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrCont
     {
         if(!nkiCompilerCompileStatement(cs)) {
 
+            // Don't pop root context off the stack.
             if(!noBracesOrContext) {
                 nkiCompilerPopContext(cs);
             }
@@ -570,6 +569,13 @@ nkbool nkiCompilerCompileBlock(struct NKCompilerState *cs, nkbool noBracesOrCont
             nkiCompilerPopRecursion(cs);
             return nkfalse;
         }
+    }
+
+    if(nkiCompilerCurrentTokenType(cs) == NK_TOKENTYPE_CURLYBRACE_CLOSE &&
+        noBracesOrContext)
+    {
+        nkiCompilerAddError(cs, "Extra closing curly brace.");
+        return nkfalse;
     }
 
     if(!noBracesOrContext) {
@@ -1064,6 +1070,78 @@ struct NKCompilerState *nkiCompilerCreate(
     return cs;
 }
 
+
+void nkiCompilerGenerateGlobalVariables(
+    struct NKCompilerState *cs)
+{
+    // Run through the variable list once and count up how much
+    // memory we need.
+    nkuint32_t count = 0;
+    struct NKCompilerStateContextVariable *var =
+        cs->context->variables;
+    while(var) {
+        count++;
+        var = var->next;
+    }
+
+    // Do we have an old, stale global variable table? Free it.
+    if(cs->vm->globalVariables) {
+        nkuint32_t n;
+        for(n = 0; n < cs->vm->globalVariableCount; n++) {
+            nkiFree(cs->vm, cs->vm->globalVariables[n].name);
+        }
+        nkiFree(cs->vm, cs->vm->globalVariables);
+        cs->vm->globalVariables = NULL;
+    }
+
+    // Allocate that.
+    cs->vm->globalVariables =
+        (struct NKGlobalVariableRecord *)nkiMallocArray(
+            cs->vm, sizeof(struct NKGlobalVariableRecord), count);
+    cs->vm->globalVariableCount = count;
+
+    // Now run through it all again and actually assign data.
+    var = cs->context->variables;
+    count = 0;
+    while(var) {
+        cs->vm->globalVariables[count].staticPosition = var->position;
+        cs->vm->globalVariables[count].name = nkiStrdup(cs->vm, var->name);
+        count++;
+        var = var->next;
+    }
+}
+
+nkbool nkiCompilerIsAtRootContext(
+    struct NKCompilerState *cs)
+{
+    if(cs->context && cs->context->parent) {
+        return nkfalse;
+    }
+    return nktrue;
+}
+
+void nkiCompilerPartiallyFinalize(
+    struct NKCompilerState *cs)
+{
+    // This function cannot be called until the compiler has returned
+    // to the root context and all blocks have been closed.
+    assert(nkiCompilerIsAtRootContext(cs));
+
+    // Create the global variable table.
+    nkiCompilerGenerateGlobalVariables(cs);
+
+    // Add a temporary "END" instruction, but leave the instruction
+    // write pointer where it's at, so we can continue writing
+    // instructions after. The END instruction is special in that it
+    // decrements the instruction pointer, so even if it executes, we
+    // can still overwrite it to continue later.
+    {
+        nkuint32_t oldWriteIndex = cs->instructionWriteIndex;
+        nkiCompilerAddInstructionSimple(cs, NK_OP_END, nkfalse);
+        cs->instructionWriteIndex = oldWriteIndex;
+    }
+}
+
 void nkiCompilerFinalize(
     struct NKCompilerState *cs)
 {
@@ -1077,34 +1155,9 @@ void nkiCompilerFinalize(
         nkiCompilerPopContext(cs);
     }
 
-    // Create the global variable table.
-    {
-        // Run through the variable list once and count up how much
-        // memory we need.
-        nkuint32_t count = 0;
-        struct NKCompilerStateContextVariable *var =
-            cs->context->variables;
-        while(var) {
-            count++;
-            var = var->next;
-        }
-
-        // Allocate that.
-        cs->vm->globalVariables =
-            (struct NKGlobalVariableRecord *)nkiMallocArray(
-                cs->vm, sizeof(struct NKGlobalVariableRecord), count);
-        cs->vm->globalVariableCount = count;
-
-        // Now run through it all again and actually assign data.
-        var = cs->context->variables;
-        count = 0;
-        while(var) {
-            cs->vm->globalVariables[count].staticPosition = var->position;
-            cs->vm->globalVariables[count].name = nkiStrdup(cs->vm, var->name);
-            count++;
-            var = var->next;
-        }
-    }
+    // Handle all the usual tasks to get us to the point where we can
+    // actually execute.
+    nkiCompilerPartiallyFinalize(cs);
 
     // Pop the global context.
     while(cs->context) {
@@ -1602,6 +1655,40 @@ void nkiCompilerPopRecursion(struct NKCompilerState *cs)
 {
     assert(cs->recursionCount != 0);
     cs->recursionCount--;
+}
+
+void nkiCompilerClearReplErrorState(
+    struct NKCompilerState *cs,
+    nkuint32_t instructionPointerReset)
+{
+    // Reset instruction write index.
+    cs->instructionWriteIndex = instructionPointerReset;
+    cs->vm->instructions[cs->instructionWriteIndex].opcode = NK_OP_END;
+
+    // Re-init error state.
+    nkiErrorStateDestroy(cs->vm);
+    nkiErrorStateInit(cs->vm);
+
+    // Invalidate every execution context from every coroutine going
+    // up to the root execution context.
+    while(cs->vm->currentExecutionContext) {
+
+        struct NKVMExecutionContext *context = cs->vm->currentExecutionContext;
+        struct NKVMExecutionContext *parent = context->parent;
+
+        nkiVmDeinitExecutionContext(cs->vm, context);
+        nkiVmInitExecutionContext(cs->vm, context);
+
+        if(!parent) {
+            break;
+        }
+
+        cs->vm->currentExecutionContext = parent;
+    }
+
+    // Reset instruction pointer.
+    cs->vm->currentExecutionContext->instructionPointer = \
+        cs->instructionWriteIndex;
 }
 
 #undef NK_EXPECT_AND_SKIP_STATEMENT

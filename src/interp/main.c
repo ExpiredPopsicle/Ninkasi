@@ -55,10 +55,15 @@
 #include <string.h>
 #include <malloc.h>
 
+// FIXME: Remove this!
+#include "../nkcompil.h"
+#include "../nkvm.h"
+
 // This gets filled with information in parseCmdLine.
 struct Settings
 {
     char *scriptFilename;
+    nkbool replMode;
 };
 
 // Dump the --help text to stdout.
@@ -84,10 +89,10 @@ int parseCmdLine(int argc, char *argv[], struct Settings *settings)
 {
     int i;
 
-    if(argc < 2) {
-        fprintf(stderr, "error: No filename given.\n");
-        return 0;
-    }
+    // if(argc < 2) {
+    //     fprintf(stderr, "error: No filename given.\n");
+    //     return 0;
+    // }
 
     for(i = 1; i < argc; i++) {
 
@@ -121,50 +126,103 @@ int parseCmdLine(int argc, char *argv[], struct Settings *settings)
     return 1;
 }
 
-// This loads a file into a heap-allocated buffer. Returns NULL on
-// error.
-char *loadScript(const char *filename)
+// // This loads a file into a heap-allocated buffer. Returns NULL on
+// // error.
+// char *loadScript(const char *filename)
+// {
+//     FILE *in = fopen(filename, "rb");
+//     long len;
+//     char *buf;
+
+//     if(!in) {
+//         fprintf(stderr, "error: Failed to open %s.\n", filename);
+//         return NULL;
+//     }
+
+//     fseek(in, 0, SEEK_END);
+//     len = ftell(in);
+//     fseek(in, 0, SEEK_SET);
+
+//     if(len + 1 <= 0) {
+//         fprintf(stderr, "error: Bad file length.\n");
+//         return NULL;
+//     }
+
+//     buf = (char*)malloc(len + 1);
+
+//     if(!buf) {
+//         fprintf(stderr, "error: malloc() failed when loading script.\n");
+//         return NULL;
+//     }
+
+//     fread(buf, len, 1, in);
+//     buf[len] = 0;
+
+//     fclose(in);
+
+//     return buf;
+// }
+
+char *loadScriptFromStream(nkuint32_t *scriptSize, FILE *in, nkbool stopOnNewline)
 {
-    FILE *in = fopen(filename, "rb");
-    long len;
-    char *buf;
+    size_t bufSize = 256;
+    nkuint32_t scriptLen = 0;
+    char *buf = (char*)malloc(bufSize);
 
-    if(!in) {
-        fprintf(stderr, "error: Failed to open %s.\n", filename);
-        return NULL;
+    // Use a local variable instead of the argument if the argument
+    // was NULL.
+    if(!scriptSize) {
+        scriptSize = &scriptLen;
     }
 
-    fseek(in, 0, SEEK_END);
-    len = ftell(in);
-    fseek(in, 0, SEEK_SET);
+    *scriptSize = 0;
 
-    if(len + 1 <= 0) {
-        fprintf(stderr, "error: Bad file length.\n");
-        return NULL;
+    while(fread(&buf[*scriptSize], 1, 1, in) > 0) {
+
+        (*scriptSize)++;
+
+        buf[*scriptSize] = 0;
+
+        if(*scriptSize + 2 >= bufSize) {
+
+            bufSize <<= 1;
+
+            char *newBuf = (char*)realloc(buf, bufSize+2);
+
+            if(!newBuf) {
+                free(buf);
+                buf = NULL;
+                *scriptSize = 0;
+                return NULL;
+            }
+
+            buf = newBuf;
+        }
+
+        if(buf[*scriptSize - 1] == '\n' && stopOnNewline) {
+            return buf;
+        }
     }
-
-    buf = (char*)malloc(len + 1);
-
-    if(!buf) {
-        fprintf(stderr, "error: malloc() failed when loading script.\n");
-        return NULL;
-    }
-
-    fread(buf, len, 1, in);
-    buf[len] = 0;
-
-    fclose(in);
 
     return buf;
 }
 
-// This just checks to see if the VM has any errors, and prints them
-// to stderror if it does.
-int checkNoErrors(struct NKVM *vm)
+char *loadScript(const char *filename, nkuint32_t *scriptSize)
+{
+    FILE *in = fopen(filename, "rb");
+    if(in) {
+        char *buf = loadScriptFromStream(scriptSize, in, nkfalse);
+        fclose(in);
+        return buf;
+    }
+    return NULL;
+}
+
+void printErrors(struct NKVM *vm)
 {
     if(!vm) {
         fprintf(stderr, "error: VM has gone missing.\n");
-        return 0;
+        return;
     }
 
     if(nkxVmHasErrors(vm)) {
@@ -174,10 +232,18 @@ int checkNoErrors(struct NKVM *vm)
         nkxGetErrorText(vm, buf);
         fprintf(stderr, "%s\n", buf);
         free(buf);
+    }
+}
+
+// This just checks to see if the VM has any errors, and prints them
+// to stderror if it does.
+int checkNoErrors(struct NKVM *vm)
+{
+    if(!vm) {
         return 0;
     }
 
-    return 1;
+    return !nkxVmHasErrors(vm);
 }
 
 // "print" function callback.
@@ -297,6 +363,7 @@ int main(int argc, char *argv[])
     struct NKCompilerState *compiler = NULL;
     char *scriptText = NULL;
     struct Settings settings;
+    nkuint32_t scriptSize = 0;
 
     memset(&settings, 0, sizeof(settings));
 
@@ -305,16 +372,17 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    // No filename? Put us into REPL-mode.
     if(!settings.scriptFilename) {
-        // There was no command line error, but we also don't have
-        // anything to do. So let's go ahead and quit now.
-        return 0;
+        settings.replMode = nktrue;
     }
 
-    scriptText = loadScript(settings.scriptFilename);
-    if(!scriptText) {
-        // Script failed to load.
-        return 1;
+    if(!settings.replMode) {
+        scriptText = loadScript(settings.scriptFilename, &scriptSize);
+        if(!scriptText) {
+            // Script failed to load.
+            return 1;
+        }
     }
 
     // At this point we should have a loaded script file.
@@ -328,13 +396,55 @@ int main(int argc, char *argv[])
 
     // Compile the script. (You would do this multiple times before
     // finalizing for multi-file scripts.)
-    nkxCompilerCompileScript(compiler, scriptText, settings.scriptFilename);
+    if(settings.replMode) {
+
+        while(1) {
+
+            nkuint32_t oldWritePointer = 0;
+
+            // Read text.
+            printf("\n>>> ");
+            scriptText = loadScriptFromStream(
+                &scriptSize, stdin, nktrue);
+
+            // Handle EOF.
+            if(!scriptText || !scriptSize) {
+                printf("\n");
+                break;
+            }
+
+            // Compile and append executable code.
+
+            // FIXME: Remove this! Replace it with an actual interface!
+            oldWritePointer = compiler->instructionWriteIndex;
+
+            nkxCompilerCompileScript(compiler, scriptText, "<stdin>");
+            free(scriptText);
+
+            if(checkNoErrors(vm)) {
+                // Finalize and run.
+                nkxCompilerPartiallyFinalize(compiler);
+                nkxVmIterate(vm, NK_UINT_MAX);
+            }
+
+            if(!checkNoErrors(vm)) {
+
+                printErrors(vm);
+                nkxCompilerClearReplErrorState(
+                    compiler, oldWritePointer);
+            }
+        }
+
+    } else {
+        nkxCompilerCompileScript(compiler, scriptText, settings.scriptFilename);
+    }
 
     // Done compiling. Finalize everything.
     nkxCompilerFinalize(compiler);
 
     // Check for compile errors.
     if(!checkNoErrors(vm)) {
+        printErrors(vm);
         nkxVmDelete(vm);
         free(scriptText);
         return 1;
@@ -344,7 +454,8 @@ int main(int argc, char *argv[])
     nkxVmIterate(vm, NK_UINT_MAX);
 
     // Check for runtime errors.
-    if(checkNoErrors(vm)) {
+    if(!checkNoErrors(vm)) {
+        printErrors(vm);
         nkxVmDelete(vm);
         free(scriptText);
         return 1;
