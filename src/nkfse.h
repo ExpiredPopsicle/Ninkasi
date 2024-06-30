@@ -41,8 +41,17 @@
 //
 // -------------------------- END HEADER -------------------------------------
 
+// "Function Style Expressions" are named expressions that look like
+// function calls. This includes things like len(), object(), and
+// various coroutine manipulation functions. These aren't actually
+// functions, but you call them like one instead of them having their
+// own specific syntax (like in Lua how you have '#' for array length
+// and we use 'len()').
+
 #ifndef NINKASI_FSE_H
 #define NINKASI_FSE_H
+
+#include "nktypes.h"
 
 nkbool nkiCompilerIsFunctionStyleExpressionName(
     struct NKVM *vm, const char *str);

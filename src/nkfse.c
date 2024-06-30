@@ -121,25 +121,20 @@ static nkbool nkiCompilerFSE_coroutineResume(
     return nktrue;
 }
 
+static nkbool nkiCompilerFSE_coroutineIsFinished(
+    struct NKCompilerState *cs,
+    nkuint32_t argumentCount)
+{
+    if(argumentCount != 1) {
+        nkiCompilerAddError(cs, "Incorrect argument count to coroutine_finished().");
+        return nkfalse;
+    }
 
-// FIXME: Make this a real thing.
-//
-// static nkbool nkiCompilerFSE_coroutineIsFinished(
-//     struct NKCompilerState *cs,
-//     nkuint32_t argumentCount)
-// {
-//     if(argumentCount != 1) {
-//         nkiCompilerAddError(cs, "Incorrect argument count to coroutine_finished().");
-//         return nkfalse;
-//     }
+    nkiCompilerAddInstructionSimple(
+        cs, NK_OP_COROUTINE_ISFINISHED, nktrue);
 
-
-//     nkiCompilerAddInstructionSimple(
-//         cs, NK_OP_COROUTINE_YIELD, nktrue);
-    
-
-//     return nktrue;
-// }
+    return nktrue;
+}
 
 
 static nkbool nkiCompilerFSE_createObject(
@@ -174,11 +169,12 @@ static nkbool nkiCompilerFSE_len(
 }
 
 static struct NKFunctionStyleExpression nkiFunctionStyleExpressionList[] = {
-    { "coroutine", nkiCompilerFSE_coroutineCreate },
-    { "yield",     nkiCompilerFSE_coroutineYield  },
-    { "resume",    nkiCompilerFSE_coroutineResume },
-    { "object",    nkiCompilerFSE_createObject    },
-    { "len",       nkiCompilerFSE_len             },
+    { "coroutine",   nkiCompilerFSE_coroutineCreate },
+    { "yield",       nkiCompilerFSE_coroutineYield  },
+    { "resume",      nkiCompilerFSE_coroutineResume },
+    { "is_finished", nkiCompilerFSE_coroutineIsFinished },
+    { "object",      nkiCompilerFSE_createObject    },
+    { "len",         nkiCompilerFSE_len             },
 };
 
 const nkuint32_t nkiFunctionStyleExpressionCount =

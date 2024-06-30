@@ -392,6 +392,15 @@ int main(int argc, char *argv[])
                 printErrors(vm);
                 nkxCompilerClearReplErrorState(
                     compiler, oldWritePointer);
+
+                // FIXME: Clear out new
+                //   NKCompilerStateContextVariables from root
+                //   NKCompilerStateContext!
+
+                // FIXME: Clear out any static memory we used for
+                //   those new variables. (This may not be necessary:
+                //   I think we need to actually execute code to fill
+                //   those.)
             }
 
             // Abort on allocation failures.

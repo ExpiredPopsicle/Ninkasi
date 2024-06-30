@@ -133,3 +133,24 @@ for(var i = 0; i < 10; ++i) {
 }
 
 
+// ----------------------------------------------------------------------
+// Coroutine "is_finished" support.
+
+function functionToCall4()
+{
+    print("coroutine: hiya!\n");
+    yield(0);
+    print("coroutine: still going...\n");
+    yield(0);
+    print("coroutine: not done yet...\n");
+    yield(0);
+    print("coroutine: okay wrapping it up now.\n");
+}
+
+var coroutineObject4 = coroutine(functionToCall4);
+while(!is_finished(coroutineObject4)) {
+    resume(coroutineObject4);
+    print("finished yet? ", is_finished(coroutineObject4), "\n");
+}
+
+

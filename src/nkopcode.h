@@ -146,6 +146,7 @@ void nkiOpcode_pushNil(struct NKVM *vm);
 void nkiOpcode_coroutineCreate(struct NKVM *vm);
 void nkiOpcode_coroutineYield(struct NKVM *vm);
 void nkiOpcode_coroutineResume(struct NKVM *vm);
+void nkiOpcode_coroutineIsFinished(struct NKVM *vm);
 
 // len().
 void nkiOpcode_len(struct NKVM *vm);

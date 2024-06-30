@@ -1327,6 +1327,41 @@ void nkiOpcode_coroutineResume(struct NKVM *vm)
     }
 }
 
+void nkiOpcode_coroutineIsFinished(struct NKVM *vm)
+{
+    struct NKValue *coroutineptr = nkiVmStackPop(vm);
+
+    if(coroutineptr) {
+
+        struct NKValue coroutine = *coroutineptr;
+        struct NKVMExecutionContext *context = NULL;
+        NKVMExternalDataTypeID coroutineDataType =
+            vm->internalObjectTypes.coroutine;
+        NKVMExternalDataTypeID objectDataType =
+            nkiVmObjectGetExternalType(vm, &coroutine);
+        struct NKValue returnValue;
+
+        if(coroutineDataType.id != objectDataType.id) {
+            nkiAddError(vm, "Tried to check for a finished coroutine with the wrong object type.");
+            return;
+        }
+
+        context =
+            (struct NKVMExecutionContext *)nkxVmObjectGetExternalData(
+                vm, &coroutine);
+
+        returnValue.type = NK_VALUETYPE_INT;
+        returnValue.intData = 0;
+
+        if(context->coroutineState == NK_COROUTINE_FINISHED) {
+            returnValue.intData = 1;
+        }
+
+        *nkiVmStackPush_internal(vm) = returnValue;
+    }
+
+}
+
 void nkiOpcode_len(struct NKVM *vm)
 {
     struct NKValue *valueptr = nkiVmStackPop(vm);
